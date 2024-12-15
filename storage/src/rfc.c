@@ -35,3 +35,49 @@ void format_rfc3339(uint64_t milliseconds, char* buf) {
             info.tm_sec,          // Second
             remainder);           // Milliseconds
 }
+
+uint64_t parse_rfc3339(char* buf) {
+    struct tm info;
+    struct timespec ts;
+    int milliseconds = 0;
+
+    if (strlen(buf) != AUXTS_RFC3339_MAX_SIZE) {
+    }
+
+    memset(&info, 0, sizeof(info));
+
+    // Parse the RFC 3339 string
+    // Expecting the format YYYY-MM-DDTHH:MM:SS[.sss]Z
+    int ret = sscanf(buf, "%d-%d-%dT%d:%d:%d.%dZ",
+                     &info.tm_year, &info.tm_mon, &info.tm_mday,
+                     &info.tm_hour, &info.tm_min, &info.tm_sec,
+                     &milliseconds);
+
+    if (ret < 6) {
+        fprintf(stderr, "Invalid RFC 3339 format\n");
+        return -1;
+    }
+
+    info.tm_year -= 1900;
+    info.tm_mon -= 1;
+
+    time_t t = timegm(&info);
+    if (t == -1) {
+        perror("timegm");
+        return -1;
+    }
+
+    ts.tv_sec = t;
+    ts.tv_nsec = milliseconds * AUXTS_NANOSECONDS_PER_MILLISECOND;
+
+    return ts_to_milliseconds(&ts);
+}
+
+int test_rfc3339() {
+    uint64_t milliseconds = 1734272943291;
+
+    char buf[55];
+    format_rfc3339(milliseconds, buf);
+
+    return milliseconds != parse_rfc3339(buf);
+}

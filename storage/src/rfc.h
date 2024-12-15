@@ -23,4 +23,8 @@ uint64_t ts_to_milliseconds(struct timespec* ts);
 
 void format_rfc3339(uint64_t milliseconds, char* buf);
 
+uint64_t parse_rfc3339(char* buf);
+
+int test_rfc3339();
+
 #endif //AUXTS_RFC_H
