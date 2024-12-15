@@ -7,6 +7,12 @@ enable_testing()
 
 add_test(rfc_test auxts "rfc")
 
+add_test(murmur3_test auxts "murmur3")
+
 add_executable(auxts main.c
+        src/endian.h
+        src/macro.h
         src/rfc.h
-        src/rfc.c)
+        src/rfc.c
+        src/murmur3.h
+        src/murmur3.c)
