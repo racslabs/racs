@@ -84,10 +84,11 @@ void murmur3_x64_128(const uint8_t* key, int len, uint32_t seed, uint64_t* out) 
 
 int test_murmur3() {
     char* data = "Hello, world!";
+
     uint64_t out[2];
     murmur3_x64_128((uint8_t*)data, 13, 0, out);
 
-    printf("hi %s", data);
+    uint64_t hash = 17388730015462876639ULL;
 
-    return 0;
+    return out[0] != hash;
 }

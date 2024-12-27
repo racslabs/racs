@@ -78,6 +78,7 @@ int test_rfc3339() {
 
     char buf[55];
     format_rfc3339(milliseconds, buf);
+    printf("%s", buf);
 
     return milliseconds != parse_rfc3339(buf);
 }
