@@ -8,7 +8,11 @@ Hashmap* create_hashmap(size_t size) {
     }
 
     map->size = size;
-    map->buckets = malloc(size * sizeof(LinkedList *));
+    map->buckets = malloc(size * sizeof(LinkedList*));
+
+    for (int i = 0; i < map->size; ++i) {
+        map->buckets[i] = create_list();
+    }
 
     if (!map->buckets) {
         perror("Failed to allocate buckets");
@@ -18,59 +22,113 @@ Hashmap* create_hashmap(size_t size) {
     return map;
 }
 
-HashmapEntry* create_hashmap_entry(uint64_t* key, uint8_t* value) {
+HashmapEntry* create_hashmap_entry(const uint64_t* key, void* value) {
     HashmapEntry* entry = malloc(sizeof(HashmapEntry));
     if (!entry) {
         perror("Failed to allocate HashmapEntry");
         exit(-1);
     }
 
-    entry->key = key;
+    entry->key[0] = key[0];
+    entry->key[1] = key[1];
     entry->value = value;
 
     return entry;
 }
 
-void put_hashmap(Hashmap* map, uint64_t* key, uint8_t* value) {
+void destroy_hashmap_entry(HashmapEntry* entry) {
+    free(entry->value);
+    free(entry);
+}
+
+void put_hashmap(Hashmap* map, uint64_t* key, void* value) {
     uint64_t _key = hash((uint8_t*) key, 2 * sizeof(uint64_t), map->size);
 
-    if (!map->buckets[_key]) {
-        map->buckets[_key] = create_list();
-    }
-
     LinkedList* list = map->buckets[_key];
-    Node* node = list->head;
+    Node* curr = list->head;
 
-    while (node) {
-        HashmapEntry* entry = (HashmapEntry*) node->data;
+    while (curr) {
+        HashmapEntry* entry = (HashmapEntry*) curr->data;
         if (entry->key[0] == key[0] && entry->key[1] == key[1]) {
+            free(entry->value);
+            entry->value = value;
             return;
         }
 
-        node = (Node*) node->next;
+        curr = (Node*) curr->next;
     }
 
     HashmapEntry* entry = create_hashmap_entry(key, value);
-    node = create_node(entry);
-    insert_at_tail(list, node);
+    curr = create_node(entry);
+    insert_at_tail(list, curr);
 }
 
-uint8_t* get_hashmap(Hashmap* map, uint64_t* key) {
+void* get_hashmap(Hashmap* map, uint64_t* key) {
     uint64_t _key = hash((uint8_t*) key, 2 * sizeof(uint64_t), map->size);
 
     LinkedList* list = map->buckets[_key];
-    Node* node = list->head;
+    Node* curr = list->head;
 
-    while (node) {
-        HashmapEntry* entry = (HashmapEntry*) node->data;
+    while (curr) {
+        HashmapEntry* entry = (HashmapEntry*) curr->data;
         if (entry->key[0] == key[0] && entry->key[1] == key[1]) {
             return entry->value;
         }
 
-        node = (Node*) node->next;
+        curr = (Node*) curr->next;
     }
 
     return NULL;
+}
+
+void delete_hashmap(Hashmap* map, uint64_t* key) {
+    uint64_t _key = hash((uint8_t*) key, 2 * sizeof(uint64_t), map->size);
+
+    LinkedList* list = map->buckets[_key];
+    Node* prev = NULL;
+    Node* curr = list->head;
+
+    while (curr) {
+        HashmapEntry* entry = (HashmapEntry*) curr->data;
+        if (entry->key[0] == key[0] && entry->key[1] == key[1]) {
+            if (prev) {
+                prev->next = curr->next;
+            } else {
+                list->head = (Node*) curr->next;
+            }
+
+            if (curr == list->tail) {
+                list->tail = prev;
+            }
+
+            destroy_hashmap_entry(entry);
+            free(curr);
+            return;
+        }
+
+        prev = curr;
+        curr = (Node*) curr->next;
+    }
+}
+
+
+void destroy_hashmap(Hashmap* map) {
+    for (int i = 0; i < map->size; ++i) {
+        LinkedList* list = map->buckets[i];
+        Node* node = list->head;
+
+        while (node) {
+            Node* next = (Node*) node->next;
+
+            HashmapEntry* entry = node->data;
+            destroy_hashmap_entry(entry);
+            free(node);
+
+            node = next;
+        }
+    }
+
+    free(map);
 }
 
 int test_hashmap() {
@@ -90,8 +148,15 @@ int test_hashmap() {
     uint8_t* data2 = (uint8_t*)strdup("data2");
     put_hashmap(map, key2, data2);
 
-    printf("%s\n", get_hashmap(map, key1));
-    printf("%s\n", get_hashmap(map, key2));
+    printf("%s\n", (char*)get_hashmap(map, key1));
+    printf("%s\n", (char*)get_hashmap(map, key2));
+
+    uint8_t* data3 = (uint8_t*) strdup("data3");
+    put_hashmap(map, key1, data3);
+
+    printf("%s\n", (char*)get_hashmap(map, key1));
+
+    destroy_hashmap(map);
 
     return 0;
 }

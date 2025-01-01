@@ -24,4 +24,6 @@ add_executable(auxts main.c
         src/list.c
         src/hashmap.h
         src/hashmap.c
+        src/cache.h
+        src/cache.c
 )

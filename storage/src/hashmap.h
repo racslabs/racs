@@ -6,7 +6,7 @@
 #include "list.h"
 
 typedef struct {
-    uint64_t* key;
+    uint64_t key[2];
     uint8_t* value;
 } HashmapEntry;
 
@@ -15,7 +15,7 @@ typedef struct {
     LinkedList** buckets;
 } Hashmap;
 
-AUXTS_FORCE_INLINE uint64_t hash(uint8_t* data, int len, size_t size) {
+AUXTS_FORCE_INLINE uint64_t hash(void* data, int len, size_t size) {
     uint64_t _hash[2];
     murmur3_x64_128(data, len, 0, _hash);
     return _hash[0] % size;
@@ -23,11 +23,17 @@ AUXTS_FORCE_INLINE uint64_t hash(uint8_t* data, int len, size_t size) {
 
 Hashmap* create_hashmap(size_t size);
 
-HashmapEntry* create_hashmap_entry(uint64_t* key, uint8_t* value);
+HashmapEntry* create_hashmap_entry(const uint64_t* key, void* value);
 
-void put_hashmap(Hashmap* map, uint64_t* key, uint8_t* value);
+void destroy_hashmap_entry(HashmapEntry* entry);
 
-uint8_t* get_hashmap(Hashmap* map, uint64_t* key);
+void put_hashmap(Hashmap* map, uint64_t* key, void* value);
+
+void* get_hashmap(Hashmap* map, uint64_t* key);
+
+void delete_hashmap(Hashmap* map, uint64_t* key);
+
+void destroy_hashmap(Hashmap* map);
 
 int test_hashmap();
 
