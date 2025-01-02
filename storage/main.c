@@ -3,6 +3,7 @@
 #include "src/memtable.h"
 #include "src/list.h"
 #include "src/hashmap.h"
+#include "src/cache.h"
 
 int main(int argc, char **argv) {
     if (strcmp(argv[1], "rfc") == 0) {
@@ -23,6 +24,10 @@ int main(int argc, char **argv) {
 
     if (strcmp(argv[1], "hashmap") == 0) {
         return test_hashmap();
+    }
+
+    if (strcmp(argv[1], "cache") == 0) {
+        return test_lru_cache();
     }
 
     return 0;

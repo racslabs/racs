@@ -23,4 +23,10 @@ LRUCacheEntry* create_lru_cache_entry(const uint64_t* key, uint8_t* value);
 
 void put_lru_cache(LRUCache* cache, uint64_t* key, uint8_t* value);
 
+uint8_t* get_lru_cache(LRUCache* cache, uint64_t* key);
+
+void evict_lru_cache(LRUCache* cache);
+
+int test_lru_cache();
+
 #endif //AUXTS_CACHE_H

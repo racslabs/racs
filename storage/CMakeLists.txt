@@ -10,6 +10,7 @@ add_test(murmur3_test auxts "murmur3")
 add_test(memtable_test auxts "memtable")
 add_test(list_test auxts "list")
 add_test(hashmap_test auxts "hashmap")
+add_test(cache_test auxts "cache")
 
 add_executable(auxts main.c
         src/endian.h

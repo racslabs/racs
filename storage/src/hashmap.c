@@ -89,7 +89,7 @@ void delete_hashmap(Hashmap* map, uint64_t* key) {
     Node* curr = list->head;
 
     while (curr) {
-        HashmapEntry* entry = (HashmapEntry*) curr->data;
+        HashmapEntry* entry = curr->data;
         if (entry->key[0] == key[0] && entry->key[1] == key[1]) {
             if (prev) {
                 prev->next = curr->next;
@@ -111,20 +111,19 @@ void delete_hashmap(Hashmap* map, uint64_t* key) {
     }
 }
 
-
 void destroy_hashmap(Hashmap* map) {
     for (int i = 0; i < map->size; ++i) {
         LinkedList* list = map->buckets[i];
-        Node* node = list->head;
+        Node* curr = list->head;
 
-        while (node) {
-            Node* next = (Node*) node->next;
+        while (curr) {
+            Node* next = (Node*) curr->next;
+            HashmapEntry* entry = curr->data;
 
-            HashmapEntry* entry = node->data;
             destroy_hashmap_entry(entry);
-            free(node);
+            free(curr);
 
-            node = next;
+            curr = next;
         }
     }
 
@@ -143,16 +142,18 @@ int test_hashmap() {
     Hashmap* map = create_hashmap(4);
 
     uint8_t* data1 = (uint8_t*)strdup("data1");
-    put_hashmap(map, key1, data1);
-
     uint8_t* data2 = (uint8_t*)strdup("data2");
+    uint8_t* data3 = (uint8_t*) strdup("data3");
+
+    put_hashmap(map, key1, data1);
     put_hashmap(map, key2, data2);
 
     printf("%s\n", (char*)get_hashmap(map, key1));
     printf("%s\n", (char*)get_hashmap(map, key2));
 
-    uint8_t* data3 = (uint8_t*) strdup("data3");
     put_hashmap(map, key1, data3);
+
+    delete_hashmap(map, key1);
 
     printf("%s\n", (char*)get_hashmap(map, key1));
 

@@ -65,8 +65,7 @@ void delete_at_tail(LinkedList* list) {
     list->tail = (Node*) tail->prev;
     list->tail->next = NULL;
 
-    free(tail->data);
-    free(tail);
+    destroy_node(tail);
 }
 
 void destroy_node(Node* node) {
