@@ -4,6 +4,7 @@
 #include "src/list.h"
 #include "src/hashmap.h"
 #include "src/cache.h"
+#include "src/extract.h"
 
 int main(int argc, char **argv) {
     if (strcmp(argv[1], "rfc") == 0) {
@@ -28,6 +29,10 @@ int main(int argc, char **argv) {
 
     if (strcmp(argv[1], "cache") == 0) {
         return test_lru_cache();
+    }
+
+    if (strcmp(argv[1], "extract") == 0) {
+        return test_extract();
     }
 
     return 0;

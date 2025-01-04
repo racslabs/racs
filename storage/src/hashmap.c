@@ -8,19 +8,39 @@ Hashmap* create_hashmap(size_t size) {
     }
 
     map->size = size;
-    map->buckets = malloc(size * sizeof(LinkedList*));
 
-    for (int i = 0; i < map->size; ++i) {
-        map->buckets[i] = create_list();
-    }
-
+    map->buckets = malloc(size * sizeof(Bucket*));
     if (!map->buckets) {
         perror("Failed to allocate buckets");
         exit(-1);
     }
 
+    for (int i = 0; i < map->size; ++i) {
+        map->buckets[i] = create_bucket();
+    }
+
     return map;
 }
+
+Bucket* create_bucket() {
+    Bucket* bucket = malloc(sizeof(Bucket));
+    if (!bucket) {
+        perror("Error allocating Bucket");
+        exit(-1);
+    }
+
+    bucket->count = 0;
+    bucket->capacity = AUXTS_INITIAL_BUCKET_CAP;
+
+    bucket->entries = malloc(AUXTS_INITIAL_BUCKET_CAP * sizeof(HashmapEntry*));
+    if (!bucket->entries) {
+        perror("Error allocating hashmap entries");
+        exit(-1);
+    }
+
+    return bucket;
+}
+
 
 HashmapEntry* create_hashmap_entry(const uint64_t* key, void* value) {
     HashmapEntry* entry = malloc(sizeof(HashmapEntry));
@@ -44,38 +64,46 @@ void destroy_hashmap_entry(HashmapEntry* entry) {
 void put_hashmap(Hashmap* map, uint64_t* key, void* value) {
     uint64_t _key = hash((uint8_t*) key, 2 * sizeof(uint64_t), map->size);
 
-    LinkedList* list = map->buckets[_key];
-    Node* curr = list->head;
+    Bucket* bucket = map->buckets[_key];
 
-    while (curr) {
-        HashmapEntry* entry = (HashmapEntry*) curr->data;
+    for (int i = 0; i < bucket->count; ++i) {
+        HashmapEntry* entry = bucket->entries[i];
+        if (!entry) continue;
+
         if (entry->key[0] == key[0] && entry->key[1] == key[1]) {
             free(entry->value);
             entry->value = value;
             return;
         }
-
-        curr = (Node*) curr->next;
     }
 
     HashmapEntry* entry = create_hashmap_entry(key, value);
-    curr = create_node(entry);
-    insert_at_tail(list, curr);
+
+    if (bucket->count >= bucket->capacity) {
+        bucket->capacity = 1 << bucket->capacity;
+
+        bucket->entries = realloc(bucket->entries, bucket->capacity * sizeof(HashmapEntry*));
+        if (!bucket->entries) {
+            perror("Error reallocating entries");
+            exit(-1);
+        }
+    }
+
+    bucket->entries[bucket->count] = entry;
+    ++bucket->count;
 }
 
 void* get_hashmap(Hashmap* map, uint64_t* key) {
     uint64_t _key = hash((uint8_t*) key, 2 * sizeof(uint64_t), map->size);
 
-    LinkedList* list = map->buckets[_key];
-    Node* curr = list->head;
+    Bucket* bucket = map->buckets[_key];
+    for (int i = 0; i < bucket->count; ++i) {
+        HashmapEntry* entry = bucket->entries[i];
+        if (!entry) continue;
 
-    while (curr) {
-        HashmapEntry* entry = (HashmapEntry*) curr->data;
         if (entry->key[0] == key[0] && entry->key[1] == key[1]) {
             return entry->value;
         }
-
-        curr = (Node*) curr->next;
     }
 
     return NULL;
@@ -84,30 +112,14 @@ void* get_hashmap(Hashmap* map, uint64_t* key) {
 void delete_hashmap(Hashmap* map, uint64_t* key) {
     uint64_t _key = hash((uint8_t*) key, 2 * sizeof(uint64_t), map->size);
 
-    LinkedList* list = map->buckets[_key];
-    Node* prev = NULL;
-    Node* curr = list->head;
+    Bucket* bucket = map->buckets[_key];
+    for (int i = 0; i < bucket->count; ++i) {
+        HashmapEntry* entry = bucket->entries[i];
+        if (!entry) continue;
 
-    while (curr) {
-        HashmapEntry* entry = curr->data;
         if (entry->key[0] == key[0] && entry->key[1] == key[1]) {
-            if (prev) {
-                prev->next = curr->next;
-            } else {
-                list->head = (Node*) curr->next;
-            }
-
-            if (curr == list->tail) {
-                list->tail = prev;
-            }
-
             destroy_hashmap_entry(entry);
-            free(curr);
-            return;
         }
-
-        prev = curr;
-        curr = (Node*) curr->next;
     }
 }
 
@@ -139,7 +151,7 @@ int test_hashmap() {
     key2[0] = 3;
     key2[1] = 4;
 
-    Hashmap* map = create_hashmap(4);
+    Hashmap* map = create_hashmap(3);
 
     uint8_t* data1 = (uint8_t*)strdup("data1");
     uint8_t* data2 = (uint8_t*)strdup("data2");
@@ -157,7 +169,7 @@ int test_hashmap() {
 
     printf("%s\n", (char*)get_hashmap(map, key1));
 
-    destroy_hashmap(map);
+//    destroy_hashmap(map);
 
     return 0;
 }

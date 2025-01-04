@@ -11,6 +11,7 @@ add_test(memtable_test auxts "memtable")
 add_test(list_test auxts "list")
 add_test(hashmap_test auxts "hashmap")
 add_test(cache_test auxts "cache")
+add_test(extract_test auxts "extract")
 
 add_executable(auxts main.c
         src/endian.h
@@ -27,4 +28,6 @@ add_executable(auxts main.c
         src/hashmap.c
         src/cache.h
         src/cache.c
+        src/extract.h
+        src/extract.c
 )
