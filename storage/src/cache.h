@@ -9,7 +9,7 @@ typedef struct {
     size_t capacity;
     size_t size;
     LinkedList* list;
-    Hashmap* cache;
+    AUXTS__Hashmap* cache;
 } LRUCache;
 
 typedef struct {

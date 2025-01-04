@@ -3,25 +3,26 @@
 #define AUXTS_HASHMAP_H
 
 #include "murmur3.h"
-#include "list.h"
+#include <stdlib.h>
+#include <string.h>
 
 #define AUXTS_INITIAL_BUCKET_CAP 2
 
 typedef struct {
     uint64_t key[2];
     void* value;
-} HashmapEntry;
+} AUXTS__HashmapEntry;
 
 typedef struct {
     size_t count;
     size_t capacity;
-    HashmapEntry** entries;
-} Bucket;
+    AUXTS__HashmapEntry** entries;
+} AUXTS__HashmapBucket;
 
 typedef struct {
     size_t size;
-    Bucket** buckets;
-} Hashmap;
+    AUXTS__HashmapBucket** buckets;
+} AUXTS__Hashmap;
 
 AUXTS_FORCE_INLINE uint64_t hash(void* data, int len, size_t size) {
     uint64_t _hash[2];
@@ -29,21 +30,15 @@ AUXTS_FORCE_INLINE uint64_t hash(void* data, int len, size_t size) {
     return _hash[0] % size;
 }
 
-Hashmap* create_hashmap(size_t size);
+AUXTS__Hashmap* AUXTS__Hashmap_construct(size_t size);
 
-HashmapEntry* create_hashmap_entry(const uint64_t* key, void* value);
+void AUXTS__Hashmap_put(AUXTS__Hashmap* map, uint64_t* key, void* value);
 
-Bucket* create_bucket();
+void* AUXTS__Hashmap_get(AUXTS__Hashmap* map, uint64_t* key);
 
-void destroy_hashmap_entry(HashmapEntry* entry);
+void AUXTS__Hashmap_delete(AUXTS__Hashmap* map, uint64_t* key);
 
-void put_hashmap(Hashmap* map, uint64_t* key, void* value);
-
-void* get_hashmap(Hashmap* map, uint64_t* key);
-
-void delete_hashmap(Hashmap* map, uint64_t* key);
-
-void destroy_hashmap(Hashmap* map);
+void AUXTS__Hashmap_destroy(AUXTS__Hashmap* map);
 
 int test_hashmap();
 

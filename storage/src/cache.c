@@ -10,7 +10,7 @@ LRUCache* create_lru_cache(size_t capacity) {
     cache->size = 0;
     cache->capacity = capacity;
     cache->list = create_list();
-    cache->cache = create_hashmap(capacity);
+    cache->cache = AUXTS__Hashmap_construct(capacity);
 
     return cache;
 }
@@ -30,7 +30,7 @@ LRUCacheEntry* create_lru_cache_entry(const uint64_t* key, uint8_t* value) {
 }
 
 void put_lru_cache(LRUCache* cache, uint64_t* key, uint8_t* value) {
-    LRUCacheEntry* curr = get_hashmap(cache->cache, key);
+    LRUCacheEntry* curr = AUXTS__Hashmap_get(cache->cache, key);
     if (curr) return;
 
     if (cache->size >= cache->capacity) {
@@ -41,13 +41,13 @@ void put_lru_cache(LRUCache* cache, uint64_t* key, uint8_t* value) {
     Node* node = create_node(curr);
 
     insert_at_head(cache->list, node);
-    put_hashmap(cache->cache, key, curr);
+    AUXTS__Hashmap_put(cache->cache, key, curr);
 
     ++cache->size;
 }
 
 uint8_t* get_lru_cache(LRUCache* cache, uint64_t* key) {
-    LRUCacheEntry* curr = get_hashmap(cache->cache, key);
+    LRUCacheEntry* curr = AUXTS__Hashmap_get(cache->cache, key);
     if (curr) {
         return curr->value;
     }
@@ -60,7 +60,7 @@ void evict_lru_cache(LRUCache* cache) {
     LRUCacheEntry* entry = tail->data;
 
     free(entry->value);
-    delete_hashmap(cache->cache, entry->key);
+    AUXTS__Hashmap_delete(cache->cache, entry->key);
 
     cache->list->tail = (Node*) tail->prev;
     cache->list->tail->next = NULL;
