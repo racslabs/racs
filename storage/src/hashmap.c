@@ -110,7 +110,7 @@ void* get_hashmap(Hashmap* map, uint64_t* key) {
 }
 
 void delete_hashmap(Hashmap* map, uint64_t* key) {
-    uint64_t _key = hash((uint8_t*) key, 2 * sizeof(uint64_t), map->size);
+    uint64_t _key = hash((uint8_t*)key, 2 * sizeof(uint64_t), map->size);
 
     Bucket* bucket = map->buckets[_key];
     for (int i = 0; i < bucket->count; ++i) {
@@ -119,26 +119,34 @@ void delete_hashmap(Hashmap* map, uint64_t* key) {
 
         if (entry->key[0] == key[0] && entry->key[1] == key[1]) {
             destroy_hashmap_entry(entry);
+
+            for (int j = i; j < bucket->count - 1; ++j) {
+                bucket->entries[j] = bucket->entries[j + 1];
+            }
+
+            bucket->entries[bucket->count - 1] = NULL;
+            bucket->count--;
+            return;
         }
     }
 }
 
 void destroy_hashmap(Hashmap* map) {
     for (int i = 0; i < map->size; ++i) {
-        LinkedList* list = map->buckets[i];
-        Node* curr = list->head;
+        Bucket* bucket = map->buckets[i];
 
-        while (curr) {
-            Node* next = (Node*) curr->next;
-            HashmapEntry* entry = curr->data;
+        for (int j = 0; j < bucket->count; ++j) {
+            HashmapEntry* entry = bucket->entries[j];
+            if (!entry) continue;
 
             destroy_hashmap_entry(entry);
-            free(curr);
-
-            curr = next;
         }
+
+        free(bucket->entries);
+        free(bucket);
     }
 
+    free(map->buckets);
     free(map);
 }
 
@@ -165,11 +173,11 @@ int test_hashmap() {
 
     put_hashmap(map, key1, data3);
 
-    delete_hashmap(map, key1);
+//    delete_hashmap(map, key1);
 
     printf("%s\n", (char*)get_hashmap(map, key1));
 
-//    destroy_hashmap(map);
+    destroy_hashmap(map);
 
     return 0;
 }
