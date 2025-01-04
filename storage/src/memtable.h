@@ -27,71 +27,38 @@ typedef struct {
     uint64_t key[2];
     uint8_t* block;
     uint16_t block_size;
-} MemtableEntry;
+} AUXTS__MemtableEntry;
 
 typedef struct {
-    MemtableEntry* entries;
+    AUXTS__MemtableEntry* entries;
     uint16_t size;
     uint16_t capacity;
     pthread_mutex_t mutex;
-} Memtable;
+} AUXTS__Memtable;
 
 typedef struct {
     uint64_t key[2];
     size_t offset;
-} SSTableIndexEntry;
+} AUXTS__SSTableIndexEntry;
 
 typedef struct {
     int fd;
     uint16_t entry_count;
-    SSTableIndexEntry* index_entries;
-} SSTable;
+    AUXTS__SSTableIndexEntry* index_entries;
+} AUXTS__SSTable;
 
 typedef struct {
     int index;
-    Memtable* tables[AUXTS_MAX_NUM_MEMTABLES];
+    AUXTS__Memtable* tables[AUXTS_MAX_NUM_MEMTABLES];
     pthread_mutex_t mutex;
-} MultiMemtable;
+} AUXTS__MultiMemtable;
 
-MultiMemtable* create_multi_memtable(int memtable_capacity);
-
-void append_to_multi_memtable(MultiMemtable* multi_memtable, uint64_t* key, uint8_t* block, int block_size);
-
-void destroy_multi_memtable(MultiMemtable* multi_memtable);
-
-void flush_multi_memtable(MultiMemtable* multi_memtable);
-
-Memtable* create_memtable(int capacity);
-
-void append_to_memtable(Memtable* memtable, uint64_t* key, uint8_t* block, int block_size);
-
-void flush_memtable(Memtable* memtable);
-
-void destroy_memtable(Memtable* memtable);
-
-SSTable* create_sstable(int entry_count);
-
-SSTable* read_sstable(const char* filename);
-
-void destroy_sstable(SSTable* sstable);
-
-void create_time_partitioned_directories(uint64_t milliseconds);
-
-void get_time_partitioned_path(uint64_t milliseconds, char* path);
-
-void read_index_entries(SSTable* sstable);
-
-void write_to_sstable(SSTable* sstable, Memtable* memtable);
-
-off_t write_memtable_entries_to_sstable(void* buffer, SSTable* sstable, Memtable* memtable);
-
-off_t write_memtable_entry(void* buffer, off_t offset, const MemtableEntry* memtable_entry, SSTableIndexEntry* index_entry);
-
-off_t write_index_entries_to_sstable(void* buffer, SSTable* sstable, off_t offset);
-
-off_t write_index_entry(void* buffer, SSTableIndexEntry* index_entry, off_t offset);
-
-off_t write_to_buffer(void* buffer, void* data, int size, off_t offset);
+AUXTS__MultiMemtable* AUXTS__MultiMemtable_construct(int memtable_capacity);
+void AUXTS__MultiMemtable_append(AUXTS__MultiMemtable* multi_memtable, uint64_t* key, uint8_t* block, int block_size);
+void AUXTS__MultiMemtable_destroy(AUXTS__MultiMemtable* multi_memtable);
+void AUXTS__MultiMemtable_flush(AUXTS__MultiMemtable* multi_memtable);
+AUXTS__SSTable* AUXTS__read_sstable(const char* filename);
+void AUXTS__SSTable_destroy(AUXTS__SSTable* sstable);
 
 int test_multi_memtable();
 
