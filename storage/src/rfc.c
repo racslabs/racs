@@ -1,21 +1,21 @@
 #include "rfc.h"
 
-uint64_t get_milliseconds() {
+uint64_t AUXTS__get_milliseconds() {
     struct timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
-    return ts_to_milliseconds(&ts);
+    return AUXTS__ts_to_milliseconds(&ts);
 }
 
-uint64_t ts_to_milliseconds(struct timespec* ts) {
+uint64_t AUXTS__ts_to_milliseconds(struct timespec* ts) {
     return (ts->tv_sec * AUXTS_NANOSECONDS_PER_SECOND + ts->tv_nsec) / AUXTS_NANOSECONDS_PER_MILLISECOND;
 }
 
-void milliseconds_to_tm(uint64_t milliseconds, struct tm* info) {
+void AUXTS__milliseconds_to_tm(uint64_t milliseconds, struct tm* info) {
     time_t seconds = (time_t)(milliseconds / AUXTS_MILLISECONDS_PER_SECOND);
     gmtime_r(&seconds, info);
 }
 
-void format_rfc3339(uint64_t milliseconds, char* buf) {
+void AUXTS__format_rfc3339(uint64_t milliseconds, char* buf) {
     if (strlen(buf) < AUXTS_RFC3339_MAX_SIZE) {
     }
 
@@ -36,7 +36,7 @@ void format_rfc3339(uint64_t milliseconds, char* buf) {
             remainder);           // Milliseconds
 }
 
-uint64_t parse_rfc3339(char* buf) {
+uint64_t AUXTS__parse_rfc3339(char* buf) {
     struct tm info;
     struct timespec ts;
     int milliseconds = 0;
@@ -70,15 +70,15 @@ uint64_t parse_rfc3339(char* buf) {
     ts.tv_sec = t;
     ts.tv_nsec = milliseconds * AUXTS_NANOSECONDS_PER_MILLISECOND;
 
-    return ts_to_milliseconds(&ts);
+    return AUXTS__ts_to_milliseconds(&ts);
 }
 
 int test_rfc3339() {
     uint64_t milliseconds = 1734272943291;
 
     char buf[55];
-    format_rfc3339(milliseconds, buf);
+    AUXTS__format_rfc3339(milliseconds, buf);
     printf("%s", buf);
 
-    return milliseconds != parse_rfc3339(buf);
+    return milliseconds != AUXTS__parse_rfc3339(buf);
 }

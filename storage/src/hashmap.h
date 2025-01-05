@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define AUXTS_INITIAL_BUCKET_CAP 2
+#define AUXTS_INITIAL_BUCKET_CAPACITY 2
 
 typedef struct {
     uint64_t key[2];
@@ -24,9 +24,9 @@ typedef struct {
     AUXTS__HashmapBucket** buckets;
 } AUXTS__Hashmap;
 
-AUXTS_FORCE_INLINE uint64_t hash(void* data, int len, size_t size) {
+AUXTS_FORCE_INLINE uint64_t AUXTS__hash(void* data, int len, size_t size) {
     uint64_t _hash[2];
-    murmur3_x64_128(data, len, 0, _hash);
+    AUXTS__murmur3_x64_128(data, len, 0, _hash);
     return _hash[0] % size;
 }
 

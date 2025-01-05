@@ -1,24 +1,29 @@
 #include "cache.h"
 
-LRUCache* create_lru_cache(size_t capacity) {
-    LRUCache* cache = malloc(sizeof(LRUCache));
+static AUXTS__LRUCacheNode* LRUCacheNode_construct(AUXTS__LRUCacheEntry* entry);
+static AUXTS__LRUCacheEntry* LRUCacheEntry_construct(const uint64_t* key, uint8_t* value);
+static void LRUCache_insert_at_head(AUXTS__LRUCache * cache, AUXTS__LRUCacheNode* node);
+
+AUXTS__LRUCache* AUXTS__LRUCache_construct(size_t capacity) {
+    AUXTS__LRUCache* cache = malloc(sizeof(AUXTS__LRUCache));
     if (!cache) {
-        perror("Failed to allocate LRUCache");
+        perror("Failed to allocate AUXTS__LRUCache");
         exit(-1);
     }
 
     cache->size = 0;
     cache->capacity = capacity;
-    cache->list = create_list();
+    cache->head = NULL;
+    cache->tail = NULL;
     cache->cache = AUXTS__Hashmap_construct(capacity);
 
     return cache;
 }
 
-LRUCacheEntry* create_lru_cache_entry(const uint64_t* key, uint8_t* value) {
-    LRUCacheEntry* entry = malloc(sizeof(LRUCacheEntry));
+AUXTS__LRUCacheEntry* LRUCacheEntry_construct(const uint64_t* key, uint8_t* value) {
+    AUXTS__LRUCacheEntry* entry = malloc(sizeof(AUXTS__LRUCacheEntry));
     if (!entry) {
-        perror("Failed to allocate LRUCacheEntry");
+        perror("Failed to allocate AUXTS__LRUCacheEntry");
         exit(-1);
     }
 
@@ -29,43 +34,76 @@ LRUCacheEntry* create_lru_cache_entry(const uint64_t* key, uint8_t* value) {
     return entry;
 }
 
-void put_lru_cache(LRUCache* cache, uint64_t* key, uint8_t* value) {
-    LRUCacheEntry* curr = AUXTS__Hashmap_get(cache->cache, key);
-    if (curr) return;
-
-    if (cache->size >= cache->capacity) {
-        evict_lru_cache(cache);
+AUXTS__LRUCacheNode* LRUCacheNode_construct(AUXTS__LRUCacheEntry* entry) {
+    AUXTS__LRUCacheNode* node = malloc(sizeof(AUXTS__LRUCacheNode));
+    if (!node) {
+        perror("Failed to allocate AUXTS__LRUCacheNode");
+        exit(-1);
     }
 
-    curr = create_lru_cache_entry(key, value);
-    Node* node = create_node(curr);
+    node->entry = entry;
+    node->prev = NULL;
+    node->next = NULL;
 
-    insert_at_head(cache->list, node);
-    AUXTS__Hashmap_put(cache->cache, key, curr);
+    return node;
+}
+
+void LRUCache_insert_at_head(AUXTS__LRUCache * cache, AUXTS__LRUCacheNode* node) {
+    if (!cache) return;
+
+    node->prev = NULL;
+    node->next = (struct AUXTS__LRUCacheNode*) cache->head;
+
+    if (cache->head) {
+        cache->head->prev = (struct AUXTS__LRUCacheNode*) node;
+    } else {
+        cache->tail = node;
+    }
+
+    cache->head = node;
+}
+
+void AUXTS__LRUCache_put(AUXTS__LRUCache* cache, uint64_t* key, uint8_t* value) {
+    AUXTS__LRUCacheEntry* entry = AUXTS__Hashmap_get(cache->cache, key);
+    if (entry) return;
+
+    if (cache->size >= cache->capacity) {
+        AUXTS__LRUCache_evict(cache);
+    }
+
+    entry = LRUCacheEntry_construct(key, value);
+    AUXTS__LRUCacheNode* node = LRUCacheNode_construct(entry);
+
+    LRUCache_insert_at_head(cache, node);
+    AUXTS__Hashmap_put(cache->cache, key, entry);
 
     ++cache->size;
 }
 
-uint8_t* get_lru_cache(LRUCache* cache, uint64_t* key) {
-    LRUCacheEntry* curr = AUXTS__Hashmap_get(cache->cache, key);
-    if (curr) {
-        return curr->value;
+uint8_t* AUXTS__LRUCache_get(AUXTS__LRUCache* cache, uint64_t* key) {
+    AUXTS__LRUCacheEntry* entry = AUXTS__Hashmap_get(cache->cache, key);
+    if (entry) {
+        return entry->value;
     }
 
     return NULL;
 }
 
-void evict_lru_cache(LRUCache* cache) {
-    Node* tail = (Node*) cache->list->tail;
-    LRUCacheEntry* entry = tail->data;
+void AUXTS__LRUCache_evict(AUXTS__LRUCache* cache) {
+    AUXTS__LRUCacheNode* tail = cache->tail;
+    AUXTS__LRUCacheEntry* entry = tail->entry;
 
     free(entry->value);
     AUXTS__Hashmap_delete(cache->cache, entry->key);
 
-    cache->list->tail = (Node*) tail->prev;
-    cache->list->tail->next = NULL;
+    cache->tail = (AUXTS__LRUCacheNode*) tail->prev;
+    cache->tail->next = NULL;
 
     --cache->size;
+}
+
+void AUXTS__LRUCache_destroy(AUXTS__LRUCache* cache) {
+
 }
 
 int test_lru_cache() {
@@ -85,13 +123,13 @@ int test_lru_cache() {
     uint8_t* data2 = (uint8_t*)strdup("data2");
     uint8_t* data3 = (uint8_t*) strdup("data3");
 
-    LRUCache* cache = create_lru_cache(2);
-    put_lru_cache(cache, key1, data1);
-    put_lru_cache(cache, key2, data2);
-    put_lru_cache(cache, key3, data3);
+    AUXTS__LRUCache* cache = AUXTS__LRUCache_construct(2);
+    AUXTS__LRUCache_put(cache, key1, data1);
+    AUXTS__LRUCache_put(cache, key2, data2);
+    AUXTS__LRUCache_put(cache, key3, data3);
 
-    printf("%s\n", get_lru_cache(cache, key3));
-    printf("%s\n", get_lru_cache(cache, key2));
+    printf("%s\n", AUXTS__LRUCache_get(cache, key3));
+    printf("%s\n", AUXTS__LRUCache_get(cache, key2));
 
     return 0;
 }

@@ -2,30 +2,32 @@
 #ifndef AUXTS_CACHE_H
 #define AUXTS_CACHE_H
 
-#include "list.h"
 #include "hashmap.h"
-
-typedef struct {
-    size_t capacity;
-    size_t size;
-    LinkedList* list;
-    AUXTS__Hashmap* cache;
-} LRUCache;
 
 typedef struct {
     uint64_t key[2];
     uint8_t* value;
-} LRUCacheEntry;
+} AUXTS__LRUCacheEntry;
 
-LRUCache* create_lru_cache(size_t capacity);
+typedef struct {
+    AUXTS__LRUCacheEntry* entry;
+    struct AUXTS__LRUCacheNode* prev;
+    struct AUXTS__LRUCacheNode* next;
+} AUXTS__LRUCacheNode;
 
-LRUCacheEntry* create_lru_cache_entry(const uint64_t* key, uint8_t* value);
+typedef struct {
+    size_t size;
+    size_t capacity;
+    AUXTS__LRUCacheNode* head;
+    AUXTS__LRUCacheNode* tail;
+    AUXTS__Hashmap* cache;
+} AUXTS__LRUCache;
 
-void put_lru_cache(LRUCache* cache, uint64_t* key, uint8_t* value);
-
-uint8_t* get_lru_cache(LRUCache* cache, uint64_t* key);
-
-void evict_lru_cache(LRUCache* cache);
+AUXTS__LRUCache* AUXTS__LRUCache_construct(size_t capacity);
+void AUXTS__LRUCache_put(AUXTS__LRUCache* cache, uint64_t* key, uint8_t* value);
+uint8_t* AUXTS__LRUCache_get(AUXTS__LRUCache* cache, uint64_t* key);
+void AUXTS__LRUCache_evict(AUXTS__LRUCache* cache);
+void AUXTS__LRUCache_destroy(AUXTS__LRUCache* cache);
 
 int test_lru_cache();
 

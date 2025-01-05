@@ -1,6 +1,6 @@
 #include "extract.h"
 
-char* resolve_shared_path(const char* path1, const char* path2) {
+char* AUXTS__resolve_shared_path(const char* path1, const char* path2) {
     if (!path1 || !path2) {
         perror("Paths cannot be null");
         exit(-1);
@@ -8,10 +8,10 @@ char* resolve_shared_path(const char* path1, const char* path2) {
 
     size_t len1 = strlen(path1);
     size_t len2 = strlen(path2);
-    size_t min_len = len1 < len2 ? len1 : len2;
+    size_t len = len1 < len2 ? len1 : len2;
 
     size_t i = 0;
-    for ( ; i < min_len; i++) {
+    for ( ; i < len; i++) {
         if (path1[i] != path2[i]) {
             break;
         }
@@ -30,7 +30,7 @@ int test_extract() {
     char* path1 = "/foo/bar/baz";
     char* path2 = "/foo/bar/";
 
-    printf("%s", resolve_shared_path(path1, path2));
+    printf("%s", AUXTS__resolve_shared_path(path1, path2));
 
     return 0;
 }

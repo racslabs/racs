@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 
-char* resolve_shared_path(const char* path1, const char* path2);
+char* AUXTS__resolve_shared_path(const char* path1, const char* path2);
 
 int test_extract();
 

@@ -226,7 +226,7 @@ void create_time_partitioned_directories(uint64_t milliseconds) {
     char dir[32];
     struct tm info;
 
-    milliseconds_to_tm(milliseconds, &info);
+    AUXTS__milliseconds_to_tm(milliseconds, &info);
 
     sprintf(dir, ".data");
     mkdir(dir, 0777);
@@ -252,7 +252,7 @@ void create_time_partitioned_directories(uint64_t milliseconds) {
 
 void get_time_partitioned_path(uint64_t milliseconds, char* path) {
     struct tm info;
-    milliseconds_to_tm(milliseconds, &info);
+    AUXTS__milliseconds_to_tm(milliseconds, &info);
 
     long remainder = (long)(milliseconds % AUXTS_MILLISECONDS_PER_SECOND);
 
@@ -353,13 +353,13 @@ int test_multi_memtable() {
     uint64_t key0[2];
     uint64_t key1[2];
 
-    murmur3_x64_128("stream0", 7, 0, key0);
-    key0[1] = get_milliseconds();
+    AUXTS__murmur3_x64_128("stream0", 7, 0, key0);
+    key0[1] = AUXTS__get_milliseconds();
 
     AUXTS__MultiMemtable_append(mmt, key0, "1234", 4);
 
-    murmur3_x64_128("stream1", 7, 0, key1);
-    key1[1] = get_milliseconds() + 1;
+    AUXTS__murmur3_x64_128("stream1", 7, 0, key1);
+    key1[1] = AUXTS__get_milliseconds() + 1;
 
     AUXTS__MultiMemtable_append(mmt, key1, "5678", 4);
 
