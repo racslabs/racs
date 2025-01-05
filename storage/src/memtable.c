@@ -16,7 +16,7 @@ static off_t write_index_entry(void* buffer, AUXTS__SSTableIndexEntry* index_ent
 static off_t write_to_buffer(void* buffer, void* data, int size, off_t offset);
 
 
-AUXTS__MultiMemtable* AUXTS__MultiMemtable_construct(int memtable_capacity) {
+AUXTS__MultiMemtable* AUXTS__MultiMemtable_construct(int capacity) {
     AUXTS__MultiMemtable* multi_memtable = malloc(sizeof(AUXTS__MultiMemtable));
 
     if (!multi_memtable) {
@@ -27,8 +27,8 @@ AUXTS__MultiMemtable* AUXTS__MultiMemtable_construct(int memtable_capacity) {
     multi_memtable->index = 0;
     pthread_mutex_init(&multi_memtable->mutex, NULL);
 
-    for (int i = 0; i < AUXTS_MAX_NUM_MEMTABLES; ++i) {
-        multi_memtable->tables[i] = Memtable_construct(memtable_capacity);
+    for (int i = 0; i < AUXTS__MAX_NUM_MEMTABLES; ++i) {
+        multi_memtable->tables[i] = Memtable_construct(capacity);
     }
 
     return multi_memtable;
@@ -40,7 +40,7 @@ void AUXTS__MultiMemtable_append(AUXTS__MultiMemtable* multi_memtable, uint64_t*
     AUXTS__Memtable* active_memtable = multi_memtable->tables[multi_memtable->index];
     Memtable_append(active_memtable, key, block, block_size);
 
-    multi_memtable->index = ++multi_memtable->index % AUXTS_MAX_NUM_MEMTABLES;
+    multi_memtable->index = ++multi_memtable->index % AUXTS__MAX_NUM_MEMTABLES;
 
     pthread_mutex_unlock(&multi_memtable->mutex);
 }
@@ -50,7 +50,7 @@ void AUXTS__MultiMemtable_destroy(AUXTS__MultiMemtable* multi_memtable) {
 
     AUXTS__MultiMemtable_flush(multi_memtable);
 
-    for (int i = 0; i < AUXTS_MAX_NUM_MEMTABLES; ++i) {
+    for (int i = 0; i < AUXTS__MAX_NUM_MEMTABLES; ++i) {
         Memtable_destroy(multi_memtable->tables[i]);
     }
 
@@ -61,7 +61,7 @@ void AUXTS__MultiMemtable_destroy(AUXTS__MultiMemtable* multi_memtable) {
 }
 
 void AUXTS__MultiMemtable_flush(AUXTS__MultiMemtable* multi_memtable) {
-    for (int i = 0; i < AUXTS_MAX_NUM_MEMTABLES; ++i) {
+    for (int i = 0; i < AUXTS__MAX_NUM_MEMTABLES; ++i) {
         AUXTS__Memtable* memtable = multi_memtable->tables[i];
         Memtable_flush(memtable);
     }
@@ -87,7 +87,7 @@ AUXTS__Memtable* Memtable_construct(int capacity) {
     pthread_mutex_init(&memtable->mutex, NULL);
 
     for (int i = 0; i < memtable->capacity; ++i) {
-        if (posix_memalign((void**)&memtable->entries[i].block, AUXTS_ALIGN, AUXTS_MAX_BLOCK_SIZE) != 0) {
+        if (posix_memalign((void**)&memtable->entries[i].block, AUXTS_ALIGN, AUXTS__MAX_BLOCK_SIZE) != 0) {
             perror("Failed to allocate block to AUXTS__Memtable");
             exit(-1);
         }
@@ -194,7 +194,7 @@ void SSTable_write(AUXTS__SSTable* sstable, AUXTS__Memtable* memtable) {
     uint16_t entry_count = memtable->size;
     size_t size = entry_count * 65570 + 2;
 
-    if (posix_memalign(&buffer, AUXTS_BLOCK_ALIGN, size) != 0) {
+    if (posix_memalign(&buffer, AUXTS__BLOCK_ALIGN, size) != 0) {
         perror("Buffer allocation failed");
         exit(-1);
     }
@@ -254,7 +254,7 @@ void get_time_partitioned_path(uint64_t milliseconds, char* path) {
     struct tm info;
     AUXTS__milliseconds_to_tm(milliseconds, &info);
 
-    long remainder = (long)(milliseconds % AUXTS_MILLISECONDS_PER_SECOND);
+    long remainder = (long)(milliseconds % AUXTS__MILLISECONDS_PER_SECOND);
 
     sprintf(path, ".data/%d/%02d/%02d/%02d/%02d/%02d/%03ld.df",
             info.tm_year + 1900, info.tm_mon + 1,

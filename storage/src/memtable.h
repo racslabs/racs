@@ -17,11 +17,11 @@
 #include "rfc.h"
 #include "murmur3.h"
 
-#define AUXTS_BLOCK_ALIGN 4096
+#define AUXTS__BLOCK_ALIGN 4096
 
-#define AUXTS_MAX_NUM_MEMTABLES 2
+#define AUXTS__MAX_NUM_MEMTABLES 2
 
-#define AUXTS_MAX_BLOCK_SIZE 65536
+#define AUXTS__MAX_BLOCK_SIZE 65536
 
 typedef struct {
     uint64_t key[2];
@@ -49,11 +49,11 @@ typedef struct {
 
 typedef struct {
     int index;
-    AUXTS__Memtable* tables[AUXTS_MAX_NUM_MEMTABLES];
+    AUXTS__Memtable* tables[AUXTS__MAX_NUM_MEMTABLES];
     pthread_mutex_t mutex;
 } AUXTS__MultiMemtable;
 
-AUXTS__MultiMemtable* AUXTS__MultiMemtable_construct(int memtable_capacity);
+AUXTS__MultiMemtable* AUXTS__MultiMemtable_construct(int capacity);
 void AUXTS__MultiMemtable_append(AUXTS__MultiMemtable* multi_memtable, uint64_t* key, uint8_t* block, int block_size);
 void AUXTS__MultiMemtable_destroy(AUXTS__MultiMemtable* multi_memtable);
 void AUXTS__MultiMemtable_flush(AUXTS__MultiMemtable* multi_memtable);

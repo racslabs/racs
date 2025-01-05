@@ -1,6 +1,7 @@
 #include "cache.h"
 
 static AUXTS__LRUCacheNode* LRUCacheNode_construct(AUXTS__LRUCacheEntry* entry);
+static void LRUCacheNode_destroy(AUXTS__LRUCacheNode* node);
 static AUXTS__LRUCacheEntry* LRUCacheEntry_construct(const uint64_t* key, uint8_t* value);
 static void LRUCache_insert_at_head(AUXTS__LRUCache * cache, AUXTS__LRUCacheNode* node);
 
@@ -102,8 +103,23 @@ void AUXTS__LRUCache_evict(AUXTS__LRUCache* cache) {
     --cache->size;
 }
 
-void AUXTS__LRUCache_destroy(AUXTS__LRUCache* cache) {
+void LRUCacheNode_destroy(AUXTS__LRUCacheNode* node) {
+    AUXTS__LRUCacheEntry* entry = node->entry;
+    free(entry->value);
+    free(node);
+}
 
+void AUXTS__LRUCache_destroy(AUXTS__LRUCache* cache) {
+    AUXTS__LRUCacheNode* node = cache->head;
+
+    while (node) {
+        AUXTS__LRUCacheNode* next = (AUXTS__LRUCacheNode*) node->next;
+        LRUCacheNode_destroy(node);
+        node = next;
+    }
+
+    AUXTS__Hashmap_destroy(cache->cache);
+    free(cache);
 }
 
 int test_lru_cache() {
@@ -130,6 +146,8 @@ int test_lru_cache() {
 
     printf("%s\n", AUXTS__LRUCache_get(cache, key3));
     printf("%s\n", AUXTS__LRUCache_get(cache, key2));
+
+    AUXTS__LRUCache_destroy(cache);
 
     return 0;
 }
