@@ -21,7 +21,7 @@ AUXTS__MultiMemtable* AUXTS__MultiMemtable_construct(int capacity) {
 
     if (!multi_memtable) {
         perror("Failed to allocate AUXTS__MultiMemtable");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     multi_memtable->index = 0;
@@ -72,7 +72,7 @@ AUXTS__Memtable* Memtable_construct(int capacity) {
 
     if (!memtable) {
         perror("Failed to allocate AUXTS__Memtable");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     memtable->size = 0;
@@ -81,7 +81,7 @@ AUXTS__Memtable* Memtable_construct(int capacity) {
 
     if (!memtable->entries) {
         perror("Failed to allocate AUXTS__MemtableEntry to AUXTS__Memtable");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     pthread_mutex_init(&memtable->mutex, NULL);
@@ -89,7 +89,7 @@ AUXTS__Memtable* Memtable_construct(int capacity) {
     for (int i = 0; i < memtable->capacity; ++i) {
         if (posix_memalign((void**)&memtable->entries[i].block, AUXTS_ALIGN, AUXTS__MAX_BLOCK_SIZE) != 0) {
             perror("Failed to allocate block to AUXTS__Memtable");
-            exit(-1);
+            exit(EXIT_FAILURE);
         }
     }
 
@@ -144,7 +144,7 @@ AUXTS__SSTable* AUXTS__read_sstable(const char* filename) {
 
     if (fd == -1) {
         perror("Failed to open AUXTS__SSTable");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     off_t file_size = lseek(fd, 0, SEEK_END);
@@ -196,7 +196,7 @@ void SSTable_write(AUXTS__SSTable* sstable, AUXTS__Memtable* memtable) {
 
     if (posix_memalign(&buffer, AUXTS__BLOCK_ALIGN, size) != 0) {
         perror("Buffer allocation failed");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     char path[64];
@@ -208,7 +208,7 @@ void SSTable_write(AUXTS__SSTable* sstable, AUXTS__Memtable* memtable) {
     sstable->fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (sstable->fd == -1) {
         perror("Failed to open AUXTS__SSTable");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     sstable->entry_count = entry_count;
@@ -268,14 +268,14 @@ AUXTS__SSTable* SSTable_construct(int entry_count) {
 
     if (!sstable) {
         perror("Failed to allocate AUXTS__SSTable");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     sstable->index_entries = malloc(sizeof(AUXTS__SSTableIndexEntry) * entry_count);
 
     if (!sstable->index_entries) {
         perror("Failed to allocate AUXTS__SSTableIndexEntry to AUXTS__SSTable");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     return sstable;

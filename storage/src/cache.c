@@ -9,7 +9,7 @@ AUXTS__LRUCache* AUXTS__LRUCache_construct(size_t capacity) {
     AUXTS__LRUCache* cache = malloc(sizeof(AUXTS__LRUCache));
     if (!cache) {
         perror("Failed to allocate AUXTS__LRUCache");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     cache->size = 0;
@@ -25,7 +25,7 @@ AUXTS__LRUCacheEntry* LRUCacheEntry_construct(const uint64_t* key, uint8_t* valu
     AUXTS__LRUCacheEntry* entry = malloc(sizeof(AUXTS__LRUCacheEntry));
     if (!entry) {
         perror("Failed to allocate AUXTS__LRUCacheEntry");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     entry->key[0] = key[0];
@@ -39,7 +39,7 @@ AUXTS__LRUCacheNode* LRUCacheNode_construct(AUXTS__LRUCacheEntry* entry) {
     AUXTS__LRUCacheNode* node = malloc(sizeof(AUXTS__LRUCacheNode));
     if (!node) {
         perror("Failed to allocate AUXTS__LRUCacheNode");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     node->entry = entry;

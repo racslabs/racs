@@ -8,7 +8,7 @@ AUXTS__Hashmap* AUXTS__Hashmap_construct(size_t size) {
     AUXTS__Hashmap* map = malloc(sizeof(AUXTS__Hashmap));
     if (!map) {
         perror("Error allocating AUXTS__Hashmap");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     map->size = size;
@@ -16,7 +16,7 @@ AUXTS__Hashmap* AUXTS__Hashmap_construct(size_t size) {
     map->buckets = malloc(size * sizeof(AUXTS__HashmapBucket*));
     if (!map->buckets) {
         perror("Failed to allocate buckets");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     for (int i = 0; i < map->size; ++i) {
@@ -30,7 +30,7 @@ AUXTS__HashmapBucket* HashmapBucket_construct() {
     AUXTS__HashmapBucket* bucket = malloc(sizeof(AUXTS__HashmapBucket));
     if (!bucket) {
         perror("Error allocating AUXTS__HashmapBucket");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     bucket->count = 0;
@@ -39,7 +39,7 @@ AUXTS__HashmapBucket* HashmapBucket_construct() {
     bucket->entries = malloc(AUXTS_INITIAL_BUCKET_CAPACITY * sizeof(AUXTS__HashmapEntry*));
     if (!bucket->entries) {
         perror("Error allocating hashmap entries");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     return bucket;
@@ -50,7 +50,7 @@ AUXTS__HashmapEntry* HashmapEntry_construct(const uint64_t* key, void* value) {
     AUXTS__HashmapEntry* entry = malloc(sizeof(AUXTS__HashmapEntry));
     if (!entry) {
         perror("Failed to allocate AUXTS__HashmapEntry");
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
 
     entry->key[0] = key[0];
@@ -83,13 +83,13 @@ void AUXTS__Hashmap_put(AUXTS__Hashmap* map, uint64_t* key, void* value) {
 
     AUXTS__HashmapEntry* entry = HashmapEntry_construct(key, value);
 
-    if (bucket->count >= bucket->capacity) {
+    if (bucket->count == bucket->capacity) {
         bucket->capacity = 1 << bucket->capacity;
 
         bucket->entries = realloc(bucket->entries, bucket->capacity * sizeof(AUXTS__HashmapEntry*));
         if (!bucket->entries) {
             perror("Error reallocating entries");
-            exit(-1);
+            exit(EXIT_FAILURE);
         }
     }
 
