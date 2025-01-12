@@ -23,6 +23,8 @@
 
 #define AUXTS__MAX_BLOCK_SIZE 65536
 
+#define AUXTS__INDEX_ENTRY_SIZE 24
+
 typedef struct {
     uint64_t key[2];
     uint8_t* block;
@@ -43,6 +45,7 @@ typedef struct {
 
 typedef struct {
     int fd;
+    size_t size;
     uint16_t entry_count;
     AUXTS__SSTableIndexEntry* index_entries;
 } AUXTS__SSTable;
@@ -57,7 +60,9 @@ AUXTS__MultiMemtable* AUXTS__MultiMemtable_construct(int capacity);
 void AUXTS__MultiMemtable_append(AUXTS__MultiMemtable* multi_memtable, uint64_t* key, uint8_t* block, int block_size);
 void AUXTS__MultiMemtable_destroy(AUXTS__MultiMemtable* multi_memtable);
 void AUXTS__MultiMemtable_flush(AUXTS__MultiMemtable* multi_memtable);
-AUXTS__SSTable* AUXTS__read_sstable(const char* filename);
+AUXTS__SSTable* AUXTS__read_sstable_index_entries(const char* filename);
+AUXTS__SSTable* AUXTS__read_sstable_index_entries_in_memory(void* buffer, off_t size);
+void* AUXTS__read_sstable_data(AUXTS__SSTable* sstable);
 void AUXTS__SSTable_destroy(AUXTS__SSTable* sstable);
 
 int test_multi_memtable();

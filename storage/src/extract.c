@@ -1,9 +1,11 @@
 #include "extract.h"
 
 static char* resolve_shared_path(const char* path1, const char* path2);
+static int compare_paths(const void* path1, const void* path2);
 static AUXTS__FileList* FileList_construct();
 static void FileList_add_file(AUXTS__FileList* list, const char* file_path);
 static void list_files_recursive(AUXTS__FileList* list, const char* path);
+static void FileList_sort(AUXTS__FileList* list);
 
 char* resolve_shared_path(const char* path1, const char* path2) {
     if (!path1 || !path2) {
@@ -29,6 +31,10 @@ char* resolve_shared_path(const char* path1, const char* path2) {
     shared_path[i] = '\0';
 
     return shared_path;
+}
+
+int compare_paths(const void* path1, const void* path2) {
+    return strcmp(*(const char**)path1, *(const char**) path2);
 }
 
 AUXTS__FileList* FileList_construct() {
@@ -86,11 +92,19 @@ void list_files_recursive(AUXTS__FileList* list, const char* path) {
     closedir(dir);
 }
 
+void FileList_sort(AUXTS__FileList* list) {
+    qsort(list->files, list->count, sizeof(char*), compare_paths);
+}
+
 int test_extract() {
     char* path = ".data";
     AUXTS__FileList* list = FileList_construct();
-
     list_files_recursive(list, path);
+    FileList_sort(list);
+
+    for (int i = 0; i < list->count; ++i) {
+        printf("%s\n", list->files[i]);
+    }
 
     return 0;
 }

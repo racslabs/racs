@@ -129,7 +129,7 @@ void AUXTS__Hashmap_delete(AUXTS__Hashmap* map, uint64_t* key) {
             }
 
             bucket->entries[bucket->count - 1] = NULL;
-            bucket->count--;
+            --bucket->count;
             return;
         }
     }

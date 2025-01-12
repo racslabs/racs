@@ -54,7 +54,7 @@ uint64_t AUXTS__parse_rfc3339(char* buf) {
                      &milliseconds);
 
     if (ret < 6) {
-        fprintf(stderr, "Invalid RFC 3339 format\n");
+        perror("Invalid RFC 3339 format");
         return -1;
     }
 
