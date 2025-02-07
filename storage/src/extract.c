@@ -177,7 +177,7 @@ AUXTS__Stream* extract_stream(AUXTS__LRUCache* cache, uint64_t stream_id, uint64
 
             if (!data) {
                 sstable = AUXTS__read_sstable_index_entries(file_path);
-                data = AUXTS__read_sstable_data(sstable);
+                data = sstable->buffer;
 
                 AUXTS__LRUCache_put(cache, key, data);
             }

@@ -68,8 +68,7 @@ void AUXTS__MultiMemtable_append(AUXTS__MultiMemtable* multi_memtable, uint64_t*
 void AUXTS__MultiMemtable_destroy(AUXTS__MultiMemtable* multi_memtable);
 void AUXTS__MultiMemtable_flush(AUXTS__MultiMemtable* multi_memtable);
 AUXTS__SSTable* AUXTS__read_sstable_index_entries(const char* filename);
-AUXTS__SSTable* AUXTS__read_sstable_index_entries_in_memory(void* buffer, off_t size);
-void* AUXTS__read_sstable_data(AUXTS__SSTable* sstable);
+AUXTS__SSTable* AUXTS__read_sstable_index_entries_in_memory(uint8_t* buffer, size_t size);
 void AUXTS__SSTable_destroy(AUXTS__SSTable* sstable);
 void AUXTS__get_time_partitioned_path(uint64_t milliseconds, char* path);
 AUXTS__MemtableEntry* AUXTS__read_memtable_entry(uint8_t* buffer, size_t offset);

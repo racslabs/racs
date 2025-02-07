@@ -4,6 +4,7 @@ static AUXTS__Memtable* Memtable_construct(int capacity);
 static void Memtable_append(AUXTS__Memtable* memtable, uint64_t* key, uint8_t* block, int block_size);
 static void Memtable_flush(AUXTS__Memtable* memtable);
 static void Memtable_destroy(AUXTS__Memtable* memtable);
+static void MemtableEntry_destroy(AUXTS__MemtableEntry* entry);
 static AUXTS__SSTable* SSTable_construct(int entry_count);
 static void create_time_partitioned_directories(uint64_t milliseconds);
 static void SSTable_read_index_entries(AUXTS__SSTable* sstable);
@@ -13,7 +14,7 @@ static off_t MemtableEntry_write_sstable_index_entry(const AUXTS__MemtableEntry*
 static off_t SSTable_write_index_entries(AUXTS__SSTable* sstable, void* buffer, off_t offset);
 static off_t write_index_entry(void* buffer, AUXTS__SSTableIndexEntry* index_entry, off_t offset);
 static off_t buffer_write(void* buffer, void* data, int size, off_t offset);
-void SSTable_read_index_entries_in_memory(AUXTS__SSTable* sstable, void* buffer);
+void SSTable_read_index_entries_in_memory(AUXTS__SSTable* sstable, uint8_t* buffer);
 
 
 AUXTS__MultiMemtable* AUXTS__MultiMemtable_construct(int capacity) {
@@ -139,60 +140,46 @@ void Memtable_destroy(AUXTS__Memtable* memtable) {
     free(memtable);
 }
 
-AUXTS__SSTable* AUXTS__read_sstable_index_entries_in_memory(void* buffer, off_t size) {
+AUXTS__SSTable* AUXTS__read_sstable_index_entries_in_memory(uint8_t* buffer, size_t size) {
     uint16_t entry_count;
 
-    memcpy(&entry_count, (uint8_t*)buffer + (size - AUXTS__TRAILER_SIZE), sizeof(uint16_t));
+    memcpy(&entry_count, buffer + (size - AUXTS__TRAILER_SIZE), sizeof(uint16_t));
     entry_count = AUXTS__swap16_if_big_endian(entry_count);
 
-    off_t _offset = size - (entry_count * AUXTS__INDEX_ENTRY_SIZE) - AUXTS__TRAILER_SIZE;
+    size_t offset = size - (entry_count * AUXTS__INDEX_ENTRY_SIZE) - AUXTS__TRAILER_SIZE;
 
     AUXTS__SSTable* sstable = SSTable_construct(entry_count);
     sstable->entry_count = entry_count;
     sstable->fd = -1;
 
-    SSTable_read_index_entries_in_memory(sstable, buffer + _offset);
+    SSTable_read_index_entries_in_memory(sstable, buffer + offset);
 
     return sstable;
 }
 
-void SSTable_read_index_entries_in_memory(AUXTS__SSTable* sstable, void* buffer) {
+void SSTable_read_index_entries_in_memory(AUXTS__SSTable* sstable, uint8_t* buffer) {
     off_t _offset = 0;
 
     for (int entry = 0; entry < sstable->entry_count; ++entry) {
         uint64_t block_id;
 
-        memcpy(&block_id, (uint8_t*)buffer + _offset, sizeof(uint64_t));
+        memcpy(&block_id, buffer + _offset, sizeof(uint64_t));
         sstable->index_entries[entry].key[0] = AUXTS__swap64_if_big_endian(block_id);
         _offset += sizeof(uint64_t);
 
         uint64_t timestamp;
 
-        memcpy(&timestamp, (uint8_t*)buffer + _offset, sizeof(uint64_t));
+        memcpy(&timestamp, buffer + _offset, sizeof(uint64_t));
         sstable->index_entries[entry].key[1] = AUXTS__swap64_if_big_endian(timestamp);
         _offset += sizeof(uint64_t);
 
         uint64_t offset;
 
-        memcpy(&offset, (uint64_t*)buffer + _offset, sizeof(uint64_t));
+        memcpy(&offset, buffer + _offset, sizeof(uint64_t));
         sstable->index_entries[entry].offset = AUXTS__swap64_if_big_endian(offset);
         _offset += sizeof(uint64_t);
     }
 
-}
-
-void* AUXTS__read_sstable_data(AUXTS__SSTable* sstable) {
-    void* buffer = malloc(sstable->size);
-    if (!buffer) {
-        perror("Failed allocate buffer for AUXTS__SSTable");
-        exit(EXIT_FAILURE);
-    }
-
-    lseek(sstable->fd, 0, SEEK_SET);
-    off_t t = read(sstable->fd, buffer, 8);
-    printf("s %lld\n", t);
-
-    return buffer;
 }
 
 AUXTS__SSTable* AUXTS__read_sstable_index_entries(const char* filename) {
@@ -215,8 +202,6 @@ AUXTS__SSTable* AUXTS__read_sstable_index_entries(const char* filename) {
     sstable->size = file_size;
     sstable->fd = fd;
     sstable->buffer = malloc(file_size + 1);
-
-    printf("f %lld\n", file_size);
 
     lseek(fd, 0, SEEK_SET);
     read(fd, sstable->buffer, file_size);
@@ -250,8 +235,7 @@ void SSTable_write(AUXTS__SSTable* sstable, AUXTS__Memtable* memtable) {
     void* buffer;
 
     uint16_t entry_count = memtable->size;
-    size_t size = AUXTS__HEADER_SIZE + (entry_count * (AUXTS__MAX_BLOCK_SIZE + AUXTS__MEMTABLE_ENTRY_METADATA_SIZE +
-            AUXTS__INDEX_ENTRY_SIZE)) + AUXTS__TRAILER_SIZE;
+    size_t size = AUXTS__HEADER_SIZE + (entry_count * (AUXTS__MAX_BLOCK_SIZE + AUXTS__MEMTABLE_ENTRY_METADATA_SIZE + AUXTS__INDEX_ENTRY_SIZE)) + AUXTS__TRAILER_SIZE;
 
     if (posix_memalign(&buffer, AUXTS__BLOCK_ALIGN, size) != 0) {
         perror("Buffer allocation failed");
@@ -445,18 +429,25 @@ int test_multi_memtable() {
 
     AUXTS__MultiMemtable_append(mmt, key1, "5678", 4);
 
+    AUXTS__murmur3_x64_128("stream1", 7, 0, key1);
+    key1[1] = AUXTS__get_milliseconds() + 2;
+
+    AUXTS__MultiMemtable_append(mmt, key1, "1111", 4);
+
     AUXTS__MultiMemtable_destroy(mmt);
 
-    char* path = ".data/2025/02/05/01/50/58/383.df";
+    char* path = ".data/2025/02/07/15/32/55/377.df";
 
     AUXTS__SSTable* sstable = AUXTS__read_sstable_index_entries(path);
 
-    size_t offset = sstable->index_entries[0].offset;
+    AUXTS__SSTable* sstable2 = AUXTS__read_sstable_index_entries_in_memory(sstable->buffer, sstable->size);
+
+    size_t offset = sstable2->index_entries[1].offset;
     AUXTS__MemtableEntry* entry = AUXTS__read_memtable_entry(sstable->buffer, offset);
 
-    uint16_t t;
-    memcpy(&t, sstable->buffer + 54, 2);
-    printf("%hu\n", t);
+    printf("%s\n", entry->block);
+
+
 
 
 
