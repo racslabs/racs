@@ -25,6 +25,12 @@
 
 #define AUXTS__INDEX_ENTRY_SIZE 24
 
+#define AUXTS__HEADER_SIZE 8
+
+#define AUXTS__MEMTABLE_ENTRY_METADATA_SIZE 18
+
+#define AUXTS__TRAILER_SIZE 2
+
 typedef struct {
     uint64_t key[2];
     uint8_t* block;
@@ -47,6 +53,7 @@ typedef struct {
     int fd;
     size_t size;
     uint16_t entry_count;
+    uint8_t* buffer;
     AUXTS__SSTableIndexEntry* index_entries;
 } AUXTS__SSTable;
 
@@ -64,6 +71,8 @@ AUXTS__SSTable* AUXTS__read_sstable_index_entries(const char* filename);
 AUXTS__SSTable* AUXTS__read_sstable_index_entries_in_memory(void* buffer, off_t size);
 void* AUXTS__read_sstable_data(AUXTS__SSTable* sstable);
 void AUXTS__SSTable_destroy(AUXTS__SSTable* sstable);
+void AUXTS__get_time_partitioned_path(uint64_t milliseconds, char* path);
+AUXTS__MemtableEntry* AUXTS__read_memtable_entry(uint8_t* buffer, size_t offset);
 
 int test_multi_memtable();
 

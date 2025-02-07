@@ -12,6 +12,8 @@ AUXTS__LRUCache* AUXTS__LRUCache_construct(size_t capacity) {
         exit(EXIT_FAILURE);
     }
 
+    pthread_rwlock_init(&cache->rwlock, NULL);
+
     cache->size = 0;
     cache->capacity = capacity;
     cache->head = NULL;
@@ -49,7 +51,7 @@ AUXTS__LRUCacheNode* LRUCacheNode_construct(AUXTS__LRUCacheEntry* entry) {
     return node;
 }
 
-void LRUCache_insert_at_head(AUXTS__LRUCache * cache, AUXTS__LRUCacheNode* node) {
+void LRUCache_insert_at_head(AUXTS__LRUCache* cache, AUXTS__LRUCacheNode* node) {
     if (!cache) return;
 
     node->prev = NULL;
@@ -65,8 +67,13 @@ void LRUCache_insert_at_head(AUXTS__LRUCache * cache, AUXTS__LRUCacheNode* node)
 }
 
 void AUXTS__LRUCache_put(AUXTS__LRUCache* cache, uint64_t* key, uint8_t* value) {
+    pthread_rwlock_wrlock(&cache->rwlock);
+
     AUXTS__LRUCacheEntry* entry = AUXTS__Hashmap_get(cache->cache, key);
-    if (entry) return;
+    if (entry) {
+        pthread_rwlock_unlock(&cache->rwlock);
+        return;
+    }
 
     if (cache->size >= cache->capacity) {
         AUXTS__LRUCache_evict(cache);
@@ -79,10 +86,16 @@ void AUXTS__LRUCache_put(AUXTS__LRUCache* cache, uint64_t* key, uint8_t* value) 
     AUXTS__Hashmap_put(cache->cache, key, entry);
 
     ++cache->size;
+
+    pthread_rwlock_unlock(&cache->rwlock);
 }
 
 uint8_t* AUXTS__LRUCache_get(AUXTS__LRUCache* cache, uint64_t* key) {
+    pthread_rwlock_rdlock(&cache->rwlock);
+
     AUXTS__LRUCacheEntry* entry = AUXTS__Hashmap_get(cache->cache, key);
+    pthread_rwlock_unlock(&cache->rwlock);
+
     if (entry) {
         return entry->value;
     }
@@ -110,6 +123,8 @@ void LRUCacheNode_destroy(AUXTS__LRUCacheNode* node) {
 }
 
 void AUXTS__LRUCache_destroy(AUXTS__LRUCache* cache) {
+    pthread_rwlock_wrlock(&cache->rwlock);
+
     AUXTS__LRUCacheNode* node = cache->head;
 
     while (node) {
@@ -119,6 +134,10 @@ void AUXTS__LRUCache_destroy(AUXTS__LRUCache* cache) {
     }
 
     AUXTS__Hashmap_destroy(cache->cache);
+
+    pthread_rwlock_unlock(&cache->rwlock);
+    pthread_rwlock_destroy(&cache->rwlock);
+
     free(cache);
 }
 

@@ -3,6 +3,7 @@
 #define AUXTS_CACHE_H
 
 #include "hashmap.h"
+#include <pthread.h>
 
 typedef struct {
     uint64_t key[2];
@@ -21,6 +22,7 @@ typedef struct {
     AUXTS__LRUCacheNode* head;
     AUXTS__LRUCacheNode* tail;
     AUXTS__Hashmap* cache;
+    pthread_rwlock_t rwlock;
 } AUXTS__LRUCache;
 
 AUXTS__LRUCache* AUXTS__LRUCache_construct(size_t capacity);
