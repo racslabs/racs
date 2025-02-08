@@ -3,11 +3,11 @@
 static char* resolve_shared_path(const char* path1, const char* path2);
 static int compare_paths(const void* path1, const void* path2);
 static AUXTS__FileList* FileList_construct();
+static void FileList_destroy(AUXTS__FileList* list);
 static void FileList_add_file(AUXTS__FileList* list, const char* file_path);
 static void list_files_recursive(AUXTS__FileList* list, const char* path);
 static void FileList_sort(AUXTS__FileList* list);
 static uint64_t time_partitioned_path_to_ts(const char* path);
-static AUXTS__Block* Block_construct(uint16_t size);
 static AUXTS__BlockStream* BlockStream_construct();
 static void BlockStream_append(AUXTS__BlockStream* stream, uint8_t* block_data, uint16_t size);
 static AUXTS__BlockStream* extract_block_stream(AUXTS__LRUCache* cache, uint64_t stream_id, uint64_t begin_ts, uint64_t end_ts);
@@ -30,6 +30,8 @@ char* resolve_shared_path(const char* path1, const char* path2) {
     }
 
     if (path1[i - 1] == '/') --i;
+
+    while (i > 1 && path1[i - 1] != '/') --i;
 
     char* shared_path = malloc(i + 1);
     strncpy(shared_path, path1, i);
@@ -131,26 +133,17 @@ void list_files_recursive(AUXTS__FileList* list, const char* path) {
     closedir(dir);
 }
 
-void FileList_sort(AUXTS__FileList* list) {
-    qsort(list->files, list->count, sizeof(char*), compare_paths);
+void FileList_destroy(AUXTS__FileList* list) {
+    for (int i = 0; i < list->count; ++i) {
+        free(list->files[i]);
+    }
+
+    free(list->files);
+    free(list);
 }
 
-AUXTS__Block* Block_construct(uint16_t size) {
-    AUXTS__Block* block = malloc(sizeof(AUXTS__Block));
-    if (!block) {
-        perror("Failed to allocate AUXTS__Block");
-        exit(EXIT_FAILURE);
-    }
-
-    block->size = size;
-    block->data = malloc(size);
-
-    if (!block->data) {
-        perror("Failed to allocate data to AUXTS__Block");
-        exit(EXIT_FAILURE);
-    }
-
-    return block;
+void FileList_sort(AUXTS__FileList* list) {
+    qsort(list->files, list->count, sizeof(char*), compare_paths);
 }
 
 AUXTS__BlockStream* BlockStream_construct() {
@@ -235,7 +228,11 @@ AUXTS__BlockStream* extract_block_stream(AUXTS__LRUCache* cache, uint64_t stream
                 size_t offset = sstable->index_entries[j].offset;
 
                 AUXTS__MemtableEntry* entry = AUXTS__read_memtable_entry(buffer, offset);
-                BlockStream_append(stream, entry->block, entry->block_size);
+                if (entry->key[0] == stream_id) {
+                    BlockStream_append(stream, entry->block, entry->block_size);
+                } else {
+                    free(entry->block);
+                }
 
                 free(entry);
             }
@@ -243,19 +240,22 @@ AUXTS__BlockStream* extract_block_stream(AUXTS__LRUCache* cache, uint64_t stream
     }
 
     free(path);
+    FileList_destroy(list);
 
     return stream;
 }
 
 int test_extract() {
-    char* path = ".data";
-    AUXTS__FileList* list = FileList_construct();
-    list_files_recursive(list, path);
-    FileList_sort(list);
+    // 1738981682393
 
-    for (int i = 0; i < list->count; ++i) {
-        printf("%s\n", list->files[i]);
+    AUXTS__LRUCache* cache = AUXTS__LRUCache_construct(2);
+    AUXTS__BlockStream* stream = extract_block_stream(cache, 2426237739028790096, 1738981682393, 1738981682395);
+
+    for (int i = 0; i < stream->size; ++i) {
+        AUXTS__Block* block = stream->blocks[i];
+        printf("b %s\n", block->data);
     }
+
 
     return 0;
 }

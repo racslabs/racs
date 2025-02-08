@@ -419,8 +419,10 @@ int test_multi_memtable() {
     uint64_t key0[2];
     uint64_t key1[2];
 
-    AUXTS__murmur3_x64_128("stream0", 7, 0, key0);
+    AUXTS__murmur3_x64_128("stream1", 7, 0, key0);
     key0[1] = AUXTS__get_milliseconds();
+
+    printf("id %llu\n", key0[0]);
 
     AUXTS__MultiMemtable_append(mmt, key0, "1234", 4);
 
