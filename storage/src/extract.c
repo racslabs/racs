@@ -8,7 +8,7 @@ static void list_files_recursive(AUXTS__FileList* list, const char* path);
 static void FileList_sort(AUXTS__FileList* list);
 static uint64_t time_partitioned_path_to_ts(const char* path);
 static AUXTS__Block* Block_construct(uint16_t size);
-static AUXTS__BlockStream* Stream_construct();
+static AUXTS__BlockStream* BlockStream_construct();
 static void BlockStream_append(AUXTS__BlockStream* stream, uint8_t* block_data, uint16_t size);
 static AUXTS__BlockStream* extract_block_stream(AUXTS__LRUCache* cache, uint64_t stream_id, uint64_t begin_ts, uint64_t end_ts);
 
@@ -153,7 +153,26 @@ AUXTS__Block* Block_construct(uint16_t size) {
     return block;
 }
 
-static void BlockStream_append(AUXTS__BlockStream* stream, uint8_t* block_data, uint16_t size) {
+AUXTS__BlockStream* BlockStream_construct() {
+    AUXTS__BlockStream* stream = malloc(sizeof(AUXTS__BlockStream));
+    if (!stream) {
+        perror("Failed to allocate AUXTS__BlockStream");
+        exit(EXIT_FAILURE);
+    }
+
+    stream->capacity = AUXTS__INITIAL_BLOCK_STREAM_CAPACITY;
+    stream->size = 0;
+
+    stream->blocks = malloc(stream->capacity * sizeof(AUXTS__Block));
+    if (!stream->blocks) {
+        perror("Failed to allocate blocks to AUXTS__BlockStream");
+        exit(EXIT_FAILURE);
+    }
+
+    return stream;
+}
+
+void BlockStream_append(AUXTS__BlockStream* stream, uint8_t* block_data, uint16_t size) {
     if (stream->size == stream->capacity) {
         stream->capacity = 1 << stream->capacity;
         stream->blocks = realloc(stream->blocks, stream->capacity * sizeof(AUXTS__BlockStream));
@@ -184,6 +203,7 @@ AUXTS__BlockStream* extract_block_stream(AUXTS__LRUCache* cache, uint64_t stream
     list_files_recursive(list, path);
     FileList_sort(list);
 
+    AUXTS__BlockStream* stream = BlockStream_construct();
 
     for (int i = 0; i < list->count; ++i) {
         char* file_path = list->files[i];
@@ -210,39 +230,21 @@ AUXTS__BlockStream* extract_block_stream(AUXTS__LRUCache* cache, uint64_t stream
             size = AUXTS__swap64_if_big_endian(size);
 
             sstable = AUXTS__read_sstable_index_entries_in_memory(buffer, size);
+
             for (int j = 0; j < sstable->entry_count; ++j) {
-                size_t  offset = sstable->index_entries[j].offset;
+                size_t offset = sstable->index_entries[j].offset;
 
-                AUXTS__MemtableEntry* entry = AUXTS__read_memtable_entry(buffer, offset)
+                AUXTS__MemtableEntry* entry = AUXTS__read_memtable_entry(buffer, offset);
+                BlockStream_append(stream, entry->block, entry->block_size);
 
-
+                free(entry);
             }
-
-
-
-
-
-
-
-
-
         }
-
-
-
-
-
     }
-
-
-
-
-
-
 
     free(path);
 
-
+    return stream;
 }
 
 int test_extract() {
