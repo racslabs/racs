@@ -13,8 +13,6 @@
 
 #define AUXTS__INITIAL_FILE_LIST_CAPACITY 2
 
-#define AUXTS__INITIAL_STREAM_CAPACITY 2
-
 #define AUXTS__MAX_PATH_SIZE 255
 
 typedef struct {
@@ -26,14 +24,13 @@ typedef struct {
 typedef struct {
     uint8_t* data;
     uint16_t size;
-    uint16_t capacity;
 } AUXTS__Block;
 
 typedef struct {
     AUXTS__Block** blocks;
     size_t size;
     size_t capacity;
-} AUXTS__Stream;
+} AUXTS__BlockStream;
 
 int test_extract();
 

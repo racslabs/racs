@@ -7,9 +7,10 @@ static void FileList_add_file(AUXTS__FileList* list, const char* file_path);
 static void list_files_recursive(AUXTS__FileList* list, const char* path);
 static void FileList_sort(AUXTS__FileList* list);
 static uint64_t time_partitioned_path_to_ts(const char* path);
-static AUXTS__Block* Block_construct(uint16_t capacity);
-static AUXTS__Stream* Stream_construct();
-static AUXTS__Stream* extract_stream(AUXTS__LRUCache* cache, uint64_t stream_id, uint64_t begin_ts, uint64_t end_ts);
+static AUXTS__Block* Block_construct(uint16_t size);
+static AUXTS__BlockStream* Stream_construct();
+static void BlockStream_append(AUXTS__BlockStream* stream, uint8_t* block_data, uint16_t size);
+static AUXTS__BlockStream* extract_block_stream(AUXTS__LRUCache* cache, uint64_t stream_id, uint64_t begin_ts, uint64_t end_ts);
 
 char* resolve_shared_path(const char* path1, const char* path2) {
     if (!path1 || !path2) {
@@ -95,7 +96,7 @@ void FileList_add_file(AUXTS__FileList* list, const char* file_path) {
         list->files = realloc(list->files, list->capacity * sizeof(char*));
 
         if (!list->files) {
-            perror("Error reallocating list");
+            perror("Error reallocating list to AUXTS__FileList");
             exit(EXIT_FAILURE);
         }
     }
@@ -134,17 +135,16 @@ void FileList_sort(AUXTS__FileList* list) {
     qsort(list->files, list->count, sizeof(char*), compare_paths);
 }
 
-AUXTS__Block* Block_construct(uint16_t capacity) {
+AUXTS__Block* Block_construct(uint16_t size) {
     AUXTS__Block* block = malloc(sizeof(AUXTS__Block));
     if (!block) {
         perror("Failed to allocate AUXTS__Block");
         exit(EXIT_FAILURE);
     }
 
-    block->size = 0;
-    block->capacity = capacity;
+    block->size = size;
+    block->data = malloc(size);
 
-    block->data = malloc(capacity);
     if (!block->data) {
         perror("Failed to allocate data to AUXTS__Block");
         exit(EXIT_FAILURE);
@@ -153,7 +153,26 @@ AUXTS__Block* Block_construct(uint16_t capacity) {
     return block;
 }
 
-AUXTS__Stream* extract_stream(AUXTS__LRUCache* cache, uint64_t stream_id, uint64_t begin_ts, uint64_t end_ts) {
+static void BlockStream_append(AUXTS__BlockStream* stream, uint8_t* block_data, uint16_t size) {
+    if (stream->size == stream->capacity) {
+        stream->capacity = 1 << stream->capacity;
+        stream->blocks = realloc(stream->blocks, stream->capacity * sizeof(AUXTS__BlockStream));
+
+        if (!stream->blocks) {
+            perror("Error reallocating blocks to AUXTS__BlockStream");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    AUXTS__Block* block = malloc(sizeof(AUXTS__Block));
+    block->data = block_data;
+    block->size = size;
+
+    stream->blocks[stream->size] = block;
+    ++stream->size;
+}
+
+AUXTS__BlockStream* extract_block_stream(AUXTS__LRUCache* cache, uint64_t stream_id, uint64_t begin_ts, uint64_t end_ts) {
     char path1[64], path2[64];
 
     AUXTS__get_time_partitioned_path(begin_ts, path1);
@@ -165,6 +184,7 @@ AUXTS__Stream* extract_stream(AUXTS__LRUCache* cache, uint64_t stream_id, uint64
     list_files_recursive(list, path);
     FileList_sort(list);
 
+
     for (int i = 0; i < list->count; ++i) {
         char* file_path = list->files[i];
 
@@ -173,16 +193,33 @@ AUXTS__Stream* extract_stream(AUXTS__LRUCache* cache, uint64_t stream_id, uint64
             AUXTS__SSTable* sstable;
 
             uint64_t key[2] = {stream_id, curr_ts};
-            uint8_t* data = AUXTS__LRUCache_get(cache, key);
+            uint8_t* buffer = AUXTS__LRUCache_get(cache, key);
 
-            if (!data) {
+            if (!buffer) {
                 sstable = AUXTS__read_sstable_index_entries(file_path);
-                data = sstable->buffer;
+                buffer = sstable->buffer;
 
-                AUXTS__LRUCache_put(cache, key, data);
+                free(sstable->index_entries);
+                free(sstable);
+
+                AUXTS__LRUCache_put(cache, key, buffer);
             }
 
-            sstable = AUXTS__read_sstable_index_entries_in_memory(data, 5);
+            size_t size;
+            memcpy(&size, buffer, sizeof(size_t));
+            size = AUXTS__swap64_if_big_endian(size);
+
+            sstable = AUXTS__read_sstable_index_entries_in_memory(buffer, size);
+            for (int j = 0; j < sstable->entry_count; ++j) {
+                size_t  offset = sstable->index_entries[j].offset;
+
+                AUXTS__MemtableEntry* entry = AUXTS__read_memtable_entry(buffer, offset)
+
+
+            }
+
+
+
 
 
 
