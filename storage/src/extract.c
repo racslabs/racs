@@ -8,9 +8,13 @@ static void FileList_add_file(AUXTS__FileList* list, const char* file_path);
 static void list_files_recursive(AUXTS__FileList* list, const char* path);
 static void FileList_sort(AUXTS__FileList* list);
 static uint64_t time_partitioned_path_to_ts(const char* path);
+static char* get_path_from_time_range(uint64_t begin_ts, uint64_t end_ts);
+static uint8_t* get_buffer_from_cache_or_sstable(AUXTS__LRUCache* cache, uint64_t stream_id, uint64_t curr_ts, const char* file_path);
+static AUXTS__FileList* get_sorted_file_list(const char* path);
 static AUXTS__BlockStream* BlockStream_construct();
 static void BlockStream_append(AUXTS__BlockStream* stream, uint8_t* block_data, uint16_t size);
 static AUXTS__BlockStream* extract_block_stream(AUXTS__LRUCache* cache, uint64_t stream_id, uint64_t begin_ts, uint64_t end_ts);
+static void process_sstable_buffer(AUXTS__BlockStream* stream, uint64_t stream_id, uint8_t* buffer);
 
 char* resolve_shared_path(const char* path1, const char* path2) {
     if (!path1 || !path2) {
@@ -168,7 +172,7 @@ AUXTS__BlockStream* BlockStream_construct() {
 void BlockStream_append(AUXTS__BlockStream* stream, uint8_t* block_data, uint16_t size) {
     if (stream->size == stream->capacity) {
         stream->capacity = 1 << stream->capacity;
-        stream->blocks = realloc(stream->blocks, stream->capacity * sizeof(AUXTS__BlockStream));
+        stream->blocks = realloc(stream->blocks, stream->capacity * sizeof(AUXTS__Block));
 
         if (!stream->blocks) {
             perror("Error reallocating blocks to AUXTS__BlockStream");
@@ -177,6 +181,11 @@ void BlockStream_append(AUXTS__BlockStream* stream, uint8_t* block_data, uint16_
     }
 
     AUXTS__Block* block = malloc(sizeof(AUXTS__Block));
+    if (!block) {
+        perror("Failed to allocate AUXTS__Block");
+        exit(EXIT_FAILURE);
+    }
+
     block->data = block_data;
     block->size = size;
 
@@ -184,18 +193,65 @@ void BlockStream_append(AUXTS__BlockStream* stream, uint8_t* block_data, uint16_
     ++stream->size;
 }
 
-AUXTS__BlockStream* extract_block_stream(AUXTS__LRUCache* cache, uint64_t stream_id, uint64_t begin_ts, uint64_t end_ts) {
+char* get_path_from_time_range(uint64_t begin_ts, uint64_t end_ts) {
     char path1[64], path2[64];
 
     AUXTS__get_time_partitioned_path(begin_ts, path1);
     AUXTS__get_time_partitioned_path(end_ts, path2);
 
-    char* path = resolve_shared_path(path1, path2);
+    return resolve_shared_path(path1, path2);
+}
 
+AUXTS__FileList* get_sorted_file_list(const char* path) {
     AUXTS__FileList* list = FileList_construct();
     list_files_recursive(list, path);
     FileList_sort(list);
 
+    return list;
+}
+
+uint8_t* get_buffer_from_cache_or_sstable(AUXTS__LRUCache* cache, uint64_t stream_id, uint64_t curr_ts, const char* file_path) {
+    uint64_t key[2] = {stream_id, curr_ts};
+    uint8_t* buffer = AUXTS__LRUCache_get(cache, key);
+
+    if (!buffer) {
+        AUXTS__SSTable* sstable = AUXTS__read_sstable_index_entries(file_path);
+        buffer = sstable->buffer;
+        free(sstable->index_entries);
+        free(sstable);
+
+        AUXTS__LRUCache_put(cache, key, buffer);
+    }
+
+    return buffer;
+}
+
+void process_sstable_buffer(AUXTS__BlockStream* stream, uint64_t stream_id, uint8_t* buffer) {
+    size_t size;
+    memcpy(&size, buffer, sizeof(size_t));
+    size = AUXTS__swap64_if_big_endian(size);
+
+    AUXTS__SSTable* sstable = AUXTS__read_sstable_index_entries_in_memory(buffer, size);
+
+    for (int j = 0; j < sstable->entry_count; ++j) {
+        size_t offset = sstable->index_entries[j].offset;
+        AUXTS__MemtableEntry* entry = AUXTS__read_memtable_entry(buffer, offset);
+
+        if (entry->key[0] == stream_id) {
+            BlockStream_append(stream, entry->block, entry->block_size);
+        } else {
+            free(entry->block);
+        }
+
+        free(entry);
+    }
+    free(sstable);
+}
+
+AUXTS__BlockStream* extract_block_stream(AUXTS__LRUCache* cache, uint64_t stream_id, uint64_t begin_ts, uint64_t end_ts) {
+    char* path = get_path_from_time_range(begin_ts, end_ts);
+
+    AUXTS__FileList* list = get_sorted_file_list(path);
     AUXTS__BlockStream* stream = BlockStream_construct();
 
     for (int i = 0; i < list->count; ++i) {
@@ -203,39 +259,8 @@ AUXTS__BlockStream* extract_block_stream(AUXTS__LRUCache* cache, uint64_t stream
 
         uint64_t curr_ts = time_partitioned_path_to_ts(file_path);
         if (curr_ts >= begin_ts || curr_ts <= end_ts) {
-            AUXTS__SSTable* sstable;
-
-            uint64_t key[2] = {stream_id, curr_ts};
-            uint8_t* buffer = AUXTS__LRUCache_get(cache, key);
-
-            if (!buffer) {
-                sstable = AUXTS__read_sstable_index_entries(file_path);
-                buffer = sstable->buffer;
-
-                free(sstable->index_entries);
-                free(sstable);
-
-                AUXTS__LRUCache_put(cache, key, buffer);
-            }
-
-            size_t size;
-            memcpy(&size, buffer, sizeof(size_t));
-            size = AUXTS__swap64_if_big_endian(size);
-
-            sstable = AUXTS__read_sstable_index_entries_in_memory(buffer, size);
-
-            for (int j = 0; j < sstable->entry_count; ++j) {
-                size_t offset = sstable->index_entries[j].offset;
-
-                AUXTS__MemtableEntry* entry = AUXTS__read_memtable_entry(buffer, offset);
-                if (entry->key[0] == stream_id) {
-                    BlockStream_append(stream, entry->block, entry->block_size);
-                } else {
-                    free(entry->block);
-                }
-
-                free(entry);
-            }
+            uint8_t* buffer = get_buffer_from_cache_or_sstable(cache, stream_id, curr_ts, file_path);
+            process_sstable_buffer(stream, stream_id, buffer);
         }
     }
 
