@@ -33,9 +33,8 @@ char* resolve_shared_path(const char* path1, const char* path2) {
         }
     }
 
-    if (path1[i - 1] == '/') --i;
-
     while (i > 1 && path1[i - 1] != '/') --i;
+    --i;
 
     char* shared_path = malloc(i + 1);
     strncpy(shared_path, path1, i);
@@ -45,21 +44,21 @@ char* resolve_shared_path(const char* path1, const char* path2) {
 }
 
 uint64_t time_partitioned_path_to_ts(const char* path) {
-    struct tm info;
+    struct tm info = {0};
     struct timespec ts;
-    long milliseconds;
+    long milliseconds = 0;
 
     int ret = sscanf(path, ".data/%4d/%2d/%2d/%2d/%2d/%2d/%3ld.df",
-                   &info.tm_year,         // Year
-                   &info.tm_mon,          // Month (0-based in info structure)
-                   &info.tm_mday,         // Day
-                   &info.tm_hour,         // Hour
-                   &info.tm_min,          // Minute
-                   &info.tm_sec,          // Second
-                   &milliseconds);
+                     &info.tm_year, &info.tm_mon, &info.tm_mday,
+                     &info.tm_hour, &info.tm_min, &info.tm_sec, &milliseconds);
 
-    if (ret < 6) {
-        perror("Invalid RFC 3339 format");
+    if (ret != 7) {
+        fprintf(stderr, "Invalid format: expected 7 values, got %d\n", ret);
+        return -1;
+    }
+
+    if (milliseconds < 0 || milliseconds > 999) {
+        fprintf(stderr, "Invalid milliseconds value: %ld\n", milliseconds);
         return -1;
     }
 
@@ -68,7 +67,7 @@ uint64_t time_partitioned_path_to_ts(const char* path) {
 
     time_t t = timegm(&info);
     if (t == -1) {
-        perror("timegm");
+        perror("timegm failed");
         return -1;
     }
 
@@ -258,7 +257,7 @@ AUXTS__BlockStream* extract_block_stream(AUXTS__LRUCache* cache, uint64_t stream
         char* file_path = list->files[i];
 
         uint64_t curr_ts = time_partitioned_path_to_ts(file_path);
-        if (curr_ts >= begin_ts || curr_ts <= end_ts) {
+        if (curr_ts >= begin_ts && curr_ts <= end_ts) {
             uint8_t* buffer = get_buffer_from_cache_or_sstable(cache, stream_id, curr_ts, file_path);
             process_sstable_buffer(stream, stream_id, buffer);
         }
@@ -271,8 +270,6 @@ AUXTS__BlockStream* extract_block_stream(AUXTS__LRUCache* cache, uint64_t stream
 }
 
 int test_extract() {
-    // 1738981682393
-
     AUXTS__LRUCache* cache = AUXTS__LRUCache_construct(2);
     AUXTS__BlockStream* stream = extract_block_stream(cache, 2426237739028790096, 1738981682393, 1738981682395);
 
@@ -280,7 +277,6 @@ int test_extract() {
         AUXTS__Block* block = stream->blocks[i];
         printf("b %s\n", block->data);
     }
-
 
     return 0;
 }
