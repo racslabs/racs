@@ -271,7 +271,7 @@ AUXTS__BlockStream* extract_block_stream(AUXTS__LRUCache* cache, uint64_t stream
 
 int test_extract() {
     AUXTS__LRUCache* cache = AUXTS__LRUCache_construct(2);
-    AUXTS__BlockStream* stream = extract_block_stream(cache, 2426237739028790096, 1738981682393, 1738981682395);
+    AUXTS__BlockStream* stream = extract_block_stream(cache, 2426237739028790096, 1739141512213, 1739141512215);
 
     for (int i = 0; i < stream->size; ++i) {
         AUXTS__Block* block = stream->blocks[i];

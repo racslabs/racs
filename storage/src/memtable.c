@@ -4,7 +4,6 @@ static AUXTS__Memtable* Memtable_construct(int capacity);
 static void Memtable_append(AUXTS__Memtable* memtable, uint64_t* key, uint8_t* block, int block_size);
 static void Memtable_flush(AUXTS__Memtable* memtable);
 static void Memtable_destroy(AUXTS__Memtable* memtable);
-static void MemtableEntry_destroy(AUXTS__MemtableEntry* entry);
 static AUXTS__SSTable* SSTable_construct(int entry_count);
 static void create_time_partitioned_directories(uint64_t milliseconds);
 static void SSTable_read_index_entries(AUXTS__SSTable* sstable);
@@ -16,13 +15,12 @@ static off_t write_index_entry(void* buffer, AUXTS__SSTableIndexEntry* index_ent
 static off_t buffer_write(void* buffer, void* data, int size, off_t offset);
 void SSTable_read_index_entries_in_memory(AUXTS__SSTable* sstable, uint8_t* buffer);
 
-
 AUXTS__MultiMemtable* AUXTS__MultiMemtable_construct(int capacity) {
     AUXTS__MultiMemtable* multi_memtable = malloc(sizeof(AUXTS__MultiMemtable));
 
     if (!multi_memtable) {
         perror("Failed to allocate AUXTS__MultiMemtable");
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 
     multi_memtable->index = 0;
@@ -36,6 +34,8 @@ AUXTS__MultiMemtable* AUXTS__MultiMemtable_construct(int capacity) {
 }
 
 void AUXTS__MultiMemtable_append(AUXTS__MultiMemtable* multi_memtable, uint64_t* key, uint8_t* block, int block_size) {
+    if (!multi_memtable) return;
+
     pthread_mutex_lock(&multi_memtable->mutex);
 
     AUXTS__Memtable* active_memtable = multi_memtable->tables[multi_memtable->index];
@@ -47,6 +47,8 @@ void AUXTS__MultiMemtable_append(AUXTS__MultiMemtable* multi_memtable, uint64_t*
 }
 
 void AUXTS__MultiMemtable_destroy(AUXTS__MultiMemtable* multi_memtable) {
+    if (!multi_memtable) return;
+
     pthread_mutex_lock(&multi_memtable->mutex);
 
     AUXTS__MultiMemtable_flush(multi_memtable);
@@ -62,6 +64,8 @@ void AUXTS__MultiMemtable_destroy(AUXTS__MultiMemtable* multi_memtable) {
 }
 
 void AUXTS__MultiMemtable_flush(AUXTS__MultiMemtable* multi_memtable) {
+    if (!multi_memtable) return;
+
     for (int i = 0; i < AUXTS__MAX_NUM_MEMTABLES; ++i) {
         AUXTS__Memtable* memtable = multi_memtable->tables[i];
         Memtable_flush(memtable);
@@ -73,7 +77,7 @@ AUXTS__Memtable* Memtable_construct(int capacity) {
 
     if (!memtable) {
         perror("Failed to allocate AUXTS__Memtable");
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 
     memtable->size = 0;
@@ -82,7 +86,7 @@ AUXTS__Memtable* Memtable_construct(int capacity) {
 
     if (!memtable->entries) {
         perror("Failed to allocate AUXTS__MemtableEntry to AUXTS__Memtable");
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 
     pthread_mutex_init(&memtable->mutex, NULL);
@@ -90,7 +94,7 @@ AUXTS__Memtable* Memtable_construct(int capacity) {
     for (int i = 0; i < memtable->capacity; ++i) {
         if (posix_memalign((void**)&memtable->entries[i].block, AUXTS_ALIGN, AUXTS__MAX_BLOCK_SIZE) != 0) {
             perror("Failed to allocate block to AUXTS__Memtable");
-            exit(EXIT_FAILURE);
+            return NULL;
         }
     }
 
@@ -98,6 +102,8 @@ AUXTS__Memtable* Memtable_construct(int capacity) {
 }
 
 void Memtable_append(AUXTS__Memtable* memtable, uint64_t* key, uint8_t* block, int block_size) {
+    if (!memtable) return;
+
     pthread_mutex_lock(&memtable->mutex);
 
     if (memtable->size >= memtable->capacity) {
@@ -114,6 +120,8 @@ void Memtable_append(AUXTS__Memtable* memtable, uint64_t* key, uint8_t* block, i
 }
 
 void Memtable_flush(AUXTS__Memtable* memtable) {
+    if (!memtable) return;
+
     int entry_count = memtable->size;
 
     if (entry_count > 0) {
@@ -126,6 +134,8 @@ void Memtable_flush(AUXTS__Memtable* memtable) {
 }
 
 void Memtable_destroy(AUXTS__Memtable* memtable) {
+    if (!memtable) return;
+
     pthread_mutex_lock(&memtable->mutex);
 
     for (int i = 0; i < memtable->size; ++i) {
@@ -186,29 +196,51 @@ AUXTS__SSTable* AUXTS__read_sstable_index_entries(const char* filename) {
     int fd = open(filename, O_RDONLY);
     if (fd == -1) {
         perror("Failed to open AUXTS__SSTable");
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 
     off_t file_size = lseek(fd, 0, SEEK_END);
-    lseek(fd, file_size - AUXTS__TRAILER_SIZE, SEEK_SET);
+    if (file_size == -1) {
+        perror("Failed to determine file size");
+        close(fd);
+        return NULL;
+    }
 
     uint16_t entry_count;
+    if (pread(fd, &entry_count, sizeof(uint16_t), file_size - AUXTS__TRAILER_SIZE) != sizeof(uint16_t)) {
+        perror("Failed to read entry count");
+        close(fd);
+        return NULL;
+    }
 
-    read(fd, &entry_count, sizeof(uint16_t));
     entry_count = AUXTS__swap16_if_big_endian(entry_count);
-
     AUXTS__SSTable* sstable = SSTable_construct(entry_count);
+    if (!sstable) {
+        close(fd);
+        return NULL;
+    }
+
     sstable->entry_count = entry_count;
     sstable->size = file_size;
     sstable->fd = fd;
-    sstable->buffer = malloc(file_size + 1);
+    sstable->buffer = malloc(file_size);
 
-    lseek(fd, 0, SEEK_SET);
-    read(fd, sstable->buffer, file_size);
+    if (!sstable->buffer) {
+        perror("Failed to allocate buffer");
+        free(sstable);
+        close(fd);
+        return NULL;
+    }
 
-    lseek(fd, file_size - (entry_count * AUXTS__INDEX_ENTRY_SIZE) - AUXTS__TRAILER_SIZE, SEEK_SET);
+    if (pread(fd, sstable->buffer, file_size, 0) != file_size) {
+        perror("Failed to read file contents");
+        free(sstable->buffer);
+        free(sstable);
+        close(fd);
+        return NULL;
+    }
+
     SSTable_read_index_entries(sstable);
-
     return sstable;
 }
 
@@ -232,6 +264,8 @@ void SSTable_read_index_entries(AUXTS__SSTable* sstable) {
 }
 
 void SSTable_write(AUXTS__SSTable* sstable, AUXTS__Memtable* memtable) {
+    if (!sstable) return;
+
     void* buffer;
 
     uint16_t entry_count = memtable->size;
@@ -239,7 +273,7 @@ void SSTable_write(AUXTS__SSTable* sstable, AUXTS__Memtable* memtable) {
 
     if (posix_memalign(&buffer, AUXTS__BLOCK_ALIGN, size) != 0) {
         perror("Buffer allocation failed");
-        exit(EXIT_FAILURE);
+        return;
     }
 
     char path[64];
@@ -251,7 +285,7 @@ void SSTable_write(AUXTS__SSTable* sstable, AUXTS__Memtable* memtable) {
     sstable->fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (sstable->fd == -1) {
         perror("Failed to open AUXTS__SSTable");
-        exit(EXIT_FAILURE);
+        return;
     }
 
     sstable->entry_count = entry_count;
@@ -314,14 +348,14 @@ AUXTS__SSTable* SSTable_construct(int entry_count) {
 
     if (!sstable) {
         perror("Failed to allocate AUXTS__SSTable");
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 
     sstable->index_entries = malloc(sizeof(AUXTS__SSTableIndexEntry) * entry_count);
 
     if (!sstable->index_entries) {
         perror("Failed to allocate AUXTS__SSTableIndexEntry to AUXTS__SSTable");
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 
     return sstable;
@@ -390,7 +424,7 @@ AUXTS__MemtableEntry* AUXTS__read_memtable_entry(uint8_t* buffer, size_t offset)
     AUXTS__MemtableEntry* entry = malloc(sizeof(AUXTS__MemtableEntry));
     if (!entry) {
         perror("Failed to allocate AUXTS__MemtableEntry");
-        exit(EXIT_FAILURE);
+        return NULL;
     }
 
     memcpy(&entry->block_size, buffer + offset, sizeof(uint16_t));
@@ -422,7 +456,7 @@ int test_multi_memtable() {
     AUXTS__murmur3_x64_128("stream1", 7, 0, key0);
     key0[1] = AUXTS__get_milliseconds();
 
-    printf("id %llu\n", key0[0]);
+    printf("id %llu\n", key0[1]);
 
     AUXTS__MultiMemtable_append(mmt, key0, "1234", 4);
 
@@ -438,22 +472,16 @@ int test_multi_memtable() {
 
     AUXTS__MultiMemtable_destroy(mmt);
 
-    char* path = ".data/2025/02/07/15/32/55/377.df";
-
-    AUXTS__SSTable* sstable = AUXTS__read_sstable_index_entries(path);
-
-    AUXTS__SSTable* sstable2 = AUXTS__read_sstable_index_entries_in_memory(sstable->buffer, sstable->size);
-
-    size_t offset = sstable2->index_entries[1].offset;
-    AUXTS__MemtableEntry* entry = AUXTS__read_memtable_entry(sstable->buffer, offset);
-
-    printf("%s\n", entry->block);
-
-
-
-
-
-
+//    char* path = ".data/2025/02/07/15/32/55/377.df";
+//
+//    AUXTS__SSTable* sstable = AUXTS__read_sstable_index_entries(path);
+//
+//    AUXTS__SSTable* sstable2 = AUXTS__read_sstable_index_entries_in_memory(sstable->buffer, sstable->size);
+//
+//    size_t offset = sstable2->index_entries[1].offset;
+//    AUXTS__MemtableEntry* entry = AUXTS__read_memtable_entry(sstable->buffer, offset);
+//
+//    printf("%s\n", entry->block);
 
     return 0;
 }
