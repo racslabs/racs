@@ -18,19 +18,24 @@ typedef struct {
     AUXTS__FlacEncodedBlock** blocks;
     size_t size;
     size_t capacity;
-} AUXTS__FlacEncodedBlocks;
+} AUXTS__FlacEncodedStream;
 
 typedef struct {
     int32_t** data;
     size_t size;
     size_t offset;
-
+    uint32_t channels;
+    uint32_t sample_rate;
+    uint32_t bits_per_sample;
 } AUXTS__PcmBlock;
 
 typedef struct {
     AUXTS__FlacEncodedBlock* flac;
     AUXTS__PcmBlock* pcm;
 } AUXTS__DecoderContext;
+
+
+
 
 
 
