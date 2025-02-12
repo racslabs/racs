@@ -24,21 +24,21 @@ typedef struct {
     AUXTS__HashmapBucket** buckets;
 } AUXTS__Hashmap;
 
-AUXTS_FORCE_INLINE uint64_t AUXTS__hash(void* data, int len, size_t size) {
+AUXTS__FORCE_INLINE uint64_t AUXTS__hash(void* data, int len, size_t size) {
     uint64_t _hash[2];
     AUXTS__murmur3_x64_128(data, len, 0, _hash);
     return _hash[0] % size;
 }
 
-AUXTS__Hashmap* AUXTS__Hashmap_construct(size_t size);
+AUXTS_API AUXTS__Hashmap* AUXTS__Hashmap_construct(size_t size);
 
-void AUXTS__Hashmap_put(AUXTS__Hashmap* map, uint64_t* key, void* value);
+AUXTS_API void AUXTS__Hashmap_put(AUXTS__Hashmap* map, uint64_t* key, void* value);
 
-void* AUXTS__Hashmap_get(AUXTS__Hashmap* map, uint64_t* key);
+AUXTS_API void* AUXTS__Hashmap_get(AUXTS__Hashmap* map, uint64_t* key);
 
-void AUXTS__Hashmap_delete(AUXTS__Hashmap* map, uint64_t* key);
+AUXTS_API void AUXTS__Hashmap_delete(AUXTS__Hashmap* map, uint64_t* key);
 
-void AUXTS__Hashmap_destroy(AUXTS__Hashmap* map);
+AUXTS_API void AUXTS__Hashmap_destroy(AUXTS__Hashmap* map);
 
 int test_hashmap();
 

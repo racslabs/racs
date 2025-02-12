@@ -92,7 +92,7 @@ AUXTS__Memtable* Memtable_construct(int capacity) {
     pthread_mutex_init(&memtable->mutex, NULL);
 
     for (int i = 0; i < memtable->capacity; ++i) {
-        if (posix_memalign((void**)&memtable->entries[i].block, AUXTS_ALIGN, AUXTS__MAX_BLOCK_SIZE) != 0) {
+        if (posix_memalign((void**)&memtable->entries[i].block, AUXTS__ALIGN, AUXTS__MAX_BLOCK_SIZE) != 0) {
             perror("Failed to allocate block to AUXTS__Memtable");
             return NULL;
         }

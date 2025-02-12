@@ -12,9 +12,14 @@ add_test(hashmap_test auxts "hashmap")
 add_test(cache_test auxts "cache")
 add_test(extract_test auxts "extract")
 
+find_library(FLAC_LIBRARY NAMES FLAC)
+find_path(FLAC_INCLUDE_DIR NAMES FLAC/all.h)
+
+include_directories(${FLAC_INCLUDE_DIR})
+
 add_executable(auxts main.c
         src/endian.h
-        src/macro.h
+        src/export.h
         src/rfc.h
         src/rfc.c
         src/murmur3.h
@@ -27,4 +32,8 @@ add_executable(auxts main.c
         src/cache.c
         src/extract.h
         src/extract.c
+        src/flac.h
+        src/flac.c
 )
+
+target_link_libraries(auxts ${FLAC_LIBRARY})

@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include "memtable.h"
 #include "cache.h"
+#include "flac.h"
 
 #define AUXTS__INITIAL_FILE_LIST_CAPACITY 2
 
@@ -23,16 +24,6 @@ typedef struct {
     size_t capacity;
 } AUXTS__FileList;
 
-typedef struct {
-    uint8_t* data;
-    uint16_t size;
-} AUXTS__Block;
-
-typedef struct {
-    AUXTS__Block** blocks;
-    size_t size;
-    size_t capacity;
-} AUXTS__BlockStream;
 
 int test_extract();
 

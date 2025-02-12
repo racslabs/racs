@@ -25,11 +25,11 @@ typedef struct {
     pthread_rwlock_t rwlock;
 } AUXTS__LRUCache;
 
-AUXTS__LRUCache* AUXTS__LRUCache_construct(size_t capacity);
-void AUXTS__LRUCache_put(AUXTS__LRUCache* cache, uint64_t* key, uint8_t* value);
-uint8_t* AUXTS__LRUCache_get(AUXTS__LRUCache* cache, uint64_t* key);
-void AUXTS__LRUCache_evict(AUXTS__LRUCache* cache);
-void AUXTS__LRUCache_destroy(AUXTS__LRUCache* cache);
+AUXTS_API AUXTS__LRUCache* AUXTS__LRUCache_construct(size_t capacity);
+AUXTS_API void AUXTS__LRUCache_put(AUXTS__LRUCache* cache, uint64_t* key, uint8_t* value);
+AUXTS_API uint8_t* AUXTS__LRUCache_get(AUXTS__LRUCache* cache, uint64_t* key);
+AUXTS_API void AUXTS__LRUCache_evict(AUXTS__LRUCache* cache);
+AUXTS_API void AUXTS__LRUCache_destroy(AUXTS__LRUCache* cache);
 
 int test_lru_cache();
 
