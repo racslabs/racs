@@ -11,10 +11,10 @@ static uint64_t time_partitioned_path_to_ts(const char* path);
 static char* get_path_from_time_range(uint64_t begin_ts, uint64_t end_ts);
 static uint8_t* get_buffer_from_cache_or_sstable(AUXTS__LRUCache* cache, uint64_t stream_id, uint64_t curr_ts, const char* file_path);
 static AUXTS__FileList* get_sorted_file_list(const char* path);
-static AUXTS__FlacEncodedStream* FlacEncodedStream_construct();
-static void FlacEncodedStream_append(AUXTS__FlacEncodedStream* blocks, uint8_t* block_data, uint16_t size);
-static AUXTS__FlacEncodedStream* extract_flac_encoded_blocks(AUXTS__LRUCache* cache, uint64_t stream_id, uint64_t begin_ts, uint64_t end_ts);
-static void process_sstable_buffer(AUXTS__FlacEncodedStream* stream, uint64_t stream_id, uint8_t* buffer);
+static AUXTS__FlacEncodedBlocks* FlacEncodedBlocks_construct();
+static void FlacEncodedBlocks_append(AUXTS__FlacEncodedBlocks* blocks, uint8_t* block_data, uint16_t size);
+static AUXTS__FlacEncodedBlocks* extract_flac_encoded_blocks(AUXTS__LRUCache* cache, uint64_t stream_id, uint64_t begin_ts, uint64_t end_ts);
+static void process_sstable_buffer(AUXTS__FlacEncodedBlocks* stream, uint64_t stream_id, uint8_t* buffer);
 
 char* resolve_shared_path(const char* path1, const char* path2) {
     if (!path1 || !path2) {
@@ -149,10 +149,10 @@ void FileList_sort(AUXTS__FileList* list) {
     qsort(list->files, list->count, sizeof(char*), compare_paths);
 }
 
-AUXTS__FlacEncodedStream* FlacEncodedStream_construct() {
-    AUXTS__FlacEncodedStream* stream = malloc(sizeof(AUXTS__FlacEncodedStream));
+AUXTS__FlacEncodedBlocks* FlacEncodedBlocks_construct() {
+    AUXTS__FlacEncodedBlocks* stream = malloc(sizeof(AUXTS__FlacEncodedBlocks));
     if (!stream) {
-        perror("Failed to allocate AUXTS__FlacEncodedStream");
+        perror("Failed to allocate AUXTS__FlacEncodedBlocks");
         exit(EXIT_FAILURE);
     }
 
@@ -161,20 +161,20 @@ AUXTS__FlacEncodedStream* FlacEncodedStream_construct() {
 
     stream->blocks = malloc(stream->capacity * sizeof(AUXTS__FlacEncodedBlock));
     if (!stream->blocks) {
-        perror("Failed to allocate blocks to AUXTS__FlacEncodedStream");
+        perror("Failed to allocate blocks to AUXTS__FlacEncodedBlocks");
         exit(EXIT_FAILURE);
     }
 
     return stream;
 }
 
-void FlacEncodedStream_append(AUXTS__FlacEncodedStream* blocks, uint8_t* block_data, uint16_t size) {
+void FlacEncodedBlocks_append(AUXTS__FlacEncodedBlocks* blocks, uint8_t* block_data, uint16_t size) {
     if (blocks->size == blocks->capacity) {
         blocks->capacity = 1 << blocks->capacity;
         blocks->blocks = realloc(blocks->blocks, blocks->capacity * sizeof(AUXTS__FlacEncodedBlock));
 
         if (!blocks->blocks) {
-            perror("Error reallocating blocks to AUXTS__FlacEncodedStream");
+            perror("Error reallocating blocks to AUXTS__FlacEncodedBlocks");
             exit(EXIT_FAILURE);
         }
     }
@@ -225,7 +225,7 @@ uint8_t* get_buffer_from_cache_or_sstable(AUXTS__LRUCache* cache, uint64_t strea
     return buffer;
 }
 
-void process_sstable_buffer(AUXTS__FlacEncodedStream* stream, uint64_t stream_id, uint8_t* buffer) {
+void process_sstable_buffer(AUXTS__FlacEncodedBlocks* stream, uint64_t stream_id, uint8_t* buffer) {
     size_t size;
     memcpy(&size, buffer, sizeof(size_t));
     size = AUXTS__swap64_if_big_endian(size);
@@ -237,7 +237,7 @@ void process_sstable_buffer(AUXTS__FlacEncodedStream* stream, uint64_t stream_id
         AUXTS__MemtableEntry* entry = AUXTS__read_memtable_entry(buffer, offset);
 
         if (entry->key[0] == stream_id) {
-            FlacEncodedStream_append(stream, entry->block, entry->block_size);
+            FlacEncodedBlocks_append(stream, entry->block, entry->block_size);
         } else {
             free(entry->block);
         }
@@ -247,11 +247,11 @@ void process_sstable_buffer(AUXTS__FlacEncodedStream* stream, uint64_t stream_id
     free(sstable);
 }
 
-AUXTS__FlacEncodedStream* extract_flac_encoded_blocks(AUXTS__LRUCache* cache, uint64_t stream_id, uint64_t begin_ts, uint64_t end_ts) {
+AUXTS__FlacEncodedBlocks* extract_flac_encoded_blocks(AUXTS__LRUCache* cache, uint64_t stream_id, uint64_t begin_ts, uint64_t end_ts) {
     char* path = get_path_from_time_range(begin_ts, end_ts);
 
     AUXTS__FileList* list = get_sorted_file_list(path);
-    AUXTS__FlacEncodedStream* stream = FlacEncodedStream_construct();
+    AUXTS__FlacEncodedBlocks* stream = FlacEncodedBlocks_construct();
 
     for (int i = 0; i < list->count; ++i) {
         char* file_path = list->files[i];
@@ -271,7 +271,7 @@ AUXTS__FlacEncodedStream* extract_flac_encoded_blocks(AUXTS__LRUCache* cache, ui
 
 int test_extract() {
     AUXTS__LRUCache* cache = AUXTS__LRUCache_construct(2);
-    AUXTS__FlacEncodedStream* blocks = extract_flac_encoded_blocks(cache, 2426237739028790096, 1739141512213, 1739141512215);
+    AUXTS__FlacEncodedBlocks* blocks = extract_flac_encoded_blocks(cache, 2426237739028790096, 1739141512213, 1739141512215);
 
     for (int i = 0; i < blocks->size; ++i) {
         AUXTS__FlacEncodedBlock* block = blocks->blocks[i];

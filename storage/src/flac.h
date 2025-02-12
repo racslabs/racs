@@ -18,7 +18,7 @@ typedef struct {
     AUXTS__FlacEncodedBlock** blocks;
     size_t size;
     size_t capacity;
-} AUXTS__FlacEncodedStream;
+} AUXTS__FlacEncodedBlocks;
 
 typedef struct {
     int32_t** data;
@@ -34,10 +34,6 @@ typedef struct {
     AUXTS__PcmBlock* pcm;
 } AUXTS__DecoderContext;
 
-
-
-
-
-
+AUXTS__PcmBlock* AUXTS__decode_flac_block(AUXTS__FlacEncodedBlock* block);
 
 #endif //AUXTS_FLAC_H

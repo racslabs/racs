@@ -4,6 +4,7 @@ static FLAC__StreamDecoderReadStatus read_callback(const FLAC__StreamDecoder* de
 static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *const buffer[], void *client_data);
 static void error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 static AUXTS__DecoderContext* DecoderContext_construct(AUXTS__FlacEncodedBlock* block);
+static void DecoderContext_destroy_except_pcm(AUXTS__DecoderContext* context);
 
 FLAC__StreamDecoderReadStatus read_callback(const FLAC__StreamDecoder* decoder, FLAC__byte buffer[], size_t* bytes, void* client_data) {
     (void)decoder;
@@ -44,7 +45,10 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 }
 
 void error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data) {
-    fprintf(stderr, "FLAC decoding error: %d\n", status);
+    (void)decoder;
+    (void)client_data;
+
+    fprintf(stderr, "FLAC decoding error: %s\n", FLAC__StreamDecoderErrorStatusString[status]);
 }
 
 AUXTS__DecoderContext* DecoderContext_construct(AUXTS__FlacEncodedBlock* block) {
@@ -62,4 +66,30 @@ AUXTS__DecoderContext* DecoderContext_construct(AUXTS__FlacEncodedBlock* block) 
     }
 
     return context;
+}
+
+void DecoderContext_destroy_except_pcm(AUXTS__DecoderContext* context) {
+    free(context->flac->data);
+    free(context->flac);
+    free(context);
+}
+
+AUXTS__PcmBlock* AUXTS__decode_flac_block(AUXTS__FlacEncodedBlock* block) {
+    FLAC__StreamDecoder* decoder = FLAC__stream_decoder_new();
+    if (!decoder) {
+        perror("Failed to allocate FLAC__StreamDecoder");
+        return NULL;
+    }
+
+    AUXTS__DecoderContext* context = DecoderContext_construct(block);
+
+    FLAC__stream_decoder_init_stream(decoder, read_callback, NULL, NULL, NULL, NULL, write_callback, NULL, error_callback, context);
+
+    FLAC__stream_decoder_process_until_end_of_stream(decoder);
+    FLAC__stream_decoder_delete(decoder);
+
+    AUXTS__PcmBlock* pcm = context->pcm;
+    DecoderContext_destroy_except_pcm(context);
+
+    return pcm;
 }

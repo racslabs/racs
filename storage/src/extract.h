@@ -24,6 +24,14 @@ typedef struct {
     size_t capacity;
 } AUXTS__FileList;
 
+typedef struct {
+    int32_t** data;
+    size_t size;
+    size_t offset;
+    uint32_t channels;
+    uint32_t sample_rate;
+    uint32_t bits_per_sample;
+} AUXTS__PcmBuffer;
 
 int test_extract();
 
