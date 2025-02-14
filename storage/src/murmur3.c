@@ -1,6 +1,6 @@
 #include "murmur3.h"
 
-void AUXTS__murmur3_x64_128(const uint8_t* key, int len, uint32_t seed, uint64_t* out) {
+AUXTS_API void AUXTS__murmur3_x64_128(const uint8_t* key, int len, uint32_t seed, uint64_t* out) {
     uint64_t h1 = seed;
     uint64_t h2 = seed;
 

@@ -5,6 +5,10 @@
 #include "hashmap.h"
 #include <pthread.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
     uint64_t key[2];
     uint8_t* value;
@@ -32,5 +36,9 @@ AUXTS_API void AUXTS__LRUCache_evict(AUXTS__LRUCache* cache);
 AUXTS_API void AUXTS__LRUCache_destroy(AUXTS__LRUCache* cache);
 
 int test_lru_cache();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //AUXTS_CACHE_H

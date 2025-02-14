@@ -12,11 +12,13 @@
 #include "cache.h"
 #include "flac.h"
 
-#define AUXTS__INITIAL_FILE_LIST_CAPACITY 2
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#define AUXTS__INITIAL_BLOCK_STREAM_CAPACITY 2
+extern AUXTS_API const int AUXTS__INITIAL_FILE_LIST_CAPACITY;
 
-#define AUXTS__MAX_PATH_SIZE 255
+extern AUXTS_API const int AUXTS__INITIAL_PCM_BUFFER_CAPACITY;
 
 typedef struct {
     char** files;
@@ -28,11 +30,18 @@ typedef struct {
     int32_t** data;
     size_t size;
     size_t offset;
+    size_t capacity;
     uint32_t channels;
     uint32_t sample_rate;
     uint32_t bits_per_sample;
 } AUXTS__PcmBuffer;
 
+AUXTS_API AUXTS__PcmBuffer* AUXTS__extract_pcm_data(AUXTS__LRUCache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp);
+
 int test_extract();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //AUXTS_EXTRACT_H

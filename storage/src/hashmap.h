@@ -6,7 +6,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define AUXTS_INITIAL_BUCKET_CAPACITY 2
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern AUXTS_API const int AUXTS_INITIAL_BUCKET_CAPACITY;
 
 typedef struct {
     uint64_t key[2];
@@ -31,15 +35,15 @@ AUXTS__FORCE_INLINE uint64_t AUXTS__hash(void* data, int len, size_t size) {
 }
 
 AUXTS_API AUXTS__Hashmap* AUXTS__Hashmap_construct(size_t size);
-
 AUXTS_API void AUXTS__Hashmap_put(AUXTS__Hashmap* map, uint64_t* key, void* value);
-
 AUXTS_API void* AUXTS__Hashmap_get(AUXTS__Hashmap* map, uint64_t* key);
-
 AUXTS_API void AUXTS__Hashmap_delete(AUXTS__Hashmap* map, uint64_t* key);
-
 AUXTS_API void AUXTS__Hashmap_destroy(AUXTS__Hashmap* map);
 
 int test_hashmap();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //AUXTS_HASHMAP_H

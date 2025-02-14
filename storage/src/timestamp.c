@@ -1,21 +1,29 @@
-#include "rfc.h"
+#include "timestamp.h"
 
-uint64_t AUXTS__get_milliseconds() {
+AUXTS_API const int AUXTS__RFC3339_MAX_SIZE = 35;
+
+AUXTS_API const long AUXTS__MILLISECONDS_PER_SECOND = 1000L;
+
+AUXTS_API const long AUXTS__NANOSECONDS_PER_MILLISECOND = 1000000L;
+
+AUXTS_API const long AUXTS__NANOSECONDS_PER_SECOND = 1000000000L;
+
+AUXTS_API uint64_t AUXTS__get_milliseconds() {
     struct timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
     return AUXTS__ts_to_milliseconds(&ts);
 }
 
-uint64_t AUXTS__ts_to_milliseconds(struct timespec* ts) {
+AUXTS_API uint64_t AUXTS__ts_to_milliseconds(struct timespec* ts) {
     return (ts->tv_sec * AUXTS__NANOSECONDS_PER_SECOND + ts->tv_nsec) / AUXTS__NANOSECONDS_PER_MILLISECOND;
 }
 
-void AUXTS__milliseconds_to_tm(uint64_t milliseconds, struct tm* info) {
+AUXTS_API void AUXTS__milliseconds_to_tm(uint64_t milliseconds, struct tm* info) {
     time_t seconds = (time_t)(milliseconds / AUXTS__MILLISECONDS_PER_SECOND);
     gmtime_r(&seconds, info);
 }
 
-void AUXTS__format_rfc3339(uint64_t milliseconds, char* buf) {
+AUXTS_API void AUXTS__format_rfc3339(uint64_t milliseconds, char* buf) {
     if (strlen(buf) < AUXTS__RFC3339_MAX_SIZE) {
     }
 
@@ -36,7 +44,7 @@ void AUXTS__format_rfc3339(uint64_t milliseconds, char* buf) {
             remainder);           // Milliseconds
 }
 
-uint64_t AUXTS__parse_rfc3339(char* buf) {
+AUXTS_API uint64_t AUXTS__parse_rfc3339(char* buf) {
     struct tm info;
     struct timespec ts;
     int milliseconds = 0;

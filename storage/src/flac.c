@@ -1,10 +1,50 @@
 #include "flac.h"
 
+AUXTS_API const int AUXTS__INITIAL_FLAC_STREAM_CAPACITY = 2;
+
 static FLAC__StreamDecoderReadStatus read_callback(const FLAC__StreamDecoder* decoder, FLAC__byte buffer[], size_t* bytes, void* client_data);
 static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *const buffer[], void *client_data);
 static void error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 static AUXTS__DecoderContext* DecoderContext_construct(AUXTS__FlacEncodedBlock* block);
 static void DecoderContext_destroy_except_pcm(AUXTS__DecoderContext* context);
+
+AUXTS_API AUXTS__FlacEncodedBlocks* AUXTS__FlacEncodedBlocks_construct() {
+    AUXTS__FlacEncodedBlocks* stream = malloc(sizeof(AUXTS__FlacEncodedBlocks));
+    if (!stream) {
+        perror("Failed to allocate AUXTS__FlacEncodedBlocks");
+        exit(EXIT_FAILURE);
+    }
+
+    stream->capacity = AUXTS__INITIAL_FLAC_STREAM_CAPACITY;
+    stream->size = 0;
+
+    stream->blocks = malloc(stream->capacity * sizeof(AUXTS__FlacEncodedBlock));
+    if (!stream->blocks) {
+        perror("Failed to allocate blocks to AUXTS__FlacEncodedBlocks");
+        exit(EXIT_FAILURE);
+    }
+
+    return stream;
+}
+
+AUXTS_API AUXTS__PcmBlock* AUXTS__decode_flac_block(AUXTS__FlacEncodedBlock* block) {
+    FLAC__StreamDecoder* decoder = FLAC__stream_decoder_new();
+    if (!decoder) {
+        perror("Failed to allocate FLAC__StreamDecoder");
+        return NULL;
+    }
+
+    AUXTS__DecoderContext* context = DecoderContext_construct(block);
+
+    FLAC__stream_decoder_init_stream(decoder, read_callback, NULL, NULL, NULL, NULL, write_callback, NULL, error_callback, context);
+    FLAC__stream_decoder_process_until_end_of_stream(decoder);
+    FLAC__stream_decoder_delete(decoder);
+
+    AUXTS__PcmBlock* pcm = context->pcm;
+    DecoderContext_destroy_except_pcm(context);
+
+    return pcm;
+}
 
 FLAC__StreamDecoderReadStatus read_callback(const FLAC__StreamDecoder* decoder, FLAC__byte buffer[], size_t* bytes, void* client_data) {
     (void)decoder;
@@ -72,24 +112,4 @@ void DecoderContext_destroy_except_pcm(AUXTS__DecoderContext* context) {
     free(context->flac->data);
     free(context->flac);
     free(context);
-}
-
-AUXTS__PcmBlock* AUXTS__decode_flac_block(AUXTS__FlacEncodedBlock* block) {
-    FLAC__StreamDecoder* decoder = FLAC__stream_decoder_new();
-    if (!decoder) {
-        perror("Failed to allocate FLAC__StreamDecoder");
-        return NULL;
-    }
-
-    AUXTS__DecoderContext* context = DecoderContext_construct(block);
-
-    FLAC__stream_decoder_init_stream(decoder, read_callback, NULL, NULL, NULL, NULL, write_callback, NULL, error_callback, context);
-
-    FLAC__stream_decoder_process_until_end_of_stream(decoder);
-    FLAC__stream_decoder_delete(decoder);
-
-    AUXTS__PcmBlock* pcm = context->pcm;
-    DecoderContext_destroy_except_pcm(context);
-
-    return pcm;
 }

@@ -8,6 +8,12 @@
 #include <stdlib.h>
 #include <FLAC/stream_decoder.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern AUXTS_API const int AUXTS__INITIAL_FLAC_STREAM_CAPACITY;
+
 typedef struct {
     uint8_t* data;
     uint16_t size;
@@ -34,6 +40,11 @@ typedef struct {
     AUXTS__PcmBlock* pcm;
 } AUXTS__DecoderContext;
 
-AUXTS__PcmBlock* AUXTS__decode_flac_block(AUXTS__FlacEncodedBlock* block);
+AUXTS_API AUXTS__PcmBlock* AUXTS__decode_flac_block(AUXTS__FlacEncodedBlock* block);
+AUXTS_API AUXTS__FlacEncodedBlocks* AUXTS__FlacEncodedBlocks_construct();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //AUXTS_FLAC_H

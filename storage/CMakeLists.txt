@@ -20,8 +20,8 @@ include_directories(${FLAC_INCLUDE_DIR})
 add_executable(auxts main.c
         src/endian.h
         src/export.h
-        src/rfc.h
-        src/rfc.c
+        src/timestamp.h
+        src/timestamp.c
         src/murmur3.h
         src/murmur3.c
         src/memtable.h
@@ -34,6 +34,7 @@ add_executable(auxts main.c
         src/extract.c
         src/flac.h
         src/flac.c
+        src/export.c
 )
 
 target_link_libraries(auxts ${FLAC_LIBRARY})

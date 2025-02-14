@@ -6,6 +6,10 @@
 #include "endian.h"
 #include "export.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 AUXTS__FORCE_INLINE uint64_t AUXTS__rotl64(uint64_t x, int8_t r) {
     return (x << r) | (x >> (64 - r));
 }
@@ -20,8 +24,12 @@ AUXTS__FORCE_INLINE uint64_t AUXTS__fmix64(uint64_t k) {
     return k;
 }
 
-void AUXTS__murmur3_x64_128(const uint8_t* key, int len, uint32_t seed, uint64_t* out);
+AUXTS_API void AUXTS__murmur3_x64_128(const uint8_t* key, int len, uint32_t seed, uint64_t* out);
 
 int test_murmur3();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //AUXTS_MURMUR3_H
