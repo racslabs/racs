@@ -6,7 +6,7 @@ static FLAC__StreamDecoderReadStatus read_callback(const FLAC__StreamDecoder* de
 static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *const buffer[], void *client_data);
 static void error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 static AUXTS__DecoderContext* DecoderContext_construct(AUXTS__FlacEncodedBlock* block);
-static void DecoderContext_destroy_except_pcm(AUXTS__DecoderContext* context);
+static void DecoderContext_destroy(AUXTS__DecoderContext* context);
 
 AUXTS_API AUXTS__FlacEncodedBlocks* AUXTS__FlacEncodedBlocks_construct() {
     AUXTS__FlacEncodedBlocks* stream = malloc(sizeof(AUXTS__FlacEncodedBlocks));
@@ -41,9 +41,44 @@ AUXTS_API AUXTS__PcmBlock* AUXTS__decode_flac_block(AUXTS__FlacEncodedBlock* blo
     FLAC__stream_decoder_delete(decoder);
 
     AUXTS__PcmBlock* pcm = context->pcm;
-    DecoderContext_destroy_except_pcm(context);
+    DecoderContext_destroy(context);
 
     return pcm;
+}
+
+AUXTS_API void AUXTS__FlacEncodedBlocks_append(AUXTS__FlacEncodedBlocks* blocks, uint8_t* block_data, uint16_t size) {
+    if (blocks->size == blocks->capacity) {
+        blocks->capacity = 1 << blocks->capacity;
+        blocks->blocks = realloc(blocks->blocks, blocks->capacity * sizeof(AUXTS__FlacEncodedBlock));
+
+        if (!blocks->blocks) {
+            perror("Error reallocating blocks to AUXTS__FlacEncodedBlocks");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    AUXTS__FlacEncodedBlock* block = malloc(sizeof(AUXTS__FlacEncodedBlock));
+    if (!block) {
+        perror("Failed to allocate AUXTS__FlacEncodedBlock");
+        exit(EXIT_FAILURE);
+    }
+
+    block->data = block_data;
+    block->size = size;
+
+    blocks->blocks[blocks->size] = block;
+    ++blocks->size;
+}
+
+AUXTS_API void AUXTS__FlacEncodedBlocks_destroy(AUXTS__FlacEncodedBlocks* blocks) {
+    for (int i = 0; i < blocks->size; ++i) {
+        AUXTS__FlacEncodedBlock* block = blocks->blocks[i];
+        free(block->data);
+        free(block);
+    }
+
+    free(blocks->blocks);
+    free(blocks);
 }
 
 FLAC__StreamDecoderReadStatus read_callback(const FLAC__StreamDecoder* decoder, FLAC__byte buffer[], size_t* bytes, void* client_data) {
@@ -108,8 +143,6 @@ AUXTS__DecoderContext* DecoderContext_construct(AUXTS__FlacEncodedBlock* block) 
     return context;
 }
 
-void DecoderContext_destroy_except_pcm(AUXTS__DecoderContext* context) {
-    free(context->flac->data);
-    free(context->flac);
+void DecoderContext_destroy(AUXTS__DecoderContext* context) {
     free(context);
 }

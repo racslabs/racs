@@ -37,6 +37,7 @@ typedef struct {
 } AUXTS__PcmBuffer;
 
 AUXTS_API AUXTS__PcmBuffer* AUXTS__extract_pcm_data(AUXTS__LRUCache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp);
+AUXTS_API void AUXTS__PcmBuffer_destroy(AUXTS__PcmBuffer* buffer);
 
 int test_extract();
 

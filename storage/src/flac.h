@@ -42,6 +42,8 @@ typedef struct {
 
 AUXTS_API AUXTS__PcmBlock* AUXTS__decode_flac_block(AUXTS__FlacEncodedBlock* block);
 AUXTS_API AUXTS__FlacEncodedBlocks* AUXTS__FlacEncodedBlocks_construct();
+AUXTS_API void AUXTS__FlacEncodedBlocks_append(AUXTS__FlacEncodedBlocks* blocks, uint8_t* block_data, uint16_t size);
+AUXTS_API void AUXTS__FlacEncodedBlocks_destroy(AUXTS__FlacEncodedBlocks* blocks);
 
 #ifdef __cplusplus
 }
