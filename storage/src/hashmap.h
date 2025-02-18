@@ -24,7 +24,7 @@ typedef struct {
 } AUXTS__HashmapBucket;
 
 typedef struct {
-    size_t size;
+    size_t num_buckets;
     AUXTS__HashmapBucket** buckets;
 } AUXTS__Hashmap;
 
@@ -34,7 +34,7 @@ AUXTS__FORCE_INLINE uint64_t AUXTS__hash(void* data, int len, size_t size) {
     return _hash[0] % size;
 }
 
-AUXTS_API AUXTS__Hashmap* AUXTS__Hashmap_construct(size_t size);
+AUXTS_API AUXTS__Hashmap* AUXTS__Hashmap_construct(size_t num_entries);
 AUXTS_API void AUXTS__Hashmap_put(AUXTS__Hashmap* map, uint64_t* key, void* value);
 AUXTS_API void* AUXTS__Hashmap_get(AUXTS__Hashmap* map, uint64_t* key);
 AUXTS_API void AUXTS__Hashmap_delete(AUXTS__Hashmap* map, uint64_t* key);

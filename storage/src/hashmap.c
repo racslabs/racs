@@ -6,22 +6,22 @@ static AUXTS__HashmapEntry* HashmapEntry_construct(const uint64_t* key, void* va
 static AUXTS__HashmapBucket* HashmapBucket_construct();
 static void HashmapEntry_destroy(AUXTS__HashmapEntry* entry);
 
-AUXTS_API AUXTS__Hashmap* AUXTS__Hashmap_construct(size_t size) {
+AUXTS_API AUXTS__Hashmap* AUXTS__Hashmap_construct(size_t num_entries) {
     AUXTS__Hashmap* map = malloc(sizeof(AUXTS__Hashmap));
     if (!map) {
         perror("Error allocating AUXTS__Hashmap");
         return NULL;
     }
 
-    map->size = size;
+    map->num_buckets = num_entries;
 
-    map->buckets = malloc(size * sizeof(AUXTS__HashmapBucket*));
+    map->buckets = malloc(num_entries * sizeof(AUXTS__HashmapBucket*));
     if (!map->buckets) {
         perror("Failed to allocate buckets");
         return NULL;
     }
 
-    for (int i = 0; i < map->size; ++i) {
+    for (int i = 0; i < map->num_buckets; ++i) {
         map->buckets[i] = HashmapBucket_construct();
     }
 
@@ -31,7 +31,7 @@ AUXTS_API AUXTS__Hashmap* AUXTS__Hashmap_construct(size_t size) {
 AUXTS_API void AUXTS__Hashmap_put(AUXTS__Hashmap* map, uint64_t* key, void* value) {
     if (!map) return;
 
-    uint64_t _key = AUXTS__hash((uint8_t *) key, 2 * sizeof(uint64_t), map->size);
+    uint64_t _key = AUXTS__hash((uint8_t *) key, 2 * sizeof(uint64_t), map->num_buckets);
     AUXTS__HashmapBucket* bucket = map->buckets[_key];
 
     for (int i = 0; i < bucket->count; ++i) {
@@ -53,7 +53,7 @@ AUXTS_API void AUXTS__Hashmap_put(AUXTS__Hashmap* map, uint64_t* key, void* valu
         bucket->entries = realloc(bucket->entries, bucket->capacity * sizeof(AUXTS__HashmapEntry*));
         if (!bucket->entries) {
             perror("Error reallocating entries");
-            exit(EXIT_FAILURE);
+            return;
         }
     }
 
@@ -64,7 +64,7 @@ AUXTS_API void AUXTS__Hashmap_put(AUXTS__Hashmap* map, uint64_t* key, void* valu
 AUXTS_API void* AUXTS__Hashmap_get(AUXTS__Hashmap* map, uint64_t* key) {
     if (!map) return NULL;
 
-    uint64_t _key = AUXTS__hash((uint8_t *) key, 2 * sizeof(uint64_t), map->size);
+    uint64_t _key = AUXTS__hash((uint8_t *) key, 2 * sizeof(uint64_t), map->num_buckets);
     AUXTS__HashmapBucket* bucket = map->buckets[_key];
 
     for (int i = 0; i < bucket->count; ++i) {
@@ -82,7 +82,7 @@ AUXTS_API void* AUXTS__Hashmap_get(AUXTS__Hashmap* map, uint64_t* key) {
 AUXTS_API void AUXTS__Hashmap_delete(AUXTS__Hashmap* map, uint64_t* key) {
     if (!map) return;
 
-    uint64_t _key = AUXTS__hash((uint8_t *) key, 2 * sizeof(uint64_t), map->size);
+    uint64_t _key = AUXTS__hash((uint8_t *) key, 2 * sizeof(uint64_t), map->num_buckets);
     AUXTS__HashmapBucket* bucket = map->buckets[_key];
 
     for (int i = 0; i < bucket->count; ++i) {
@@ -104,7 +104,7 @@ AUXTS_API void AUXTS__Hashmap_delete(AUXTS__Hashmap* map, uint64_t* key) {
 }
 
 AUXTS_API void AUXTS__Hashmap_destroy(AUXTS__Hashmap* map) {
-    for (int i = 0; i < map->size; ++i) {
+    for (int i = 0; i < map->num_buckets; ++i) {
         AUXTS__HashmapBucket* bucket = map->buckets[i];
 
         for (int j = 0; j < bucket->count; ++j) {

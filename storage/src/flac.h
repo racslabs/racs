@@ -14,6 +14,8 @@ extern "C" {
 
 extern AUXTS_API const int AUXTS__INITIAL_FLAC_STREAM_CAPACITY;
 
+extern AUXTS_API const int AUXTS__INITIAL_PCM_BLOCK_CAPACITY;
+
 typedef struct {
     uint8_t* data;
     uint16_t size;
@@ -22,14 +24,14 @@ typedef struct {
 
 typedef struct {
     AUXTS__FlacEncodedBlock** blocks;
-    size_t size;
+    size_t num_blocks;
     size_t capacity;
 } AUXTS__FlacEncodedBlocks;
 
 typedef struct {
     int32_t** data;
-    size_t size;
-    size_t offset;
+    size_t num_samples;
+    size_t total_samples;
     uint32_t channels;
     uint32_t sample_rate;
     uint32_t bits_per_sample;

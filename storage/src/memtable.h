@@ -43,7 +43,7 @@ typedef struct {
 
 typedef struct {
     AUXTS__MemtableEntry* entries;
-    uint16_t size;
+    uint16_t num_entries;
     uint16_t capacity;
     pthread_mutex_t mutex;
 } AUXTS__Memtable;
@@ -56,8 +56,8 @@ typedef struct {
 typedef struct {
     int fd;
     size_t size;
-    uint16_t entry_count;
-    uint8_t* buffer;
+    uint8_t* data;
+    uint16_t num_entries;
     AUXTS__SSTableIndexEntry* index_entries;
 } AUXTS__SSTable;
 
@@ -72,10 +72,11 @@ AUXTS_API void AUXTS__MultiMemtable_append(AUXTS__MultiMemtable* multi_memtable,
 AUXTS_API void AUXTS__MultiMemtable_destroy(AUXTS__MultiMemtable* multi_memtable);
 AUXTS_API void AUXTS__MultiMemtable_flush(AUXTS__MultiMemtable* multi_memtable);
 AUXTS_API AUXTS__SSTable* AUXTS__read_sstable_index_entries(const char* filename);
-AUXTS_API AUXTS__SSTable* AUXTS__read_sstable_index_entries_in_memory(uint8_t* buffer, size_t size);
+AUXTS_API AUXTS__SSTable* AUXTS__read_sstable_index_entries_in_memory(uint8_t* data, size_t size);
 AUXTS_API void AUXTS__SSTable_destroy(AUXTS__SSTable* sstable);
 AUXTS_API void AUXTS__get_time_partitioned_path(uint64_t milliseconds, char* path);
 AUXTS_API AUXTS__MemtableEntry* AUXTS__read_memtable_entry(uint8_t* buffer, size_t offset);
+AUXTS_API uint8_t* AUXTS__read_file_util(const char* path, long* size);
 
 int test_multi_memtable();
 

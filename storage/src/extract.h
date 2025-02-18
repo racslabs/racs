@@ -28,9 +28,8 @@ typedef struct {
 
 typedef struct {
     int32_t** data;
-    size_t size;
-    size_t offset;
-    size_t capacity;
+    size_t num_samples;
+    size_t max_num_samples;
     uint32_t channels;
     uint32_t sample_rate;
     uint32_t bits_per_sample;
