@@ -22,8 +22,8 @@ extern AUXTS_API const int AUXTS__INITIAL_PCM_BUFFER_CAPACITY;
 
 typedef struct {
     char** files;
-    size_t count;
-    size_t capacity;
+    size_t num_files;
+    size_t max_num_files;
 } AUXTS__FileList;
 
 typedef struct {

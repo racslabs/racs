@@ -16,7 +16,7 @@ static char* get_path_from_time_range(uint64_t begin_timestamp, uint64_t end_tim
 static uint8_t* get_data_from_cache_or_sstable(AUXTS__LRUCache* cache, uint64_t stream_id, uint64_t curr_ts, const char* file_path);
 static AUXTS__FileList* get_sorted_file_list(const char* path);
 static AUXTS__FlacEncodedBlocks* extract_flac_encoded_blocks(AUXTS__LRUCache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp);
-static void process_sstable_data(AUXTS__FlacEncodedBlocks* blocks, uint64_t stream_id, uint8_t* data);
+static void process_sstable_data(AUXTS__FlacEncodedBlocks* blocks, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp, uint8_t* data);
 static AUXTS__PcmBuffer* PcmBuffer_construct(uint32_t channels, uint32_t sample_rate, uint32_t bits_per_sample);
 static void PcmBuffer_append(AUXTS__PcmBuffer* buffer, AUXTS__PcmBlock* block);
 static void PcmBlock_destroy(AUXTS__PcmBlock* block);
@@ -128,17 +128,17 @@ AUXTS__FileList* FileList_construct() {
         exit(EXIT_FAILURE);
     }
 
-    list->count = 0;
-    list->capacity = AUXTS__INITIAL_FILE_LIST_CAPACITY;
+    list->num_files = 0;
+    list->max_num_files = AUXTS__INITIAL_FILE_LIST_CAPACITY;
     list->files = malloc(AUXTS__INITIAL_FILE_LIST_CAPACITY * sizeof(char*));
 
     return list;
 }
 
 void FileList_add_file(AUXTS__FileList* list, const char* file_path) {
-    if (list->count == list->capacity) {
-        list->capacity = 1 << list->capacity;
-        list->files = realloc(list->files, list->capacity * sizeof(char*));
+    if (list->num_files == list->max_num_files) {
+        list->max_num_files = 1 << list->max_num_files;
+        list->files = realloc(list->files, list->max_num_files * sizeof(char*));
 
         if (!list->files) {
             perror("Error reallocating list to AUXTS__FileList");
@@ -146,8 +146,8 @@ void FileList_add_file(AUXTS__FileList* list, const char* file_path) {
         }
     }
 
-    list->files[list->count] = strdup(file_path);
-    ++list->count;
+    list->files[list->num_files] = strdup(file_path);
+    ++list->num_files;
 }
 
 void list_files_recursive(AUXTS__FileList* list, const char* path) {
@@ -177,7 +177,7 @@ void list_files_recursive(AUXTS__FileList* list, const char* path) {
 }
 
 void FileList_destroy(AUXTS__FileList* list) {
-    for (int i = 0; i < list->count; ++i) {
+    for (int i = 0; i < list->num_files; ++i) {
         free(list->files[i]);
     }
 
@@ -186,7 +186,7 @@ void FileList_destroy(AUXTS__FileList* list) {
 }
 
 void FileList_sort(AUXTS__FileList* list) {
-    qsort(list->files, list->count, sizeof(char*), compare_paths);
+    qsort(list->files, list->num_files, sizeof(char*), compare_paths);
 }
 
 char* get_path_from_time_range(uint64_t begin_timestamp, uint64_t end_timestamp) {
@@ -222,7 +222,7 @@ uint8_t* get_data_from_cache_or_sstable(AUXTS__LRUCache* cache, uint64_t stream_
     return data;
 }
 
-void process_sstable_data(AUXTS__FlacEncodedBlocks* blocks, uint64_t stream_id, uint8_t* data) {
+void process_sstable_data(AUXTS__FlacEncodedBlocks* blocks, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp, uint8_t* data) {
     size_t size;
     memcpy(&size, data, sizeof(size_t));
     size = AUXTS__swap64_if_big_endian(size);
@@ -233,7 +233,9 @@ void process_sstable_data(AUXTS__FlacEncodedBlocks* blocks, uint64_t stream_id, 
         size_t offset = sstable->index_entries[j].offset;
         AUXTS__MemtableEntry* entry = AUXTS__read_memtable_entry(data, offset);
 
-        if (entry->key[0] == stream_id) {
+        uint64_t timestamp = entry->key[1];
+
+        if (entry->key[0] == stream_id && timestamp >= begin_timestamp && timestamp <= end_timestamp) {
             AUXTS__FlacEncodedBlocks_append(blocks, entry->block, entry->block_size);
         } else {
             free(entry->block);
@@ -250,13 +252,13 @@ AUXTS__FlacEncodedBlocks* extract_flac_encoded_blocks(AUXTS__LRUCache* cache, ui
     AUXTS__FileList* list = get_sorted_file_list(path);
     AUXTS__FlacEncodedBlocks* blocks = AUXTS__FlacEncodedBlocks_construct();
 
-    for (int i = 0; i < list->count; ++i) {
+    for (int i = 0; i < list->num_files; ++i) {
         char* file_path = list->files[i];
 
         uint64_t timestamp = time_partitioned_path_to_timestamp(file_path);
         if (timestamp >= begin_timestamp && timestamp <= end_timestamp) {
             uint8_t* buffer = get_data_from_cache_or_sstable(cache, stream_id, timestamp, file_path);
-            process_sstable_data(blocks, stream_id, buffer);
+            process_sstable_data(blocks, stream_id, begin_timestamp, end_timestamp, buffer);
         }
     }
 
@@ -329,9 +331,10 @@ uint64_t next_power_of_two(uint64_t n) {
 
 int test_extract() {
     AUXTS__LRUCache* cache = AUXTS__LRUCache_construct(2);
-    AUXTS__PcmBuffer* buffer = AUXTS__extract_pcm_data(cache, 8870522515535040796, 1739141512213, 1739141512215);
+    AUXTS__PcmBuffer* buffer = AUXTS__extract_pcm_data(cache, 8870522515535040796, 1739141512213, 1739141512213);
 
-    printf("pcm buffer size: %zu\n", buffer->max_num_samples);
+    printf("pcm buffer size: %zu\n", buffer->num_samples);
+    AUXTS__PcmBuffer_destroy(buffer);
 
     AUXTS__LRUCache_destroy(cache);
 

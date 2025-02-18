@@ -95,7 +95,7 @@ AUXTS_API AUXTS__SSTable* AUXTS__read_sstable_index_entries(const char* filename
 
     uint16_t entry_count;
     if (pread(fd, &entry_count, sizeof(uint16_t), file_size - AUXTS__TRAILER_SIZE) != sizeof(uint16_t)) {
-        perror("Failed to read entry count");
+        perror("Failed to read entry num_files");
         close(fd);
         return NULL;
     }
