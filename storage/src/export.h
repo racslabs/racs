@@ -6,11 +6,11 @@
 extern "C" {
 #endif
 
-#define AUXTS__FORCE_INLINE inline __attribute__((always_inline))
+#define AUXTS_FORCE_INLINE inline __attribute__((always_inline))
 
-#define AUXTS_API
+#define AUXTS_API //TODO: remove
 
-extern AUXTS_API const int AUXTS__ALIGN;
+#define AUXTS__ALIGN 32
 
 #ifdef __cplusplus
 }

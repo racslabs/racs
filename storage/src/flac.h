@@ -12,21 +12,19 @@
 extern "C" {
 #endif
 
-extern AUXTS_API const int AUXTS__INITIAL_FLAC_STREAM_CAPACITY;
-
-extern AUXTS_API const int AUXTS__INITIAL_PCM_BLOCK_CAPACITY;
+#define AUXTS_INITIAL_FLAC_STREAM_CAPACITY 2
 
 typedef struct {
     uint8_t* data;
     uint16_t size;
     uint16_t offset;
-} AUXTS__FlacEncodedBlock;
+} FlacEncodedBlock;
 
 typedef struct {
-    AUXTS__FlacEncodedBlock** blocks;
+    FlacEncodedBlock** blocks;
     size_t num_blocks;
     size_t capacity;
-} AUXTS__FlacEncodedBlocks;
+} FlacEncodedBlocks;
 
 typedef struct {
     int32_t** data;
@@ -35,17 +33,17 @@ typedef struct {
     uint32_t channels;
     uint32_t sample_rate;
     uint32_t bits_per_sample;
-} AUXTS__PcmBlock;
+} PcmBlock;
 
 typedef struct {
-    AUXTS__FlacEncodedBlock* flac;
-    AUXTS__PcmBlock* pcm;
-} AUXTS__DecoderContext;
+    FlacEncodedBlock* flac;
+    PcmBlock* pcm;
+} DecoderContext;
 
-AUXTS_API AUXTS__PcmBlock* AUXTS__decode_flac_block(AUXTS__FlacEncodedBlock* block);
-AUXTS_API AUXTS__FlacEncodedBlocks* AUXTS__FlacEncodedBlocks_construct();
-AUXTS_API void AUXTS__FlacEncodedBlocks_append(AUXTS__FlacEncodedBlocks* blocks, uint8_t* block_data, uint16_t size);
-AUXTS_API void AUXTS__FlacEncodedBlocks_destroy(AUXTS__FlacEncodedBlocks* blocks);
+PcmBlock* auxts_decode_flac_block(FlacEncodedBlock* block);
+FlacEncodedBlocks* auxts_flac_encoded_blocks_create();
+void auxts_flac_encoded_blocks_append(FlacEncodedBlocks* blocks, uint8_t* block_data, uint16_t size);
+void auxts_flac_encoded_blocks_destroy(FlacEncodedBlocks* blocks);
 
 #ifdef __cplusplus
 }

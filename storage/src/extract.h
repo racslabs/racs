@@ -16,15 +16,15 @@
 extern "C" {
 #endif
 
-extern AUXTS_API const int AUXTS__INITIAL_FILE_LIST_CAPACITY;
+#define AUXTS_INITIAL_FILE_LIST_CAPACITY 2
 
-extern AUXTS_API const int AUXTS__INITIAL_PCM_BUFFER_CAPACITY;
+#define AUXTS_INITIAL_PCM_BUFFER_CAPACITY 2
 
 typedef struct {
     char** files;
     size_t num_files;
     size_t max_num_files;
-} AUXTS__FileList;
+} FileList;
 
 typedef struct {
     int32_t** data;
@@ -33,10 +33,10 @@ typedef struct {
     uint32_t channels;
     uint32_t sample_rate;
     uint32_t bits_per_sample;
-} AUXTS__PcmBuffer;
+} PcmBuffer;
 
-AUXTS_API AUXTS__PcmBuffer* AUXTS__extract_pcm_data(AUXTS__LRUCache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp);
-AUXTS_API void AUXTS__PcmBuffer_destroy(AUXTS__PcmBuffer* buffer);
+PcmBuffer* auxts_extract_pcm_data(LRUCache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp);
+void auxts_pcm_buffer_destroy(PcmBuffer* buffer);
 
 int test_extract();
 

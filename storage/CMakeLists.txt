@@ -34,7 +34,6 @@ add_executable(auxts main.c
         src/extract.c
         src/flac.h
         src/flac.c
-        src/export.c
 )
 
 target_link_libraries(auxts ${FLAC_LIBRARY})

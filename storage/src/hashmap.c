@@ -6,10 +6,10 @@ static AUXTS__HashmapEntry* HashmapEntry_construct(const uint64_t* key, void* va
 static AUXTS__HashmapBucket* HashmapBucket_construct();
 static void HashmapEntry_destroy(AUXTS__HashmapEntry* entry);
 
-AUXTS_API AUXTS__Hashmap* AUXTS__Hashmap_construct(size_t num_entries) {
-    AUXTS__Hashmap* map = malloc(sizeof(AUXTS__Hashmap));
+AUXTS_API Hashmap* AUXTS__Hashmap_construct(size_t num_entries) {
+    Hashmap* map = malloc(sizeof(Hashmap));
     if (!map) {
-        perror("Error allocating AUXTS__Hashmap");
+        perror("Error allocating Hashmap");
         return NULL;
     }
 
@@ -28,7 +28,7 @@ AUXTS_API AUXTS__Hashmap* AUXTS__Hashmap_construct(size_t num_entries) {
     return map;
 }
 
-AUXTS_API void AUXTS__Hashmap_put(AUXTS__Hashmap* map, uint64_t* key, void* value) {
+AUXTS_API void AUXTS__Hashmap_put(Hashmap* map, uint64_t* key, void* value) {
     if (!map) return;
 
     uint64_t _key = AUXTS__hash((uint8_t *) key, 2 * sizeof(uint64_t), map->num_buckets);
@@ -61,7 +61,7 @@ AUXTS_API void AUXTS__Hashmap_put(AUXTS__Hashmap* map, uint64_t* key, void* valu
     ++bucket->count;
 }
 
-AUXTS_API void* AUXTS__Hashmap_get(AUXTS__Hashmap* map, uint64_t* key) {
+AUXTS_API void* AUXTS__Hashmap_get(Hashmap* map, uint64_t* key) {
     if (!map) return NULL;
 
     uint64_t _key = AUXTS__hash((uint8_t *) key, 2 * sizeof(uint64_t), map->num_buckets);
@@ -79,7 +79,7 @@ AUXTS_API void* AUXTS__Hashmap_get(AUXTS__Hashmap* map, uint64_t* key) {
     return NULL;
 }
 
-AUXTS_API void AUXTS__Hashmap_delete(AUXTS__Hashmap* map, uint64_t* key) {
+AUXTS_API void AUXTS__Hashmap_delete(Hashmap* map, uint64_t* key) {
     if (!map) return;
 
     uint64_t _key = AUXTS__hash((uint8_t *) key, 2 * sizeof(uint64_t), map->num_buckets);
@@ -103,7 +103,7 @@ AUXTS_API void AUXTS__Hashmap_delete(AUXTS__Hashmap* map, uint64_t* key) {
     }
 }
 
-AUXTS_API void AUXTS__Hashmap_destroy(AUXTS__Hashmap* map) {
+AUXTS_API void AUXTS__Hashmap_destroy(Hashmap* map) {
     for (int i = 0; i < map->num_buckets; ++i) {
         AUXTS__HashmapBucket* bucket = map->buckets[i];
 
@@ -170,7 +170,7 @@ int test_hashmap() {
     key2[0] = 3;
     key2[1] = 4;
 
-    AUXTS__Hashmap* map = AUXTS__Hashmap_construct(3);
+    Hashmap* map = AUXTS__Hashmap_construct(3);
 
     uint8_t* data1 = (uint8_t*)strdup("data1");
     uint8_t* data2 = (uint8_t*)strdup("data2");

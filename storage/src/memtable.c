@@ -100,7 +100,7 @@ AUXTS_API AUXTS__SSTable* AUXTS__read_sstable_index_entries(const char* filename
         return NULL;
     }
 
-    entry_count = AUXTS__swap16_if_big_endian(entry_count);
+    entry_count = auxts_swap16_if_big_endian(entry_count);
     AUXTS__SSTable* sstable = SSTable_construct(entry_count);
     if (!sstable) {
         close(fd);
@@ -135,7 +135,7 @@ AUXTS_API AUXTS__SSTable* AUXTS__read_sstable_index_entries_in_memory(uint8_t* d
     uint16_t num_entries;
 
     memcpy(&num_entries, data + (size - AUXTS__TRAILER_SIZE), sizeof(uint16_t));
-    num_entries = AUXTS__swap16_if_big_endian(num_entries);
+    num_entries = auxts_swap16_if_big_endian(num_entries);
 
     size_t offset = size - (num_entries * AUXTS__INDEX_ENTRY_SIZE) - AUXTS__TRAILER_SIZE;
 
@@ -161,7 +161,7 @@ AUXTS_API void AUXTS__get_time_partitioned_path(uint64_t milliseconds, char* pat
             remainder);
 }
 
-AUXTS_API void AUXTS__SSTable_destroy(AUXTS__SSTable* sstable) {
+AUXTS_API void auxts_sstable_destroy_except_data(AUXTS__SSTable* sstable) {
     free(sstable->index_entries);
     free(sstable);
 }
@@ -280,7 +280,7 @@ void Memtable_flush(AUXTS__Memtable* memtable) {
     if (num_entries > 0) {
         AUXTS__SSTable *sstable = SSTable_construct(num_entries);
         SSTable_write(sstable, memtable);
-        AUXTS__SSTable_destroy(sstable);
+        auxts_sstable_destroy_except_data(sstable);
 
         memtable->num_entries = 0;
     }
@@ -310,19 +310,19 @@ void SSTable_read_index_entries_in_memory(AUXTS__SSTable* sstable, uint8_t* data
         uint64_t block_id;
 
         memcpy(&block_id, data + _offset, sizeof(uint64_t));
-        sstable->index_entries[entry].key[0] = AUXTS__swap64_if_big_endian(block_id);
+        sstable->index_entries[entry].key[0] = auxts_swap64_if_big_endian(block_id);
         _offset += sizeof(uint64_t);
 
         uint64_t timestamp;
 
         memcpy(&timestamp, data + _offset, sizeof(uint64_t));
-        sstable->index_entries[entry].key[1] = AUXTS__swap64_if_big_endian(timestamp);
+        sstable->index_entries[entry].key[1] = auxts_swap64_if_big_endian(timestamp);
         _offset += sizeof(uint64_t);
 
         uint64_t offset;
 
         memcpy(&offset, data + _offset, sizeof(uint64_t));
-        sstable->index_entries[entry].offset = AUXTS__swap64_if_big_endian(offset);
+        sstable->index_entries[entry].offset = auxts_swap64_if_big_endian(offset);
         _offset += sizeof(uint64_t);
     }
 
@@ -333,17 +333,17 @@ void SSTable_read_index_entries(AUXTS__SSTable* sstable) {
         uint64_t  block_id;
 
         read(sstable->fd, &block_id, sizeof(uint64_t));
-        sstable->index_entries[entry].key[0] = AUXTS__swap64_if_big_endian(block_id);
+        sstable->index_entries[entry].key[0] = auxts_swap64_if_big_endian(block_id);
 
         uint64_t timestamp;
 
         read(sstable->fd, &timestamp, sizeof(uint64_t));
-        sstable->index_entries[entry].key[1] = AUXTS__swap64_if_big_endian(timestamp);
+        sstable->index_entries[entry].key[1] = auxts_swap64_if_big_endian(timestamp);
 
         uint64_t offset;
 
         read(sstable->fd, &offset, sizeof(uint64_t));
-        sstable->index_entries[entry].offset = AUXTS__swap64_if_big_endian(offset);
+        sstable->index_entries[entry].offset = auxts_swap64_if_big_endian(offset);
     }
 }
 
@@ -378,7 +378,7 @@ void SSTable_write(AUXTS__SSTable* sstable, AUXTS__Memtable* memtable) {
     offset = SSTable_write_memtable(sstable, memtable, buffer);
     offset = SSTable_write_index_entries(sstable, buffer, offset);
 
-    size_t file_size = AUXTS__swap64_if_big_endian(offset);
+    size_t file_size = auxts_swap64_if_big_endian(offset);
 
     buffer_write(buffer, &file_size, sizeof(size_t), 0);
     write(sstable->fd, buffer, offset);
@@ -451,15 +451,15 @@ off_t SSTable_write_memtable(AUXTS__SSTable* sstable, AUXTS__Memtable* memtable,
 // timestamp    little-endian   8
 // block        little-endian   <block-num_samples>
 off_t MemtableEntry_write_sstable_index_entry(const AUXTS__MemtableEntry* memtable_entry, AUXTS__SSTableIndexEntry* index_entry, void* buffer, off_t offset) {
-    uint16_t block_size = AUXTS__swap16_if_big_endian(memtable_entry->block_size);
+    uint16_t block_size = auxts_swap16_if_big_endian(memtable_entry->block_size);
     index_entry->offset = offset;
     offset = buffer_write(buffer, &block_size, sizeof(uint16_t), offset);
 
-    uint64_t block_id = AUXTS__swap64_if_big_endian(memtable_entry->key[0]);
+    uint64_t block_id = auxts_swap64_if_big_endian(memtable_entry->key[0]);
     index_entry->key[0] = memtable_entry->key[0];
     offset = buffer_write(buffer, &block_id, sizeof(uint64_t), offset);
 
-    uint64_t timestamp = AUXTS__swap64_if_big_endian(memtable_entry->key[1]);
+    uint64_t timestamp = auxts_swap64_if_big_endian(memtable_entry->key[1]);
     index_entry->key[1] = memtable_entry->key[1];
     offset = buffer_write(buffer, &timestamp, sizeof(uint64_t), offset);
 
@@ -467,13 +467,13 @@ off_t MemtableEntry_write_sstable_index_entry(const AUXTS__MemtableEntry* memtab
 }
 
 off_t write_index_entry(void* buffer, AUXTS__SSTableIndexEntry* index_entry, off_t offset) {
-    uint64_t block_id = AUXTS__swap64_if_big_endian(index_entry->key[0]);
+    uint64_t block_id = auxts_swap64_if_big_endian(index_entry->key[0]);
     offset = buffer_write(buffer, &block_id, sizeof(uint64_t), offset);
 
-    uint64_t timestamp = AUXTS__swap64_if_big_endian(index_entry->key[1]);
+    uint64_t timestamp = auxts_swap64_if_big_endian(index_entry->key[1]);
     offset = buffer_write(buffer, &timestamp, sizeof(uint64_t), offset);
 
-    size_t _offset = AUXTS__swap64_if_big_endian(index_entry->offset);
+    size_t _offset = auxts_swap64_if_big_endian(index_entry->offset);
     return buffer_write(buffer, &_offset, sizeof(size_t), offset);
 }
 
@@ -482,7 +482,7 @@ off_t SSTable_write_index_entries(AUXTS__SSTable* sstable, void* buffer, off_t o
         offset = write_index_entry(buffer, &sstable->index_entries[entry], offset);
     }
 
-    uint16_t entry_count = AUXTS__swap16_if_big_endian(sstable->num_entries);
+    uint16_t entry_count = auxts_swap16_if_big_endian(sstable->num_entries);
     return buffer_write(buffer, &entry_count, sizeof(uint16_t), offset);
 }
 

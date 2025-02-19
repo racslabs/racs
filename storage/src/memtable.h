@@ -73,7 +73,7 @@ AUXTS_API void AUXTS__MultiMemtable_destroy(AUXTS__MultiMemtable* multi_memtable
 AUXTS_API void AUXTS__MultiMemtable_flush(AUXTS__MultiMemtable* multi_memtable);
 AUXTS_API AUXTS__SSTable* AUXTS__read_sstable_index_entries(const char* filename);
 AUXTS_API AUXTS__SSTable* AUXTS__read_sstable_index_entries_in_memory(uint8_t* data, size_t size);
-AUXTS_API void AUXTS__SSTable_destroy(AUXTS__SSTable* sstable);
+AUXTS_API void auxts_sstable_destroy_except_data(AUXTS__SSTable* sstable);
 AUXTS_API void AUXTS__get_time_partitioned_path(uint64_t milliseconds, char* path);
 AUXTS_API AUXTS__MemtableEntry* AUXTS__read_memtable_entry(uint8_t* buffer, size_t offset);
 AUXTS_API uint8_t* AUXTS__read_file_util(const char* path, long* size);

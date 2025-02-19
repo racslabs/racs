@@ -10,11 +10,11 @@
 extern "C" {
 #endif
 
-AUXTS__FORCE_INLINE uint64_t AUXTS__rotl64(uint64_t x, int8_t r) {
+AUXTS_FORCE_INLINE uint64_t AUXTS__rotl64(uint64_t x, int8_t r) {
     return (x << r) | (x >> (64 - r));
 }
 
-AUXTS__FORCE_INLINE uint64_t AUXTS__fmix64(uint64_t k) {
+AUXTS_FORCE_INLINE uint64_t AUXTS__fmix64(uint64_t k) {
     k ^= k >> 33;
     k *= 0xff51afd7ed558ccdull;
     k ^= k >> 33;
