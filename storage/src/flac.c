@@ -96,17 +96,35 @@ void auxts_flac_encoded_blocks_destroy(FlacEncodedBlocks* blocks) {
 void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data) {
     (void)decoder;
 
+    if (!client_data) {
+        perror("DecoderContext cannot be null");
+        return;
+    }
+
     PcmBlock *block = ((DecoderContext*) client_data)->pcm;
+    if (!block) {
+        perror("PcmBlock cannot be null");
+        return;
+    }
 
     if (metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
         block->channels = metadata->data.stream_info.channels;
         block->bits_per_sample = metadata->data.stream_info.bits_per_sample;
         block->sample_rate = metadata->data.stream_info.sample_rate;
         block->total_samples = metadata->data.stream_info.total_samples;
+
         block->data = malloc(block->channels * sizeof(int32_t*));
+        if (!block->data) {
+            perror("Failed to allocate data to PcmBlock");
+            return;
+        }
 
         for (int channel = 0; channel < block->channels; ++channel) {
             block->data[channel] = malloc(block->total_samples * sizeof(int32_t));
+            if (!block->data[channel]) {
+                perror("Failed to allocate samples to PcmBlock");
+                return;
+            }
         }
     }
 }
@@ -114,7 +132,17 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 FLAC__StreamDecoderReadStatus read_callback(const FLAC__StreamDecoder* decoder, FLAC__byte buffer[], size_t* bytes, void* client_data) {
     (void)decoder;
 
+    if (!client_data) {
+        perror("DecoderContext cannot be null");
+        return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
+    }
+
     FlacEncodedBlock* block = ((DecoderContext*) client_data)->flac;
+    if (!block) {
+        perror("FlacEncodedBlock cannot be null");
+        return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
+    }
+
     if (*bytes > block->size - block->offset) {
         *bytes = block->size - block->offset;
     }
@@ -130,11 +158,20 @@ FLAC__StreamDecoderReadStatus read_callback(const FLAC__StreamDecoder* decoder, 
 }
 
 FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *const buffer[], void *client_data) {
-    (void) decoder;
+    (void)decoder;
+
+    if (!client_data) {
+        perror("DecoderContext cannot be null");
+        return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+    }
+
+    PcmBlock* block = ((DecoderContext*) client_data)->pcm;
+    if (!block) {
+        perror("PcmBlock cannot be null");
+        return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+    }
 
     uint32_t block_size = frame->header.blocksize;
-    PcmBlock* block = ((DecoderContext*) client_data)->pcm;
-
     if (block_size + block->num_samples >= block->total_samples) {
         return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
     }

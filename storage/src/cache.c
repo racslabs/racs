@@ -24,7 +24,9 @@ LRUCache* auxts_lru_cache_create(size_t capacity) {
 }
 
 void auxts_lru_cache_put(LRUCache* cache, const uint64_t* key, const uint8_t* value) {
-    if (!cache) return;
+    if (!cache) {
+        return;
+    }
 
     pthread_rwlock_wrlock(&cache->rwlock);
 
