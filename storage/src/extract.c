@@ -333,7 +333,7 @@ int test_extract() {
     AUXTS__LRUCache* cache = AUXTS__LRUCache_construct(2);
     AUXTS__PcmBuffer* buffer = AUXTS__extract_pcm_data(cache, 8870522515535040796, 1739141512213, 1739141512213);
 
-    printf("pcm buffer size: %zu\n", buffer->num_samples);
+    printf("pcm buffer size: %u\n", buffer->bits_per_sample);
     AUXTS__PcmBuffer_destroy(buffer);
 
     AUXTS__LRUCache_destroy(cache);
