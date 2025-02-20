@@ -208,8 +208,8 @@ void file_list_sort(FileList* list) {
 char* get_path_from_time_range(uint64_t begin_timestamp, uint64_t end_timestamp) {
     char path1[255], path2[255];
 
-    AUXTS__get_time_partitioned_path(begin_timestamp, path1);
-    AUXTS__get_time_partitioned_path(end_timestamp, path2);
+    auxts_get_time_partitioned_path(begin_timestamp, path1);
+    auxts_get_time_partitioned_path(end_timestamp, path2);
 
     return resolve_shared_path(path1, path2);
 }
@@ -227,7 +227,7 @@ uint8_t* get_data_from_cache_or_sstable(LRUCache* cache, uint64_t stream_id, uin
     uint8_t* data = auxts_lru_cache_get(cache, key);
 
     if (!data) {
-        AUXTS__SSTable* sstable = AUXTS__read_sstable_index_entries(file_path);
+        SSTable* sstable = auxts_read_sstable_index_entries(file_path);
         if (!sstable) {
             return NULL;
         }
@@ -246,7 +246,7 @@ void process_sstable_data(FlacEncodedBlocks* blocks, uint64_t stream_id, uint64_
     memcpy(&size, data, sizeof(size_t));
     size = auxts_swap64_if_big_endian(size);
 
-    AUXTS__SSTable* sstable = AUXTS__read_sstable_index_entries_in_memory(data, size);
+    SSTable* sstable = auxts_read_sstable_index_entries_in_memory(data, size);
     if (!sstable) {
         return;
     }
@@ -254,7 +254,7 @@ void process_sstable_data(FlacEncodedBlocks* blocks, uint64_t stream_id, uint64_
     for (int j = 0; j < sstable->num_entries; ++j) {
         size_t offset = sstable->index_entries[j].offset;
 
-        AUXTS__MemtableEntry* entry = AUXTS__read_memtable_entry(data, offset);
+        MemtableEntry* entry = auxts_read_memtable_entry(data, offset);
         if (!entry) {
             return;
         }
@@ -314,7 +314,6 @@ PcmBuffer* pcm_buffer_create(uint32_t channels, uint32_t sample_rate, uint32_t b
     buffer->data = malloc(channels * sizeof(int32_t*));
     if (!buffer->data) {
         perror("Failed to allocate data to PcmBuffer");
-        free(buffer->data);
         free(buffer);
         return NULL;
     }
@@ -376,9 +375,9 @@ uint64_t next_power_of_two(uint64_t n) {
 
 int test_extract() {
     LRUCache* cache = auxts_lru_cache_create(2);
-    PcmBuffer* buffer = auxts_extract_pcm_data(cache, 8870522515535040796, 1739141512213, 1739141512213);
+    PcmBuffer* buffer = auxts_extract_pcm_data(cache, 8870522515535040796, 1739141512213, 1739141512214);
 
-    printf("pcm buffer size: %u\n", buffer->bits_per_sample);
+    printf("pcm buffer size: %zu\n", buffer->num_samples);
     auxts_pcm_buffer_destroy(buffer);
 
     auxts_lru_cache_destroy(cache);

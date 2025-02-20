@@ -21,62 +21,61 @@
 extern "C" {
 #endif
 
-#define AUXTS__MAX_NUM_MEMTABLES 2
+#define AUXTS_BLOCK_ALIGN 4096
 
-extern AUXTS_API const int AUXTS__BLOCK_ALIGN;
+#define AUXTS_MAX_BLOCK_SIZE 65536
 
-extern AUXTS_API const int AUXTS__MAX_BLOCK_SIZE;
+#define AUXTS_INDEX_ENTRY_SIZE 24
 
-extern AUXTS_API const int AUXTS__INDEX_ENTRY_SIZE;
+#define AUXTS_HEADER_SIZE 8
 
-extern AUXTS_API const int AUXTS__HEADER_SIZE;
+#define AUXTS_MEMTABLE_ENTRY_METADATA_SIZE 18
 
-extern AUXTS_API const int AUXTS__MEMTABLE_ENTRY_METADATA_SIZE;
-
-extern AUXTS_API const int AUXTS__TRAILER_SIZE;
+#define AUXTS_TRAILER_SIZE 2
 
 typedef struct {
     uint64_t key[2];
     uint8_t* block;
     uint16_t block_size;
-} AUXTS__MemtableEntry;
+} MemtableEntry;
 
 typedef struct {
-    AUXTS__MemtableEntry* entries;
+    MemtableEntry* entries;
     uint16_t num_entries;
     uint16_t capacity;
     pthread_mutex_t mutex;
-} AUXTS__Memtable;
+} Memtable;
 
 typedef struct {
     uint64_t key[2];
     size_t offset;
-} AUXTS__SSTableIndexEntry;
+} SSTableIndexEntry;
 
 typedef struct {
     int fd;
     size_t size;
     uint8_t* data;
     uint16_t num_entries;
-    AUXTS__SSTableIndexEntry* index_entries;
-} AUXTS__SSTable;
+    SSTableIndexEntry* index_entries;
+} SSTable;
 
 typedef struct {
     int index;
-    AUXTS__Memtable* tables[AUXTS__MAX_NUM_MEMTABLES];
+    int num_tables;
+    Memtable** tables;
     pthread_mutex_t mutex;
-} AUXTS__MultiMemtable;
+} MultiMemtable;
 
-AUXTS_API AUXTS__MultiMemtable* AUXTS__MultiMemtable_construct(int capacity);
-AUXTS_API void AUXTS__MultiMemtable_append(AUXTS__MultiMemtable* multi_memtable, uint64_t* key, uint8_t* block, int block_size);
-AUXTS_API void AUXTS__MultiMemtable_destroy(AUXTS__MultiMemtable* multi_memtable);
-AUXTS_API void AUXTS__MultiMemtable_flush(AUXTS__MultiMemtable* multi_memtable);
-AUXTS_API AUXTS__SSTable* AUXTS__read_sstable_index_entries(const char* filename);
-AUXTS_API AUXTS__SSTable* AUXTS__read_sstable_index_entries_in_memory(uint8_t* data, size_t size);
-AUXTS_API void auxts_sstable_destroy_except_data(AUXTS__SSTable* sstable);
-AUXTS_API void AUXTS__get_time_partitioned_path(uint64_t milliseconds, char* path);
-AUXTS_API AUXTS__MemtableEntry* AUXTS__read_memtable_entry(uint8_t* buffer, size_t offset);
-AUXTS_API uint8_t* AUXTS__read_file_util(const char* path, long* size);
+MultiMemtable* auxts_multi_memtable_create(int num_tables, int capacity);
+void auxts_multi_memtable_append(MultiMemtable* multi_memtable, uint64_t* key, uint8_t* block, int block_size);
+void auxts_multi_memtable_destroy(MultiMemtable* multi_memtable);
+void auxts_multi_memtable_flush(MultiMemtable* multi_memtable);
+SSTable* auxts_read_sstable_index_entries(const char* filename);
+SSTable* auxts_read_sstable_index_entries_in_memory(uint8_t* data, size_t size);
+void auxts_sstable_destroy_except_data(SSTable* sstable);
+void auxts_get_time_partitioned_path(uint64_t milliseconds, char* path);
+MemtableEntry* auxts_read_memtable_entry(uint8_t* buffer, size_t offset);
+uint8_t* auxts_read_file_util(const char* path, long* size);
 
 int test_multi_memtable();
 

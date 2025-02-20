@@ -1,9 +1,9 @@
 #include "hashtable.h"
 
-static HashtableEntry* hashtable_entry_create(const uint64_t* key, void* value);
+static HashtableEntry* hashtable_entry_create(const uint64_t* key, uint8_t* value);
 static HashtableBucket* hashtable_bucket_create();
 static void hashtable_bucket_append(HashtableBucket* bucket, HashtableEntry* entry);
-static void hashtable_entry_destroy(HashtableEntry* entry);;
+static void hashtable_entry_destroy(HashtableEntry* entry);
 
 Hashtable* auxts_hashtable_create(size_t num_entries) {
     Hashtable* hashtable = malloc(sizeof(Hashtable));
@@ -28,7 +28,7 @@ Hashtable* auxts_hashtable_create(size_t num_entries) {
     return hashtable;
 }
 
-void auxts_hashtable_put(Hashtable* hashtable, const uint64_t* key, void* value) {
+void auxts_hashtable_put(Hashtable* hashtable, const uint64_t* key, uint8_t* value) {
     if (!hashtable) {
         return;
     }
@@ -58,6 +58,10 @@ void auxts_hashtable_put(Hashtable* hashtable, const uint64_t* key, void* value)
 }
 
 void hashtable_bucket_append(HashtableBucket* bucket, HashtableEntry* entry) {
+    if (!bucket || !entry) {
+        return;
+    }
+
     if (bucket->count == bucket->capacity) {
         bucket->capacity = 1 << bucket->capacity;
 
@@ -170,7 +174,7 @@ HashtableBucket* hashtable_bucket_create() {
 }
 
 
-HashtableEntry* hashtable_entry_create(const uint64_t* key, void* value) {
+HashtableEntry* hashtable_entry_create(const uint64_t* key, uint8_t* value) {
     HashtableEntry* entry = malloc(sizeof(HashtableEntry));
     if (!entry) {
         perror("Failed to allocate HashtableEntry");

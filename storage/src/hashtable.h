@@ -14,7 +14,7 @@ extern "C" {
 
 typedef struct {
     uint64_t key[2];
-    void* value;
+    uint8_t* value;
 } HashtableEntry;
 
 typedef struct {
@@ -35,7 +35,7 @@ AUXTS_FORCE_INLINE uint64_t auxts_hash(void* data, int len, size_t size) {
 }
 
 Hashtable* auxts_hashtable_create(size_t num_entries);
-void auxts_hashtable_put(Hashtable* hashtable, const uint64_t* key, void* value);
+void auxts_hashtable_put(Hashtable* hashtable, const uint64_t* key, uint8_t* value);
 void* auxts_hashtable_get(Hashtable* hashtable, const uint64_t* key);
 void auxts_hashtable_delete(Hashtable* hashtable, uint64_t* key);
 void auxts_hashtable_destroy(Hashtable* hashtable);
