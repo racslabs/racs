@@ -1,0 +1,27 @@
+# ninja log v5
+167	188	1740092598996924336	CMakeFiles/auxts.dir/test/murmurhash3_test.c.o	7add05f7f6c53d5c
+0	54	1740093041338790526	build.ninja	a652e3c243d00d65
+2	166	1740092598974423694	CMakeFiles/auxts.dir/src/memtable.c.o	878b552ae7d099c7
+3	166	1740092598968143892	CMakeFiles/auxts.dir/src/cache.c.o	3f48f2e346b072cd
+2	167	1740092598967628686	CMakeFiles/auxts.dir/test/cache_test.c.o	feaed2ec961d0b66
+2	137	1740088212799522108	CMakeFiles/auxts.dir/src/timestamp.c.o	39c6705456892c95
+166	196	1740092599005183046	CMakeFiles/auxts.dir/main.c.o	45e03edba2917039
+3	165	1740092598967632061	CMakeFiles/auxts.dir/src/murmurhash3.c.o	35ffdfa59033d904
+2	166	1740092598969052012	CMakeFiles/auxts.dir/src/hashtable.c.o	3b37718eea06c259
+166	190	1740092598999143283	CMakeFiles/auxts.dir/test/hashtable_test.c.o	b421c73564eb0012
+196	235	1740092599044736354	auxts	310bf6e2ad345422
+166	194	1740092599003627928	CMakeFiles/auxts.dir/test/extract_test.c.o	4d8f7012bffeadfd
+3	167	1740092598974398028	CMakeFiles/auxts.dir/src/extract.c.o	23a1c20835de559b
+166	192	1740092599001072691	CMakeFiles/auxts.dir/test/memtable_test.c.o	edf5be9718a75e0
+136	171	1740088212836010222	CMakeFiles/auxts.dir/src/flac.c.o	ad68157d96fda93b
+0	50	1740093041338790526	build.ninja	a652e3c243d00d65
+2	140	1740093041482557539	CMakeFiles/auxts.dir/test/extract_test.c.o	4d8f7012bffeadfd
+2	141	1740093041482509331	CMakeFiles/auxts.dir/test/memtable_test.c.o	edf5be9718a75e0
+1	141	1740093041483237328	CMakeFiles/auxts.dir/main.c.o	45e03edba2917039
+1	141	1740093041482559123	CMakeFiles/auxts.dir/src/timestamp.c.o	39c6705456892c95
+2	142	1740093041486234063	CMakeFiles/auxts.dir/src/extract.c.o	23a1c20835de559b
+2	143	1740093041487243808	CMakeFiles/auxts.dir/src/memtable.c.o	878b552ae7d099c7
+140	158	1740093041502728942	CMakeFiles/auxts.dir/test/timestamp_test.c.o	f8e6943f6d76bebc
+158	194	1740093041538062063	auxts	db5a9166bbc0c84d
+1	25	1740093102294088064	CMakeFiles/auxts.dir/test/timestamp_test.c.o	f8e6943f6d76bebc
+25	53	1740093102322398011	auxts	db5a9166bbc0c84d

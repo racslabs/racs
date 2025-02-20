@@ -1,0 +1,93 @@
+Start testing: Feb 20 18:11 EST
+----------------------------------------------------------
+1/6 Testing: test_lru_cache
+1/6 Test: test_lru_cache
+Command: "/Users/corbinmoon/auxts/storage/cmake-build-debug/auxts" "--test" "test_lru_cache"
+Directory: /Users/corbinmoon/auxts/storage/cmake-build-debug
+"test_lru_cache" start time: Feb 20 18:11 EST
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.18 sec
+----------------------------------------------------------
+Test Passed.
+"test_lru_cache" end time: Feb 20 18:11 EST
+"test_lru_cache" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/6 Testing: test_multi_memtable
+2/6 Test: test_multi_memtable
+Command: "/Users/corbinmoon/auxts/storage/cmake-build-debug/auxts" "--test" "test_multi_memtable"
+Directory: /Users/corbinmoon/auxts/storage/cmake-build-debug
+"test_multi_memtable" start time: Feb 20 18:11 EST
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"test_multi_memtable" end time: Feb 20 18:11 EST
+"test_multi_memtable" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/6 Testing: test_extract
+3/6 Test: test_extract
+Command: "/Users/corbinmoon/auxts/storage/cmake-build-debug/auxts" "--test" "test_extract"
+Directory: /Users/corbinmoon/auxts/storage/cmake-build-debug
+"test_extract" start time: Feb 20 18:11 EST
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"test_extract" end time: Feb 20 18:11 EST
+"test_extract" time elapsed: 00:00:00
+----------------------------------------------------------
+
+4/6 Testing: test_hashtable
+4/6 Test: test_hashtable
+Command: "/Users/corbinmoon/auxts/storage/cmake-build-debug/auxts" "--test" "test_hashtable"
+Directory: /Users/corbinmoon/auxts/storage/cmake-build-debug
+"test_hashtable" start time: Feb 20 18:11 EST
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"test_hashtable" end time: Feb 20 18:11 EST
+"test_hashtable" time elapsed: 00:00:00
+----------------------------------------------------------
+
+5/6 Testing: test_murmurhash3
+5/6 Test: test_murmurhash3
+Command: "/Users/corbinmoon/auxts/storage/cmake-build-debug/auxts" "--test" "test_murmurhash3"
+Directory: /Users/corbinmoon/auxts/storage/cmake-build-debug
+"test_murmurhash3" start time: Feb 20 18:11 EST
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"test_murmurhash3" end time: Feb 20 18:11 EST
+"test_murmurhash3" time elapsed: 00:00:00
+----------------------------------------------------------
+
+6/6 Testing: test_rfc3339
+6/6 Test: test_rfc3339
+Command: "/Users/corbinmoon/auxts/storage/cmake-build-debug/auxts" "--test" "test_rfc3339"
+Directory: /Users/corbinmoon/auxts/storage/cmake-build-debug
+"test_rfc3339" start time: Feb 20 18:11 EST
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"test_rfc3339" end time: Feb 20 18:11 EST
+"test_rfc3339" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Feb 20 18:11 EST

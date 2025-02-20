@@ -1,0 +1,7 @@
+test_lru_cache 13 0.014107
+test_extract 13 0.00020776
+test_multi_memtable 13 0.000269288
+test_hashtable 23 5.18007e-05
+test_murmurhash3 5 0.000257942
+test_rfc3339 3 0.000497153
+---

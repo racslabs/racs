@@ -1,0 +1,4 @@
+/Users/corbinmoon/auxts/storage/cmake-build-debug/CMakeFiles/auxts.dir
+/Users/corbinmoon/auxts/storage/cmake-build-debug/CMakeFiles/test.dir
+/Users/corbinmoon/auxts/storage/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/corbinmoon/auxts/storage/cmake-build-debug/CMakeFiles/rebuild_cache.dir
