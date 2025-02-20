@@ -192,34 +192,3 @@ void hashtable_entry_destroy(HashtableEntry* entry) {
     free(entry->value);
     free(entry);
 }
-
-int test_hashtable() {
-    uint64_t key1[2];
-    key1[0] = 1;
-    key1[1] = 2;
-
-    uint64_t key2[2];
-    key2[0] = 3;
-    key2[1] = 4;
-
-    Hashtable* map = auxts_hashtable_create(3);
-
-    uint8_t* data1 = (uint8_t*)strdup("data1");
-    uint8_t* data2 = (uint8_t*)strdup("data2");
-    uint8_t* data3 = (uint8_t*) strdup("data3");
-
-    auxts_hashtable_put(map, key1, data1);
-    auxts_hashtable_put(map, key2, data2);
-
-    printf("%s\n", (char*) auxts_hashtable_get(map, key1));
-    printf("%s\n", (char*) auxts_hashtable_get(map, key2));
-
-    auxts_hashtable_put(map, key1, data3);
-    auxts_hashtable_delete(map, key1);
-
-    printf("%s\n", (char*) auxts_hashtable_get(map, key1));
-
-    auxts_hashtable_destroy(map);
-
-    return 0;
-}

@@ -81,14 +81,3 @@ void auxts_murmurhash3_x64_128(const uint8_t* key, int len, uint32_t seed, uint6
     out[0] = h1;
     out[1] = h2;
 }
-
-int test_murmurhash3() {
-    char* data = "Hello, world!";
-
-    uint64_t out[2];
-    auxts_murmurhash3_x64_128((uint8_t *) data, 13, 0, out);
-
-    uint64_t hash = 17388730015462876639ULL;
-
-    return out[0] != hash;
-}

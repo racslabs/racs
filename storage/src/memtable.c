@@ -167,7 +167,7 @@ SSTable* auxts_read_sstable_index_entries_in_memory(uint8_t* data, size_t size) 
 
 void auxts_get_time_partitioned_path(uint64_t milliseconds, char* path) {
     struct tm info = {0};
-    AUXTS__milliseconds_to_tm(milliseconds, &info);
+    auxts_milliseconds_to_tm(milliseconds, &info);
 
     long remainder = (long)(milliseconds % AUXTS_MILLISECONDS_PER_SECOND);
 
@@ -205,7 +205,7 @@ MemtableEntry* auxts_read_memtable_entry(uint8_t* buffer, size_t offset) {
     return entry;
 }
 
-uint8_t* auxts_read_file_util(const char* path, long* size) {
+uint8_t* auxts_read_file_util(const char* path, int* size) {
     FILE *file = fopen(path, "rb");
     if (!file) {
         perror("Error opening file");
@@ -422,7 +422,7 @@ void create_time_partitioned_directories(uint64_t milliseconds) {
     char dir[32];
     struct tm info;
 
-    AUXTS__milliseconds_to_tm(milliseconds, &info);
+    auxts_milliseconds_to_tm(milliseconds, &info);
 
     sprintf(dir, ".data");
     mkdir(dir, 0777);

@@ -26,8 +26,6 @@ AUXTS_FORCE_INLINE uint64_t auxts_fmix64(uint64_t k) {
 
 void auxts_murmurhash3_x64_128(const uint8_t* key, int len, uint32_t seed, uint64_t* out);
 
-int test_murmurhash3();
-
 #ifdef __cplusplus
 }
 #endif

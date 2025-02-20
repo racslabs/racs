@@ -40,8 +40,6 @@ void* auxts_hashtable_get(Hashtable* hashtable, const uint64_t* key);
 void auxts_hashtable_delete(Hashtable* hashtable, uint64_t* key);
 void auxts_hashtable_destroy(Hashtable* hashtable);
 
-int test_hashtable();
-
 #ifdef __cplusplus
 }
 #endif

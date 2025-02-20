@@ -1,7 +1,7 @@
 #include "memtable_test.h"
 
 void test_multi_memtable() {
-    long size1, size2, size3, size4;
+    int size1, size2, size3, size4;
 
     MultiMemtable* mmt = auxts_multi_memtable_create(2, 2);
 
@@ -14,16 +14,16 @@ void test_multi_memtable() {
     auxts_murmurhash3_x64_128((uint8_t*)"test", 7, 0, key);
 
     key[1] = 1739141512213;
-    auxts_multi_memtable_append(mmt, key, flac_data1, (int)size1);
+    auxts_multi_memtable_append(mmt, key, flac_data1, size1);
 
     key[1] = 1739141512214;
-    auxts_multi_memtable_append(mmt, key, flac_data2, (int)size2);
+    auxts_multi_memtable_append(mmt, key, flac_data2, size2);
 
     key[1] = 1739141512215;
-    auxts_multi_memtable_append(mmt, key, flac_data3, (int)size3);
+    auxts_multi_memtable_append(mmt, key, flac_data3, size3);
 
     key[1] = 1739141512216;
-    auxts_multi_memtable_append(mmt, key, flac_data4, (int)size4);
+    auxts_multi_memtable_append(mmt, key, flac_data4, size4);
 
     auxts_multi_memtable_destroy(mmt);
 

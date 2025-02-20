@@ -1,7 +1,7 @@
 #include "extract_test.h"
 
 void test_extract() {
-    uint64_t stream_id = 8870522515535040796ULL;
+    uint64_t stream_id = 8185897970534249969ULL;
     uint64_t begin_timestamp = 1739141512213ULL;
     uint64_t end_timestamp = 1739141512214ULL;
 
