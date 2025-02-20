@@ -75,7 +75,6 @@ SSTable* auxts_read_sstable_index_entries_in_memory(uint8_t* data, size_t size);
 void auxts_sstable_destroy_except_data(SSTable* sstable);
 void auxts_get_time_partitioned_path(uint64_t milliseconds, char* path);
 MemtableEntry* auxts_read_memtable_entry(uint8_t* buffer, size_t offset);
-uint8_t* auxts_read_file_util(const char* path, int* size);
 
 #ifdef __cplusplus
 }

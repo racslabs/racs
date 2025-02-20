@@ -1,14 +1,51 @@
 #include "memtable_test.h"
 
+uint8_t* read_file_test_util(const char* path, int* size) {
+    FILE *file = fopen(path, "rb");
+    if (!file) {
+        perror("Error opening file");
+        return NULL;
+    }
+
+    fseek(file, 0, SEEK_END);
+    *size = ftell(file);
+    rewind(file);
+
+    if (size <= 0) {
+        fprintf(stderr, "Invalid file num_buckets\n");
+        fclose(file);
+        return NULL;
+    }
+
+    uint8_t* buffer = malloc(*size);
+    if (!buffer) {
+        fprintf(stderr, "Memory allocation failed\n");
+        fclose(file);
+        return NULL;
+    }
+
+    size_t bytes = fread(buffer, 1, *size, file);
+    if (bytes != *size) {
+        fprintf(stderr, "Error reading file\n");
+        free(buffer);
+        fclose(file);
+        return NULL;
+    }
+
+    fclose(file);
+
+    return buffer;
+}
+
 void test_multi_memtable() {
     int size1, size2, size3, size4;
 
     MultiMemtable* mmt = auxts_multi_memtable_create(2, 2);
 
-    uint8_t* flac_data1 = auxts_read_file_util("../test/data/data-1.flac", &size1);
-    uint8_t* flac_data2 = auxts_read_file_util("../test/data/data-2.flac", &size2);
-    uint8_t* flac_data3 = auxts_read_file_util("../test/data/data-3.flac", &size3);
-    uint8_t* flac_data4 = auxts_read_file_util("../test/data/data-4.flac", &size4);
+    uint8_t* flac_data1 = read_file_test_util("../test/data/data-1.flac", &size1);
+    uint8_t* flac_data2 = read_file_test_util("../test/data/data-2.flac", &size2);
+    uint8_t* flac_data3 = read_file_test_util("../test/data/data-3.flac", &size3);
+    uint8_t* flac_data4 = read_file_test_util("../test/data/data-4.flac", &size4);
 
     uint64_t key[2];
     auxts_murmurhash3_x64_128((uint8_t*)"test", 7, 0, key);

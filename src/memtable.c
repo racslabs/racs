@@ -205,43 +205,6 @@ MemtableEntry* auxts_read_memtable_entry(uint8_t* buffer, size_t offset) {
     return entry;
 }
 
-uint8_t* auxts_read_file_util(const char* path, int* size) {
-    FILE *file = fopen(path, "rb");
-    if (!file) {
-        perror("Error opening file");
-        return NULL;
-    }
-
-    fseek(file, 0, SEEK_END);
-    *size = ftell(file);
-    rewind(file);
-
-    if (size <= 0) {
-        fprintf(stderr, "Invalid file num_buckets\n");
-        fclose(file);
-        return NULL;
-    }
-
-    uint8_t* buffer = malloc(*size);
-    if (!buffer) {
-        fprintf(stderr, "Memory allocation failed\n");
-        fclose(file);
-        return NULL;
-    }
-
-    size_t bytes = fread(buffer, 1, *size, file);
-    if (bytes != *size) {
-        fprintf(stderr, "Error reading file\n");
-        free(buffer);
-        fclose(file);
-        return NULL;
-    }
-
-    fclose(file);
-
-    return buffer;
-}
-
 Memtable* memtable_create(int capacity) {
     Memtable* memtable = malloc(sizeof(Memtable));
     if (!memtable) {
