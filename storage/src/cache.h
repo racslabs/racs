@@ -2,7 +2,7 @@
 #ifndef AUXTS_CACHE_H
 #define AUXTS_CACHE_H
 
-#include "hashmap.h"
+#include "hashtable.h"
 #include <pthread.h>
 
 #ifdef __cplusplus
@@ -25,13 +25,13 @@ typedef struct {
     size_t capacity;
     LRUCacheNode* head;
     LRUCacheNode* tail;
-    Hashmap* cache;
+    Hashtable* cache;
     pthread_rwlock_t rwlock;
 } LRUCache;
 
 LRUCache* auxts_lru_cache_create(size_t capacity);
 uint8_t* auxts_lru_cache_get(LRUCache* cache, const uint64_t* key);
-void auxts_lru_cache_put(LRUCache* cache, const uint64_t* key, const uint8_t* value);
+void auxts_lru_cache_put(LRUCache* cache, const uint64_t* key, uint8_t* value);
 void auxts_lru_cache_evict(LRUCache* cache);
 void auxts_lru_cache_destroy(LRUCache* cache);
 

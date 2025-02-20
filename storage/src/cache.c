@@ -18,19 +18,19 @@ LRUCache* auxts_lru_cache_create(size_t capacity) {
     cache->capacity = capacity;
     cache->head = NULL;
     cache->tail = NULL;
-    cache->cache = AUXTS__Hashmap_construct(capacity);
+    cache->cache = auxts_hashtable_create(capacity);
 
     return cache;
 }
 
-void auxts_lru_cache_put(LRUCache* cache, const uint64_t* key, const uint8_t* value) {
+void auxts_lru_cache_put(LRUCache* cache, const uint64_t* key, uint8_t* value) {
     if (!cache) {
         return;
     }
 
     pthread_rwlock_wrlock(&cache->rwlock);
 
-    LRUCacheEntry* entry = AUXTS__Hashmap_get(cache->cache, key);
+    LRUCacheEntry* entry = auxts_hashtable_get(cache->cache, key);
     if (entry) {
         pthread_rwlock_unlock(&cache->rwlock);
         return;
@@ -44,7 +44,7 @@ void auxts_lru_cache_put(LRUCache* cache, const uint64_t* key, const uint8_t* va
     LRUCacheNode* node = lru_cache_node_create(entry);
 
     lru_cache_insert_at_head(cache, node);
-    AUXTS__Hashmap_put(cache->cache, key, entry);
+    auxts_hashtable_put(cache->cache, key, entry);
 
     ++cache->size;
 
@@ -58,7 +58,7 @@ uint8_t* auxts_lru_cache_get(LRUCache* cache, const uint64_t* key) {
 
     pthread_rwlock_rdlock(&cache->rwlock);
 
-    LRUCacheEntry* entry = AUXTS__Hashmap_get(cache->cache, key);
+    LRUCacheEntry* entry = auxts_hashtable_get(cache->cache, key);
     pthread_rwlock_unlock(&cache->rwlock);
 
     if (entry) {
@@ -83,7 +83,7 @@ void auxts_lru_cache_destroy(LRUCache* cache) {
         node = next;
     }
 
-    AUXTS__Hashmap_destroy(cache->cache);
+    auxts_hashtable_destroy(cache->cache);
 
     pthread_rwlock_unlock(&cache->rwlock);
     pthread_rwlock_destroy(&cache->rwlock);
@@ -100,7 +100,7 @@ void auxts_lru_cache_evict(LRUCache* cache) {
     LRUCacheEntry* entry = tail->entry;
 
     free(entry->value);
-    AUXTS__Hashmap_delete(cache->cache, entry->key);
+    auxts_hashtable_delete(cache->cache, entry->key);
 
     cache->tail = (LRUCacheNode*) tail->prev;
     cache->tail->next = NULL;

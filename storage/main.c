@@ -1,7 +1,7 @@
 #include "src/timestamp.h"
 #include "src/murmur3.h"
 #include "src/memtable.h"
-#include "src/hashmap.h"
+#include "src/hashtable.h"
 #include "src/cache.h"
 #include "src/extract.h"
 
@@ -18,8 +18,8 @@ int main(int argc, char **argv) {
         return test_multi_memtable();
     }
 
-    if (strcmp(argv[1], "hashmap") == 0) {
-        return test_hashmap();
+    if (strcmp(argv[1], "hashtable") == 0) {
+        return test_hashtable();
     }
 
     if (strcmp(argv[1], "cache") == 0) {

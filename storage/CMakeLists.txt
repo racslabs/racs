@@ -8,7 +8,7 @@ enable_testing()
 add_test(rfc_test auxts "rfc")
 add_test(murmur3_test auxts "murmur3")
 add_test(memtable_test auxts "memtable")
-add_test(hashmap_test auxts "hashmap")
+add_test(hashmap_test auxts "hashtable")
 add_test(cache_test auxts "cache")
 add_test(extract_test auxts "extract")
 
@@ -26,8 +26,8 @@ add_executable(auxts main.c
         src/murmur3.c
         src/memtable.h
         src/memtable.c
-        src/hashmap.h
-        src/hashmap.c
+        src/hashtable.h
+        src/hashtable.c
         src/cache.h
         src/cache.c
         src/extract.h
