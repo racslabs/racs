@@ -372,15 +372,3 @@ uint64_t next_power_of_two(uint64_t n) {
 
     return n;
 }
-
-int test_extract() {
-    LRUCache* cache = auxts_lru_cache_create(2);
-    PcmBuffer* buffer = auxts_extract_pcm_data(cache, 8870522515535040796, 1739141512213, 1739141512214);
-
-    printf("pcm buffer size: %zu\n", buffer->num_samples);
-    auxts_pcm_buffer_destroy(buffer);
-
-    auxts_lru_cache_destroy(cache);
-
-    return 0;
-}

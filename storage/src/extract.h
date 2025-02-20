@@ -38,8 +38,6 @@ typedef struct {
 PcmBuffer* auxts_extract_pcm_data(LRUCache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp);
 void auxts_pcm_buffer_destroy(PcmBuffer* buffer);
 
-int test_extract();
-
 #ifdef __cplusplus
 }
 #endif

@@ -77,8 +77,6 @@ void auxts_get_time_partitioned_path(uint64_t milliseconds, char* path);
 MemtableEntry* auxts_read_memtable_entry(uint8_t* buffer, size_t offset);
 uint8_t* auxts_read_file_util(const char* path, long* size);
 
-int test_multi_memtable();
-
 #ifdef __cplusplus
 }
 #endif
