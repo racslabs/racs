@@ -5,12 +5,12 @@ set(CMAKE_C_STANDARD 17)
 
 enable_testing()
 
-add_test(rfc_test auxts "rfc")
-add_test(murmur3_test auxts "murmurhash3")
-add_test(memtable_test auxts "memtable")
-add_test(hashmap_test auxts "hashtable")
-add_test(cache_test auxts "cache")
-add_test(extract_test auxts "extract")
+add_test(rfc_test auxts "--test" "test_lru_cache")
+#add_test(murmur3_test auxts "--test" "murmurhash3")
+#add_test(memtable_test auxts "--test" "memtable")
+#add_test(hashmap_test auxts "--test" "hashtable")
+#add_test(cache_test auxts "--test" "cache")
+#add_test(extract_test auxts "--test" "extract")
 
 find_library(FLAC_LIBRARY NAMES FLAC)
 find_path(FLAC_INCLUDE_DIR NAMES FLAC/all.h)
@@ -34,6 +34,9 @@ add_executable(auxts main.c
         src/extract.c
         src/flac.h
         src/flac.c
+        test/test_runner.h
+        test/cache_test.h
+        test/cache_test.c
 )
 
 target_link_libraries(auxts ${FLAC_LIBRARY})

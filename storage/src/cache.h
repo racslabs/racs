@@ -35,8 +35,6 @@ void auxts_lru_cache_put(LRUCache* cache, const uint64_t* key, uint8_t* value);
 void auxts_lru_cache_evict(LRUCache* cache);
 void auxts_lru_cache_destroy(LRUCache* cache);
 
-int test_lru_cache();
-
 #ifdef __cplusplus
 }
 #endif
