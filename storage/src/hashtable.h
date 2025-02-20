@@ -2,7 +2,7 @@
 #ifndef AUXTS_HASHTABLE_H
 #define AUXTS_HASHTABLE_H
 
-#include "murmur3.h"
+#include "murmurhash3.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -30,7 +30,7 @@ typedef struct {
 
 AUXTS_FORCE_INLINE uint64_t auxts_hash(void* data, int len, size_t size) {
     uint64_t _hash[2];
-    AUXTS__murmur3_x64_128(data, len, 0, _hash);
+    auxts_murmurhash3_x64_128(data, len, 0, _hash);
     return _hash[0] % size;
 }
 

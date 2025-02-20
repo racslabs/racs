@@ -169,7 +169,7 @@ void auxts_get_time_partitioned_path(uint64_t milliseconds, char* path) {
     struct tm info = {0};
     AUXTS__milliseconds_to_tm(milliseconds, &info);
 
-    long remainder = (long)(milliseconds % AUXTS__MILLISECONDS_PER_SECOND);
+    long remainder = (long)(milliseconds % AUXTS_MILLISECONDS_PER_SECOND);
 
     sprintf(path, ".data/%d/%02d/%02d/%02d/%02d/%02d/%03ld.df",
             info.tm_year + 1900, info.tm_mon + 1,
@@ -534,7 +534,7 @@ int test_multi_memtable() {
     uint8_t* flac_data4 = auxts_read_file_util("../data/data-4.flac", &size4);
 
     uint64_t key[2];
-    AUXTS__murmur3_x64_128("test", 7, 0, key);
+    auxts_murmurhash3_x64_128("test", 7, 0, key);
 
     printf("stream_id: %llu\n", key[0]);
 

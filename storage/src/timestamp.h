@@ -12,19 +12,19 @@
 extern "C" {
 #endif
 
-extern AUXTS_API const int AUXTS__RFC3339_MAX_SIZE;
+#define AUXTS_RFC3339_MAX_SIZE 35
 
-extern AUXTS_API const long AUXTS__MILLISECONDS_PER_SECOND;
+#define AUXTS_MILLISECONDS_PER_SECOND 1000L
 
-extern AUXTS_API const long AUXTS__NANOSECONDS_PER_MILLISECOND;
+#define AUXTS_NANOSECONDS_PER_MILLISECOND 1000000L
 
-extern AUXTS_API const long AUXTS__NANOSECONDS_PER_SECOND;
+#define AUXTS_NANOSECONDS_PER_SECOND 1000000000L
 
-AUXTS_API uint64_t AUXTS__get_milliseconds();
-AUXTS_API void AUXTS__milliseconds_to_tm(uint64_t milliseconds, struct tm* info);
-AUXTS_API uint64_t AUXTS__ts_to_milliseconds(struct timespec* ts);
-AUXTS_API void AUXTS__format_rfc3339(uint64_t milliseconds, char* buf);
-AUXTS_API uint64_t AUXTS__parse_rfc3339(char* buf);
+uint64_t AUXTS__get_milliseconds();
+void AUXTS__milliseconds_to_tm(uint64_t milliseconds, struct tm* info);
+uint64_t AUXTS__ts_to_milliseconds(struct timespec* ts);
+void AUXTS__format_rfc3339(uint64_t milliseconds, char* buf);
+uint64_t AUXTS__parse_rfc3339(char* buf);
 
 int test_rfc3339();
 

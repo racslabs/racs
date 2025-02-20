@@ -1,5 +1,5 @@
 #include "src/timestamp.h"
-#include "src/murmur3.h"
+#include "src/murmurhash3.h"
 #include "src/memtable.h"
 #include "src/hashtable.h"
 #include "src/cache.h"
@@ -10,8 +10,8 @@ int main(int argc, char **argv) {
         return test_rfc3339();
     }
 
-    if (strcmp(argv[1], "murmur3") == 0) {
-        return test_murmur3();
+    if (strcmp(argv[1], "murmurhash3") == 0) {
+        return test_murmurhash3();
     }
 
     if (strcmp(argv[1], "memtable") == 0) {

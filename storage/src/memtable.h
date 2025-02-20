@@ -15,7 +15,7 @@
 #include <pthread.h>
 #include "endian.h"
 #include "timestamp.h"
-#include "murmur3.h"
+#include "murmurhash3.h"
 
 #ifdef __cplusplus
 extern "C" {

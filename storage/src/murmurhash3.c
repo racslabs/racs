@@ -1,6 +1,6 @@
-#include "murmur3.h"
+#include "murmurhash3.h"
 
-AUXTS_API void AUXTS__murmur3_x64_128(const uint8_t* key, int len, uint32_t seed, uint64_t* out) {
+void auxts_murmurhash3_x64_128(const uint8_t* key, int len, uint32_t seed, uint64_t* out) {
     uint64_t h1 = seed;
     uint64_t h2 = seed;
 
@@ -16,20 +16,20 @@ AUXTS_API void AUXTS__murmur3_x64_128(const uint8_t* key, int len, uint32_t seed
         uint64_t k2 = blocks[i + 1];
 
         k1 *= c1;
-        k1  = AUXTS__rotl64(k1, 31);
+        k1  = auxts_rotl64(k1, 31);
         k1 *= c2;
 
         h1 ^= k1;
-        h1 = AUXTS__rotl64(h1, 27);
+        h1 = auxts_rotl64(h1, 27);
         h1 += h2;
         h1 = h1 * 5 + 0x52dce729;
 
         k2 *= c2;
-        k2  = AUXTS__rotl64(k2, 33);
+        k2  = auxts_rotl64(k2, 33);
         k2 *= c1;
 
         h2 ^= k2;
-        h2 = AUXTS__rotl64(h2, 31);
+        h2 = auxts_rotl64(h2, 31);
         h2 += h1;
         h2 = h2 * 5 + 0x38495ab5;
     }
@@ -47,7 +47,7 @@ AUXTS_API void AUXTS__murmur3_x64_128(const uint8_t* key, int len, uint32_t seed
         case  9: k2 ^= ((uint64_t)key[n +  8]) << 0;
 
             k2 *= c2;
-            k2  = AUXTS__rotl64(k2, 33);
+            k2  = auxts_rotl64(k2, 33);
             k2 *= c1;
             h2 ^= k2;
 
@@ -61,7 +61,7 @@ AUXTS_API void AUXTS__murmur3_x64_128(const uint8_t* key, int len, uint32_t seed
         case  1: k1 ^= ((uint64_t)key[n +  0]) << 0;
 
             k1 *= c1;
-            k1  = AUXTS__rotl64(k1, 31);
+            k1  = auxts_rotl64(k1, 31);
             k1 *= c2;
             h1 ^= k1;
     }
@@ -72,8 +72,8 @@ AUXTS_API void AUXTS__murmur3_x64_128(const uint8_t* key, int len, uint32_t seed
     h1 += h2;
     h2 += h1;
 
-    h1 = AUXTS__fmix64(h1);
-    h2 = AUXTS__fmix64(h2);
+    h1 = auxts_fmix64(h1);
+    h2 = auxts_fmix64(h2);
 
     h1 += h2;
     h2 += h1;
@@ -82,11 +82,11 @@ AUXTS_API void AUXTS__murmur3_x64_128(const uint8_t* key, int len, uint32_t seed
     out[1] = h2;
 }
 
-int test_murmur3() {
+int test_murmurhash3() {
     char* data = "Hello, world!";
 
     uint64_t out[2];
-    AUXTS__murmur3_x64_128((uint8_t *) data, 13, 0, out);
+    auxts_murmurhash3_x64_128((uint8_t *) data, 13, 0, out);
 
     uint64_t hash = 17388730015462876639ULL;
 

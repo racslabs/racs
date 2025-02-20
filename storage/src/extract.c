@@ -118,7 +118,7 @@ uint64_t time_partitioned_path_to_timestamp(const char* path) {
     }
 
     ts.tv_sec = t;
-    ts.tv_nsec = milliseconds * AUXTS__NANOSECONDS_PER_MILLISECOND;
+    ts.tv_nsec = milliseconds * AUXTS_NANOSECONDS_PER_MILLISECOND;
 
     return AUXTS__ts_to_milliseconds(&ts);
 }
