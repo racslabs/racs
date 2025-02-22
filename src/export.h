@@ -8,8 +8,6 @@ extern "C" {
 
 #define AUXTS_FORCE_INLINE inline __attribute__((always_inline))
 
-#define AUXTS_API //TODO: remove
-
 #define AUXTS__ALIGN 32
 
 #ifdef __cplusplus

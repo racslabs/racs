@@ -10,6 +10,20 @@ find_path(FLAC_INCLUDE_DIR NAMES FLAC/all.h)
 
 include_directories(${FLAC_INCLUDE_DIR})
 
+option(AUXTS_AVX2_CMAKE_BUILD "AVX2 CMake build" OFF)
+option(AUXTS_NEON8_CMAKE_BUILD "NEON8 CMake build" ON)
+
+if (AUXTS_AVX2_CMAKE_BUILD)
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        add_compile_options(-march=native -O2)
+    endif()
+elseif (AUXTS_NEON8_CMAKE_BUILD)
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        set(ARM_ALIASES armv6l armv7l aarch64)
+        add_compile_options(-O2 -march=armv8-a+simd)
+    endif()
+endif()
+
 add_executable(auxts main.c
         src/endian.h
         src/export.h
@@ -27,6 +41,10 @@ add_executable(auxts main.c
         src/extract.c
         src/flac.h
         src/flac.c
+        src/simd/simd_neon.h
+        src/simd/simd.h
+        src/simd/simd_neon-i32.c
+        src/simd/simd_neon-i16.c
         test/test_runner.h
         test/cache_test.h
         test/cache_test.c
@@ -40,6 +58,8 @@ add_executable(auxts main.c
         test/murmurhash3_test.c
         test/timestamp_test.h
         test/timestamp_test.c
+        test/simd_test.h
+        test/simd_test.c
 )
 
 target_link_libraries(auxts ${FLAC_LIBRARY})
@@ -51,3 +71,4 @@ add_test(test_extract auxts "--test" "test_extract")
 add_test(test_hashtable auxts "--test" "test_hashtable")
 add_test(test_murmurhash3 auxts "--test" "test_murmurhash3")
 add_test(test_rfc3339 auxts "--test" "test_rfc3339")
+add_test(test_simd_swap24 auxts "--test" "test_simd_swap24")
