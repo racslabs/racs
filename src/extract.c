@@ -279,6 +279,8 @@ FlacEncodedBlocks* extract_flac_encoded_blocks(LRUCache* cache, uint64_t stream_
 
     FlacEncodedBlocks* blocks = auxts_flac_encoded_blocks_create();
     if (!blocks) {
+        free(path);
+        file_list_destroy(list);
         return NULL;
     }
 
