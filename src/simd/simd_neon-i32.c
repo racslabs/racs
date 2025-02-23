@@ -38,7 +38,7 @@ void auxts_simd_swap24(const int32_t* in, int32_t* out, size_t n) {
     for ( ; i < m; i += 4) {
         int32x4_t _in = vld1q_s32(in + i);
         uint32x4_t _out = simd_neon_swap24(_in);
-        vst1q_s32(out + i, vreinterpretq_u32_s32(_out));
+        vst1q_s32(out + i, _out);
     }
 
     for ( ; i < n; ++i) {
@@ -54,7 +54,7 @@ void auxts_simd_swap32(const int32_t* in, int32_t* out, size_t n) {
     for ( ; i < m; i += 4) {
         int32x4_t _in = vld1q_s32(in + i);
         uint32x4_t _out = simd_neon_swap32(_in);
-        vst1q_s32(out + i, vreinterpretq_u32_s32(_out));
+        vst1q_s32(out + i, _out);
     }
 
     for ( ; i < m; ++i) {

@@ -25,9 +25,21 @@ AUXTS_FORCE_INLINE uint16_t auxts_swap16_if_big_endian(uint16_t d) {
     return AUXTS_IS_LITTLE_ENDIAN ? d : __builtin_bswap16(d);
 }
 
+AUXTS_FORCE_INLINE void auxts_bulk_swap16_if_big_endian(int16_t* d, size_t n) {
+#if !defined(AUXTS_IS_LITTLE_ENDIAN)
+    auxts_simd_swap16(d, d, n);
+#endif
+}
+
 AUXTS_FORCE_INLINE void auxts_bulk_swap24_if_big_endian(int32_t* d, size_t n) {
-#if defined(AUXTS_IS_LITTLE_ENDIAN)
+#if !defined(AUXTS_IS_LITTLE_ENDIAN)
     auxts_simd_swap24(d, d, n);
+#endif
+}
+
+AUXTS_FORCE_INLINE void auxts_bulk_swap32_if_big_endian(int32_t* d, size_t n) {
+#if !defined(AUXTS_IS_LITTLE_ENDIAN)
+    auxts_simd_swap32(d, d, n);
 #endif
 }
 
