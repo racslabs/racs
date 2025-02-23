@@ -57,7 +57,7 @@ void auxts_simd_swap32(const int32_t* in, int32_t* out, size_t n) {
         vst1q_s32(out + i, _out);
     }
 
-    for ( ; i < m; ++i) {
+    for ( ; i < n; ++i) {
         out[i] = (int32_t)__builtin_bswap32(in[i]);
     }
 }

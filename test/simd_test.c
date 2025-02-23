@@ -1,5 +1,18 @@
 #include "simd_test.h"
 
+void test_simd_swap16() {
+    int16_t in[8] = {32767, 0, -32767, 0, 32767, 0, -32767, 0};
+    int16_t out1[8];
+    int16_t out2[8];
+
+    auxts_simd_swap16(in, out1, 8);
+    auxts_simd_swap16(out1, out2, 8);
+
+    for (int i = 0; i < 8; ++i) {
+        assert(out2[i] == in[i]);
+    }
+}
+
 void test_simd_swap24() {
     int32_t in[5] = {131072, 0, -131072, 0, 131072};
     int32_t out1[5];

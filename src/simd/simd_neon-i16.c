@@ -17,14 +17,14 @@ uint16x8_t simd_neon_swap16(uint16x8_t in) {
 void auxts_simd_swap16(const int16_t* in, int16_t* out, size_t n) {
     size_t i = 0;
     size_t m = n & ~7;
+//
+//    for ( ; i < m; i += 8) {
+//        int16x8_t _in = vld1q_s16(in + i);
+//        uint16x8_t _out = simd_neon_swap16(_in);
+//        vst1q_s16(out + i, _out);
+//    }
 
-    for ( ; i < m; i += 8) {
-        int16x8_t _in = vld1q_s16(in + i);
-        uint16x8_t _out = simd_neon_swap16(_in);
-        vst1q_s16(out + i, _out);
-    }
-
-    for ( ; i < m; ++i) {
+    for ( ; i < n; ++i) {
         out[i] = (int16_t)__builtin_bswap16(in[i]);
     }
 }

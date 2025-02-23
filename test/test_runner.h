@@ -34,6 +34,7 @@ AUXTS_FORCE_INLINE void auxts_run_tests(int argc, char* argv[]) {
     auxts_add_test(test_hashtable, "test_hashtable", argc, argv);
     auxts_add_test(test_murmurhash3, "test_murmurhash3", argc, argv);
     auxts_add_test(test_rfc3339, "test_rfc3339", argc, argv);
+    auxts_add_test(test_simd_swap16, "test_simd_swap16", argc, argv);
     auxts_add_test(test_simd_swap24, "test_simd_swap24", argc, argv);
     auxts_add_test(test_simd_swap32, "test_simd_swap32", argc, argv);
 }
