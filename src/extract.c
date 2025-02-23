@@ -1,37 +1,37 @@
 #include "extract.h"
 
 static int compare_paths(const void* path1, const void* path2);
-static FileList* file_list_create();
-static FileList* get_sorted_file_list(const char* path);
-static void file_list_destroy(FileList* list);
-static void file_list_add(FileList* list, const char* file_path);
-static void list_files_recursive(FileList* list, const char* path);
-static void file_list_sort(FileList* list);
-static PcmBuffer* pcm_buffer_create(uint32_t channels, uint32_t sample_rate, uint32_t bits_per_sample);
-static void pcm_buffer_append(PcmBuffer* buffer, PcmBlock* block);
-static void pcm_block_destroy(PcmBlock* block);
+static file_list* file_list_create();
+static file_list* get_sorted_file_list(const char* path);
+static void file_list_destroy(file_list* list);
+static void file_list_add(file_list* list, const char* file_path);
+static void list_files_recursive(file_list* list, const char* path);
+static void file_list_sort(file_list* list);
+static pcm_buffer* pcm_buffer_create(uint32_t channels, uint32_t sample_rate, uint32_t bits_per_sample);
+static void pcm_buffer_append(pcm_buffer* buffer, pcm_block* block);
+static void pcm_block_destroy(pcm_block* block);
 static uint64_t time_partitioned_path_to_timestamp(const char* path);
 static char* resolve_shared_path(const char* path1, const char* path2);
 static char* get_path_from_time_range(uint64_t begin_timestamp, uint64_t end_timestamp);
-static uint8_t* get_data_from_cache_or_sstable(LRUCache* cache, uint64_t stream_id, uint64_t timestamp, const char* file_path);
-static FlacEncodedBlocks* extract_flac_encoded_blocks(LRUCache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp);
-static void process_sstable_data(FlacEncodedBlocks* blocks, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp, uint8_t* data);
+static uint8_t* get_data_from_cache_or_sstable(lru_cache* cache, uint64_t stream_id, uint64_t timestamp, const char* file_path);
+static flac_encoded_blocks* extract_flac_encoded_blocks(lru_cache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp);
+static void process_sstable_data(flac_encoded_blocks* blocks, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp, uint8_t* data);
 static uint64_t next_power_of_two(uint64_t n);
 
-PcmBuffer* auxts_extract_pcm_data(LRUCache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp) {
+pcm_buffer* auxts_extract_pcm_data(lru_cache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp) {
     if (!cache) {
         return NULL;
     }
 
-    FlacEncodedBlocks* blocks = extract_flac_encoded_blocks(cache, stream_id, begin_timestamp, end_timestamp);
+    flac_encoded_blocks* blocks = extract_flac_encoded_blocks(cache, stream_id, begin_timestamp, end_timestamp);
     if (!blocks->num_blocks) {
         auxts_flac_encoded_blocks_destroy(blocks);
         return NULL;
     }
 
-    FlacEncodedBlock* flac_block = blocks->blocks[0];
-    PcmBlock* pcm_block = auxts_decode_flac_block(flac_block);
-    PcmBuffer* buffer = pcm_buffer_create(pcm_block->channels, pcm_block->sample_rate, pcm_block->bits_per_sample);
+    flac_encoded_block* flac_block = blocks->blocks[0];
+    pcm_block* pcm_block = auxts_decode_flac_block(flac_block);
+    pcm_buffer* buffer = pcm_buffer_create(pcm_block->channels, pcm_block->sample_rate, pcm_block->bits_per_sample);
 
     pcm_buffer_append(buffer, pcm_block);
     pcm_block_destroy(pcm_block);
@@ -49,7 +49,7 @@ PcmBuffer* auxts_extract_pcm_data(LRUCache* cache, uint64_t stream_id, uint64_t 
     return buffer;
 }
 
-void auxts_pcm_buffer_destroy(PcmBuffer* buffer) {
+void auxts_pcm_buffer_destroy(pcm_buffer* buffer) {
     if (!buffer) {
         return;
     }
@@ -127,10 +127,10 @@ int compare_paths(const void* path1, const void* path2) {
     return strcmp(*(const char**)path1, *(const char**) path2);
 }
 
-FileList* file_list_create() {
-    FileList* list = malloc(sizeof(FileList));
+file_list* file_list_create() {
+    file_list* list = malloc(sizeof(file_list));
     if (!list) {
-        perror("Failed to allocate FileList");
+        perror("Failed to allocate file_list");
         file_list_destroy(list);
         return NULL;
     }
@@ -140,7 +140,7 @@ FileList* file_list_create() {
 
     list->files = malloc(AUXTS_INITIAL_FILE_LIST_CAPACITY * sizeof(char*));
     if (!list->files) {
-        perror("Failed to allocate file paths to FileList");
+        perror("Failed to allocate file paths to file_list");
         file_list_destroy(list);
         return NULL;
     }
@@ -148,13 +148,13 @@ FileList* file_list_create() {
     return list;
 }
 
-void file_list_add(FileList* list, const char* file_path) {
+void file_list_add(file_list* list, const char* file_path) {
     if (list->num_files == list->max_num_files) {
         list->max_num_files = 1 << list->max_num_files;
 
         char** files = realloc(list->files, list->max_num_files * sizeof(char*));
         if (!files) {
-            perror("Error reallocating file paths to FileList");
+            perror("Error reallocating file paths to file_list");
             return;
         }
 
@@ -165,7 +165,7 @@ void file_list_add(FileList* list, const char* file_path) {
     ++list->num_files;
 }
 
-void list_files_recursive(FileList* list, const char* path) {
+void list_files_recursive(file_list* list, const char* path) {
     DIR* dir = opendir(path);
     if (!dir) {
         perror("Failed to open directory");
@@ -192,7 +192,7 @@ void list_files_recursive(FileList* list, const char* path) {
     closedir(dir);
 }
 
-void file_list_destroy(FileList* list) {
+void file_list_destroy(file_list* list) {
     for (int i = 0; i < list->num_files; ++i) {
         free(list->files[i]);
     }
@@ -201,7 +201,7 @@ void file_list_destroy(FileList* list) {
     free(list);
 }
 
-void file_list_sort(FileList* list) {
+void file_list_sort(file_list* list) {
     qsort(list->files, list->num_files, sizeof(char*), compare_paths);
 }
 
@@ -214,20 +214,20 @@ char* get_path_from_time_range(uint64_t begin_timestamp, uint64_t end_timestamp)
     return resolve_shared_path(path1, path2);
 }
 
-FileList* get_sorted_file_list(const char* path) {
-    FileList* list = file_list_create();
+file_list* get_sorted_file_list(const char* path) {
+    file_list* list = file_list_create();
     list_files_recursive(list, path);
     file_list_sort(list);
 
     return list;
 }
 
-uint8_t* get_data_from_cache_or_sstable(LRUCache* cache, uint64_t stream_id, uint64_t timestamp, const char* file_path) {
+uint8_t* get_data_from_cache_or_sstable(lru_cache* cache, uint64_t stream_id, uint64_t timestamp, const char* file_path) {
     uint64_t key[2] = {stream_id, timestamp};
     uint8_t* data = auxts_lru_cache_get(cache, key);
 
     if (!data) {
-        SSTable* sstable = auxts_read_sstable_index_entries(file_path);
+        sstable* sstable = auxts_read_sstable_index_entries(file_path);
         if (!sstable) {
             return NULL;
         }
@@ -241,12 +241,12 @@ uint8_t* get_data_from_cache_or_sstable(LRUCache* cache, uint64_t stream_id, uin
     return data;
 }
 
-void process_sstable_data(FlacEncodedBlocks* blocks, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp, uint8_t* data) {
+void process_sstable_data(flac_encoded_blocks* blocks, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp, uint8_t* data) {
     size_t size;
     memcpy(&size, data, sizeof(size_t));
     size = auxts_swap64_if_big_endian(size);
 
-    SSTable* sstable = auxts_read_sstable_index_entries_in_memory(data, size);
+    sstable* sstable = auxts_read_sstable_index_entries_in_memory(data, size);
     if (!sstable) {
         return;
     }
@@ -254,7 +254,7 @@ void process_sstable_data(FlacEncodedBlocks* blocks, uint64_t stream_id, uint64_
     for (int j = 0; j < sstable->num_entries; ++j) {
         size_t offset = sstable->index_entries[j].offset;
 
-        MemtableEntry* entry = auxts_read_memtable_entry(data, offset);
+        memtable_entry* entry = auxts_read_memtable_entry(data, offset);
         if (!entry) {
             return;
         }
@@ -273,11 +273,11 @@ void process_sstable_data(FlacEncodedBlocks* blocks, uint64_t stream_id, uint64_
     auxts_sstable_destroy_except_data(sstable);
 }
 
-FlacEncodedBlocks* extract_flac_encoded_blocks(LRUCache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp) {
+flac_encoded_blocks* extract_flac_encoded_blocks(lru_cache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp) {
     char* path = get_path_from_time_range(begin_timestamp, end_timestamp);
-    FileList* list = get_sorted_file_list(path);
+    file_list* list = get_sorted_file_list(path);
 
-    FlacEncodedBlocks* blocks = auxts_flac_encoded_blocks_create();
+    flac_encoded_blocks* blocks = auxts_flac_encoded_blocks_create();
     if (!blocks) {
         free(path);
         file_list_destroy(list);
@@ -300,10 +300,10 @@ FlacEncodedBlocks* extract_flac_encoded_blocks(LRUCache* cache, uint64_t stream_
     return blocks;
 }
 
-PcmBuffer* pcm_buffer_create(uint32_t channels, uint32_t sample_rate, uint32_t bits_per_sample) {
-    PcmBuffer* buffer = malloc(sizeof(PcmBuffer));
+pcm_buffer* pcm_buffer_create(uint32_t channels, uint32_t sample_rate, uint32_t bits_per_sample) {
+    pcm_buffer* buffer = malloc(sizeof(pcm_buffer));
     if (!buffer) {
-        perror("Failed to allocate PcmBuffer");
+        perror("Failed to allocate pcm_buffer");
         return NULL;
     }
 
@@ -315,7 +315,7 @@ PcmBuffer* pcm_buffer_create(uint32_t channels, uint32_t sample_rate, uint32_t b
 
     buffer->data = malloc(channels * sizeof(int32_t*));
     if (!buffer->data) {
-        perror("Failed to allocate data to PcmBuffer");
+        perror("Failed to allocate data to pcm_buffer");
         free(buffer);
         return NULL;
     }
@@ -327,7 +327,7 @@ PcmBuffer* pcm_buffer_create(uint32_t channels, uint32_t sample_rate, uint32_t b
     return buffer;
 }
 
-void pcm_block_destroy(PcmBlock* block) {
+void pcm_block_destroy(pcm_block* block) {
     for (int channel = 0; channel < block->channels; ++channel) {
         free(block->data[channel]);
     }
@@ -336,7 +336,7 @@ void pcm_block_destroy(PcmBlock* block) {
     free(block);
 }
 
-void pcm_buffer_append(PcmBuffer* buffer, PcmBlock* block) {
+void pcm_buffer_append(pcm_buffer* buffer, pcm_block* block) {
     if (!buffer || !block) {
         return;
     }

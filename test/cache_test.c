@@ -9,7 +9,7 @@ void test_lru_cache() {
     uint8_t* data2 = (uint8_t*)strdup("data2");
     uint8_t* data3 = (uint8_t*)strdup("data3");
 
-    LRUCache* cache = auxts_lru_cache_create(2);
+    lru_cache* cache = auxts_lru_cache_create(2);
     auxts_lru_cache_put(cache, key1, data1);
     auxts_lru_cache_put(cache, key2, data2);
     auxts_lru_cache_put(cache, key3, data3);

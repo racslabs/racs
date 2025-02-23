@@ -1,14 +1,14 @@
 #include "cache.h"
 
-static LRUCacheNode* lru_cache_node_create(LRUCacheEntry* entry);
-static LRUCacheEntry* lru_cache_entry_create(const uint64_t* key, uint8_t* value);
-static void lru_cache_node_destroy(LRUCacheNode* node);
-static void lru_cache_insert_at_head(LRUCache * cache, LRUCacheNode* node);
+static lru_cache_node* lru_cache_node_create(lru_cache_entry* entry);
+static lru_cache_entry* lru_cache_entry_create(const uint64_t* key, uint8_t* value);
+static void lru_cache_node_destroy(lru_cache_node* node);
+static void lru_cache_insert_at_head(lru_cache* cache, lru_cache_node* node);
 
-LRUCache* auxts_lru_cache_create(size_t capacity) {
-    LRUCache* cache = malloc(sizeof(LRUCache));
+lru_cache* auxts_lru_cache_create(size_t capacity) {
+    lru_cache* cache = malloc(sizeof(lru_cache));
     if (!cache) {
-        perror("Failed to allocate LRUCache");
+        perror("Failed to allocate lru_cache");
         return NULL;
     }
 
@@ -23,14 +23,14 @@ LRUCache* auxts_lru_cache_create(size_t capacity) {
     return cache;
 }
 
-void auxts_lru_cache_put(LRUCache* cache, const uint64_t* key, uint8_t* value) {
+void auxts_lru_cache_put(lru_cache* cache, const uint64_t* key, uint8_t* value) {
     if (!cache) {
         return;
     }
 
     pthread_rwlock_wrlock(&cache->rwlock);
 
-    LRUCacheEntry* entry = auxts_hashtable_get(cache->cache, key);
+    lru_cache_entry* entry = auxts_hashtable_get(cache->cache, key);
     if (entry) {
         pthread_rwlock_unlock(&cache->rwlock);
         return;
@@ -41,7 +41,7 @@ void auxts_lru_cache_put(LRUCache* cache, const uint64_t* key, uint8_t* value) {
     }
 
     entry = lru_cache_entry_create(key, value);
-    LRUCacheNode* node = lru_cache_node_create(entry);
+    lru_cache_node* node = lru_cache_node_create(entry);
 
     lru_cache_insert_at_head(cache, node);
     auxts_hashtable_put(cache->cache, key, entry);
@@ -51,14 +51,14 @@ void auxts_lru_cache_put(LRUCache* cache, const uint64_t* key, uint8_t* value) {
     pthread_rwlock_unlock(&cache->rwlock);
 }
 
-uint8_t* auxts_lru_cache_get(LRUCache* cache, const uint64_t* key) {
+uint8_t* auxts_lru_cache_get(lru_cache* cache, const uint64_t* key) {
     if (!cache) {
         return NULL;
     }
 
     pthread_rwlock_rdlock(&cache->rwlock);
 
-    LRUCacheEntry* entry = auxts_hashtable_get(cache->cache, key);
+    lru_cache_entry* entry = auxts_hashtable_get(cache->cache, key);
     pthread_rwlock_unlock(&cache->rwlock);
 
     if (entry) {
@@ -68,17 +68,17 @@ uint8_t* auxts_lru_cache_get(LRUCache* cache, const uint64_t* key) {
     return NULL;
 }
 
-void auxts_lru_cache_destroy(LRUCache* cache) {
+void auxts_lru_cache_destroy(lru_cache* cache) {
     if (!cache) {
         return;
     }
 
     pthread_rwlock_wrlock(&cache->rwlock);
 
-    LRUCacheNode* node = cache->head;
+    lru_cache_node* node = cache->head;
 
     while (node) {
-        LRUCacheNode* next = (LRUCacheNode*) node->next;
+        lru_cache_node* next = (lru_cache_node*) node->next;
         lru_cache_node_destroy(node);
         node = next;
     }
@@ -91,27 +91,27 @@ void auxts_lru_cache_destroy(LRUCache* cache) {
     free(cache);
 }
 
-void auxts_lru_cache_evict(LRUCache* cache) {
+void auxts_lru_cache_evict(lru_cache* cache) {
     if (!cache) {
         return;
     }
 
-    LRUCacheNode* tail = cache->tail;
-    LRUCacheEntry* entry = tail->entry;
+    lru_cache_node* tail = cache->tail;
+    lru_cache_entry* entry = tail->entry;
 
     free(entry->value);
     auxts_hashtable_delete(cache->cache, entry->key);
 
-    cache->tail = (LRUCacheNode*) tail->prev;
+    cache->tail = (lru_cache_node*) tail->prev;
     cache->tail->next = NULL;
 
     --cache->size;
 }
 
-LRUCacheEntry* lru_cache_entry_create(const uint64_t* key, uint8_t* value) {
-    LRUCacheEntry* entry = malloc(sizeof(LRUCacheEntry));
+lru_cache_entry* lru_cache_entry_create(const uint64_t* key, uint8_t* value) {
+    lru_cache_entry* entry = malloc(sizeof(lru_cache_entry));
     if (!entry) {
-        perror("Failed to allocate LRUCacheEntry");
+        perror("Failed to allocate lru_cache_entry");
         return NULL;
     }
 
@@ -122,14 +122,14 @@ LRUCacheEntry* lru_cache_entry_create(const uint64_t* key, uint8_t* value) {
     return entry;
 }
 
-LRUCacheNode* lru_cache_node_create(LRUCacheEntry* entry) {
+lru_cache_node* lru_cache_node_create(lru_cache_entry* entry) {
     if (!entry) {
         return NULL;
     }
 
-    LRUCacheNode* node = malloc(sizeof(LRUCacheNode));
+    lru_cache_node* node = malloc(sizeof(lru_cache_node));
     if (!node) {
-        perror("Failed to allocate LRUCacheNode");
+        perror("Failed to allocate lru_cache_node");
         return NULL;
     }
 
@@ -140,16 +140,16 @@ LRUCacheNode* lru_cache_node_create(LRUCacheEntry* entry) {
     return node;
 }
 
-void lru_cache_insert_at_head(LRUCache* cache, LRUCacheNode* node) {
+void lru_cache_insert_at_head(lru_cache* cache, lru_cache_node* node) {
     if (!cache || !node) {
         return;
     }
 
     node->prev = NULL;
-    node->next = (struct LRUCacheNode *)cache->head;
+    node->next = (struct lru_cacheNode *)cache->head;
 
     if (cache->head) {
-        cache->head->prev = (struct LRUCacheNode *)node;
+        cache->head->prev = (struct lru_cache_node*)node;
     } else {
         cache->tail = node;
     }
@@ -157,12 +157,12 @@ void lru_cache_insert_at_head(LRUCache* cache, LRUCacheNode* node) {
     cache->head = node;
 }
 
-void lru_cache_node_destroy(LRUCacheNode* node) {
+void lru_cache_node_destroy(lru_cache_node* node) {
     if (!node) {
         return;
     }
 
-    LRUCacheEntry* entry = node->entry;
+    lru_cache_entry* entry = node->entry;
     free(entry->value);
     free(node);
 }

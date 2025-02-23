@@ -4,7 +4,7 @@ void test_hashtable() {
     uint64_t key1[2] = {1, 2};
     uint64_t key2[2] = {3, 4};
 
-    Hashtable* hashtable = auxts_hashtable_create(3);
+    hashtable* hashtable = auxts_hashtable_create(3);
 
     uint8_t* data1 = (uint8_t*)strdup("data1");
     uint8_t* data2 = (uint8_t*)strdup("data2");

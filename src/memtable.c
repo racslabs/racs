@@ -1,101 +1,101 @@
 #include "memtable.h"
 
-static Memtable* memtable_create(int capacity);
-static void memtable_append(Memtable* memtable, uint64_t* key, uint8_t* block, int block_size);
-static void memtable_flush(Memtable* memtable);
-static void memtable_destroy(Memtable* memtable);
-static SSTable* sstable_construct(int num_entries);
+static memtable* memtable_create(int capacity);
+static void memtable_append(memtable* mt, uint64_t* key, uint8_t* block, int block_size);
+static void memtable_flush(memtable* mt);
+static void memtable_destroy(memtable* mt);
+static sstable* sstable_construct(int num_entries);
 static void create_time_partitioned_directories(uint64_t milliseconds);
-static void sstable_read_index_entries(SSTable* sstable);
-static void sstable_write(SSTable* sstable, Memtable* memtable);
-static off_t sstable_write_memtable(SSTable* sstable, Memtable* memtable, void* buffer);
-static off_t memtable_entry_write_sstable_index_entry(const MemtableEntry* memtable_entry, SSTableIndexEntry* index_entry, void* buffer, off_t offset);
-static off_t sstable_write_index_entries(SSTable* sstable, void* buffer, off_t offset);
-static off_t write_index_entry(void* buffer, SSTableIndexEntry* index_entry, off_t offset);
+static void sstable_read_index_entries(sstable* sst);
+static void sstable_write(sstable* sst, memtable* mt);
+static off_t sstable_write_memtable(sstable* sst, memtable* mt, void* buffer);
+static off_t memtable_entry_write_sstable_index_entry(const memtable_entry* mt_entry, sstable_index_entry* index_entry, void* buffer, off_t offset);
+static off_t sstable_write_index_entries(sstable* sst, void* buffer, off_t offset);
+static off_t write_index_entry(void* buffer, sstable_index_entry* index_entry, off_t offset);
 static off_t buffer_write(void* buffer, void* data, int size, off_t offset);
-static void sstable_read_index_entries_in_memory(SSTable* sstable, uint8_t* data);
+static void sstable_read_index_entries_in_memory(sstable* sst, uint8_t* data);
 
-MultiMemtable* auxts_multi_memtable_create(int num_tables, int capacity) {
-    MultiMemtable* multi_memtable = malloc(sizeof(MultiMemtable));
-    if (!multi_memtable) {
-        perror("Failed to allocate MultiMemtable");
+multi_memtable* auxts_multi_memtable_create(int num_tables, int capacity) {
+    multi_memtable* mmt = malloc(sizeof(multi_memtable));
+    if (!mmt) {
+        perror("Failed to allocate mmt");
         return NULL;
     }
 
-    multi_memtable->index = 0;
-    multi_memtable->num_tables = num_tables;
-    pthread_mutex_init(&multi_memtable->mutex, NULL);
+    mmt->index = 0;
+    mmt->num_tables = num_tables;
+    pthread_mutex_init(&mmt->mutex, NULL);
 
-    multi_memtable->tables = malloc(num_tables * sizeof(Memtable));
-    if (!multi_memtable->tables) {
-        perror("Failed to allocate Memtable to MultiMemtable");
-        free(multi_memtable);
+    mmt->tables = malloc(num_tables * sizeof(memtable));
+    if (!mmt->tables) {
+        perror("Failed to allocate memtable to mmt");
+        free(mmt);
         return NULL;
     }
 
     for (int i = 0; i < num_tables; ++i) {
-        multi_memtable->tables[i] = memtable_create(capacity);
+        mmt->tables[i] = memtable_create(capacity);
     }
 
-    return multi_memtable;
+    return mmt;
 }
 
-void auxts_multi_memtable_append(MultiMemtable* multi_memtable, uint64_t* key, uint8_t* block, int block_size) {
-    if (!multi_memtable) {
+void auxts_multi_memtable_append(multi_memtable* mmt, uint64_t* key, uint8_t* block, int block_size) {
+    if (!mmt) {
         return;
     }
 
-    pthread_mutex_lock(&multi_memtable->mutex);
+    pthread_mutex_lock(&mmt->mutex);
 
-    Memtable* active_memtable = multi_memtable->tables[multi_memtable->index];
-    if (!active_memtable) {
-        perror("Memtable cannot be null");
+    memtable* active_mt = mmt->tables[mmt->index];
+    if (!active_mt) {
+        perror("memtable cannot be null");
         return;
     }
 
-    memtable_append(active_memtable, key, block, block_size);
-    multi_memtable->index = ++multi_memtable->index % multi_memtable->num_tables;
+    memtable_append(active_mt, key, block, block_size);
+    mmt->index = ++mmt->index % mmt->num_tables;
 
-    pthread_mutex_unlock(&multi_memtable->mutex);
+    pthread_mutex_unlock(&mmt->mutex);
 }
 
-void auxts_multi_memtable_destroy(MultiMemtable* multi_memtable) {
-    if (!multi_memtable) {
+void auxts_multi_memtable_destroy(multi_memtable* mmt) {
+    if (!mmt) {
         return;
     }
 
-    pthread_mutex_lock(&multi_memtable->mutex);
+    pthread_mutex_lock(&mmt->mutex);
 
-    auxts_multi_memtable_flush(multi_memtable);
+    auxts_multi_memtable_flush(mmt);
 
-    for (int i = 0; i < multi_memtable->num_tables; ++i) {
-        Memtable* memtable = multi_memtable->tables[i];
+    for (int i = 0; i < mmt->num_tables; ++i) {
+        memtable* memtable = mmt->tables[i];
         memtable_destroy(memtable);
     }
 
-    free(multi_memtable->tables);
+    free(mmt->tables);
 
-    pthread_mutex_unlock(&multi_memtable->mutex);
-    pthread_mutex_destroy(&multi_memtable->mutex);
+    pthread_mutex_unlock(&mmt->mutex);
+    pthread_mutex_destroy(&mmt->mutex);
 
-    free(multi_memtable);
+    free(mmt);
 }
 
-void auxts_multi_memtable_flush(MultiMemtable* multi_memtable) {
-    if (!multi_memtable) {
+void auxts_multi_memtable_flush(multi_memtable* mmt) {
+    if (!mmt) {
         return;
     }
 
-    for (int i = 0; i < multi_memtable->num_tables; ++i) {
-        Memtable* memtable = multi_memtable->tables[i];
-        memtable_flush(memtable);
+    for (int i = 0; i < mmt->num_tables; ++i) {
+        memtable* mt = mmt->tables[i];
+        memtable_flush(mt);
     }
 }
 
-SSTable* auxts_read_sstable_index_entries(const char* filename) {
+sstable* auxts_read_sstable_index_entries(const char* filename) {
     int fd = open(filename, O_RDONLY);
     if (fd == -1) {
-        perror("Failed to open SSTable");
+        perror("Failed to open sstable");
         return NULL;
     }
 
@@ -114,7 +114,7 @@ SSTable* auxts_read_sstable_index_entries(const char* filename) {
     }
 
     entry_count = auxts_swap16_if_big_endian(entry_count);
-    SSTable* sstable = sstable_construct(entry_count);
+    sstable* sstable = sstable_construct(entry_count);
     if (!sstable) {
         close(fd);
         return NULL;
@@ -144,7 +144,7 @@ SSTable* auxts_read_sstable_index_entries(const char* filename) {
     return sstable;
 }
 
-SSTable* auxts_read_sstable_index_entries_in_memory(uint8_t* data, size_t size) {
+sstable* auxts_read_sstable_index_entries_in_memory(uint8_t* data, size_t size) {
     uint16_t num_entries;
 
     memcpy(&num_entries, data + (size - AUXTS_TRAILER_SIZE), sizeof(uint16_t));
@@ -152,17 +152,17 @@ SSTable* auxts_read_sstable_index_entries_in_memory(uint8_t* data, size_t size) 
 
     size_t offset = size - (num_entries * AUXTS_INDEX_ENTRY_SIZE) - AUXTS_TRAILER_SIZE;
 
-    SSTable* sstable = sstable_construct(num_entries);
-    if (!sstable) {
+    sstable* sst = sstable_construct(num_entries);
+    if (!sst) {
         return NULL;
     }
 
-    sstable->num_entries = num_entries;
-    sstable->fd = -1;
+    sst->num_entries = num_entries;
+    sst->fd = -1;
 
-    sstable_read_index_entries_in_memory(sstable, data + offset);
+    sstable_read_index_entries_in_memory(sst, data + offset);
 
-    return sstable;
+    return sst;
 }
 
 void auxts_get_time_partitioned_path(uint64_t milliseconds, char* path) {
@@ -178,15 +178,15 @@ void auxts_get_time_partitioned_path(uint64_t milliseconds, char* path) {
             remainder);
 }
 
-void auxts_sstable_destroy_except_data(SSTable* sstable) {
-    free(sstable->index_entries);
-    free(sstable);
+void auxts_sstable_destroy_except_data(sstable* sst) {
+    free(sst->index_entries);
+    free(sst);
 }
 
-MemtableEntry* auxts_read_memtable_entry(uint8_t* buffer, size_t offset) {
-    MemtableEntry* entry = malloc(sizeof(MemtableEntry));
+memtable_entry* auxts_read_memtable_entry(uint8_t* buffer, size_t offset) {
+    memtable_entry* entry = malloc(sizeof(memtable_entry));
     if (!entry) {
-        perror("Failed to allocate MemtableEntry");
+        perror("Failed to allocate memtable_entry");
         return NULL;
     }
 
@@ -205,149 +205,149 @@ MemtableEntry* auxts_read_memtable_entry(uint8_t* buffer, size_t offset) {
     return entry;
 }
 
-Memtable* memtable_create(int capacity) {
-    Memtable* memtable = malloc(sizeof(Memtable));
-    if (!memtable) {
-        perror("Failed to allocate Memtable");
+memtable* memtable_create(int capacity) {
+    memtable* mt = malloc(sizeof(memtable ));
+    if (!mt) {
+        perror("Failed to allocate mt");
         return NULL;
     }
 
-    memtable->num_entries = 0;
-    memtable->capacity = capacity;
+    mt->num_entries = 0;
+    mt->capacity = capacity;
 
-    memtable->entries = malloc(sizeof(MemtableEntry) * memtable->capacity);
-    if (!memtable->entries) {
-        perror("Failed to allocate MemtableEntry to Memtable");
-        free(memtable);
+    mt->entries = malloc(sizeof(memtable_entry) * mt->capacity);
+    if (!mt->entries) {
+        perror("Failed to allocate memtable_entry to mt");
+        free(mt);
         return NULL;
     }
 
-    pthread_mutex_init(&memtable->mutex, NULL);
+    pthread_mutex_init(&mt->mutex, NULL);
 
-    for (int i = 0; i < memtable->capacity; ++i) {
-        if (posix_memalign((void**)&memtable->entries[i].block, AUXTS__ALIGN, AUXTS_MAX_BLOCK_SIZE) != 0) {
-            perror("Failed to allocate block to Memtable");
-            memtable_destroy(memtable);
+    for (int i = 0; i < mt->capacity; ++i) {
+        if (posix_memalign((void**)&mt->entries[i].block, AUXTS__ALIGN, AUXTS_MAX_BLOCK_SIZE) != 0) {
+            perror("Failed to allocate block to mt");
+            memtable_destroy(mt);
             return NULL;
         }
     }
 
-    return memtable;
+    return mt;
 }
 
-void memtable_append(Memtable* memtable, uint64_t* key, uint8_t* block, int block_size) {
-    if (!memtable) {
+void memtable_append(memtable* mt, uint64_t* key, uint8_t* block, int block_size) {
+    if (!mt) {
         return;
     }
 
-    pthread_mutex_lock(&memtable->mutex);
+    pthread_mutex_lock(&mt->mutex);
 
-    if (memtable->num_entries >= memtable->capacity) {
-        memtable_flush(memtable);
+    if (mt->num_entries >= mt->capacity) {
+        memtable_flush(mt);
     }
 
-    memcpy(memtable->entries[memtable->num_entries].key, key, sizeof(uint64_t) * 2);
-    memcpy(memtable->entries[memtable->num_entries].block, block, block_size);
+    memcpy(mt->entries[mt->num_entries].key, key, sizeof(uint64_t) * 2);
+    memcpy(mt->entries[mt->num_entries].block, block, block_size);
 
-    memtable->entries[memtable->num_entries].block_size = block_size;
-    ++memtable->num_entries;
+    mt->entries[mt->num_entries].block_size = block_size;
+    ++mt->num_entries;
 
-    pthread_mutex_unlock(&memtable->mutex);
+    pthread_mutex_unlock(&mt->mutex);
 }
 
-void memtable_flush(Memtable* memtable) {
-    if (!memtable) {
+void memtable_flush(memtable* mt) {
+    if (!mt) {
         return;
     }
 
-    int num_entries = memtable->num_entries;
+    int num_entries = mt->num_entries;
     if (num_entries == 0) {
         return;
     }
 
-    SSTable* sstable = sstable_construct(num_entries);
-    if (!sstable) {
-        perror("SSTable cannot be null");
+    sstable* sst = sstable_construct(num_entries);
+    if (!sst) {
+        perror("sst cannot be null");
         return;
     }
 
-    sstable_write(sstable, memtable);
-    auxts_sstable_destroy_except_data(sstable);
+    sstable_write(sst, mt);
+    auxts_sstable_destroy_except_data(sst);
 
-    memtable->num_entries = 0;
+    mt->num_entries = 0;
 }
 
-void memtable_destroy(Memtable* memtable) {
-    if (!memtable) {
+void memtable_destroy(memtable* mt) {
+    if (!mt) {
         return;
     }
 
-    pthread_mutex_lock(&memtable->mutex);
+    pthread_mutex_lock(&mt->mutex);
 
-    for (int i = 0; i < memtable->num_entries; ++i) {
-        free(memtable->entries[i].block);
+    for (int i = 0; i < mt->num_entries; ++i) {
+        free(mt->entries[i].block);
     }
 
-    free(memtable->entries);
+    free(mt->entries);
 
-    pthread_mutex_unlock(&memtable->mutex);
-    pthread_mutex_destroy(&memtable->mutex);
+    pthread_mutex_unlock(&mt->mutex);
+    pthread_mutex_destroy(&mt->mutex);
 
-    free(memtable);
+    free(mt);
 }
 
-void sstable_read_index_entries_in_memory(SSTable* sstable, uint8_t* data) {
+void sstable_read_index_entries_in_memory(sstable* sst, uint8_t* data) {
     off_t _offset = 0;
 
-    for (int entry = 0; entry < sstable->num_entries; ++entry) {
+    for (int entry = 0; entry < sst->num_entries; ++entry) {
         uint64_t block_id;
 
         memcpy(&block_id, data + _offset, sizeof(uint64_t));
-        sstable->index_entries[entry].key[0] = auxts_swap64_if_big_endian(block_id);
+        sst->index_entries[entry].key[0] = auxts_swap64_if_big_endian(block_id);
         _offset += sizeof(uint64_t);
 
         uint64_t timestamp;
 
         memcpy(&timestamp, data + _offset, sizeof(uint64_t));
-        sstable->index_entries[entry].key[1] = auxts_swap64_if_big_endian(timestamp);
+        sst->index_entries[entry].key[1] = auxts_swap64_if_big_endian(timestamp);
         _offset += sizeof(uint64_t);
 
         uint64_t offset;
 
         memcpy(&offset, data + _offset, sizeof(uint64_t));
-        sstable->index_entries[entry].offset = auxts_swap64_if_big_endian(offset);
+        sst->index_entries[entry].offset = auxts_swap64_if_big_endian(offset);
         _offset += sizeof(uint64_t);
     }
 
 }
 
-void sstable_read_index_entries(SSTable* sstable) {
-    for (int entry = 0; entry < sstable->num_entries; ++entry) {
+void sstable_read_index_entries(sstable* sst) {
+    for (int entry = 0; entry < sst->num_entries; ++entry) {
         uint64_t  block_id;
 
-        read(sstable->fd, &block_id, sizeof(uint64_t));
-        sstable->index_entries[entry].key[0] = auxts_swap64_if_big_endian(block_id);
+        read(sst->fd, &block_id, sizeof(uint64_t));
+        sst->index_entries[entry].key[0] = auxts_swap64_if_big_endian(block_id);
 
         uint64_t timestamp;
 
-        read(sstable->fd, &timestamp, sizeof(uint64_t));
-        sstable->index_entries[entry].key[1] = auxts_swap64_if_big_endian(timestamp);
+        read(sst->fd, &timestamp, sizeof(uint64_t));
+        sst->index_entries[entry].key[1] = auxts_swap64_if_big_endian(timestamp);
 
         uint64_t offset;
 
-        read(sstable->fd, &offset, sizeof(uint64_t));
-        sstable->index_entries[entry].offset = auxts_swap64_if_big_endian(offset);
+        read(sst->fd, &offset, sizeof(uint64_t));
+        sst->index_entries[entry].offset = auxts_swap64_if_big_endian(offset);
     }
 }
 
-void sstable_write(SSTable* sstable, Memtable* memtable) {
-    if (!sstable) {
+void sstable_write(sstable* sst, memtable* mt) {
+    if (!sst) {
         return;
     }
 
     void* buffer;
 
-    uint16_t num_entries = memtable->num_entries;
+    uint16_t num_entries = mt->num_entries;
     size_t size = AUXTS_HEADER_SIZE + (num_entries * (AUXTS_MAX_BLOCK_SIZE + AUXTS_MEMTABLE_ENTRY_METADATA_SIZE + AUXTS_INDEX_ENTRY_SIZE)) + AUXTS_TRAILER_SIZE;
 
     if (posix_memalign(&buffer, AUXTS_BLOCK_ALIGN, size) != 0) {
@@ -357,26 +357,26 @@ void sstable_write(SSTable* sstable, Memtable* memtable) {
 
     char path[64];
 
-    uint64_t milliseconds = memtable->entries[0].key[1];
+    uint64_t milliseconds = mt->entries[0].key[1];
     create_time_partitioned_directories(milliseconds);
     auxts_get_time_partitioned_path(milliseconds, path);
 
-    sstable->fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    if (sstable->fd == -1) {
-        perror("Failed to open SSTable");
+    sst->fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (sst->fd == -1) {
+        perror("Failed to open sst");
         return;
     }
 
-    sstable->num_entries = num_entries;
+    sst->num_entries = num_entries;
 
     off_t offset;
-    offset = sstable_write_memtable(sstable, memtable, buffer);
-    offset = sstable_write_index_entries(sstable, buffer, offset);
+    offset = sstable_write_memtable(sst, mt, buffer);
+    offset = sstable_write_index_entries(sst, buffer, offset);
 
     size_t file_size = auxts_swap64_if_big_endian(offset);
 
     buffer_write(buffer, &file_size, sizeof(size_t), 0);
-    write(sstable->fd, buffer, offset);
+    write(sst->fd, buffer, offset);
 
     free(buffer);
 }
@@ -409,29 +409,29 @@ void create_time_partitioned_directories(uint64_t milliseconds) {
     mkdir(dir, 0777);
 }
 
-SSTable* sstable_construct(int num_entries) {
-    SSTable* sstable = malloc(sizeof(SSTable));
-    if (!sstable) {
-        perror("Failed to allocate SSTable");
+sstable* sstable_construct(int num_entries) {
+    sstable* sst = malloc(sizeof(sstable));
+    if (!sst) {
+        perror("Failed to allocate sst");
         return NULL;
     }
 
-    sstable->index_entries = malloc(sizeof(SSTableIndexEntry) * num_entries);
-    if (!sstable->index_entries) {
-        perror("Failed to allocate SSTableIndexEntry to SSTable");
-        free(sstable);
+    sst->index_entries = malloc(sizeof(sstable_index_entry) * num_entries);
+    if (!sst->index_entries) {
+        perror("Failed to allocate sstable_index_entry to sst");
+        free(sst);
         return NULL;
     }
 
-    return sstable;
+    return sst;
 }
 
-off_t sstable_write_memtable(SSTable* sstable, Memtable* memtable, void* buffer) {
+off_t sstable_write_memtable(sstable* sst, memtable* mt, void* buffer) {
     off_t offset = AUXTS_HEADER_SIZE;
 
-    for (int entry = 0; entry < sstable->num_entries; ++entry) {
-        MemtableEntry* memtable_entry = &memtable->entries[entry];
-        SSTableIndexEntry* index_entry = &sstable->index_entries[entry];
+    for (int entry = 0; entry < sst->num_entries; ++entry) {
+        memtable_entry* memtable_entry = &mt->entries[entry];
+        sstable_index_entry* index_entry = &sst->index_entries[entry];
         offset = memtable_entry_write_sstable_index_entry(memtable_entry, index_entry, buffer, offset);
     }
 
@@ -444,23 +444,23 @@ off_t sstable_write_memtable(SSTable* sstable, Memtable* memtable, void* buffer)
 // block-id     little-endian   8
 // timestamp    little-endian   8
 // block        little-endian   <block-num_samples>
-off_t memtable_entry_write_sstable_index_entry(const MemtableEntry* memtable_entry, SSTableIndexEntry* index_entry, void* buffer, off_t offset) {
-    uint16_t block_size = auxts_swap16_if_big_endian(memtable_entry->block_size);
+off_t memtable_entry_write_sstable_index_entry(const memtable_entry* mt_entry, sstable_index_entry* index_entry, void* buffer, off_t offset) {
+    uint16_t block_size = auxts_swap16_if_big_endian(mt_entry->block_size);
     index_entry->offset = offset;
     offset = buffer_write(buffer, &block_size, sizeof(uint16_t), offset);
 
-    uint64_t block_id = auxts_swap64_if_big_endian(memtable_entry->key[0]);
-    index_entry->key[0] = memtable_entry->key[0];
+    uint64_t block_id = auxts_swap64_if_big_endian(mt_entry->key[0]);
+    index_entry->key[0] = mt_entry->key[0];
     offset = buffer_write(buffer, &block_id, sizeof(uint64_t), offset);
 
-    uint64_t timestamp = auxts_swap64_if_big_endian(memtable_entry->key[1]);
-    index_entry->key[1] = memtable_entry->key[1];
+    uint64_t timestamp = auxts_swap64_if_big_endian(mt_entry->key[1]);
+    index_entry->key[1] = mt_entry->key[1];
     offset = buffer_write(buffer, &timestamp, sizeof(uint64_t), offset);
 
-    return buffer_write(buffer, memtable_entry->block, memtable_entry->block_size, offset);
+    return buffer_write(buffer, mt_entry->block, mt_entry->block_size, offset);
 }
 
-off_t write_index_entry(void* buffer, SSTableIndexEntry* index_entry, off_t offset) {
+off_t write_index_entry(void* buffer, sstable_index_entry* index_entry, off_t offset) {
     uint64_t block_id = auxts_swap64_if_big_endian(index_entry->key[0]);
     offset = buffer_write(buffer, &block_id, sizeof(uint64_t), offset);
 
@@ -471,12 +471,12 @@ off_t write_index_entry(void* buffer, SSTableIndexEntry* index_entry, off_t offs
     return buffer_write(buffer, &_offset, sizeof(size_t), offset);
 }
 
-off_t sstable_write_index_entries(SSTable* sstable, void* buffer, off_t offset) {
-    for (int entry = 0; entry < sstable->num_entries; ++entry) {
-        offset = write_index_entry(buffer, &sstable->index_entries[entry], offset);
+off_t sstable_write_index_entries(sstable* sst, void* buffer, off_t offset) {
+    for (int entry = 0; entry < sst->num_entries; ++entry) {
+        offset = write_index_entry(buffer, &sst->index_entries[entry], offset);
     }
 
-    uint16_t entry_count = auxts_swap16_if_big_endian(sstable->num_entries);
+    uint16_t entry_count = auxts_swap16_if_big_endian(sst->num_entries);
     return buffer_write(buffer, &entry_count, sizeof(uint16_t), offset);
 }
 

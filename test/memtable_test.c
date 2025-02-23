@@ -40,7 +40,7 @@ uint8_t* read_file_test_util(const char* path, int* size) {
 void test_multi_memtable() {
     int size1, size2, size3, size4;
 
-    MultiMemtable* mmt = auxts_multi_memtable_create(2, 2);
+    multi_memtable* mmt = auxts_multi_memtable_create(2, 2);
 
     uint8_t* flac_data1 = read_file_test_util("../test/data/data-1.flac", &size1);
     uint8_t* flac_data2 = read_file_test_util("../test/data/data-2.flac", &size2);
