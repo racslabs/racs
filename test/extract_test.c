@@ -5,8 +5,8 @@ void test_extract() {
     uint64_t begin_timestamp = 1739141512213ull;
     uint64_t end_timestamp = 1739141512214ull;
 
-    cache_t* cache = auxts_cache_create(2);
-    pcm_buffer_t* buffer = extract_pcm_data(cache, stream_id, begin_timestamp, end_timestamp);
+    auxts_cache* cache = auxts_cache_create(2);
+    auxts_pcm_buffer* buffer = extract_pcm_data(cache, stream_id, begin_timestamp, end_timestamp);
 
     assert(buffer->channels == 2);
     assert(buffer->bits_per_sample == 16);

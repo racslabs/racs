@@ -26,7 +26,7 @@ typedef struct {
     char** files;
     size_t num_files;
     size_t max_num_files;
-} file_list_t;
+} auxts_filelist;
 
 typedef struct {
     int32_t** data;
@@ -35,11 +35,10 @@ typedef struct {
     uint32_t channels;
     uint32_t sample_rate;
     uint32_t bits_per_sample;
-} pcm_buffer_t;
+} auxts_pcm_buffer;
 
-pcm_buffer_t* extract_pcm_data(cache_t* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp);
-void pcm_buffer_destroy(pcm_buffer_t* pbuf);
-
+auxts_pcm_buffer* extract_pcm_data(auxts_cache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp);
+void pcm_buffer_destroy(auxts_pcm_buffer* pbuf);
 
 #ifdef __cplusplus
 }

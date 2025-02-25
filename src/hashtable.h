@@ -15,18 +15,18 @@ extern "C" {
 typedef struct {
     uint64_t key[2];
     void* value;
-} hashtable_entry_t;
+} auxts_hashtable_entry;
 
 typedef struct {
     size_t count;
     size_t capacity;
-    hashtable_entry_t** entries;
-} hashtable_bucket_t;
+    auxts_hashtable_entry** entries;
+} auxts_hashtable_bucket;
 
 typedef struct {
     size_t num_buckets;
-    hashtable_bucket_t** buckets;
-} hashtable_t;
+    auxts_hashtable_bucket** buckets;
+} auxts_hashtable;
 
 AUXTS_FORCE_INLINE uint64_t auxts_hash(void* data, int len, size_t size) {
     uint64_t _hash[2];
@@ -34,11 +34,11 @@ AUXTS_FORCE_INLINE uint64_t auxts_hash(void* data, int len, size_t size) {
     return _hash[0] % size;
 }
 
-hashtable_t* auxts_hashtable_create(size_t num_entries);
-void auxts_hashtable_put(hashtable_t* ht, const uint64_t* key, void* value);
-void* auxts_hashtable_get(hashtable_t* ht, const uint64_t* key);
-void auxts_hashtable_delete(hashtable_t* ht, uint64_t* key);
-void auxts_hashtable_destroy(hashtable_t* ht);
+auxts_hashtable* auxts_hashtable_create(size_t num_entries);
+void auxts_hashtable_put(auxts_hashtable* ht, const uint64_t* key, void* value);
+void* auxts_hashtable_get(auxts_hashtable* ht, const uint64_t* key);
+void auxts_hashtable_delete(auxts_hashtable* ht, uint64_t* key);
+void auxts_hashtable_destroy(auxts_hashtable* ht);
 
 #ifdef __cplusplus
 }

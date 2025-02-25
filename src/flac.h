@@ -18,13 +18,13 @@ typedef struct {
     uint8_t* data;
     uint16_t size;
     uint16_t offset;
-} flac_encoded_block_t;
+} auxts_flac_block;
 
 typedef struct {
-    flac_encoded_block_t** blocks;
+    auxts_flac_block** blocks;
     size_t num_blocks;
     size_t capacity;
-} flac_encoded_blocks_t;
+} auxts_flac_blocks;
 
 typedef struct {
     int32_t** data;
@@ -33,17 +33,17 @@ typedef struct {
     uint32_t channels;
     uint32_t sample_rate;
     uint32_t bits_per_sample;
-} pcm_block_t;
+} auxts_pcm_block;
 
 typedef struct {
-    flac_encoded_block_t* flac;
-    pcm_block_t* pcm;
-} decoder_context_t;
+    auxts_flac_block* flac;
+    auxts_pcm_block* pcm;
+} auxts_decoder_context;
 
-pcm_block_t* auxts_decode_flac_block(flac_encoded_block_t* block);
-flac_encoded_blocks_t* auxts_flac_encoded_blocks_create();
-void auxts_flac_encoded_blocks_append(flac_encoded_blocks_t* blocks, uint8_t* block_data, uint16_t size);
-void auxts_flac_encoded_blocks_destroy(flac_encoded_blocks_t* blocks);
+auxts_pcm_block* auxts_decode_flac_block(auxts_flac_block* block);
+auxts_flac_blocks* auxts_flac_encoded_blocks_create();
+void auxts_flac_encoded_blocks_append(auxts_flac_blocks* blocks, uint8_t* block_data, uint16_t size);
+void auxts_flac_encoded_blocks_destroy(auxts_flac_blocks* blocks);
 
 #ifdef __cplusplus
 }

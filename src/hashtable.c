@@ -1,12 +1,12 @@
 #include "hashtable.h"
 
-static hashtable_entry_t* hashtable_entry_create(const uint64_t* key, void* value);
-static hashtable_bucket_t* hashtable_bucket_create();
-static void hashtable_bucket_append(hashtable_bucket_t* bucket, hashtable_entry_t* entry);
-static void hashtable_entry_destroy(hashtable_entry_t* entry);
+static auxts_hashtable_entry* hashtable_entry_create(const uint64_t* key, void* value);
+static auxts_hashtable_bucket* hashtable_bucket_create();
+static void hashtable_bucket_append(auxts_hashtable_bucket* bucket, auxts_hashtable_entry* entry);
+static void hashtable_entry_destroy(auxts_hashtable_entry* entry);
 
-hashtable_t* auxts_hashtable_create(size_t num_entries) {
-    hashtable_t* ht = malloc(sizeof(hashtable_t));
+auxts_hashtable* auxts_hashtable_create(size_t num_entries) {
+    auxts_hashtable* ht = malloc(sizeof(auxts_hashtable));
     if (!ht) {
         perror("Error allocating ht");
         return NULL;
@@ -14,7 +14,7 @@ hashtable_t* auxts_hashtable_create(size_t num_entries) {
 
     ht->num_buckets = num_entries;
 
-    ht->buckets = malloc(num_entries * sizeof(hashtable_bucket_t*));
+    ht->buckets = malloc(num_entries * sizeof(auxts_hashtable_bucket*));
     if (!ht->buckets) {
         perror("Failed to allocate buckets");
         free(ht);
@@ -28,20 +28,20 @@ hashtable_t* auxts_hashtable_create(size_t num_entries) {
     return ht;
 }
 
-void auxts_hashtable_put(hashtable_t* ht, const uint64_t* key, void* value) {
+void auxts_hashtable_put(auxts_hashtable* ht, const uint64_t* key, void* value) {
     if (!ht) {
         return;
     }
 
     uint64_t _key = auxts_hash((uint8_t *) key, 2 * sizeof(uint64_t), ht->num_buckets);
-    hashtable_bucket_t* bucket = ht->buckets[_key];
+    auxts_hashtable_bucket* bucket = ht->buckets[_key];
     if (!bucket) {
-        perror("hashtable_bucket_t cannot be null");
+        perror("auxts_hashtable_bucket cannot be null");
         return;
     }
 
     for (int i = 0; i < bucket->count; ++i) {
-        hashtable_entry_t* entry = bucket->entries[i];
+        auxts_hashtable_entry* entry = bucket->entries[i];
         if (!entry) {
             continue;
         }
@@ -53,11 +53,11 @@ void auxts_hashtable_put(hashtable_t* ht, const uint64_t* key, void* value) {
         }
     }
 
-    hashtable_entry_t* entry = hashtable_entry_create(key, value);
+    auxts_hashtable_entry* entry = hashtable_entry_create(key, value);
     hashtable_bucket_append(bucket, entry);
 }
 
-void hashtable_bucket_append(hashtable_bucket_t* bucket, hashtable_entry_t* entry) {
+void hashtable_bucket_append(auxts_hashtable_bucket* bucket, auxts_hashtable_entry* entry) {
     if (!bucket || !entry) {
         return;
     }
@@ -65,7 +65,7 @@ void hashtable_bucket_append(hashtable_bucket_t* bucket, hashtable_entry_t* entr
     if (bucket->count == bucket->capacity) {
         bucket->capacity = 1 << bucket->capacity;
 
-        hashtable_entry_t** entries = realloc(bucket->entries, bucket->capacity * sizeof(hashtable_entry_t*));
+        auxts_hashtable_entry** entries = realloc(bucket->entries, bucket->capacity * sizeof(auxts_hashtable_entry*));
         if (!entries) {
             perror("Error reallocating entries");
             return;
@@ -78,20 +78,20 @@ void hashtable_bucket_append(hashtable_bucket_t* bucket, hashtable_entry_t* entr
     ++bucket->count;
 }
 
-void* auxts_hashtable_get(hashtable_t* ht, const uint64_t* key) {
+void* auxts_hashtable_get(auxts_hashtable* ht, const uint64_t* key) {
     if (!ht) {
         return NULL;
     }
 
     uint64_t _key = auxts_hash((uint8_t *) key, 2 * sizeof(uint64_t), ht->num_buckets);
-    hashtable_bucket_t* bucket = ht->buckets[_key];
+    auxts_hashtable_bucket* bucket = ht->buckets[_key];
     if (!bucket) {
-        perror("hashtable_bucket_t cannot be null");
+        perror("auxts_hashtable_bucket cannot be null");
         return NULL;
     }
 
     for (int i = 0; i < bucket->count; ++i) {
-        hashtable_entry_t* entry = bucket->entries[i];
+        auxts_hashtable_entry* entry = bucket->entries[i];
         if (!entry) {
             continue;
         }
@@ -104,20 +104,20 @@ void* auxts_hashtable_get(hashtable_t* ht, const uint64_t* key) {
     return NULL;
 }
 
-void auxts_hashtable_delete(hashtable_t* ht, uint64_t* key) {
+void auxts_hashtable_delete(auxts_hashtable* ht, uint64_t* key) {
     if (!ht) {
         return;
     }
 
     uint64_t _key = auxts_hash((uint8_t *) key, 2 * sizeof(uint64_t), ht->num_buckets);
-    hashtable_bucket_t* bucket = ht->buckets[_key];
+    auxts_hashtable_bucket* bucket = ht->buckets[_key];
     if (!bucket) {
-        perror("hashtable_bucket_t cannot be null");
+        perror("auxts_hashtable_bucket cannot be null");
         return;
     }
 
     for (int i = 0; i < bucket->count; ++i) {
-        hashtable_entry_t* entry = bucket->entries[i];
+        auxts_hashtable_entry* entry = bucket->entries[i];
         if (!entry) {
             continue;
         }
@@ -136,12 +136,12 @@ void auxts_hashtable_delete(hashtable_t* ht, uint64_t* key) {
     }
 }
 
-void auxts_hashtable_destroy(hashtable_t* ht) {
+void auxts_hashtable_destroy(auxts_hashtable* ht) {
     for (int i = 0; i < ht->num_buckets; ++i) {
-        hashtable_bucket_t* bucket = ht->buckets[i];
+        auxts_hashtable_bucket* bucket = ht->buckets[i];
 
         for (int j = 0; j < bucket->count; ++j) {
-            hashtable_entry_t* entry = bucket->entries[j];
+            auxts_hashtable_entry* entry = bucket->entries[j];
             hashtable_entry_destroy(entry);
         }
 
@@ -153,17 +153,17 @@ void auxts_hashtable_destroy(hashtable_t* ht) {
     free(ht);
 }
 
-hashtable_bucket_t* hashtable_bucket_create() {
-    hashtable_bucket_t* bucket = malloc(sizeof(hashtable_bucket_t));
+auxts_hashtable_bucket* hashtable_bucket_create() {
+    auxts_hashtable_bucket* bucket = malloc(sizeof(auxts_hashtable_bucket));
     if (!bucket) {
-        perror("Error allocating hashtable_bucket_t");
+        perror("Error allocating auxts_hashtable_bucket");
         return NULL;
     }
 
     bucket->count = 0;
     bucket->capacity = AUXTS_INITIAL_BUCKET_CAPACITY;
 
-    bucket->entries = malloc(AUXTS_INITIAL_BUCKET_CAPACITY * sizeof(hashtable_entry_t*));
+    bucket->entries = malloc(AUXTS_INITIAL_BUCKET_CAPACITY * sizeof(auxts_hashtable_entry*));
     if (!bucket->entries) {
         perror("Error allocating hashmap entries");
         free(bucket);
@@ -174,10 +174,10 @@ hashtable_bucket_t* hashtable_bucket_create() {
 }
 
 
-hashtable_entry_t* hashtable_entry_create(const uint64_t* key, void* value) {
-    hashtable_entry_t* entry = malloc(sizeof(hashtable_entry_t));
+auxts_hashtable_entry* hashtable_entry_create(const uint64_t* key, void* value) {
+    auxts_hashtable_entry* entry = malloc(sizeof(auxts_hashtable_entry));
     if (!entry) {
-        perror("Failed to allocate hashtable_entry_t");
+        perror("Failed to allocate auxts_hashtable_entry");
         return NULL;
     }
 
@@ -188,7 +188,7 @@ hashtable_entry_t* hashtable_entry_create(const uint64_t* key, void* value) {
     return entry;
 }
 
-void hashtable_entry_destroy(hashtable_entry_t* entry) {
+void hashtable_entry_destroy(auxts_hashtable_entry* entry) {
     free(entry->value);
     free(entry);
 }
