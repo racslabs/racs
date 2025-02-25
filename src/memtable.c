@@ -92,7 +92,7 @@ void auxts_multi_memtable_flush(auxts_multi_memtable* mmt) {
     }
 }
 
-auxts_sstable* auxts_read_sstable_index_entries(const char* filename) {
+auxts_sstable* auxts_sstable_read_index_entries(const char* filename) {
     int fd = open(filename, O_RDONLY);
     if (fd == -1) {
         perror("Failed to open auxts_sstable");
@@ -144,7 +144,7 @@ auxts_sstable* auxts_read_sstable_index_entries(const char* filename) {
     return sstable;
 }
 
-auxts_sstable* auxts_read_sstable_index_entries_in_memory(uint8_t* data, size_t size) {
+auxts_sstable* auxts_sstable_read_index_entries_in_memory(uint8_t* data, size_t size) {
     uint16_t num_entries;
 
     memcpy(&num_entries, data + (size - AUXTS_TRAILER_SIZE), sizeof(uint16_t));
@@ -183,7 +183,7 @@ void auxts_sstable_destroy_except_data(auxts_sstable* sst) {
     free(sst);
 }
 
-auxts_memtable_entry* auxts_read_memtable_entry(uint8_t* buffer, size_t offset) {
+auxts_memtable_entry* auxts_memtable_read_entry(uint8_t* buffer, size_t offset) {
     auxts_memtable_entry* entry = malloc(sizeof(auxts_memtable_entry));
     if (!entry) {
         perror("Failed to allocate auxts_memtable_entry");

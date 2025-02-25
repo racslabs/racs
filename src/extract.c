@@ -1,12 +1,5 @@
 #include "extract.h"
 
-static int compare_paths(const void* path1, const void* path2);
-static auxts_filelist* filelist_create();
-static auxts_filelist* get_sorted_file_list(const char* path);
-static void filelist_destroy(auxts_filelist* list);
-static void filelist_add(auxts_filelist* list, const char* file_path);
-static void list_files_recursive(auxts_filelist* list, const char* path);
-static void filelist_sort(auxts_filelist* list);
 static auxts_pcm_buffer* pcm_buffer_create(uint32_t channels, uint32_t sample_rate, uint32_t bits_per_sample);
 static void pcm_buffer_append(auxts_pcm_buffer* pbuf, auxts_pcm_block* block);
 static void pcm_block_destroy(auxts_pcm_block* block);
@@ -14,7 +7,7 @@ static uint64_t time_partitioned_path_to_timestamp(const char* path);
 static char* resolve_shared_path(const char* path1, const char* path2);
 static char* get_path_from_time_range(uint64_t begin_timestamp, uint64_t end_timestamp);
 static uint8_t* get_data_from_cache_or_sstable(auxts_cache* cache, uint64_t stream_id, uint64_t timestamp, const char* file_path);
-static auxts_flac_blocks* extract_flac_encoded_blocks(auxts_cache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp);
+static auxts_flac_blocks* extract_flac_blocks(auxts_cache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp);
 static void process_sstable_data(auxts_flac_blocks* blocks, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp, uint8_t* data);
 static uint8_t* serialize_pcm_data(const auxts_pcm_buffer* pbuf);
 static uint64_t next_power_of_two(uint64_t n);
@@ -24,9 +17,9 @@ auxts_pcm_buffer* extract_pcm_data(auxts_cache* cache, uint64_t stream_id, uint6
         return NULL;
     }
 
-    auxts_flac_blocks* blocks = extract_flac_encoded_blocks(cache, stream_id, begin_timestamp, end_timestamp);
+    auxts_flac_blocks* blocks = extract_flac_blocks(cache, stream_id, begin_timestamp, end_timestamp);
     if (!blocks->num_blocks) {
-        auxts_flac_encoded_blocks_destroy(blocks);
+        auxts_flac_blocks_destroy(blocks);
         return NULL;
     }
 
@@ -45,7 +38,7 @@ auxts_pcm_buffer* extract_pcm_data(auxts_cache* cache, uint64_t stream_id, uint6
         pcm_block_destroy(pcm_block);
     }
 
-    auxts_flac_encoded_blocks_destroy(blocks);
+    auxts_flac_blocks_destroy(blocks);
 
     return pbuf;
 }
@@ -124,88 +117,6 @@ uint64_t time_partitioned_path_to_timestamp(const char* path) {
     return auxts_ts_to_milliseconds(&ts);
 }
 
-int compare_paths(const void* path1, const void* path2) {
-    return strcmp(*(const char**)path1, *(const char**) path2);
-}
-
-auxts_filelist* filelist_create() {
-    auxts_filelist* list = malloc(sizeof(auxts_filelist));
-    if (!list) {
-        perror("Failed to allocate auxts_filelist");
-        filelist_destroy(list);
-        return NULL;
-    }
-
-    list->num_files = 0;
-    list->max_num_files = AUXTS_INITIAL_FILE_LIST_CAPACITY;
-
-    list->files = malloc(AUXTS_INITIAL_FILE_LIST_CAPACITY * sizeof(char*));
-    if (!list->files) {
-        perror("Failed to allocate file paths to auxts_filelist");
-        filelist_destroy(list);
-        return NULL;
-    }
-
-    return list;
-}
-
-void filelist_add(auxts_filelist* list, const char* file_path) {
-    if (list->num_files == list->max_num_files) {
-        list->max_num_files = 1 << list->max_num_files;
-
-        char** files = realloc(list->files, list->max_num_files * sizeof(char*));
-        if (!files) {
-            perror("Error reallocating file paths to auxts_filelist");
-            return;
-        }
-
-        list->files = files;
-    }
-
-    list->files[list->num_files] = strdup(file_path);
-    ++list->num_files;
-}
-
-void list_files_recursive(auxts_filelist* list, const char* path) {
-    DIR* dir = opendir(path);
-    if (!dir) {
-        perror("Failed to open directory");
-        closedir(dir);
-        return;
-    }
-
-    struct dirent* entry;
-    while ((entry = readdir(dir)) != NULL) {
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
-            continue;
-        }
-
-        char file_path[255];
-        snprintf(file_path, 255, "%s/%s", path, entry->d_name);
-
-        if (entry->d_type == DT_DIR) {
-            list_files_recursive(list, file_path);
-        } else if (entry->d_type == DT_REG) {
-            filelist_add(list, file_path);
-        }
-    }
-
-    closedir(dir);
-}
-
-void filelist_destroy(auxts_filelist* list) {
-    for (int i = 0; i < list->num_files; ++i) {
-        free(list->files[i]);
-    }
-
-    free(list->files);
-    free(list);
-}
-
-void filelist_sort(auxts_filelist* list) {
-    qsort(list->files, list->num_files, sizeof(char*), compare_paths);
-}
-
 char* get_path_from_time_range(uint64_t begin_timestamp, uint64_t end_timestamp) {
     char path1[255], path2[255];
 
@@ -215,20 +126,12 @@ char* get_path_from_time_range(uint64_t begin_timestamp, uint64_t end_timestamp)
     return resolve_shared_path(path1, path2);
 }
 
-auxts_filelist* get_sorted_file_list(const char* path) {
-    auxts_filelist* list = filelist_create();
-    list_files_recursive(list, path);
-    filelist_sort(list);
-
-    return list;
-}
-
 uint8_t* get_data_from_cache_or_sstable(auxts_cache* cache, uint64_t stream_id, uint64_t timestamp, const char* file_path) {
     uint64_t key[2] = {stream_id, timestamp};
     uint8_t* data = auxts_cache_get(cache, key);
 
     if (!data) {
-        auxts_sstable* sstable = auxts_read_sstable_index_entries(file_path);
+        auxts_sstable* sstable = auxts_sstable_read_index_entries(file_path);
         if (!sstable) {
             return NULL;
         }
@@ -247,7 +150,7 @@ void process_sstable_data(auxts_flac_blocks* blocks, uint64_t stream_id, uint64_
     memcpy(&size, data, sizeof(size_t));
     size = auxts_swap64_if_big_endian(size);
 
-    auxts_sstable* sstable = auxts_read_sstable_index_entries_in_memory(data, size);
+    auxts_sstable* sstable = auxts_sstable_read_index_entries_in_memory(data, size);
     if (!sstable) {
         return;
     }
@@ -255,7 +158,7 @@ void process_sstable_data(auxts_flac_blocks* blocks, uint64_t stream_id, uint64_
     for (int j = 0; j < sstable->num_entries; ++j) {
         size_t offset = sstable->index_entries[j].offset;
 
-        auxts_memtable_entry* entry = auxts_read_memtable_entry(data, offset);
+        auxts_memtable_entry* entry = auxts_memtable_read_entry(data, offset);
         if (!entry) {
             return;
         }
@@ -263,7 +166,7 @@ void process_sstable_data(auxts_flac_blocks* blocks, uint64_t stream_id, uint64_
         uint64_t timestamp = entry->key[1];
 
         if (entry->key[0] == stream_id && timestamp >= begin_timestamp && timestamp <= end_timestamp) {
-            auxts_flac_encoded_blocks_append(blocks, entry->block, entry->block_size);
+            auxts_flac_blocks_append(blocks, entry->block, entry->block_size);
         } else {
             free(entry->block);
         }
@@ -274,14 +177,14 @@ void process_sstable_data(auxts_flac_blocks* blocks, uint64_t stream_id, uint64_
     auxts_sstable_destroy_except_data(sstable);
 }
 
-auxts_flac_blocks* extract_flac_encoded_blocks(auxts_cache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp) {
+auxts_flac_blocks* extract_flac_blocks(auxts_cache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp) {
     char* path = get_path_from_time_range(begin_timestamp, end_timestamp);
-    auxts_filelist* list = get_sorted_file_list(path);
+    auxts_filelist* list = get_sorted_filelist(path);
 
-    auxts_flac_blocks* blocks = auxts_flac_encoded_blocks_create();
+    auxts_flac_blocks* blocks = auxts_flac_blocks_create();
     if (!blocks) {
         free(path);
-        filelist_destroy(list);
+        auxts_filelist_destroy(list);
         return NULL;
     }
 
@@ -296,7 +199,7 @@ auxts_flac_blocks* extract_flac_encoded_blocks(auxts_cache* cache, uint64_t stre
     }
 
     free(path);
-    filelist_destroy(list);
+    auxts_filelist_destroy(list);
 
     return blocks;
 }

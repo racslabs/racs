@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <msgpack.h>
 #include "memtable.h"
+#include "filelist.h"
 #include "result.h"
 #include "cache.h"
 #include "flac.h"
@@ -18,15 +19,7 @@
 extern "C" {
 #endif
 
-#define AUXTS_INITIAL_FILE_LIST_CAPACITY 2
-
 #define AUXTS_INITIAL_PCM_BUFFER_CAPACITY 2
-
-typedef struct {
-    char** files;
-    size_t num_files;
-    size_t max_num_files;
-} auxts_filelist;
 
 typedef struct {
     int32_t** data;

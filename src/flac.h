@@ -41,9 +41,9 @@ typedef struct {
 } auxts_decoder_context;
 
 auxts_pcm_block* auxts_decode_flac_block(auxts_flac_block* block);
-auxts_flac_blocks* auxts_flac_encoded_blocks_create();
-void auxts_flac_encoded_blocks_append(auxts_flac_blocks* blocks, uint8_t* block_data, uint16_t size);
-void auxts_flac_encoded_blocks_destroy(auxts_flac_blocks* blocks);
+auxts_flac_blocks* auxts_flac_blocks_create();
+void auxts_flac_blocks_append(auxts_flac_blocks* blocks, uint8_t* block_data, uint16_t size);
+void auxts_flac_blocks_destroy(auxts_flac_blocks* blocks);
 
 #ifdef __cplusplus
 }

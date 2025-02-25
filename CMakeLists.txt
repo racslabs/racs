@@ -66,6 +66,8 @@ add_executable(auxts main.c
         test/simd_test.c
         src/result.h
         src/result.c
+        src/filelist.h
+        src/filelist.c
 )
 
 target_link_libraries(auxts ${FLAC_LIBRARY})

@@ -6,7 +6,7 @@ static void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__St
 static void error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 static auxts_decoder_context* decoder_context_create(auxts_flac_block* block);
 
-auxts_flac_blocks* auxts_flac_encoded_blocks_create() {
+auxts_flac_blocks* auxts_flac_blocks_create() {
     auxts_flac_blocks* blocks = malloc(sizeof(auxts_flac_blocks));
     if (!blocks) {
         perror("Failed to allocate auxts_flac_blocks");
@@ -19,7 +19,7 @@ auxts_flac_blocks* auxts_flac_encoded_blocks_create() {
     blocks->blocks = malloc(blocks->capacity * sizeof(auxts_flac_block));
     if (!blocks->blocks) {
         perror("Failed to allocate blocks to auxts_flac_blocks");
-        auxts_flac_encoded_blocks_destroy(blocks);
+        auxts_flac_blocks_destroy(blocks);
         return NULL;
     }
 
@@ -52,7 +52,7 @@ auxts_pcm_block* auxts_decode_flac_block(auxts_flac_block* block) {
     return pcm;
 }
 
-void auxts_flac_encoded_blocks_append(auxts_flac_blocks* blocks, uint8_t* block_data, uint16_t size) {
+void auxts_flac_blocks_append(auxts_flac_blocks* blocks, uint8_t* block_data, uint16_t size) {
     if (!blocks) {
         return;
     }
@@ -82,7 +82,7 @@ void auxts_flac_encoded_blocks_append(auxts_flac_blocks* blocks, uint8_t* block_
     ++blocks->num_blocks;
 }
 
-void auxts_flac_encoded_blocks_destroy(auxts_flac_blocks* blocks) {
+void auxts_flac_blocks_destroy(auxts_flac_blocks* blocks) {
     for (int i = 0; i < blocks->num_blocks; ++i) {
         auxts_flac_block* block = blocks->blocks[i];
         free(block->data);
