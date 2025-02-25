@@ -9,11 +9,15 @@ static void sstable_write(auxts_sstable* sst, auxts_memtable* mt);
 static void sstable_read_index_entries_in_memory(auxts_sstable* sst, uint8_t* data);
 static auxts_sstable* sstable_create(int num_entries);
 static auxts_memtable* memtable_create(int capacity);
-static off_t sstable_write_memtable(auxts_sstable* sst, auxts_memtable* mt, void* buffer);
-static off_t memtable_entry_write_sstable_index_entry(const auxts_memtable_entry* mt_entry, auxts_sstable_index_entry* index_entry, void* buffer, off_t offset);
-static off_t sstable_write_index_entries(auxts_sstable* sst, void* buffer, off_t offset);
-static off_t write_index_entry(void* buffer, auxts_sstable_index_entry* index_entry, off_t offset);
-static off_t buffer_write(void* buffer, void* data, int size, off_t offset);
+static off_t sstable_write_memtable(auxts_sstable* sst, auxts_memtable* mt, uint8_t* buf);
+static off_t memtable_entry_write_sstable_index_entry(const auxts_memtable_entry* mt_entry, auxts_sstable_index_entry* index_entry, uint8_t* buf, off_t offset);
+static off_t sstable_write_index_entries(auxts_sstable* sst, uint8_t* buf, off_t offset);
+static off_t write_index_entry(uint8_t* buf, auxts_sstable_index_entry* index_entry, off_t offset);
+
+static off_t buffer_write(uint8_t* buf, void* data, int size, off_t offset);
+static off_t buffer_write_uint16(uint8_t* buf, uint16_t d, off_t offset);
+static off_t buffer_write_uint64(uint8_t* buf, uint64_t d, off_t offset);
+static off_t buffer_write_bin(uint8_t* buf, void* data, int size, off_t offset);
 
 auxts_multi_memtable* auxts_multi_memtable_create(int num_tables, int capacity) {
     auxts_multi_memtable* mmt = malloc(sizeof(auxts_multi_memtable));
@@ -413,13 +417,13 @@ auxts_sstable* sstable_create(int num_entries) {
     return sst;
 }
 
-off_t sstable_write_memtable(auxts_sstable* sst, auxts_memtable* mt, void* buffer) {
+off_t sstable_write_memtable(auxts_sstable* sst, auxts_memtable* mt, uint8_t* buf) {
     off_t offset = AUXTS_HEADER_SIZE;
 
     for (int entry = 0; entry < sst->num_entries; ++entry) {
         auxts_memtable_entry* memtable_entry = &mt->entries[entry];
         auxts_sstable_index_entry* index_entry = &sst->index_entries[entry];
-        offset = memtable_entry_write_sstable_index_entry(memtable_entry, index_entry, buffer, offset);
+        offset = memtable_entry_write_sstable_index_entry(memtable_entry, index_entry, buf, offset);
     }
 
     return offset;
@@ -431,43 +435,47 @@ off_t sstable_write_memtable(auxts_sstable* sst, auxts_memtable* mt, void* buffe
 // block-id     little-endian   8
 // timestamp    little-endian   8
 // block        little-endian   <block-size>
-off_t memtable_entry_write_sstable_index_entry(const auxts_memtable_entry* mt_entry, auxts_sstable_index_entry* index_entry, void* buffer, off_t offset) {
-    uint16_t block_size = auxts_swap16_if_big_endian(mt_entry->block_size);
+off_t memtable_entry_write_sstable_index_entry(const auxts_memtable_entry* mt_entry, auxts_sstable_index_entry* index_entry, uint8_t* buf, off_t offset) {
     index_entry->offset = offset;
-    offset = buffer_write(buffer, &block_size, sizeof(uint16_t), offset);
+    offset = buffer_write_uint16(buf, mt_entry->block_size, offset);
 
-    uint64_t block_id = auxts_swap64_if_big_endian(mt_entry->key[0]);
     index_entry->key[0] = mt_entry->key[0];
-    offset = buffer_write(buffer, &block_id, sizeof(uint64_t), offset);
+    offset = buffer_write_uint64(buf, mt_entry->key[0], offset);
 
-    uint64_t timestamp = auxts_swap64_if_big_endian(mt_entry->key[1]);
     index_entry->key[1] = mt_entry->key[1];
-    offset = buffer_write(buffer, &timestamp, sizeof(uint64_t), offset);
+    offset = buffer_write_uint64(buf, mt_entry->key[1], offset);
 
-    return buffer_write(buffer, mt_entry->block, mt_entry->block_size, offset);
+    return buffer_write_bin(buf, mt_entry->block, mt_entry->block_size, offset);
 }
 
-off_t write_index_entry(void* buffer, auxts_sstable_index_entry* index_entry, off_t offset) {
-    uint64_t block_id = auxts_swap64_if_big_endian(index_entry->key[0]);
-    offset = buffer_write(buffer, &block_id, sizeof(uint64_t), offset);
-
-    uint64_t timestamp = auxts_swap64_if_big_endian(index_entry->key[1]);
-    offset = buffer_write(buffer, &timestamp, sizeof(uint64_t), offset);
-
-    size_t _offset = auxts_swap64_if_big_endian(index_entry->offset);
-    return buffer_write(buffer, &_offset, sizeof(size_t), offset);
+off_t write_index_entry(uint8_t* buf, auxts_sstable_index_entry* index_entry, off_t offset) {
+    offset = buffer_write_uint64(buf, index_entry->key[0], offset);
+    offset = buffer_write_uint64(buf, index_entry->key[1], offset);
+    return buffer_write_uint64(buf, index_entry->offset, offset);
 }
 
-off_t sstable_write_index_entries(auxts_sstable* sst, void* buffer, off_t offset) {
+off_t sstable_write_index_entries(auxts_sstable* sst, uint8_t* buf, off_t offset) {
     for (int entry = 0; entry < sst->num_entries; ++entry) {
-        offset = write_index_entry(buffer, &sst->index_entries[entry], offset);
+        offset = write_index_entry(buf, &sst->index_entries[entry], offset);
     }
-
-    uint16_t entry_count = auxts_swap16_if_big_endian(sst->num_entries);
-    return buffer_write(buffer, &entry_count, sizeof(uint16_t), offset);
+    return buffer_write_uint16(buf, sst->num_entries, offset);
 }
 
-off_t buffer_write(void* buffer, void* data, int size, off_t offset) {
-    memcpy(((uint8_t*)buffer) + offset, data, size);
+off_t buffer_write_uint16(uint8_t* buf, uint16_t d, off_t offset) {
+    d = auxts_swap16_if_big_endian(d);
+    return buffer_write(buf, &d, sizeof(uint16_t), offset);
+}
+
+off_t buffer_write_uint64(uint8_t* buf, uint64_t d, off_t offset) {
+    d = auxts_swap64_if_big_endian(d);
+    return buffer_write(buf, &d, sizeof(uint64_t), offset);
+}
+
+off_t buffer_write_bin(uint8_t* buf, void* data, int size, off_t offset) {
+    return buffer_write(buf, data, size, offset);
+}
+
+off_t buffer_write(uint8_t* buf, void* data, int size, off_t offset) {
+    memcpy(buf + offset, data, size);
     return offset + size;
 }
