@@ -8,7 +8,9 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <msgpack.h>
 #include "memtable.h"
+#include "result.h"
 #include "cache.h"
 #include "flac.h"
 
@@ -24,7 +26,7 @@ typedef struct {
     char** files;
     size_t num_files;
     size_t max_num_files;
-} file_list;
+} file_list_t;
 
 typedef struct {
     int32_t** data;
@@ -33,10 +35,11 @@ typedef struct {
     uint32_t channels;
     uint32_t sample_rate;
     uint32_t bits_per_sample;
-} pcm_buffer;
+} pcm_buffer_t;
 
-pcm_buffer* auxts_extract_pcm_data(lru_cache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp);
-void auxts_pcm_buffer_destroy(pcm_buffer* buffer);
+pcm_buffer_t* extract_pcm_data(cache_t* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp);
+void pcm_buffer_destroy(pcm_buffer_t* pbuf);
+
 
 #ifdef __cplusplus
 }

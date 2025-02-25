@@ -9,14 +9,14 @@ void test_lru_cache() {
     uint8_t* data2 = (uint8_t*)strdup("data2");
     uint8_t* data3 = (uint8_t*)strdup("data3");
 
-    lru_cache* cache = auxts_lru_cache_create(2);
-    auxts_lru_cache_put(cache, key1, data1);
-    auxts_lru_cache_put(cache, key2, data2);
-    auxts_lru_cache_put(cache, key3, data3);
+    cache_t* cache = auxts_cache_create(2);
+    auxts_cache_put(cache, key1, data1);
+    auxts_cache_put(cache, key2, data2);
+    auxts_cache_put(cache, key3, data3);
 
-    assert(strcmp("data3", (char*)auxts_lru_cache_get(cache, key3)) == 0);
-    assert(strcmp("data2", (char*)auxts_lru_cache_get(cache, key2)) == 0);
-    assert(auxts_lru_cache_get(cache, key1) == NULL);
+    assert(strcmp("data3", (char*) auxts_cache_get(cache, key3)) == 0);
+    assert(strcmp("data2", (char*) auxts_cache_get(cache, key2)) == 0);
+    assert(auxts_cache_get(cache, key1) == NULL);
 
-    auxts_lru_cache_destroy(cache);
+    auxts_cache_destroy(cache);
 }

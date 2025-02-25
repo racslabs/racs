@@ -12,28 +12,28 @@ extern "C" {
 typedef struct {
     uint64_t key[2];
     uint8_t* value;
-} lru_cache_entry;
+} cache_entry_t;
 
 typedef struct {
-    lru_cache_entry* entry;
-    struct lru_cache_node* prev;
-    struct lru_cache_node* next;
-} lru_cache_node;
+    cache_entry_t* entry;
+    struct cache_node_t* prev;
+    struct cache_node_t* next;
+} cache_node_t;
 
 typedef struct {
     size_t size;
     size_t capacity;
-    lru_cache_node* head;
-    lru_cache_node* tail;
-    hashtable* cache;
+    cache_node_t* head;
+    cache_node_t* tail;
+    hashtable_t* cache;
     pthread_rwlock_t rwlock;
-} lru_cache;
+} cache_t;
 
-lru_cache* auxts_lru_cache_create(size_t capacity);
-uint8_t* auxts_lru_cache_get(lru_cache* cache, const uint64_t* key);
-void auxts_lru_cache_put(lru_cache* cache, const uint64_t* key, uint8_t* value);
-void auxts_lru_cache_evict(lru_cache* cache);
-void auxts_lru_cache_destroy(lru_cache* cache);
+cache_t* auxts_cache_create(size_t capacity);
+uint8_t* auxts_cache_get(cache_t* cache, const uint64_t* key);
+void auxts_cache_put(cache_t* cache, const uint64_t* key, uint8_t* value);
+void auxts_cache_evict(cache_t* cache);
+void auxts_cache_destroy(cache_t* cache);
 
 #ifdef __cplusplus
 }

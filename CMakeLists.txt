@@ -7,8 +7,12 @@ enable_testing()
 
 find_library(FLAC_LIBRARY NAMES FLAC)
 find_path(FLAC_INCLUDE_DIR NAMES FLAC/all.h)
-
 include_directories(${FLAC_INCLUDE_DIR})
+
+find_package(msgpack QUIET CONFIG NAMES msgpackc)
+
+include_directories(${msgpack_INCLUDE_DIRS})
+message(STATUS "${msgpack_INCLUDE_DIRS}")
 
 option(AUXTS_AVX2_CMAKE_BUILD "AVX2 CMake build" OFF)
 option(AUXTS_NEON8_CMAKE_BUILD "NEON8 CMake build" ON)
@@ -60,9 +64,12 @@ add_executable(auxts main.c
         test/timestamp_test.c
         test/simd_test.h
         test/simd_test.c
+        src/result.h
+        src/result.c
 )
 
 target_link_libraries(auxts ${FLAC_LIBRARY})
+target_link_libraries(auxts ${msgpack_LIBRARIES})
 
 # Unit tests
 add_test(test_lru_cache auxts "--test" "test_lru_cache")
