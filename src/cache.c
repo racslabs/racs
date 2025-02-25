@@ -1,9 +1,9 @@
 #include "cache.h"
 
-static auxts_cache_node* lru_cache_node_create(auxts_cache_entry* entry);
-static auxts_cache_entry* lru_cache_entry_create(const uint64_t* key, uint8_t* value);
-static void lru_cache_node_destroy(auxts_cache_node* node);
-static void lru_cache_insert_at_head(auxts_cache* cache, auxts_cache_node* node);
+static auxts_cache_node* cache_node_create(auxts_cache_entry* entry);
+static auxts_cache_entry* cache_entry_create(const uint64_t* key, uint8_t* value);
+static void cache_node_destroy(auxts_cache_node* node);
+static void cache_insert_at_head(auxts_cache* cache, auxts_cache_node* node);
 
 auxts_cache* auxts_cache_create(size_t capacity) {
     auxts_cache* cache = malloc(sizeof(auxts_cache));
@@ -40,10 +40,10 @@ void auxts_cache_put(auxts_cache* cache, const uint64_t* key, uint8_t* value) {
         auxts_cache_evict(cache);
     }
 
-    entry = lru_cache_entry_create(key, value);
-    auxts_cache_node* node = lru_cache_node_create(entry);
+    entry = cache_entry_create(key, value);
+    auxts_cache_node* node = cache_node_create(entry);
 
-    lru_cache_insert_at_head(cache, node);
+    cache_insert_at_head(cache, node);
     auxts_hashtable_put(cache->cache, key, entry);
 
     ++cache->size;
@@ -79,7 +79,7 @@ void auxts_cache_destroy(auxts_cache* cache) {
 
     while (node) {
         auxts_cache_node* next = (auxts_cache_node*) node->next;
-        lru_cache_node_destroy(node);
+        cache_node_destroy(node);
         node = next;
     }
 
@@ -108,7 +108,7 @@ void auxts_cache_evict(auxts_cache* cache) {
     --cache->size;
 }
 
-auxts_cache_entry* lru_cache_entry_create(const uint64_t* key, uint8_t* value) {
+auxts_cache_entry* cache_entry_create(const uint64_t* key, uint8_t* value) {
     auxts_cache_entry* entry = malloc(sizeof(auxts_cache_entry));
     if (!entry) {
         perror("Failed to allocate auxts_cache_entry");
@@ -122,7 +122,7 @@ auxts_cache_entry* lru_cache_entry_create(const uint64_t* key, uint8_t* value) {
     return entry;
 }
 
-auxts_cache_node* lru_cache_node_create(auxts_cache_entry* entry) {
+auxts_cache_node* cache_node_create(auxts_cache_entry* entry) {
     if (!entry) {
         return NULL;
     }
@@ -140,7 +140,7 @@ auxts_cache_node* lru_cache_node_create(auxts_cache_entry* entry) {
     return node;
 }
 
-void lru_cache_insert_at_head(auxts_cache* cache, auxts_cache_node* node) {
+void cache_insert_at_head(auxts_cache* cache, auxts_cache_node* node) {
     if (!cache || !node) {
         return;
     }
@@ -157,7 +157,7 @@ void lru_cache_insert_at_head(auxts_cache* cache, auxts_cache_node* node) {
     cache->head = node;
 }
 
-void lru_cache_node_destroy(auxts_cache_node* node) {
+void cache_node_destroy(auxts_cache_node* node) {
     if (!node) {
         return;
     }
