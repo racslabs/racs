@@ -72,3 +72,59 @@ uint64_t auxts_parse_rfc3339(char* buf) {
 
     return auxts_ts_to_milliseconds(&ts);
 }
+
+uint64_t auxts_time_partitioned_path_to_timestamp(const char* path) {
+    struct tm info = {0};
+    struct timespec ts;
+    long milliseconds = 0;
+
+    int ret = sscanf(path, ".data/%4d/%2d/%2d/%2d/%2d/%2d/%3ld.df",
+                     &info.tm_year, &info.tm_mon, &info.tm_mday,
+                     &info.tm_hour, &info.tm_min, &info.tm_sec, &milliseconds);
+
+    if (ret != 7) {
+        fprintf(stderr, "Invalid format: expected 7 values, got %d\n", ret);
+        return -1;
+    }
+
+    if (milliseconds < 0 || milliseconds > 999) {
+        fprintf(stderr, "Invalid milliseconds value: %ld\n", milliseconds);
+        return -1;
+    }
+
+    info.tm_year -= 1900;
+    info.tm_mon -= 1;
+
+    time_t t = timegm(&info);
+    if (t == -1) {
+        perror("timegm failed");
+        return -1;
+    }
+
+    ts.tv_sec = t;
+    ts.tv_nsec = milliseconds * AUXTS_NANOSECONDS_PER_MILLISECOND;
+
+    return auxts_ts_to_milliseconds(&ts);
+}
+
+char* auxts_get_path_from_timestamp_range(uint64_t begin_timestamp, uint64_t end_timestamp) {
+    char path1[255], path2[255];
+
+    auxts_get_time_partitioned_path(begin_timestamp, path1);
+    auxts_get_time_partitioned_path(end_timestamp, path2);
+
+    return auxts_resolve_shared_path(path1, path2);
+}
+
+void auxts_get_time_partitioned_path(uint64_t milliseconds, char* path) {
+    struct tm info = {0};
+    auxts_milliseconds_to_tm(milliseconds, &info);
+
+    long remainder = (long)(milliseconds % AUXTS_MILLISECONDS_PER_SECOND);
+
+    sprintf(path, ".data/%d/%02d/%02d/%02d/%02d/%02d/%03ld.df",
+            info.tm_year + 1900, info.tm_mon + 1,
+            info.tm_mday, info.tm_hour,
+            info.tm_min, info.tm_sec,
+            remainder);
+}

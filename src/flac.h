@@ -27,12 +27,16 @@ typedef struct {
 } auxts_flac_blocks;
 
 typedef struct {
-    int32_t** data;
     size_t num_samples;
     size_t total_samples;
     uint32_t channels;
     uint32_t sample_rate;
     uint32_t bits_per_sample;
+} auxts_pcm_block_info;
+
+typedef struct {
+    int32_t** data;
+    auxts_pcm_block_info info;
 } auxts_pcm_block;
 
 typedef struct {

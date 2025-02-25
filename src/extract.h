@@ -22,12 +22,16 @@ extern "C" {
 #define AUXTS_INITIAL_PCM_BUFFER_CAPACITY 2
 
 typedef struct {
-    int32_t** data;
     size_t num_samples;
     size_t max_num_samples;
     uint32_t channels;
     uint32_t sample_rate;
     uint32_t bits_per_sample;
+} auxts_pcm_buffer_info;
+
+typedef struct {
+    int32_t** data;
+    auxts_pcm_buffer_info info;
 } auxts_pcm_buffer;
 
 auxts_pcm_buffer* extract_pcm_data(auxts_cache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp);

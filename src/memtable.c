@@ -1,19 +1,19 @@
 #include "memtable.h"
 
-static auxts_memtable* memtable_create(int capacity);
 static void memtable_append(auxts_memtable* mt, uint64_t* key, uint8_t* block, int block_size);
 static void memtable_flush(auxts_memtable* mt);
 static void memtable_destroy(auxts_memtable* mt);
-static auxts_sstable* sstable_construct(int num_entries);
 static void create_time_partitioned_directories(uint64_t milliseconds);
 static void sstable_read_index_entries(auxts_sstable* sst);
 static void sstable_write(auxts_sstable* sst, auxts_memtable* mt);
+static void sstable_read_index_entries_in_memory(auxts_sstable* sst, uint8_t* data);
+static auxts_sstable* sstable_create(int num_entries);
+static auxts_memtable* memtable_create(int capacity);
 static off_t sstable_write_memtable(auxts_sstable* sst, auxts_memtable* mt, void* buffer);
 static off_t memtable_entry_write_sstable_index_entry(const auxts_memtable_entry* mt_entry, auxts_sstable_index_entry* index_entry, void* buffer, off_t offset);
 static off_t sstable_write_index_entries(auxts_sstable* sst, void* buffer, off_t offset);
 static off_t write_index_entry(void* buffer, auxts_sstable_index_entry* index_entry, off_t offset);
 static off_t buffer_write(void* buffer, void* data, int size, off_t offset);
-static void sstable_read_index_entries_in_memory(auxts_sstable* sst, uint8_t* data);
 
 auxts_multi_memtable* auxts_multi_memtable_create(int num_tables, int capacity) {
     auxts_multi_memtable* mmt = malloc(sizeof(auxts_multi_memtable));
@@ -114,7 +114,7 @@ auxts_sstable* auxts_sstable_read_index_entries(const char* filename) {
     }
 
     entry_count = auxts_swap16_if_big_endian(entry_count);
-    auxts_sstable* sstable = sstable_construct(entry_count);
+    auxts_sstable* sstable = sstable_create(entry_count);
     if (!sstable) {
         close(fd);
         return NULL;
@@ -152,7 +152,7 @@ auxts_sstable* auxts_sstable_read_index_entries_in_memory(uint8_t* data, size_t 
 
     size_t offset = size - (num_entries * AUXTS_INDEX_ENTRY_SIZE) - AUXTS_TRAILER_SIZE;
 
-    auxts_sstable* sst = sstable_construct(num_entries);
+    auxts_sstable* sst = sstable_create(num_entries);
     if (!sst) {
         return NULL;
     }
@@ -163,19 +163,6 @@ auxts_sstable* auxts_sstable_read_index_entries_in_memory(uint8_t* data, size_t 
     sstable_read_index_entries_in_memory(sst, data + offset);
 
     return sst;
-}
-
-void auxts_get_time_partitioned_path(uint64_t milliseconds, char* path) {
-    struct tm info = {0};
-    auxts_milliseconds_to_tm(milliseconds, &info);
-
-    long remainder = (long)(milliseconds % AUXTS_MILLISECONDS_PER_SECOND);
-
-    sprintf(path, ".data/%d/%02d/%02d/%02d/%02d/%02d/%03ld.df",
-            info.tm_year + 1900, info.tm_mon + 1,
-            info.tm_mday, info.tm_hour,
-            info.tm_min, info.tm_sec,
-            remainder);
 }
 
 void auxts_sstable_destroy_except_data(auxts_sstable* sst) {
@@ -265,7 +252,7 @@ void memtable_flush(auxts_memtable* mt) {
         return;
     }
 
-    auxts_sstable* sst = sstable_construct(num_entries);
+    auxts_sstable* sst = sstable_create(num_entries);
     if (!sst) {
         perror("sst cannot be null");
         return;
@@ -409,7 +396,7 @@ void create_time_partitioned_directories(uint64_t milliseconds) {
     mkdir(dir, 0777);
 }
 
-auxts_sstable* sstable_construct(int num_entries) {
+auxts_sstable* sstable_create(int num_entries) {
     auxts_sstable* sst = malloc(sizeof(auxts_sstable));
     if (!sst) {
         perror("Failed to allocate sst");

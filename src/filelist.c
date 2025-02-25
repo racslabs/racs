@@ -85,6 +85,33 @@ auxts_filelist* get_sorted_filelist(const char* path) {
     return list;
 }
 
+char* auxts_resolve_shared_path(const char* path1, const char* path2) {
+    if (!path1 || !path2) {
+        perror("Paths cannot be null");
+        return NULL;
+    }
+
+    size_t len1 = strlen(path1);
+    size_t len2 = strlen(path2);
+    size_t len = len1 < len2 ? len1 : len2;
+
+    size_t i = 0;
+    for ( ; i < len; i++) {
+        if (path1[i] != path2[i]) {
+            break;
+        }
+    }
+
+    while (i > 1 && path1[i - 1] != '/') --i;
+    --i;
+
+    char* shared_path = malloc(i + 1);
+    strncpy(shared_path, path1, i);
+    shared_path[i] = '\0';
+
+    return shared_path;
+}
+
 void auxts_filelist_sort(auxts_filelist* list) {
     qsort(list->files, list->num_files, sizeof(char*), path_comparator);
 }
