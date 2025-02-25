@@ -68,6 +68,7 @@ add_executable(auxts main.c
         src/result.c
         src/filelist.h
         src/filelist.c
+        src/buffer.h
 )
 
 target_link_libraries(auxts ${FLAC_LIBRARY})

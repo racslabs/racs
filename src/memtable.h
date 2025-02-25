@@ -13,6 +13,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <pthread.h>
+#include "buffer.h"
 #include "endian.h"
 #include "timestamp.h"
 #include "murmurhash3.h"
