@@ -5,7 +5,7 @@ static void memtable_flush(auxts_memtable* mt);
 static void memtable_destroy(auxts_memtable* mt);
 static void create_time_partitioned_dirs(uint64_t milliseconds);
 static void sstable_read_index_entries(auxts_sstable* sst);
-static void sstable_write(auxts_sstable* sst, auxts_memtable* mt);
+static void memtable_write(auxts_memtable* mt);
 static void sstable_read_index_entries_in_memory(auxts_sstable* sst, uint8_t* data);
 static auxts_sstable* sstable_create(int num_entries);
 static auxts_memtable* memtable_create(int capacity);
@@ -170,24 +170,19 @@ void auxts_sstable_destroy_except_data(auxts_sstable* sst) {
     free(sst);
 }
 
-auxts_memtable_entry* auxts_memtable_read_entry(uint8_t* buffer, size_t offset) {
+auxts_memtable_entry* auxts_memtable_read_entry(uint8_t* buf, size_t offset) {
     auxts_memtable_entry* entry = malloc(sizeof(auxts_memtable_entry));
     if (!entry) {
         perror("Failed to allocate auxts_memtable_entry");
         return NULL;
     }
 
-    memcpy(&entry->block_size, buffer + offset, sizeof(uint16_t));
-    offset += sizeof(uint16_t);
-
-    memcpy(&entry->key[0], buffer + offset, sizeof(uint64_t));
-    offset += sizeof(uint64_t);
-
-    memcpy(&entry->key[1], buffer + offset, sizeof(uint64_t));
-    offset += sizeof(uint64_t);
+    offset = auxts_read_uint16(&entry->block_size, buf, (off_t)offset);
+    offset = auxts_read_uint64(&entry->key[0], buf, (off_t)offset);
+    offset = auxts_read_uint64(&entry->key[1], buf, (off_t)offset);
 
     entry->block = malloc(entry->block_size);
-    memcpy(entry->block, buffer + offset , entry->block_size);
+    memcpy(entry->block, buf + offset , entry->block_size);
 
     return entry;
 }
@@ -252,15 +247,7 @@ void memtable_flush(auxts_memtable* mt) {
         return;
     }
 
-    auxts_sstable* sst = sstable_create(num_entries);
-    if (!sst) {
-        perror("sst cannot be null");
-        return;
-    }
-
-    sstable_write(sst, mt);
-    auxts_sstable_destroy_except_data(sst);
-
+    memtable_write(mt);
     mt->num_entries = 0;
 }
 
@@ -284,28 +271,14 @@ void memtable_destroy(auxts_memtable* mt) {
 }
 
 void sstable_read_index_entries_in_memory(auxts_sstable* sst, uint8_t* data) {
-    off_t _offset = 0;
+    off_t offset = 0;
 
     for (int entry = 0; entry < sst->num_entries; ++entry) {
-        uint64_t block_id;
-
-        memcpy(&block_id, data + _offset, sizeof(uint64_t));
-        sst->index_entries[entry].key[0] = auxts_swap64_if_big_endian(block_id);
-        _offset += sizeof(uint64_t);
-
-        uint64_t timestamp;
-
-        memcpy(&timestamp, data + _offset, sizeof(uint64_t));
-        sst->index_entries[entry].key[1] = auxts_swap64_if_big_endian(timestamp);
-        _offset += sizeof(uint64_t);
-
-        uint64_t offset;
-
-        memcpy(&offset, data + _offset, sizeof(uint64_t));
-        sst->index_entries[entry].offset = auxts_swap64_if_big_endian(offset);
-        _offset += sizeof(uint64_t);
+        auxts_sstable_index_entry* index_entry = &sst->index_entries[entry];
+        offset = auxts_read_uint64(&index_entry->key[0], data, offset);
+        offset = auxts_read_uint64(&index_entry->key[1], data, offset);
+        offset = auxts_read_uint64((uint64_t*)&index_entry->offset, data, offset);
     }
-
 }
 
 void sstable_read_index_entries(auxts_sstable* sst) {
@@ -327,8 +300,10 @@ void sstable_read_index_entries(auxts_sstable* sst) {
     }
 }
 
-void sstable_write(auxts_sstable* sst, auxts_memtable* mt) {
+void memtable_write(auxts_memtable* mt) {
+    auxts_sstable* sst = sstable_create(mt->num_entries);
     if (!sst) {
+        perror("sst cannot be null");
         return;
     }
 
@@ -366,6 +341,7 @@ void sstable_write(auxts_sstable* sst, auxts_memtable* mt) {
     write(sst->fd, buffer, offset);
 
     free(buffer);
+    auxts_sstable_destroy_except_data(sst);
 }
 
 void create_time_partitioned_dirs(uint64_t milliseconds) {
@@ -426,6 +402,13 @@ off_t sstable_write_memtable(auxts_sstable* sst, auxts_memtable* mt, uint8_t* bu
     return offset;
 }
 
+off_t sstable_index_entries_write(uint8_t* buf, auxts_sstable* sst, off_t offset) {
+    for (int entry = 0; entry < sst->num_entries; ++entry) {
+        offset = write_index_entry(buf, &sst->index_entries[entry], offset);
+    }
+    return auxts_write_uint16(buf, sst->num_entries, offset);
+}
+
 void sstable_index_entry_update(auxts_sstable_index_entry* index_entry, auxts_memtable_entry* mt_entry, off_t offset) {
     index_entry->offset = offset;
     index_entry->key[0] = mt_entry->key[0];
@@ -445,16 +428,8 @@ off_t memtable_entry_write(uint8_t* buf, const auxts_memtable_entry* mt_entry, o
     return auxts_write_bin(buf, mt_entry->block, mt_entry->block_size, offset);
 }
 
-off_t sstable_index_entries_write(uint8_t* buf, auxts_sstable* sst, off_t offset) {
-    for (int entry = 0; entry < sst->num_entries; ++entry) {
-        offset = write_index_entry(buf, &sst->index_entries[entry], offset);
-    }
-    return auxts_write_uint16(buf, sst->num_entries, offset);
-}
-
 off_t write_index_entry(uint8_t* buf, auxts_sstable_index_entry* index_entry, off_t offset) {
     offset = auxts_write_uint64(buf, index_entry->key[0], offset);
     offset = auxts_write_uint64(buf, index_entry->key[1], offset);
     return auxts_write_uint64(buf, index_entry->offset, offset);
 }
-

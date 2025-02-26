@@ -74,7 +74,7 @@ void auxts_multi_memtable_flush(auxts_multi_memtable* mmt);
 auxts_sstable* auxts_sstable_read_index_entries(const char* filename);
 auxts_sstable* auxts_sstable_read_index_entries_in_memory(uint8_t* data, size_t size);
 void auxts_sstable_destroy_except_data(auxts_sstable* sst);
-auxts_memtable_entry* auxts_memtable_read_entry(uint8_t* buffer, size_t offset);
+auxts_memtable_entry* auxts_memtable_read_entry(uint8_t* buf, size_t offset);
 
 #ifdef __cplusplus
 }

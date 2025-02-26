@@ -25,4 +25,27 @@ AUXTS_FORCE_INLINE off_t auxts_write_uint16(uint8_t* buf, uint16_t d, off_t offs
     return auxts_write_bin(buf, &d, sizeof(uint16_t), offset);
 }
 
+AUXTS_FORCE_INLINE off_t auxts_read_uint64(uint64_t* d, uint8_t* buf, off_t offset) {
+    memcpy(d, buf + offset, sizeof(uint64_t));
+    *d = auxts_swap64_if_big_endian(*d);
+    return offset + (off_t)sizeof(uint64_t);
+}
+
+AUXTS_FORCE_INLINE off_t auxts_read_uint32(uint32_t* d, uint8_t* buf, off_t offset) {
+    memcpy(d, buf + offset, sizeof(uint32_t));
+    *d = auxts_swap32_if_big_endian(*d);
+    return offset + (off_t)sizeof(uint32_t);
+}
+
+AUXTS_FORCE_INLINE off_t auxts_read_uint16(uint16_t* d, uint8_t* buf, off_t offset) {
+    memcpy(d, buf + offset, sizeof(uint16_t));
+    *d = auxts_swap16_if_big_endian(*d);
+    return offset + (off_t)sizeof(uint16_t);
+}
+
+AUXTS_FORCE_INLINE void auxts_io_read_uint64(uint64_t* d, int fd) {
+    read(fd, d, sizeof(uint64_t));
+    *d = auxts_swap64_if_big_endian(*d);
+}
+
 #endif //AUXTS_BUFFER_H
