@@ -128,3 +128,31 @@ void auxts_get_time_partitioned_path(uint64_t milliseconds, char* path) {
             info.tm_min, info.tm_sec,
             remainder);
 }
+
+void auxts_create_time_partitioned_dirs(uint64_t milliseconds) {
+    char dir[32];
+    struct tm info;
+
+    auxts_milliseconds_to_tm(milliseconds, &info);
+
+    sprintf(dir, ".data");
+    mkdir(dir, 0777);
+
+    sprintf(dir, "%s/%d", dir, info.tm_year + 1900);
+    mkdir(dir, 0777);
+
+    sprintf(dir, "%s/%02d", dir, info.tm_mon + 1);
+    mkdir(dir, 0777);
+
+    sprintf(dir, "%s/%02d", dir, info.tm_mday);
+    mkdir(dir, 0777);
+
+    sprintf(dir, "%s/%02d", dir, info.tm_hour);
+    mkdir(dir, 0777);
+
+    sprintf(dir, "%s/%02d", dir, info.tm_min);
+    mkdir(dir, 0777);
+
+    sprintf(dir, "%s/%02d", dir, info.tm_sec);
+    mkdir(dir, 0777);
+}

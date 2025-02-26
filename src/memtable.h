@@ -71,8 +71,8 @@ auxts_multi_memtable* auxts_multi_memtable_create(int num_tables, int capacity);
 void auxts_multi_memtable_append(auxts_multi_memtable* mmt, uint64_t* key, uint8_t* block, int block_size);
 void auxts_multi_memtable_destroy(auxts_multi_memtable* mmt);
 void auxts_multi_memtable_flush(auxts_multi_memtable* mmt);
-auxts_sstable* auxts_sstable_read_index_entries(const char* filename);
-auxts_sstable* auxts_sstable_read_index_entries_in_memory(uint8_t* data, size_t size);
+auxts_sstable* auxts_sstable_read(const char* filename);
+auxts_sstable* auxts_sstable_read_in_memory(uint8_t* data, size_t size);
 void auxts_sstable_destroy_except_data(auxts_sstable* sst);
 auxts_memtable_entry* auxts_memtable_read_entry(uint8_t* buf, size_t offset);
 

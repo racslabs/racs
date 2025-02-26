@@ -59,7 +59,7 @@ uint8_t* get_data_from_cache_or_sstable(auxts_cache* cache, uint64_t stream_id, 
     uint8_t* data = auxts_cache_get(cache, key);
 
     if (!data) {
-        auxts_sstable* sstable = auxts_sstable_read_index_entries(file_path);
+        auxts_sstable* sstable = auxts_sstable_read(file_path);
         if (!sstable) {
             return NULL;
         }
@@ -78,7 +78,7 @@ void process_sstable_data(auxts_flac_blocks* blocks, uint64_t stream_id, uint64_
     memcpy(&size, data, sizeof(size_t));
     size = auxts_swap64_if_big_endian(size);
 
-    auxts_sstable* sstable = auxts_sstable_read_index_entries_in_memory(data, size);
+    auxts_sstable* sstable = auxts_sstable_read_in_memory(data, size);
     if (!sstable) {
         return;
     }
