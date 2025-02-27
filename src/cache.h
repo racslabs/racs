@@ -2,7 +2,8 @@
 #ifndef AUXTS_CACHE_H
 #define AUXTS_CACHE_H
 
-#include "hashtable.h"
+#include "hashmap.h"
+#include "murmurhash3.h"
 #include <pthread.h>
 
 #ifdef __cplusplus
@@ -15,17 +16,17 @@ typedef struct {
 } auxts_cache_entry;
 
 typedef struct {
-    auxts_cache_entry* entry;
+    auxts_cache_entry entry;
     struct auxts_cache_node* prev;
     struct auxts_cache_node* next;
 } auxts_cache_node;
 
-typedef struct {
+typedef struct auxts_cache {
     size_t size;
     size_t capacity;
     auxts_cache_node* head;
     auxts_cache_node* tail;
-    auxts_hashtable* cache;
+    auxts_hashmap* cache;
     pthread_rwlock_t rwlock;
 } auxts_cache;
 

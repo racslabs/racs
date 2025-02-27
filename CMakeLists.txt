@@ -37,8 +37,6 @@ add_executable(auxts main.c
         src/murmurhash3.c
         src/memtable.h
         src/memtable.c
-        src/hashtable.h
-        src/hashtable.c
         src/cache.h
         src/cache.c
         src/extract.h
@@ -69,6 +67,8 @@ add_executable(auxts main.c
         src/filelist.h
         src/filelist.c
         src/buffer.h
+        src/hashmap.h
+        src/hashmap.c
 )
 
 target_link_libraries(auxts ${FLAC_LIBRARY})

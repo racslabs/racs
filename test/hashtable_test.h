@@ -3,7 +3,8 @@
 #define AUXTS_HASHTABLE_TEST_H
 
 #include <assert.h>
-#include "../src/hashtable.h"
+#include "../src/hashmap.h"
+
 
 void test_hashtable();
 
