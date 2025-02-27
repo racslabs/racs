@@ -11,7 +11,7 @@ typedef struct {
     size_t size;
 } auxts_result;
 
-auxts_result* auxts_result_create(size_t size);
+void auxts_result_init(auxts_result* result, size_t size);
 void auxts_result_destroy(auxts_result* result);
 
 

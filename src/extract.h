@@ -34,8 +34,7 @@ typedef struct {
     auxts_pcm_buffer_info info;
 } auxts_pcm_buffer;
 
-auxts_pcm_buffer* extract_pcm_data(auxts_cache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp);
-void pcm_buffer_destroy(auxts_pcm_buffer* pbuf);
+auxts_result auxts_extract(auxts_cache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp);
 
 #ifdef __cplusplus
 }

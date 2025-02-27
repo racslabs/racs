@@ -6,8 +6,10 @@ static void pcm_block_destroy(auxts_pcm_block* block);
 static uint8_t* get_data_from_cache_or_sstable(auxts_cache* cache, uint64_t stream_id, uint64_t timestamp, const char* file_path);
 static auxts_flac_blocks* extract_flac_blocks(auxts_cache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp);
 static void process_sstable_data(auxts_flac_blocks* blocks, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp, uint8_t* data);
-static uint8_t* serialize_pcm_data(const auxts_pcm_buffer* pbuf);
-static uint64_t next_power_of_two(uint64_t n);
+static uint8_t* pack_pcm_data(const auxts_pcm_buffer* pbuf);
+static void pcm_buffer_serialize(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
+static auxts_pcm_buffer* extract_pcm_data(auxts_cache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp);
+static void pcm_buffer_destroy(auxts_pcm_buffer* pbuf);
 
 auxts_pcm_buffer* extract_pcm_data(auxts_cache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp) {
     if (!cache) {
@@ -22,8 +24,7 @@ auxts_pcm_buffer* extract_pcm_data(auxts_cache* cache, uint64_t stream_id, uint6
 
     auxts_flac_block* flac_block = blocks->blocks[0];
     auxts_pcm_block* pcm_block = auxts_decode_flac_block(flac_block);
-    auxts_pcm_buffer* pbuf = pcm_buffer_create(pcm_block->info.channels, pcm_block->info.sample_rate,
-                                               pcm_block->info.bits_per_sample);
+    auxts_pcm_buffer* pbuf = pcm_buffer_create(pcm_block->info.channels, pcm_block->info.sample_rate, pcm_block->info.bits_per_sample);
 
     pcm_buffer_append(pbuf, pcm_block);
     pcm_block_destroy(pcm_block);
@@ -66,7 +67,6 @@ uint8_t* get_data_from_cache_or_sstable(auxts_cache* cache, uint64_t stream_id, 
 
         data = sstable->data;
         auxts_sstable_destroy_except_data(sstable);
-
         auxts_cache_put(cache, key, data);
     }
 
@@ -176,7 +176,7 @@ void pcm_buffer_append(auxts_pcm_buffer* pbuf, auxts_pcm_block* block) {
     size_t num_samples = block->info.total_samples + pbuf->info.num_samples;
 
     if (num_samples > pbuf->info.max_num_samples) {
-        pbuf->info.max_num_samples = next_power_of_two(num_samples);
+        pbuf->info.max_num_samples = auxts_next_power_of_two(num_samples);
 
         for (int channel = 0; channel < pbuf->info.channels; ++channel) {
             int32_t* audio_data = realloc(pbuf->data[channel], pbuf->info.max_num_samples * sizeof(int32_t));
@@ -195,7 +195,7 @@ void pcm_buffer_append(auxts_pcm_buffer* pbuf, auxts_pcm_block* block) {
     pbuf->info.num_samples = num_samples;
 }
 
-uint8_t* serialize_pcm_data(const auxts_pcm_buffer* pbuf) {
+uint8_t* pack_pcm_data(const auxts_pcm_buffer* pbuf) {
     uint8_t* samples = malloc(pbuf->info.num_samples * pbuf->info.channels * sizeof(int32_t));
     if (!samples) {
         perror("Failed to allocate samples");
@@ -212,14 +212,59 @@ uint8_t* serialize_pcm_data(const auxts_pcm_buffer* pbuf) {
     return samples;
 }
 
-uint64_t next_power_of_two(uint64_t n) {
-    n--;
-    n |= n >> 1;
-    n |= n >> 2;
-    n |= n >> 4;
-    n |= n >> 8;
-    n |= n >> 16;
-    n++;
+void pcm_buffer_serialize(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
+    msgpack_pack_array(pk, 10);
 
-    return n;
+    msgpack_pack_str(pk, 6);
+    msgpack_pack_str_body(pk, "status", 6);
+
+    msgpack_pack_str(pk, 2);
+    msgpack_pack_str_body(pk, "OK", 2);
+
+    msgpack_pack_str(pk, 11);
+    msgpack_pack_str_body(pk, "num_samples", 11);
+    msgpack_pack_uint64(pk, pbuf->info.num_samples);
+
+    msgpack_pack_str(pk, 8);
+    msgpack_pack_str_body(pk, "channels", 8);
+    msgpack_pack_uint32(pk, pbuf->info.channels);
+
+    msgpack_pack_str(pk, 11);
+    msgpack_pack_str_body(pk, "sample_rate", 11);
+    msgpack_pack_uint32(pk, pbuf->info.num_samples);
+
+    msgpack_pack_str(pk, 15);
+    msgpack_pack_str_body(pk, "bits_per_sample", 15);
+    msgpack_pack_uint32(pk, pbuf->info.bits_per_sample);
+
+    msgpack_pack_str(pk, 8);
+    msgpack_pack_str_body(pk, "pcm_data", 8);
+
+    uint8_t* data = pack_pcm_data(pbuf);
+    size_t size = pbuf->info.num_samples * pbuf->info.channels * sizeof(int32_t);
+
+    msgpack_pack_bin(pk, size);
+    msgpack_pack_bin_body(pk, data, size);
+
+    free(data);
+}
+
+auxts_result auxts_extract(auxts_cache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp) {
+    msgpack_sbuffer sbuf;
+    msgpack_packer pk;
+
+    msgpack_sbuffer_init(&sbuf);
+    msgpack_packer_init(&pk, &sbuf, msgpack_sbuffer_write);
+
+    auxts_pcm_buffer* pbuf = extract_pcm_data(cache, stream_id, begin_timestamp, end_timestamp);
+    pcm_buffer_serialize(&pk, pbuf);
+
+    auxts_result result;
+    auxts_result_init(&result, sbuf.size);
+    memcpy(result.data, sbuf.data, sbuf.size);
+    printf("Packed data size: %zu bytes\n", sbuf.size);
+
+    msgpack_sbuffer_destroy(&sbuf);
+
+    return result;
 }
