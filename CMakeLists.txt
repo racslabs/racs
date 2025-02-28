@@ -9,10 +9,7 @@ find_library(FLAC_LIBRARY NAMES FLAC)
 find_path(FLAC_INCLUDE_DIR NAMES FLAC/all.h)
 include_directories(${FLAC_INCLUDE_DIR})
 
-find_package(msgpack QUIET CONFIG NAMES msgpackc)
-
-include_directories(${msgpack_INCLUDE_DIRS})
-message(STATUS "${msgpack_INCLUDE_DIRS}")
+find_package(msgpack-c CONFIG REQUIRED)
 
 option(AUXTS_AVX2_CMAKE_BUILD "AVX2 CMake build" OFF)
 option(AUXTS_NEON8_CMAKE_BUILD "NEON8 CMake build" ON)
@@ -71,8 +68,8 @@ add_executable(auxts main.c
         src/hashmap.c
 )
 
-target_link_libraries(auxts ${FLAC_LIBRARY})
-target_link_libraries(auxts ${msgpack_LIBRARIES})
+target_include_directories(auxts PUBLIC ${msgpack-c_INCLUDE_DIRS})
+target_link_libraries(auxts msgpack-c ${FLAC_LIBRARY})
 
 # Unit tests
 add_test(test_lru_cache auxts "--test" "test_lru_cache")

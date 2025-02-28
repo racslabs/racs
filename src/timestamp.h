@@ -21,15 +21,15 @@ extern "C" {
 
 #define AUXTS_NANOSECONDS_PER_SECOND 1000000000L
 
-uint64_t auxts_get_milliseconds();
-void auxts_milliseconds_to_tm(uint64_t milliseconds, struct tm* info);
-uint64_t auxts_ts_to_milliseconds(struct timespec* ts);
-void auxts_format_rfc3339(uint64_t milliseconds, char* buf);
-uint64_t auxts_parse_rfc3339(char* buf);
-uint64_t auxts_time_partitioned_path_to_timestamp(const char* path);
-void auxts_get_time_partitioned_path(uint64_t milliseconds, char* path);
-char* auxts_get_path_from_timestamp_range(uint64_t begin_timestamp, uint64_t end_timestamp);
-void auxts_create_time_partitioned_dirs(uint64_t milliseconds);
+int64_t auxts_get_milliseconds();
+void auxts_milliseconds_to_tm(int64_t milliseconds, struct tm* info);
+int64_t auxts_ts_to_milliseconds(struct timespec* ts);
+void auxts_format_rfc3339(int64_t milliseconds, char* buf);
+int64_t auxts_parse_rfc3339(const char* buf);
+int64_t auxts_time_partitioned_path_to_timestamp(const char* path);
+void auxts_get_time_partitioned_path(int64_t milliseconds, char* path);
+char* auxts_get_path_from_timestamp_range(int64_t from, int64_t to);
+void auxts_create_time_partitioned_dirs(int64_t milliseconds);
 
 #ifdef __cplusplus
 }

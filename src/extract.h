@@ -21,6 +21,15 @@ extern "C" {
 
 #define AUXTS_INITIAL_PCM_BUFFER_CAPACITY 2
 
+typedef enum {
+    AUXTS_EXTRACT_PCM_STATUS_OK,
+    AUXTS_EXTRACT_PCM_STATUS_NO_DATA,
+    AUXTS_EXTRACT_PCM_STATUS_INVALID_TIMESTAMP
+} auxts_extract_pcm_status;
+
+extern const char* const auxts_extract_pcm_status_message[];
+extern const char* const auxts_extract_pcm_status_code[];
+
 typedef struct {
     size_t num_samples;
     size_t max_num_samples;
@@ -34,7 +43,7 @@ typedef struct {
     auxts_pcm_buffer_info info;
 } auxts_pcm_buffer;
 
-auxts_result auxts_extract(auxts_cache* cache, uint64_t stream_id, uint64_t begin_timestamp, uint64_t end_timestamp);
+auxts_result auxts_extract(auxts_cache* cache, uint64_t stream_id, const char* from, const char* to);
 
 #ifdef __cplusplus
 }

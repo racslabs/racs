@@ -8,7 +8,7 @@ static void memtable_write(auxts_memtable* mt);
 static void sstable_read_index_entries_in_memory(auxts_sstable* sst, uint8_t* data);
 static void sstable_write(uint8_t* buf, auxts_sstable* sst, size_t offset);
 static void sstable_index_entry_update(auxts_sstable_index_entry* index_entry, auxts_memtable_entry* mt_entry, off_t offset);
-static void get_sstable_path(uint64_t timestamp, char* path);
+static void get_sstable_path(int64_t timestamp, char* path);
 static auxts_sstable* sstable_create(int num_entries);
 static auxts_memtable* memtable_create(int capacity);
 static off_t memtable_to_sstable(uint8_t* buf, auxts_sstable* sst, auxts_memtable* mt);
@@ -279,7 +279,7 @@ void memtable_write(auxts_memtable* mt) {
 
     char path[64];
     uint64_t timestamp = mt->entries[0].key[1];
-    get_sstable_path(timestamp, path);
+    get_sstable_path((int64_t)timestamp, path);
 
     sst->num_entries = mt->num_entries;
     if (sstable_open(path, sst) == -1) {
@@ -298,7 +298,7 @@ void memtable_write(auxts_memtable* mt) {
     auxts_sstable_destroy_except_data(sst);
 }
 
-void get_sstable_path(uint64_t timestamp, char* path) {
+void get_sstable_path(int64_t timestamp, char* path) {
     auxts_create_time_partitioned_dirs(timestamp);
     auxts_get_time_partitioned_path(timestamp, path);
 }

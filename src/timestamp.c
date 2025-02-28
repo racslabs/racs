@@ -1,21 +1,21 @@
 #include "timestamp.h"
 
-uint64_t auxts_get_milliseconds() {
+int64_t auxts_get_milliseconds() {
     struct timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
     return auxts_ts_to_milliseconds(&ts);
 }
 
-uint64_t auxts_ts_to_milliseconds(struct timespec* ts) {
+int64_t auxts_ts_to_milliseconds(struct timespec* ts) {
     return (ts->tv_sec * AUXTS_NANOSECONDS_PER_SECOND + ts->tv_nsec) / AUXTS_NANOSECONDS_PER_MILLISECOND;
 }
 
-void auxts_milliseconds_to_tm(uint64_t milliseconds, struct tm* info) {
+void auxts_milliseconds_to_tm(int64_t milliseconds, struct tm* info) {
     time_t seconds = (time_t)(milliseconds / AUXTS_MILLISECONDS_PER_SECOND);
     gmtime_r(&seconds, info);
 }
 
-void auxts_format_rfc3339(uint64_t milliseconds, char* buf) {
+void auxts_format_rfc3339(int64_t milliseconds, char* buf) {
     if (strlen(buf) < AUXTS_RFC3339_MAX_SIZE) {
     }
 
@@ -36,7 +36,7 @@ void auxts_format_rfc3339(uint64_t milliseconds, char* buf) {
             remainder);           // Milliseconds
 }
 
-uint64_t auxts_parse_rfc3339(char* buf) {
+int64_t auxts_parse_rfc3339(const char* buf) {
     struct tm info;
     struct timespec ts;
     int milliseconds = 0;
@@ -73,7 +73,7 @@ uint64_t auxts_parse_rfc3339(char* buf) {
     return auxts_ts_to_milliseconds(&ts);
 }
 
-uint64_t auxts_time_partitioned_path_to_timestamp(const char* path) {
+int64_t auxts_time_partitioned_path_to_timestamp(const char* path) {
     struct tm info = {0};
     struct timespec ts;
     long milliseconds = 0;
@@ -107,16 +107,16 @@ uint64_t auxts_time_partitioned_path_to_timestamp(const char* path) {
     return auxts_ts_to_milliseconds(&ts);
 }
 
-char* auxts_get_path_from_timestamp_range(uint64_t begin_timestamp, uint64_t end_timestamp) {
+char* auxts_get_path_from_timestamp_range(int64_t from, int64_t to) {
     char path1[255], path2[255];
 
-    auxts_get_time_partitioned_path(begin_timestamp, path1);
-    auxts_get_time_partitioned_path(end_timestamp, path2);
+    auxts_get_time_partitioned_path(from, path1);
+    auxts_get_time_partitioned_path(to, path2);
 
     return auxts_resolve_shared_path(path1, path2);
 }
 
-void auxts_get_time_partitioned_path(uint64_t milliseconds, char* path) {
+void auxts_get_time_partitioned_path(int64_t milliseconds, char* path) {
     struct tm info = {0};
     auxts_milliseconds_to_tm(milliseconds, &info);
 
@@ -129,7 +129,7 @@ void auxts_get_time_partitioned_path(uint64_t milliseconds, char* path) {
             remainder);
 }
 
-void auxts_create_time_partitioned_dirs(uint64_t milliseconds) {
+void auxts_create_time_partitioned_dirs(int64_t milliseconds) {
     char dir[32];
     struct tm info;
 
