@@ -7,7 +7,7 @@
 #include "extract_test.h"
 #include "memtable_test.h"
 #include "kvstore_test.h"
-#include "murmurhash3_test.h"
+#include "mmh3-128_test.h"
 #include "timestamp_test.h"
 #include "simd_test.h"
 

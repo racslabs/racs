@@ -30,8 +30,8 @@ add_executable(auxts main.c
         src/export.h
         src/timestamp.h
         src/timestamp.c
-        src/murmurhash3.h
-        src/murmurhash3.c
+        src/mmh3-128.h
+        src/mmh3-128.c
         src/memtable.h
         src/memtable.c
         src/cache.h
@@ -60,8 +60,8 @@ add_executable(auxts main.c
         test/memtable_test.c
         test/kvstore_test.h
         test/kvstore_test.c
-        test/murmurhash3_test.h
-        test/murmurhash3_test.c
+        test/mmh3-128_test.h
+        test/mmh3-128_test.c
         test/timestamp_test.h
         test/timestamp_test.c
         test/simd_test.h

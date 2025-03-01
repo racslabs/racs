@@ -3,7 +3,7 @@
 #define AUXTS_CACHE_H
 
 #include "kvstore.h"
-#include "murmurhash3.h"
+#include "mmh3-128.h"
 #include <pthread.h>
 
 #ifdef __cplusplus
