@@ -20,7 +20,7 @@ auxts_cache* auxts_cache_create(size_t capacity) {
     cache->capacity = capacity;
     cache->head = NULL;
     cache->tail = NULL;
-    cache->cache = auxts_hashmap_create(capacity, cache_hash, cache_cmp, cache_destroy);
+    cache->kv = auxts_kvstore_create(capacity, cache_hash, cache_cmp, cache_destroy);
 
     return cache;
 }
@@ -30,7 +30,7 @@ void auxts_cache_put(auxts_cache* cache, const uint64_t* key, uint8_t* value) {
 
     pthread_rwlock_wrlock(&cache->rwlock);
 
-    auxts_cache_entry* entry = auxts_hashmap_get(cache->cache, key);
+    auxts_cache_entry* entry = auxts_kvstore_get(cache->kv, key);
     if (entry) {
         pthread_rwlock_unlock(&cache->rwlock);
         return;
@@ -43,7 +43,7 @@ void auxts_cache_put(auxts_cache* cache, const uint64_t* key, uint8_t* value) {
     auxts_cache_node* node = cache_node_create(key, value);
 
     cache_insert_at_head(cache, node);
-    auxts_hashmap_put(cache->cache, key, &node->entry);
+    auxts_kvstore_put(cache->kv, key, &node->entry);
 
     ++cache->size;
 
@@ -55,7 +55,7 @@ uint8_t* auxts_cache_get(auxts_cache* cache, const uint64_t* key) {
 
     pthread_rwlock_rdlock(&cache->rwlock);
 
-    auxts_cache_entry* entry = auxts_hashmap_get(cache->cache, key);
+    auxts_cache_entry* entry = auxts_kvstore_get(cache->kv, key);
     pthread_rwlock_unlock(&cache->rwlock);
 
     if (entry) return entry->value;
@@ -76,7 +76,7 @@ void auxts_cache_destroy(auxts_cache* cache) {
         node = next;
     }
 
-    auxts_hashmap_destroy(cache->cache);
+    auxts_kvstore_destroy(cache->kv);
 
     pthread_rwlock_unlock(&cache->rwlock);
     pthread_rwlock_destroy(&cache->rwlock);
@@ -90,7 +90,7 @@ void auxts_cache_evict(auxts_cache* cache) {
     auxts_cache_node* tail = cache->tail;
     auxts_cache_entry* entry = &tail->entry;
 
-    auxts_hashmap_delete(cache->cache, entry->key);
+    auxts_kvstore_delete(cache->kv, entry->key);
 
     cache->tail = (auxts_cache_node*) tail->prev;
     cache->tail->next = NULL;

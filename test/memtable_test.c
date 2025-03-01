@@ -12,7 +12,7 @@ uint8_t* read_file_test_util(const char* path, int* size) {
     rewind(file);
 
     if (size <= 0) {
-        fprintf(stderr, "Invalid file num_buckets\n");
+        fprintf(stderr, "Invalid file capacity\n");
         fclose(file);
         return NULL;
     }

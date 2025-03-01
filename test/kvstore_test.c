@@ -1,4 +1,4 @@
-#include "hashtable_test.h"
+#include "kvstore_test.h"
 
 
 void test_hashtable() {

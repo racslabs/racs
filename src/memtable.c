@@ -97,7 +97,7 @@ auxts_sstable* auxts_sstable_read(const char* filename) {
 
     off_t file_size = lseek(fd, 0, SEEK_END);
     if (file_size == -1) {
-        perror("Failed to determine file num_buckets");
+        perror("Failed to determine file capacity");
         close(fd);
         return NULL;
     }

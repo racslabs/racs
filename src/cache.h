@@ -2,7 +2,7 @@
 #ifndef AUXTS_CACHE_H
 #define AUXTS_CACHE_H
 
-#include "hashmap.h"
+#include "kvstore.h"
 #include "murmurhash3.h"
 #include <pthread.h>
 
@@ -26,7 +26,7 @@ typedef struct auxts_cache {
     size_t capacity;
     auxts_cache_node* head;
     auxts_cache_node* tail;
-    auxts_hashmap* cache;
+    auxts_kvstore* kv;
     pthread_rwlock_t rwlock;
 } auxts_cache;
 

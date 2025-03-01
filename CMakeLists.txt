@@ -45,8 +45,8 @@ add_executable(auxts main.c
         src/filelist.h
         src/filelist.c
         src/buffer.h
-        src/hashmap.h
-        src/hashmap.c
+        src/kvstore.h
+        src/kvstore.c
         src/simd/simd_neon.h
         src/simd/simd.h
         src/simd/simd_neon-i32.c
@@ -58,8 +58,8 @@ add_executable(auxts main.c
         test/extract_test.c
         test/memtable_test.h
         test/memtable_test.c
-        test/hashtable_test.h
-        test/hashtable_test.c
+        test/kvstore_test.h
+        test/kvstore_test.c
         test/murmurhash3_test.h
         test/murmurhash3_test.c
         test/timestamp_test.h
