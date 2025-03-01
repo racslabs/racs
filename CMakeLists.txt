@@ -66,6 +66,8 @@ add_executable(auxts main.c
         test/timestamp_test.c
         test/simd_test.h
         test/simd_test.c
+        src/parser.h
+        src/parser.c
 )
 
 target_include_directories(auxts PUBLIC ${msgpack-c_INCLUDE_DIRS})
