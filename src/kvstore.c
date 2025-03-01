@@ -49,7 +49,7 @@ void auxts_kvstore_put(auxts_kvstore* kv, void* key, void* value) {
         auxts_kvstore_entry* entry = &bin->entries[i];
 
         if (kv->ops.cmp(entry->key, key)) {
-            free(entry->value);
+            kv->ops.destroy(entry->key, entry->value);
             entry->value = value;
             return;
         }
@@ -84,7 +84,6 @@ void auxts_kvstore_delete(auxts_kvstore* kv, void* key) {
 
         if (kv->ops.cmp(entry->key, key)) {
             kv->ops.destroy(entry->key, entry->value);
-
             for (int j = i; j < bin->count - 1; ++j) {
                 bin->entries[j] = bin->entries[j + 1];
             }
