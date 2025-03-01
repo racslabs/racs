@@ -11,8 +11,7 @@
 #include <msgpack.h>
 #include "memtable.h"
 #include "filelist.h"
-#include "result.h"
-#include "cache.h"
+#include "auxts.h"
 #include "flac.h"
 
 #ifdef __cplusplus
@@ -43,7 +42,7 @@ typedef struct {
     auxts_pcm_buffer_info info;
 } auxts_pcm_buffer;
 
-auxts_result auxts_extract(auxts_cache* cache, uint64_t stream_id, const char* from, const char* to);
+auxts_result auxts_extract(auxts_context* ctx, uint64_t stream_id, const char* from, const char* to);
 
 #ifdef __cplusplus
 }

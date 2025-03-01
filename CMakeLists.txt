@@ -40,6 +40,13 @@ add_executable(auxts main.c
         src/extract.c
         src/flac.h
         src/flac.c
+        src/auxts.h
+        src/auxts.c
+        src/filelist.h
+        src/filelist.c
+        src/buffer.h
+        src/hashmap.h
+        src/hashmap.c
         src/simd/simd_neon.h
         src/simd/simd.h
         src/simd/simd_neon-i32.c
@@ -59,13 +66,6 @@ add_executable(auxts main.c
         test/timestamp_test.c
         test/simd_test.h
         test/simd_test.c
-        src/result.h
-        src/result.c
-        src/filelist.h
-        src/filelist.c
-        src/buffer.h
-        src/hashmap.h
-        src/hashmap.c
 )
 
 target_include_directories(auxts PUBLIC ${msgpack-c_INCLUDE_DIRS})

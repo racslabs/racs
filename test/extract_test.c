@@ -10,14 +10,14 @@ void test_extract() {
     uint64_t stream_id[2];
     auxts_murmurhash3_x64_128((uint8_t*)"test", 4, 0, stream_id);
 
-    auxts_cache* cache = auxts_cache_create(2);
-    auxts_result result = auxts_extract(cache, stream_id[0], "2025-02-09T22:51:52.213Z", "2025-02-09T22:51:52.215Z");
+    auxts_context ctx;
+    auxts_context_init(&ctx);
+
+    auxts_result result = auxts_extract(&ctx, stream_id[0], "2025-02-09T22:51:52.213Z", "2025-02-09T22:51:52.215Z");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
-
-    if (msgpack_unpack_next(&msg, result.data, result.size, 0)) {
-    }
+    msgpack_unpack_next(&msg, result.data, result.size, 0);
 
     msgpack_object obj = msg.data;
 
@@ -34,6 +34,10 @@ void test_extract() {
     msgpack_str_assert("sample_rate", &obj.via.array.ptr[6].via.str, buf);
     assert(obj.via.array.ptr[7].via.u64 == 44100);
 
+    msgpack_str_assert("bit_depth", &obj.via.array.ptr[8].via.str, buf);
+    assert(obj.via.array.ptr[9].via.u64 == 16);
 
     msgpack_unpacked_destroy(&msg);
+    auxts_context_destroy(&ctx);
+    auxts_result_destroy(&result);
 }

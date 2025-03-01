@@ -24,7 +24,7 @@ const char* const auxts_extract_pcm_status_code[] = {
         "ERROR"
 };
 
-auxts_result auxts_extract(auxts_cache* cache, uint64_t stream_id, const char* from, const char* to) {
+auxts_result auxts_extract(auxts_context* ctx, uint64_t stream_id, const char* from, const char* to) {
     auxts_pcm_buffer pbuf;
     msgpack_sbuffer sbuf;
     msgpack_packer pk;
@@ -32,7 +32,7 @@ auxts_result auxts_extract(auxts_cache* cache, uint64_t stream_id, const char* f
     msgpack_sbuffer_init(&sbuf);
     msgpack_packer_init(&pk, &sbuf, msgpack_sbuffer_write);
 
-    auxts_extract_pcm_status status = extract_pcm_data(cache, &pbuf, stream_id, from, to);
+    auxts_extract_pcm_status status = extract_pcm_data(ctx->cache, &pbuf, stream_id, from, to);
     if (status == AUXTS_EXTRACT_PCM_STATUS_OK) {
         serialize_status_ok(&pk, &pbuf);
         pcm_buffer_destroy(&pbuf);
@@ -154,7 +154,7 @@ auxts_flac_blocks* extract_flac_blocks(auxts_cache* cache, uint64_t stream_id, i
     for (int i = 0; i < list->num_files; ++i) {
         char* file_path = list->files[i];
 
-        uint64_t timestamp = auxts_time_partitioned_path_to_timestamp(file_path);
+        int64_t timestamp = auxts_time_partitioned_path_to_timestamp(file_path);
         if (timestamp >= from && timestamp <= to) {
             uint8_t* buffer = get_data_from_cache_or_sstable(cache, stream_id, timestamp, file_path);
             process_sstable_data(blocks, stream_id, from, to, buffer);
@@ -258,8 +258,8 @@ void serialize_status_ok(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
     msgpack_pack_str_body(pk, "sample_rate", 11);
     msgpack_pack_uint32(pk, pbuf->info.sample_rate);
 
-    msgpack_pack_str(pk, 15);
-    msgpack_pack_str_body(pk, "bits_per_sample", 15);
+    msgpack_pack_str(pk, 10);
+    msgpack_pack_str_body(pk, "bit_depth", 10);
     msgpack_pack_uint32(pk, pbuf->info.bits_per_sample);
 
     msgpack_pack_str(pk, 8);
