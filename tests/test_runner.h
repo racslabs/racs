@@ -18,7 +18,7 @@ AUXTS_FORCE_INLINE void auxts_add_test(Test test_case, char* test_name, int argc
         return;
     }
 
-    if (strcmp(argv[1], "--test") != 0) {
+    if (strcmp(argv[1], "--tests") != 0) {
         return;
     }
 

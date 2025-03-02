@@ -4,6 +4,7 @@
 
 #include <assert.h>
 #include "../src/memtable.h"
+#include "../src/parser.h"
 
 uint8_t* read_file_test_util(const char* path, int* size);
 void test_multi_memtable();

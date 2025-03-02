@@ -8,7 +8,7 @@ void msgpack_str_assert(const char* expected, const msgpack_object_str* obj_str,
 
 void test_extract() {
     uint64_t stream_id[2];
-    auxts_mmh3_x64_128((uint8_t *) "test", 4, 0, stream_id);
+    auxts_mmh3_x64_128((uint8_t *) "tests", 4, 0, stream_id);
 
     auxts_context ctx;
     auxts_context_init(&ctx);

@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_BUFFER_H
-#define AUXTS_BUFFER_H
+#ifndef AUXTS_BYTES_H
+#define AUXTS_BYTES_H
 
 #include "endian.h"
 #include <string.h>
@@ -61,4 +61,4 @@ AUXTS_FORCE_INLINE uint64_t auxts_next_power_of_two(uint64_t n) {
     return n;
 }
 
-#endif //AUXTS_BUFFER_H
+#endif //AUXTS_BYTES_H

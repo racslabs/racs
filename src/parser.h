@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <regex.h>
+#include "bytes.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,7 +24,8 @@ typedef enum {
     AUXTS_TOKEN_TYPE_BIN,
     AUXTS_TOKEN_TYPE_PIPE,
     AUXTS_TOKEN_TYPE_INT,
-    AUXTS_TOKEN_TYPE_FLOAT
+    AUXTS_TOKEN_TYPE_FLOAT,
+    AUXTS_TOKEN_TYPE_ERROR
 } auxts_token_type;
 
 typedef struct {
@@ -53,6 +55,7 @@ typedef struct {
     const char* ptr;
     regoff_t curr;
 } auxts_parser;
+
 
 #ifdef __cplusplus
 }

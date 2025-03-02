@@ -13,7 +13,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <pthread.h>
-#include "buffer.h"
+#include "bytes.h"
 #include "endian.h"
 #include "timestamp.h"
 #include "mmh3-128.h"

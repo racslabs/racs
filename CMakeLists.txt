@@ -44,28 +44,28 @@ add_executable(auxts main.c
         src/auxts.c
         src/filelist.h
         src/filelist.c
-        src/buffer.h
+        src/bytes.h
         src/kvstore.h
         src/kvstore.c
         src/simd/simd_neon.h
         src/simd/simd.h
         src/simd/simd_neon-i32.c
         src/simd/simd_neon-i16.c
-        test/test_runner.h
-        test/cache_test.h
-        test/cache_test.c
-        test/extract_test.h
-        test/extract_test.c
-        test/memtable_test.h
-        test/memtable_test.c
-        test/kvstore_test.h
-        test/kvstore_test.c
-        test/mmh3-128_test.h
-        test/mmh3-128_test.c
-        test/timestamp_test.h
-        test/timestamp_test.c
-        test/simd_test.h
-        test/simd_test.c
+        tests/test_runner.h
+        tests/cache_test.h
+        tests/cache_test.c
+        tests/extract_test.h
+        tests/extract_test.c
+        tests/memtable_test.h
+        tests/memtable_test.c
+        tests/kvstore_test.h
+        tests/kvstore_test.c
+        tests/mmh3-128_test.h
+        tests/mmh3-128_test.c
+        tests/timestamp_test.h
+        tests/timestamp_test.c
+        tests/simd_test.h
+        tests/simd_test.c
         src/parser.h
         src/parser.c
 )
