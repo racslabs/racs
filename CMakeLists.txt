@@ -68,6 +68,8 @@ add_executable(auxts main.c
         tests/simd_test.c
         src/parser.h
         src/parser.c
+        tests/parser_test.h
+        tests/parser_test.c
 )
 
 target_include_directories(auxts PUBLIC ${msgpack-c_INCLUDE_DIRS})
@@ -82,4 +84,5 @@ add_test(test_murmurhash3 auxts "--test" "test_murmurhash3")
 add_test(test_rfc3339 auxts "--test" "test_rfc3339")
 add_test(test_simd_swap16 auxts "--test" "test_simd_swap16")
 add_test(test_simd_swap24 auxts "--test" "test_simd_swap24")
-add_test(test_simd_swap32, auxts "--test" "test_simd_swap32")
+add_test(test_simd_swap32 auxts "--test" "test_simd_swap32")
+add_test(test_parser auxts "--test" "test_parser")

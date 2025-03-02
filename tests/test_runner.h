@@ -10,6 +10,7 @@
 #include "mmh3-128_test.h"
 #include "timestamp_test.h"
 #include "simd_test.h"
+#include "parser_test.h"
 
 typedef void (*Test)();
 
@@ -18,7 +19,7 @@ AUXTS_FORCE_INLINE void auxts_add_test(Test test_case, char* test_name, int argc
         return;
     }
 
-    if (strcmp(argv[1], "--tests") != 0) {
+    if (strcmp(argv[1], "--test") != 0) {
         return;
     }
 
@@ -37,6 +38,7 @@ AUXTS_FORCE_INLINE void auxts_run_tests(int argc, char* argv[]) {
     auxts_add_test(test_simd_swap16, "test_simd_swap16", argc, argv);
     auxts_add_test(test_simd_swap24, "test_simd_swap24", argc, argv);
     auxts_add_test(test_simd_swap32, "test_simd_swap32", argc, argv);
+    auxts_add_test(test_parser, "test_parser", argc, argv);
 }
 
 #endif //AUXTS_TEST_RUNNER_H
