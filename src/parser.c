@@ -44,6 +44,12 @@ auxts_token auxts_parser_next_token(auxts_parser* parser) {
         }
     }
 
+    if (*parser->ptr == 'b') {
+        if (match_token(parser->ptr, AUXTS_REGEX_BIN, &match)) {
+            return parser_lex_token_bin(parser, &match);
+        }
+    }
+
     if (isalpha(*parser->ptr) || *parser->ptr == '_') {
         if (match_token(parser->ptr, AUXTS_REGEX_ID, &match)) {
             return parser_lex_token_id(parser, &match);
@@ -158,7 +164,7 @@ auxts_token parser_lex_token_bin(auxts_parser* parser, regmatch_t* match) {
     parser_advance(parser, prefix_size);
 
     uint32_t binary_size;
-    auxts_read_uint32(&binary_size, (uint8_t*)parser->ptr, parser->curr);
+    auxts_read_uint32(&binary_size, (uint8_t*)parser->ptr, 0);
 
     parser_advance(parser, sizeof(uint32_t));
 
