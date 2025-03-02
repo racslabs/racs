@@ -14,7 +14,8 @@ extern "C" {
 
 #define AUXTS_REGEX_BIN     "binary:"
 #define AUXTS_REGEX_PIPE    "\\|>"
-#define AUXTS_REGEX_STR     "^\"([^\"]*)\""
+#define AUXTS_REGEX_STR_SQ  "^\'([^\"]*)\'"
+#define AUXTS_REGEX_STR_DQ  "^\"([^\"]*)\""
 #define AUXTS_REGEX_ID      "^[a-zA-Z_][a-zA-Z0-9_]*"
 #define AUXTS_REGEX_INT     "^[0-9]+"
 #define AUXTS_REGEX_FLOAT   "^[0-9]*\\.[0-9]+"
@@ -65,10 +66,8 @@ typedef struct {
 } auxts_parser;
 
 void auxts_parser_init(auxts_parser* parser, const char* source);
-
-auxts_token auxts_parser_next_token(auxts_parser* parser);
-
 void auxts_token_print(auxts_token* token);
+auxts_token auxts_parser_next_token(auxts_parser* parser);
 
 #ifdef __cplusplus
 }
