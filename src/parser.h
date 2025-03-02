@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <ctype.h>
 #include <regex.h>
 #include "bytes.h"
 
@@ -25,6 +26,7 @@ typedef enum {
     AUXTS_TOKEN_TYPE_PIPE,
     AUXTS_TOKEN_TYPE_INT,
     AUXTS_TOKEN_TYPE_FLOAT,
+    AUXTS_TOKEN_TYPE_EOF,
     AUXTS_TOKEN_TYPE_ERROR
 } auxts_token_type;
 
@@ -62,6 +64,11 @@ typedef struct {
     regoff_t curr;
 } auxts_parser;
 
+void auxts_parser_init(auxts_parser* parser, const char* source);
+
+auxts_token auxts_parser_next_token(auxts_parser* parser);
+
+void auxts_token_print(auxts_token* token);
 
 #ifdef __cplusplus
 }
