@@ -14,11 +14,11 @@ extern "C" {
 
 #define AUXTS_REGEX_BIN     "binary:"
 #define AUXTS_REGEX_PIPE    "\\|>"
-#define AUXTS_REGEX_STR_SQ  "^\'([^\"]*)\'"
+#define AUXTS_REGEX_STR_SQ  "^'([^']*)'"
 #define AUXTS_REGEX_STR_DQ  "^\"([^\"]*)\""
 #define AUXTS_REGEX_ID      "^[a-zA-Z_][a-zA-Z0-9_]*"
 #define AUXTS_REGEX_INT     "^[0-9]+"
-#define AUXTS_REGEX_FLOAT   "^[0-9]*\\.[0-9]+"
+#define AUXTS_REGEX_FLOAT   "^[0-9]+\\.[0-9]*"
 
 typedef enum {
     AUXTS_TOKEN_TYPE_ID,

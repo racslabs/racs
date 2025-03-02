@@ -1,18 +1,11 @@
 #include "parser_test.h"
 
 void test_parser() {
-    uint32_t binary_size = 4;
-    uint8_t binary_data[4] = {0xa, 0xb, 0xc, 0xd};
 
-    char buf[255];
-    memcpy(buf, "append binary:", 14);
-    memcpy(buf + 14, &binary_size, sizeof(uint32_t));
-    memcpy(buf + 18, binary_data,  4);
-    buf[22] = '\0';
-
+    char* str = "extract 'test' '2025-02-09T22:51:52.213Z' '2025-02-09T22:51:52.213Z' |> iir 'lowpass' 1 |> format \"audio/wav\"";
 
     auxts_parser parser;
-    auxts_parser_init(&parser, buf);
+    auxts_parser_init(&parser, str);
 
     auxts_token token = auxts_parser_next_token(&parser);
 
@@ -22,9 +15,6 @@ void test_parser() {
         }
         auxts_token_print(&token);
         token = auxts_parser_next_token(&parser);
-        if (token.type == AUXTS_TOKEN_TYPE_BIN) {
-            printf("%zu\n", token.as.bin.size);
-        }
     }
 
 }
