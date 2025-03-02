@@ -37,13 +37,18 @@ typedef auxts_token_ auxts_token_id;
 typedef auxts_token_ auxts_token_str;
 typedef auxts_token_ auxts_token_bin;
 
+typedef struct {
+    const char* msg;
+} auxts_token_error;
+
 typedef union {
-    float            f32;
-    int32_t          i32;
-    uint32_t         u32;
-    auxts_token_id   id;
-    auxts_token_str  str;
-    auxts_token_bin  bin;
+    float               f32;
+    int32_t             i32;
+    uint32_t            u32;
+    auxts_token_id      id;
+    auxts_token_str     str;
+    auxts_token_bin     bin;
+    auxts_token_error   err;
 } auxts_token_union;
 
 typedef struct {
@@ -53,6 +58,7 @@ typedef struct {
 
 typedef struct {
     const char* ptr;
+    char error[255];
     regoff_t curr;
 } auxts_parser;
 

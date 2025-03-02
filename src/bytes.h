@@ -4,6 +4,7 @@
 
 #include "endian.h"
 #include <string.h>
+#include <unistd.h>
 
 AUXTS_FORCE_INLINE off_t auxts_write_bin(uint8_t* buf, void* data, int size, off_t offset) {
     memcpy(buf + offset, data, size);

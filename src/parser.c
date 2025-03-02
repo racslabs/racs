@@ -1,10 +1,14 @@
 #include "parser.h"
 
+static void parser_advance(auxts_parser* parser, regoff_t step);
 static int match_token(const char* ptr, const char* pattern, regmatch_t* match);
 static auxts_token parser_lex_token_str(auxts_parser* parser, regmatch_t* match);
 static auxts_token parser_lex_token_id(auxts_parser* parser, regmatch_t* match);
 static auxts_token parser_lex_token_bin(auxts_parser* parser, regmatch_t* match);
 static auxts_token parser_lex_token_int32(auxts_parser* parser, regmatch_t* match);
+static auxts_token parser_lex_token_float32(auxts_parser* parser, regmatch_t* match);
+static auxts_token parser_lex_token_pipe(auxts_parser* parser, regmatch_t* match);
+static auxts_token parser_token_error(auxts_parser* parser);
 
 int match_token(const char* ptr, const char* pattern, regmatch_t* match) {
     regex_t regex;
@@ -17,6 +21,11 @@ int match_token(const char* ptr, const char* pattern, regmatch_t* match) {
     return !ret;
 }
 
+void parser_advance(auxts_parser* parser, regoff_t step) {
+    parser->ptr += step;
+    parser->curr += step;
+}
+
 auxts_token parser_lex_token_str(auxts_parser* parser, regmatch_t* match) {
     regoff_t size = match->rm_eo - match->rm_so;
 
@@ -25,8 +34,7 @@ auxts_token parser_lex_token_str(auxts_parser* parser, regmatch_t* match) {
     token.as.str.ptr = parser->ptr;
     token.as.str.size = size;
 
-    parser->ptr += size;
-    parser->curr += size;
+    parser_advance(parser, size);
 
     return token;
 }
@@ -39,8 +47,7 @@ auxts_token parser_lex_token_id(auxts_parser* parser, regmatch_t* match) {
     token.as.id.ptr = parser->ptr;
     token.as.id.size = size;
 
-    parser->ptr += size;
-    parser->curr += size;
+    parser_advance(parser, size);
 
     return token;
 }
@@ -48,22 +55,19 @@ auxts_token parser_lex_token_id(auxts_parser* parser, regmatch_t* match) {
 auxts_token parser_lex_token_bin(auxts_parser* parser, regmatch_t* match) {
     regoff_t prefix_size = match->rm_eo - match->rm_so;
 
-    parser->ptr += prefix_size;
-    parser->curr += prefix_size;
+    parser_advance(parser, prefix_size);
 
     uint32_t binary_size;
     auxts_read_uint32(&binary_size, (uint8_t*)parser->ptr, parser->curr);
 
-    parser->ptr += sizeof(uint32_t);
-    parser->curr += sizeof(uint32_t);
+    parser_advance(parser, sizeof(uint32_t));
 
     auxts_token token;
     token.type = AUXTS_TOKEN_TYPE_BIN;
     token.as.bin.ptr = parser->ptr;
     token.as.bin.size = binary_size;
 
-    parser->ptr += binary_size;
-    parser->curr += binary_size;
+    parser_advance(parser, binary_size);
 
     return token;
 }
@@ -78,10 +82,46 @@ auxts_token parser_lex_token_int32(auxts_parser* parser, regmatch_t* match) {
     token.type = AUXTS_TOKEN_TYPE_INT;
     token.as.i32 = atoi(int_str);
 
-    parser->ptr += size;
-    parser->curr += size;
-
+    parser_advance(parser, size);
     free(int_str);
+
+    return token;
+}
+
+auxts_token parser_lex_token_float32(auxts_parser* parser, regmatch_t* match) {
+    regoff_t size = match->rm_eo - match->rm_so;
+
+    char* float_str = malloc(size + 1);
+    strlcpy(float_str, parser->ptr, size);
+
+    auxts_token token;
+    token.type = AUXTS_TOKEN_TYPE_FLOAT;
+    token.as.f32 = (float)atof(float_str);
+
+    parser_advance(parser, size);
+    free(float_str);
+
+    return token;
+}
+
+auxts_token parser_lex_token_pipe(auxts_parser* parser, regmatch_t* match) {
+    regoff_t size = match->rm_eo - match->rm_so;
+
+    auxts_token token;
+    token.type = AUXTS_TOKEN_TYPE_PIPE;
+
+    parser_advance(parser, size);
+
+    return token;
+}
+
+auxts_token parser_token_error(auxts_parser* parser) {
+    sprintf(parser->error, "Invalid token at %lld", parser->curr);
+    perror(parser->error);
+
+    auxts_token token;
+    token.type = AUXTS_TOKEN_TYPE_ERROR;
+    token.as.err.msg = parser->error;
 
     return token;
 }
