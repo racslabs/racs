@@ -42,7 +42,7 @@ typedef struct {
     auxts_pcm_buffer_info info;
 } auxts_pcm_buffer;
 
-auxts_result auxts_extract(auxts_context* ctx, uint64_t stream_id, const char* from, const char* to);
+auxts_result auxts_extract(auxts_context* ctx, const char* data, size_t size);
 
 #ifdef __cplusplus
 }

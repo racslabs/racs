@@ -24,7 +24,7 @@ AUXTS_FORCE_INLINE uint64_t auxts_fmix64(uint64_t k) {
     return k;
 }
 
-void auxts_mmh3_x64_128(const uint8_t* key, int len, uint32_t seed, uint64_t* out);
+void auxts_mmh3_x64_128(const uint8_t* key, size_t len, uint32_t seed, uint64_t* out);
 
 #ifdef __cplusplus
 }

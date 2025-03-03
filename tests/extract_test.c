@@ -7,13 +7,26 @@ void msgpack_str_assert(const char* expected, const msgpack_object_str* obj_str,
 }
 
 void test_extract() {
-    uint64_t stream_id[2];
-    auxts_mmh3_x64_128((uint8_t *) "tests", 4, 0, stream_id);
+    msgpack_sbuffer sbuf;
+    msgpack_packer pk;
+
+    msgpack_sbuffer_init(&sbuf);
+    msgpack_packer_init(&pk, &sbuf, msgpack_sbuffer_write);
+
+    msgpack_pack_array(&pk, 3);
+
+    msgpack_pack_str(&pk, 4);
+    msgpack_pack_str_body(&pk, "test", 4);
+
+    msgpack_pack_str(&pk, 24);
+    msgpack_pack_str_body(&pk, "2025-02-09T22:51:52.213Z", 24);
+
+    msgpack_pack_str(&pk, 24);
+    msgpack_pack_str_body(&pk, "2025-02-09T22:51:52.215Z", 24);
 
     auxts_context ctx;
     auxts_context_init(&ctx);
-
-    auxts_result result = auxts_extract(&ctx, stream_id[0], "2025-02-09T22:51:52.213Z", "2025-02-09T22:51:52.215Z");
+    auxts_result result = auxts_extract(&ctx, sbuf.data, sbuf.size);
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
@@ -38,6 +51,8 @@ void test_extract() {
     assert(obj.via.array.ptr[9].via.u64 == 16);
 
     msgpack_unpacked_destroy(&msg);
+    msgpack_sbuffer_destroy(&sbuf);
+
     auxts_context_destroy(&ctx);
     auxts_result_destroy(&result);
 }

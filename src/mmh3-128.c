@@ -1,6 +1,6 @@
 #include "mmh3-128.h"
 
-void auxts_mmh3_x64_128(const uint8_t* key, int len, uint32_t seed, uint64_t* out) {
+void auxts_mmh3_x64_128(const uint8_t* key, size_t len, uint32_t seed, uint64_t* out) {
     uint64_t h1 = seed;
     uint64_t h2 = seed;
 

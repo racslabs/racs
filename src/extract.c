@@ -7,10 +7,11 @@ static uint8_t* get_data_from_cache_or_sstable(auxts_cache* cache, uint64_t stre
 static auxts_flac_blocks* extract_flac_blocks(auxts_cache* cache, uint64_t stream_id, int64_t from, int64_t to);
 static void process_sstable_data(auxts_flac_blocks* blocks, uint64_t stream_id, int64_t from, int64_t to, uint8_t* data);
 static uint8_t* pack_pcm_data(const auxts_pcm_buffer* pbuf);
-static auxts_extract_pcm_status extract_pcm_data(auxts_cache* cache, auxts_pcm_buffer* pbuf, uint64_t stream_id, const char* from, const char* to);
+static auxts_extract_pcm_status extract_pcm_data(auxts_cache* cache, auxts_pcm_buffer* pbuf, uint64_t stream_id, int64_t from, int64_t to);
 static void pcm_buffer_destroy(auxts_pcm_buffer* pbuf);
 static void serialize_status_ok(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
 static void serialize_status_not_ok(msgpack_packer* pk, auxts_extract_pcm_status status);
+static auxts_extract_pcm_status deserialize_params(const char* params, size_t size, uint64_t* stream_id, int64_t* from, int64_t* to);
 
 const char* const auxts_extract_pcm_status_message[] = {
         "OK",
@@ -24,14 +25,18 @@ const char* const auxts_extract_pcm_status_code[] = {
         "ERROR"
 };
 
-auxts_result auxts_extract(auxts_context* ctx, uint64_t stream_id, const char* from, const char* to) {
-    auxts_pcm_buffer pbuf;
-    msgpack_sbuffer sbuf;
+auxts_result auxts_extract(auxts_context* ctx, const char* data, size_t size) {
+    uint64_t stream_id;
+    int64_t from, to;
+    deserialize_params(data, size, &stream_id, &from, &to);
+
     msgpack_packer pk;
+    msgpack_sbuffer sbuf;
 
     msgpack_sbuffer_init(&sbuf);
     msgpack_packer_init(&pk, &sbuf, msgpack_sbuffer_write);
 
+    auxts_pcm_buffer pbuf;
     auxts_extract_pcm_status status = extract_pcm_data(ctx->cache, &pbuf, stream_id, from, to);
     if (status == AUXTS_EXTRACT_PCM_STATUS_OK) {
         serialize_status_ok(&pk, &pbuf);
@@ -49,14 +54,8 @@ auxts_result auxts_extract(auxts_context* ctx, uint64_t stream_id, const char* f
     return result;
 }
 
-auxts_extract_pcm_status extract_pcm_data(auxts_cache* cache, auxts_pcm_buffer* pbuf, uint64_t stream_id, const char* from, const char* to) {
-    int64_t t_from = auxts_parse_rfc3339(from);
-    int64_t t_to = auxts_parse_rfc3339(to);
-    if (t_from == -1 || t_to == -1) {
-        return AUXTS_EXTRACT_PCM_STATUS_INVALID_TIMESTAMP;
-    }
-
-    auxts_flac_blocks* blocks = extract_flac_blocks(cache, stream_id, t_from, t_to);
+auxts_extract_pcm_status extract_pcm_data(auxts_cache* cache, auxts_pcm_buffer* pbuf, uint64_t stream_id, int64_t from, int64_t to) {
+    auxts_flac_blocks* blocks = extract_flac_blocks(cache, stream_id, from, to);
     if (!blocks->num_blocks) {
         auxts_flac_blocks_destroy(blocks);
         return AUXTS_EXTRACT_PCM_STATUS_NO_DATA;
@@ -291,4 +290,48 @@ void serialize_status_not_ok(msgpack_packer* pk, auxts_extract_pcm_status status
 
     msgpack_pack_str(pk, strlen(message));
     msgpack_pack_str_body(pk, status_code, strlen(message));
+}
+
+auxts_extract_pcm_status deserialize_params(const char* params, size_t size, uint64_t* stream_id, int64_t* from, int64_t* to) {
+    msgpack_unpacked msg;
+    msgpack_unpacked_init(&msg);
+
+    if (msgpack_unpack_next(&msg, params, size, 0) != MSGPACK_UNPACK_PARSE_ERROR) {
+    }
+
+    msgpack_object obj = msg.data;
+
+    size_t stream_id_size = obj.via.array.ptr[0].via.str.size;
+    char* _stream_id = malloc(stream_id_size + 1);
+    strlcpy(_stream_id, obj.via.array.ptr[0].via.str.ptr, stream_id_size + 1);
+
+    size_t from_size = obj.via.array.ptr[1].via.str.size;
+    char* _from = malloc(from_size + 1);
+    strlcpy(_from, obj.via.array.ptr[1].via.str.ptr, from_size + 1);
+
+    size_t to_size = obj.via.array.ptr[2].via.str.size;
+    char* _to = malloc(to_size + 1);
+    strlcpy(_to, obj.via.array.ptr[2].via.str.ptr, to_size + 1);
+
+    *from = auxts_parse_rfc3339(_from);
+    *to = auxts_parse_rfc3339(_to);
+    if (*from == -1 || *to == -1) {
+        free(_stream_id);
+        free(_from);
+        free(_to);
+
+        msgpack_unpacked_destroy(&msg);
+        return AUXTS_EXTRACT_PCM_STATUS_INVALID_TIMESTAMP;
+    }
+
+    uint64_t hash[2];
+    auxts_mmh3_x64_128((uint8_t*)_stream_id, stream_id_size, 0, hash);
+    *stream_id = hash[0];
+
+    free(_stream_id);
+    free(_from);
+    free(_to);
+
+    msgpack_unpacked_destroy(&msg);
+    return AUXTS_EXTRACT_PCM_STATUS_OK;
 }
