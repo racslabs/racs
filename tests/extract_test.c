@@ -26,11 +26,11 @@ void test_extract() {
 
     auxts_context ctx;
     auxts_context_init(&ctx);
-    auxts_result result = auxts_extract(&ctx, sbuf.data, sbuf.size);
+    auxts_extract(&ctx, &sbuf);
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
-    msgpack_unpack_next(&msg, result.data, result.size, 0);
+    msgpack_unpack_next(&msg, sbuf.data, sbuf.size, 0);
 
     msgpack_object obj = msg.data;
 
@@ -52,7 +52,5 @@ void test_extract() {
 
     msgpack_unpacked_destroy(&msg);
     msgpack_sbuffer_destroy(&sbuf);
-
     auxts_context_destroy(&ctx);
-    auxts_result_destroy(&result);
 }

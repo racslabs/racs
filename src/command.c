@@ -3,6 +3,7 @@
 static uint64_t command_executor_hash(void* key);
 static int command_executor_cmp(void* a, void* b);
 static void command_executor_destroy(void* key, void* value);
+static auxts_command_func command_executor_get(auxts_command_executor* exec, const char* cmd_name);
 static auxts_command* command_create(const char* name);
 static void command_destroy(auxts_command* cmd);
 static auxts_command_arg* command_arg_create();
@@ -17,9 +18,15 @@ static void command_handle_bin(auxts_command* cmd, auxts_token* token);
 static void command_handle_int32(auxts_command* cmd, auxts_token* token);
 static void command_handle_float32(auxts_command* cmd, auxts_token* token);
 static void command_add_arg(auxts_command* cmd, auxts_command_arg* arg);
+static void command_serialize_args(auxts_command* cmd, msgpack_packer* pk);
+static void command_arg_serialize_str(auxts_command_arg* arg, msgpack_packer* pk);
+static void command_arg_serialize_bin(auxts_command_arg* arg, msgpack_packer* pk);
+static void command_arg_serialize_int32(auxts_command_arg* arg, msgpack_packer* pk);
+static void command_arg_serialize_float32(auxts_command_arg* arg, msgpack_packer* pk);
 static void command_execution_plan_init(auxts_command_execution_plan* plan);
 static void command_execution_plan_destroy(auxts_command_execution_plan* plan);
 static void command_execution_plan_add_command(auxts_command_execution_plan* plan, auxts_command* cmd);
+static auxts_result command_execution_plan_execute(auxts_command_execution_plan* plan, auxts_command_executor* exec, auxts_context* ctx);
 
 auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_context* ctx, const char* cmd) {
     auxts_result result;
@@ -30,14 +37,13 @@ auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_
     auxts_command_execution_plan plan;
     command_execution_plan_init(&plan);
 
-    auxts_command* _cmd = NULL;
-
     auxts_token token = auxts_parser_next_token(&parser);
     if (token.type != AUXTS_TOKEN_TYPE_ID) {
         //TODO: add error message
         return result;
     }
 
+    auxts_command* _cmd = NULL;
     while (token.type != AUXTS_TOKEN_TYPE_EOF) {
         switch (token.type) {
             case AUXTS_TOKEN_TYPE_ID:
@@ -68,7 +74,87 @@ auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_
     }
 
     command_execution_plan_add_command(&plan, _cmd);
+    result = command_execution_plan_execute(&plan, exec, ctx);
+    command_execution_plan_destroy(&plan);
+
     return result;
+}
+
+auxts_result command_execution_plan_execute(auxts_command_execution_plan* plan, auxts_command_executor* exec, auxts_context* ctx) {
+    msgpack_packer pk;
+    msgpack_sbuffer in_buf;
+
+    auxts_result result;
+
+    for (int i = 0; i < plan->num_cmd; ++i) {
+        msgpack_sbuffer_init(&in_buf);
+        msgpack_packer_init(&pk, &in_buf, msgpack_sbuffer_write);
+
+        auxts_command* cmd = plan->cmd[i];
+        auxts_command_func func = command_executor_get(exec, cmd->name);
+        if (!func) {
+            //TODO: handle
+            return result;
+        }
+
+        command_serialize_args(cmd, &pk);
+        result = func(ctx, &in_buf);
+
+
+
+
+
+
+    }
+
+    
+
+
+}
+
+auxts_command_func command_executor_get(auxts_command_executor* exec, const char* cmd_name) {
+    return auxts_kvstore_get(exec->kv, (void*)cmd_name);
+}
+
+void command_serialize_args(auxts_command* cmd, msgpack_packer* pk) {
+    msgpack_pack_array(pk, cmd->num_args);
+
+    for (int i = 0; i < cmd->num_args; ++i) {
+        auxts_command_arg* arg = cmd->args[i];
+
+        switch (arg->type) {
+            case AUXTS_COMMAND_ARG_TYPE_STR:
+                command_arg_serialize_str(arg, pk);
+                break;
+            case AUXTS_COMMAND_ARG_TYPE_BIN:
+                command_arg_serialize_bin(arg, pk);
+                break;
+            case AUXTS_COMMAND_ARG_TYPE_INT:
+                command_arg_serialize_int32(arg, pk);
+                break;
+            case AUXTS_COMMAND_ARG_TYPE_FLOAT:
+                command_arg_serialize_float32(arg, pk);
+                break;
+        }
+    }
+}
+
+void command_arg_serialize_str(auxts_command_arg* arg, msgpack_packer* pk) {
+    msgpack_pack_str(pk, arg->as.str.size);
+    msgpack_pack_str_body(pk, arg->as.str.ptr, arg->as.str.size);
+}
+
+void command_arg_serialize_bin(auxts_command_arg* arg, msgpack_packer* pk) {
+    msgpack_pack_bin(pk, arg->as.bin.size);
+    msgpack_pack_bin_body(pk, arg->as.bin.ptr, arg->as.bin.size);
+}
+
+void command_arg_serialize_int32(auxts_command_arg* arg, msgpack_packer* pk) {
+    msgpack_pack_int32(pk, arg->as.i32);
+}
+
+void command_arg_serialize_float32(auxts_command_arg* arg, msgpack_packer* pk) {
+    msgpack_pack_float(pk, arg->as.f32);
 }
 
 auxts_command* command_handle_id(auxts_token* token) {

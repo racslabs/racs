@@ -51,7 +51,7 @@ typedef struct {
     auxts_command** cmd;
 } auxts_command_execution_plan;
 
-typedef auxts_result (*auxts_command_func)(auxts_context* ctx, const char* input, size_t size);
+typedef auxts_result (*auxts_command_func)(auxts_context* ctx, msgpack_sbuffer* sbuf);
 
 void auxts_command_executor_init(auxts_command_executor* exec);
 void auxts_command_executor_destroy(auxts_command_executor* exec);
