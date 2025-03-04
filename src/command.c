@@ -11,6 +11,11 @@ static auxts_command_arg* command_arg_create_bin(const char* ptr, size_t size);
 static auxts_command_arg* command_arg_create_int32(int32_t d);
 static auxts_command_arg* command_arg_create_float32(float d);
 static void command_arg_destroy(auxts_command_arg* arg);
+static auxts_command* command_handle_id(auxts_token* token);
+static void command_handle_str(auxts_command* cmd, auxts_token* token);
+static void command_handle_bin(auxts_command* cmd, auxts_token* token);
+static void command_handle_int32(auxts_command* cmd, auxts_token* token);
+static void command_handle_float32(auxts_command* cmd, auxts_token* token);
 static void command_add_arg(auxts_command* cmd, auxts_command_arg* arg);
 static void command_execution_plan_init(auxts_command_execution_plan* plan);
 static void command_execution_plan_destroy(auxts_command_execution_plan* plan);
@@ -35,46 +40,59 @@ auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_
 
     while (token.type != AUXTS_TOKEN_TYPE_EOF) {
         switch (token.type) {
-            case AUXTS_TOKEN_TYPE_ID: {
-                _cmd = command_create(token.as.id.ptr);
-            }
+            case AUXTS_TOKEN_TYPE_ID:
+                _cmd = command_handle_id(&token);
                 break;
-            case AUXTS_TOKEN_TYPE_STR: {
-                auxts_command_arg* arg = command_arg_create_str(token.as.str.ptr, token.as.str.size);
-                command_add_arg(_cmd, arg);
-            }
+            case AUXTS_TOKEN_TYPE_STR:
+                command_handle_str(_cmd, &token);
                 break;
-            case AUXTS_TOKEN_TYPE_BIN: {
-                auxts_command_arg* arg = command_arg_create_bin(token.as.bin.ptr, token.as.bin.size);
-                command_add_arg(_cmd, arg);
-            }
+            case AUXTS_TOKEN_TYPE_BIN:
+                command_handle_bin(_cmd, &token);
                 break;
-            case AUXTS_TOKEN_TYPE_PIPE: {
+            case AUXTS_TOKEN_TYPE_PIPE:
                 command_execution_plan_add_command(&plan, _cmd);
-            }
                 break;
-            case AUXTS_TOKEN_TYPE_INT: {
-                auxts_command_arg* arg = command_arg_create_int32(token.as.i32);
-                command_add_arg(_cmd, arg);
-            }
+            case AUXTS_TOKEN_TYPE_INT:
+                command_handle_int32(_cmd, &token);
                 break;
-            case AUXTS_TOKEN_TYPE_FLOAT: {
-                auxts_command_arg* arg = command_arg_create_float32(token.as.f32);
-                command_add_arg(_cmd, arg);
-            }
-                break;
-            case AUXTS_TOKEN_TYPE_EOF:
+            case AUXTS_TOKEN_TYPE_FLOAT:
+                command_handle_float32(_cmd, &token);
                 break;
             case AUXTS_TOKEN_TYPE_ERROR:
                 return result;
+            default:
+                break;
         }
 
         token = auxts_parser_next_token(&parser);
     }
 
     command_execution_plan_add_command(&plan, _cmd);
-
     return result;
+}
+
+auxts_command* command_handle_id(auxts_token* token) {
+    return command_create(token->as.id.ptr);
+}
+
+void command_handle_str(auxts_command* cmd, auxts_token* token) {
+    auxts_command_arg* arg = command_arg_create_str(token->as.str.ptr, token->as.str.size);
+    command_add_arg(cmd, arg);
+}
+
+void command_handle_bin(auxts_command* cmd, auxts_token* token) {
+    auxts_command_arg* arg = command_arg_create_bin(token->as.bin.ptr, token->as.bin.size);
+    command_add_arg(cmd, arg);
+}
+
+void command_handle_int32(auxts_command* cmd, auxts_token* token) {
+    auxts_command_arg* arg = command_arg_create_int32(token->as.i32);
+    command_add_arg(cmd, arg);
+}
+
+void command_handle_float32(auxts_command* cmd, auxts_token* token) {
+    auxts_command_arg* arg = command_arg_create_float32(token->as.f32);
+    command_add_arg(cmd, arg);
 }
 
 void auxts_command_executor_init(auxts_command_executor* exec) {
