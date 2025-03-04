@@ -30,8 +30,8 @@ add_executable(auxts main.c
         src/export.h
         src/timestamp.h
         src/timestamp.c
-        src/mmh3-128.h
-        src/mmh3-128.c
+        src/murmur3.h
+        src/murmur3.c
         src/memtable.h
         src/memtable.c
         src/cache.h

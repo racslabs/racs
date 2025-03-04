@@ -132,7 +132,7 @@ void cache_insert_at_head(auxts_cache* cache, auxts_cache_node* node) {
 
 uint64_t cache_hash(void* key) {
     uint64_t hash[2];
-    auxts_mmh3_x64_128(key, 2 * sizeof(uint64_t), 0, hash);
+    murmur3_x64_128(key, 2 * sizeof(uint64_t), 0, hash);
     return hash[0];
 }
 

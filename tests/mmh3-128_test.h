@@ -3,7 +3,7 @@
 #define AUXTS_MMH3_128_TEST_H
 
 #include <assert.h>
-#include "../src/mmh3-128.h"
+#include "../src/murmur3.h"
 
 void test_murmurhash3();
 

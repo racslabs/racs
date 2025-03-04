@@ -325,7 +325,7 @@ auxts_extract_pcm_status deserialize_params(const char* params, size_t size, uin
     }
 
     uint64_t hash[2];
-    auxts_mmh3_x64_128((uint8_t*)_stream_id, stream_id_size, 0, hash);
+    murmur3_x64_128((uint8_t *) _stream_id, stream_id_size, 0, hash);
     *stream_id = hash[0];
 
     free(_stream_id);

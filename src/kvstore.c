@@ -118,7 +118,7 @@ void kvstore_bin_append(auxts_kvstore_bin* bin, void* key, void* value) {
     if (!bin) return;
 
     if (bin->count == bin->capacity) {
-        bin->capacity = 1 << bin->capacity;
+        bin->capacity *= bin->capacity;
 
         auxts_kvstore_entry* entries = realloc(bin->entries, bin->capacity * sizeof(auxts_kvstore_entry));
         if (!entries) {

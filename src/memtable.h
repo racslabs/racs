@@ -16,7 +16,7 @@
 #include "bytes.h"
 #include "endian.h"
 #include "timestamp.h"
-#include "mmh3-128.h"
+#include "murmur3.h"
 
 #ifdef __cplusplus
 extern "C" {
