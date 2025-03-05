@@ -11,7 +11,14 @@ static auxts_extract_pcm_status extract_pcm_data(auxts_cache* cache, auxts_pcm_b
 static void pcm_buffer_destroy(auxts_pcm_buffer* pbuf);
 static void serialize_status_ok(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
 static void serialize_status_not_ok(msgpack_packer* pk, auxts_extract_pcm_status status);
-
+static void serialize_status(msgpack_packer* pk, auxts_extract_pcm_status status);
+static void serialize_message(msgpack_packer* pk, auxts_extract_pcm_status status);
+static void serialize_pcm_buffer(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
+static void serialize_pcm_data(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
+static void serialize_bit_depth(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
+static void serialize_sample_rate(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
+static void serialize_channels(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
+static void serialize_samples(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
 static void deserialize_parameters(uint64_t* stream_id, int64_t* from, int64_t* to, msgpack_sbuffer* in_buf);
 static void deserialize_stream_id(uint64_t* stream_id, msgpack_object* obj);
 static void deserialize_from(int64_t* from, msgpack_object* obj);
@@ -45,20 +52,6 @@ void auxts_extract(msgpack_sbuffer* out_buf, msgpack_sbuffer* in_buf, auxts_cont
     } else {
         serialize_status_not_ok(&pk, status);
     }
-}
-
-void deserialize_parameters(uint64_t* stream_id, int64_t* from, int64_t* to, msgpack_sbuffer* in_buf) {
-    msgpack_unpacked msg;
-    msgpack_unpacked_init(&msg);
-
-    if (msgpack_unpack_next(&msg, in_buf->data, in_buf->size, 0) != MSGPACK_UNPACK_PARSE_ERROR) {
-    }
-
-    msgpack_object* obj = &msg.data;
-
-    deserialize_stream_id(stream_id, obj);
-    deserialize_from(from, obj);
-    deserialize_to(to, obj);
 }
 
 auxts_extract_pcm_status extract_pcm_data(auxts_cache* cache, auxts_pcm_buffer* pbuf, uint64_t stream_id, int64_t from, int64_t to) {
@@ -177,7 +170,7 @@ void pcm_buffer_init(auxts_pcm_buffer* pbuf, uint32_t channels, uint32_t sample_
     pbuf->info.num_samples = 0;
     pbuf->info.channels = channels;
     pbuf->info.sample_rate = sample_rate;
-    pbuf->info.bits_per_sample = bits_per_sample;
+    pbuf->info.bit_depth = bits_per_sample;
     pbuf->info.max_num_samples = AUXTS_INITIAL_PCM_BUFFER_CAPACITY;
 
     pbuf->data = malloc(channels * sizeof(int32_t*));
@@ -246,57 +239,78 @@ uint8_t* pack_pcm_data(const auxts_pcm_buffer* pbuf) {
 void serialize_status_ok(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
     msgpack_pack_array(pk, 12);
 
-    msgpack_pack_str(pk, 6);
-    msgpack_pack_str_body(pk, "status", 6);
+    serialize_status(pk, AUXTS_EXTRACT_PCM_STATUS_OK);
+    serialize_pcm_buffer(pk, pbuf);
+}
 
-    msgpack_pack_str(pk, 2);
-    msgpack_pack_str_body(pk, "OK", 2);
+void serialize_pcm_buffer(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
+    serialize_samples(pk, pbuf);
+    serialize_channels(pk, pbuf);
+    serialize_sample_rate(pk, pbuf);
+    serialize_bit_depth(pk, pbuf);
+    serialize_pcm_data(pk, pbuf);
+}
 
-    msgpack_pack_str(pk, 7);
-    msgpack_pack_str_body(pk, "samples", 7);
-    msgpack_pack_uint64(pk, pbuf->info.num_samples);
+void serialize_samples(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
+    msgpack_pack_str_with_body(pk, "samples", strlen("samples"));
+    msgpack_pack_uint32(pk, pbuf->info.num_samples);
+}
 
-    msgpack_pack_str(pk, 8);
-    msgpack_pack_str_body(pk, "channels", 8);
+void serialize_channels(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
+    msgpack_pack_str_with_body(pk, "channels", strlen("channels"));
     msgpack_pack_uint32(pk, pbuf->info.channels);
+}
 
-    msgpack_pack_str(pk, 11);
-    msgpack_pack_str_body(pk, "sample_rate", 11);
+void serialize_sample_rate(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
+    msgpack_pack_str_with_body(pk, "sample_rate", strlen("sample_rate"));
     msgpack_pack_uint32(pk, pbuf->info.sample_rate);
+}
 
-    msgpack_pack_str(pk, 10);
-    msgpack_pack_str_body(pk, "bit_depth", 10);
-    msgpack_pack_uint32(pk, pbuf->info.bits_per_sample);
+void serialize_bit_depth(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
+    msgpack_pack_str_with_body(pk, "bit_depth", strlen("bit_depth"));
+    msgpack_pack_uint32(pk, pbuf->info.bit_depth);
+}
 
-    msgpack_pack_str(pk, 8);
-    msgpack_pack_str_body(pk, "pcm_data", 8);
+void serialize_status(msgpack_packer* pk, auxts_extract_pcm_status status) {
+    const char* status_code = auxts_extract_pcm_status_code[status];
+    msgpack_pack_str_with_body(pk, "status", strlen("status"));
+    msgpack_pack_str_with_body(pk, status_code, strlen(status_code));
+}
 
-    uint8_t* data = pack_pcm_data(pbuf);
-    size_t size = pbuf->info.num_samples * pbuf->info.channels * sizeof(int32_t);
-
-    msgpack_pack_bin(pk, size);
-    msgpack_pack_bin_body(pk, data, size);
-
-    free(data);
+void serialize_message(msgpack_packer* pk, auxts_extract_pcm_status status) {
+    const char* message = auxts_extract_pcm_status_message[status];
+    msgpack_pack_str_with_body(pk, "message", strlen("message"));
+    msgpack_pack_str_with_body(pk, message, strlen(message));
 }
 
 void serialize_status_not_ok(msgpack_packer* pk, auxts_extract_pcm_status status) {
     msgpack_pack_array(pk, 4);
 
-    msgpack_pack_str(pk, 6);
-    msgpack_pack_str_body(pk, "status", 6);
+    serialize_status(pk, status);
+    serialize_message(pk, status);
+}
 
-    const char* status_code = auxts_extract_pcm_status_code[status];
+void serialize_pcm_data(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
+    uint8_t* data = pack_pcm_data(pbuf);
+    size_t size = pbuf->info.num_samples * pbuf->info.channels * sizeof(int32_t);
 
-    msgpack_pack_str(pk, strlen(status_code));
-    msgpack_pack_str_body(pk, status_code, strlen(status_code));
+    msgpack_pack_str_with_body(pk, "pcm_data", strlen("pcm_data"));
+    msgpack_pack_bin_with_body(pk, data, size);
+    free(data);
+}
 
-    const char* message = auxts_extract_pcm_status_message[status];
-    msgpack_pack_str(pk, 7);
-    msgpack_pack_str_body(pk, "message", 7);
+void deserialize_parameters(uint64_t* stream_id, int64_t* from, int64_t* to, msgpack_sbuffer* in_buf) {
+    msgpack_unpacked msg;
+    msgpack_unpacked_init(&msg);
 
-    msgpack_pack_str(pk, strlen(message));
-    msgpack_pack_str_body(pk, status_code, strlen(message));
+    if (msgpack_unpack_next(&msg, in_buf->data, in_buf->size, 0) != MSGPACK_UNPACK_PARSE_ERROR) {
+    }
+
+    msgpack_object* obj = &msg.data;
+
+    deserialize_stream_id(stream_id, obj);
+    deserialize_from(from, obj);
+    deserialize_to(to, obj);
 }
 
 void deserialize_stream_id(uint64_t* stream_id, msgpack_object* obj) {
