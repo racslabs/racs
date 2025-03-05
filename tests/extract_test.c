@@ -7,11 +7,12 @@ void msgpack_str_assert(const char* expected, const msgpack_object_str* obj_str,
 }
 
 void test_extract() {
-    msgpack_sbuffer sbuf;
+    msgpack_sbuffer in_buf, out_buf;
     msgpack_packer pk;
 
-    msgpack_sbuffer_init(&sbuf);
-    msgpack_packer_init(&pk, &sbuf, msgpack_sbuffer_write);
+    msgpack_sbuffer_init(&in_buf);
+    msgpack_sbuffer_init(&out_buf);
+    msgpack_packer_init(&pk, &in_buf, msgpack_sbuffer_write);
 
     msgpack_pack_array(&pk, 3);
 
@@ -26,11 +27,11 @@ void test_extract() {
 
     auxts_context ctx;
     auxts_context_init(&ctx);
-    auxts_extract(&ctx, &sbuf);
+    auxts_extract(&out_buf, &in_buf, &ctx);
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
-    msgpack_unpack_next(&msg, sbuf.data, sbuf.size, 0);
+    msgpack_unpack_next(&msg, out_buf.data, out_buf.size, 0);
 
     msgpack_object obj = msg.data;
 
@@ -51,6 +52,9 @@ void test_extract() {
     assert(obj.via.array.ptr[9].via.u64 == 16);
 
     msgpack_unpacked_destroy(&msg);
-    msgpack_sbuffer_destroy(&sbuf);
+
+    msgpack_sbuffer_clear(&in_buf);
+    msgpack_sbuffer_clear(&out_buf);
+
     auxts_context_destroy(&ctx);
 }

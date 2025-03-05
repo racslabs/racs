@@ -42,7 +42,7 @@ typedef struct {
     auxts_pcm_buffer_info info;
 } auxts_pcm_buffer;
 
-void auxts_extract(auxts_context* ctx, msgpack_sbuffer* sbuf);
+void auxts_extract(msgpack_sbuffer* out_buf, msgpack_sbuffer* in_buf, auxts_context* ctx);
 
 #ifdef __cplusplus
 }

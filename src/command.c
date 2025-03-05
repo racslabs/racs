@@ -26,7 +26,7 @@ static void command_arg_serialize_float32(auxts_command_arg* arg, msgpack_packer
 static void command_execution_plan_init(auxts_command_execution_plan* plan);
 static void command_execution_plan_destroy(auxts_command_execution_plan* plan);
 static void command_execution_plan_add_command(auxts_command_execution_plan* plan, auxts_command* cmd);
-static auxts_result command_execution_plan_execute(auxts_command_execution_plan* plan, auxts_command_executor* exec, auxts_context* ctx);
+static void command_execution_plan_execute(auxts_command_execution_plan* plan, auxts_command_executor* exec, auxts_context* ctx, msgpack_sbuffer* out_buf, msgpack_sbuffer* in_buf);
 
 auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_context* ctx, const char* cmd) {
     auxts_result result;
@@ -73,32 +73,28 @@ auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_
         token = auxts_parser_next_token(&parser);
     }
 
+    msgpack_sbuffer in_buf;
+    msgpack_sbuffer out_buf;
+
     command_execution_plan_add_command(&plan, _cmd);
-    result = command_execution_plan_execute(&plan, exec, ctx);
+    command_execution_plan_execute(&plan, exec, ctx, &out_buf, &in_buf);
     command_execution_plan_destroy(&plan);
 
     return result;
 }
 
-auxts_result command_execution_plan_execute(auxts_command_execution_plan* plan, auxts_command_executor* exec, auxts_context* ctx) {
+void command_execution_plan_execute(auxts_command_execution_plan* plan, auxts_command_executor* exec, auxts_context* ctx, msgpack_sbuffer* out_buf, msgpack_sbuffer* in_buf) {
     msgpack_packer pk;
-    msgpack_sbuffer in_buf;
-
-    auxts_result result;
 
     for (int i = 0; i < plan->num_cmd; ++i) {
-        msgpack_sbuffer_init(&in_buf);
-        msgpack_packer_init(&pk, &in_buf, msgpack_sbuffer_write);
+        msgpack_sbuffer_init(in_buf);
+        msgpack_packer_init(&pk, in_buf, msgpack_sbuffer_write);
 
         auxts_command* cmd = plan->cmd[i];
         auxts_command_func func = command_executor_get(exec, cmd->name);
-        if (!func) {
-            //TODO: handle
-            return result;
-        }
+
 
         command_serialize_args(cmd, &pk);
-        result = func(ctx, &in_buf);
 
 
 
