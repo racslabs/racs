@@ -1,28 +1,11 @@
 #include "extract.h"
 
-static void pcm_buffer_init(auxts_pcm_buffer* pbuf, uint32_t channels, uint32_t sample_rate, uint32_t bits_per_sample);
 static void pcm_buffer_append(auxts_pcm_buffer* pbuf, auxts_pcm_block* block);
 static void pcm_block_destroy(auxts_pcm_block* block);
 static uint8_t* get_data_from_cache_or_sstable(auxts_cache* cache, uint64_t stream_id, int64_t timestamp, const char* file_path);
 static auxts_flac_blocks* extract_flac_blocks(auxts_cache* cache, uint64_t stream_id, int64_t from, int64_t to);
 static void process_sstable_data(auxts_flac_blocks* blocks, uint64_t stream_id, int64_t from, int64_t to, uint8_t* data);
-static uint8_t* pack_pcm_data(const auxts_pcm_buffer* pbuf);
-static auxts_extract_pcm_status extract_pcm_data(auxts_cache* cache, auxts_pcm_buffer* pbuf, uint64_t stream_id, int64_t from, int64_t to);
-static void pcm_buffer_destroy(auxts_pcm_buffer* pbuf);
-static void serialize_status_ok(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
-static void serialize_status_not_ok(msgpack_packer* pk, auxts_extract_pcm_status status);
-static void serialize_status(msgpack_packer* pk, auxts_extract_pcm_status status);
-static void serialize_message(msgpack_packer* pk, auxts_extract_pcm_status status);
-static void serialize_pcm_buffer(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
-static void serialize_pcm_data(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
-static void serialize_bit_depth(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
-static void serialize_sample_rate(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
-static void serialize_channels(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
-static void serialize_samples(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
-static void deserialize_parameters(uint64_t* stream_id, int64_t* from, int64_t* to, msgpack_sbuffer* in_buf);
-static void deserialize_stream_id(uint64_t* stream_id, msgpack_object* obj);
-static void deserialize_from(int64_t* from, msgpack_object* obj);
-static void deserialize_to(int64_t* to, msgpack_object* obj);
+
 
 const char* const auxts_extract_pcm_status_message[] = {
         "OK",
@@ -36,27 +19,7 @@ const char* const auxts_extract_pcm_status_code[] = {
         "ERROR"
 };
 
-void auxts_extract(msgpack_sbuffer* out_buf, msgpack_sbuffer* in_buf, auxts_context* ctx) {
-    int64_t from, to;
-    uint64_t stream_id;
-    deserialize_parameters(&stream_id, &from, &to, in_buf);
-
-    msgpack_packer pk;
-    msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
-
-    auxts_pcm_buffer pbuf;
-    auxts_extract_pcm_status status = extract_pcm_data(ctx->cache, &pbuf, stream_id, from, to);
-
-    //TODO: abstract into another method
-    if (status == AUXTS_EXTRACT_PCM_STATUS_OK) {
-        serialize_status_ok(&pk, &pbuf);
-        pcm_buffer_destroy(&pbuf);
-    } else {
-        serialize_status_not_ok(&pk, status);
-    }
-}
-
-auxts_extract_pcm_status extract_pcm_data(auxts_cache* cache, auxts_pcm_buffer* pbuf, uint64_t stream_id, int64_t from, int64_t to) {
+auxts_extract_pcm_status auxts_extract_pcm_data(auxts_cache* cache, auxts_pcm_buffer* pbuf, uint64_t stream_id, int64_t from, int64_t to) {
     auxts_flac_blocks* blocks = extract_flac_blocks(cache, stream_id, from, to);
     if (!blocks->num_blocks) {
         auxts_flac_blocks_destroy(blocks);
@@ -66,7 +29,7 @@ auxts_extract_pcm_status extract_pcm_data(auxts_cache* cache, auxts_pcm_buffer* 
     auxts_flac_block* flac_block = blocks->blocks[0];
     auxts_pcm_block* pcm_block = auxts_decode_flac_block(flac_block);
 
-    pcm_buffer_init(pbuf, pcm_block->info.channels, pcm_block->info.sample_rate, pcm_block->info.bits_per_sample);
+    auxts_pcm_buffer_init(pbuf, pcm_block->info.channels, pcm_block->info.sample_rate, pcm_block->info.bits_per_sample);
     pcm_buffer_append(pbuf, pcm_block);
 
     pcm_block_destroy(pcm_block);
@@ -84,7 +47,7 @@ auxts_extract_pcm_status extract_pcm_data(auxts_cache* cache, auxts_pcm_buffer* 
     return AUXTS_EXTRACT_PCM_STATUS_OK;
 }
 
-void pcm_buffer_destroy(auxts_pcm_buffer* pbuf) {
+void auxts_pcm_buffer_destroy(auxts_pcm_buffer* pbuf) {
     for (int channel = 0; channel < pbuf->info.channels; ++channel) {
         free(pbuf->data[channel]);
     }
@@ -168,7 +131,7 @@ auxts_flac_blocks* extract_flac_blocks(auxts_cache* cache, uint64_t stream_id, i
     return blocks;
 }
 
-void pcm_buffer_init(auxts_pcm_buffer* pbuf, uint32_t channels, uint32_t sample_rate, uint32_t bits_per_sample) {
+void auxts_pcm_buffer_init(auxts_pcm_buffer* pbuf, uint32_t channels, uint32_t sample_rate, uint32_t bits_per_sample) {
     pbuf->info.num_samples = 0;
     pbuf->info.channels = channels;
     pbuf->info.sample_rate = sample_rate;
@@ -221,7 +184,7 @@ void pcm_buffer_append(auxts_pcm_buffer* pbuf, auxts_pcm_block* block) {
     pbuf->info.num_samples = num_samples;
 }
 
-uint8_t* pack_pcm_data(const auxts_pcm_buffer* pbuf) {
+uint8_t* auxts_pack_pcm_data(const auxts_pcm_buffer* pbuf) {
     uint8_t* samples = malloc(pbuf->info.num_samples * pbuf->info.channels * sizeof(int32_t));
     if (!samples) {
         perror("Failed to allocate samples");
@@ -236,111 +199,4 @@ uint8_t* pack_pcm_data(const auxts_pcm_buffer* pbuf) {
     }
 
     return samples;
-}
-
-void serialize_status_ok(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
-    msgpack_pack_array(pk, 12);
-
-    serialize_status(pk, AUXTS_EXTRACT_PCM_STATUS_OK);
-    serialize_pcm_buffer(pk, pbuf);
-}
-
-void serialize_pcm_buffer(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
-    serialize_samples(pk, pbuf);
-    serialize_channels(pk, pbuf);
-    serialize_sample_rate(pk, pbuf);
-    serialize_bit_depth(pk, pbuf);
-    serialize_pcm_data(pk, pbuf);
-}
-
-void serialize_samples(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
-    msgpack_pack_str_with_body(pk, "samples", strlen("samples"));
-    msgpack_pack_uint32(pk, pbuf->info.num_samples);
-}
-
-void serialize_channels(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
-    msgpack_pack_str_with_body(pk, "channels", strlen("channels"));
-    msgpack_pack_uint32(pk, pbuf->info.channels);
-}
-
-void serialize_sample_rate(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
-    msgpack_pack_str_with_body(pk, "sample_rate", strlen("sample_rate"));
-    msgpack_pack_uint32(pk, pbuf->info.sample_rate);
-}
-
-void serialize_bit_depth(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
-    msgpack_pack_str_with_body(pk, "bit_depth", strlen("bit_depth"));
-    msgpack_pack_uint32(pk, pbuf->info.bit_depth);
-}
-
-void serialize_status(msgpack_packer* pk, auxts_extract_pcm_status status) {
-    const char* status_code = auxts_extract_pcm_status_code[status];
-    msgpack_pack_str_with_body(pk, "status", strlen("status"));
-    msgpack_pack_str_with_body(pk, status_code, strlen(status_code));
-}
-
-void serialize_message(msgpack_packer* pk, auxts_extract_pcm_status status) {
-    const char* message = auxts_extract_pcm_status_message[status];
-    msgpack_pack_str_with_body(pk, "message", strlen("message"));
-    msgpack_pack_str_with_body(pk, message, strlen(message));
-}
-
-void serialize_status_not_ok(msgpack_packer* pk, auxts_extract_pcm_status status) {
-    msgpack_pack_array(pk, 4);
-
-    serialize_status(pk, status);
-    serialize_message(pk, status);
-}
-
-void serialize_pcm_data(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
-    uint8_t* data = pack_pcm_data(pbuf);
-    size_t size = pbuf->info.num_samples * pbuf->info.channels * sizeof(int32_t);
-
-    msgpack_pack_str_with_body(pk, "pcm_data", strlen("pcm_data"));
-    msgpack_pack_bin_with_body(pk, data, size);
-
-    free(data);
-}
-
-void deserialize_parameters(uint64_t* stream_id, int64_t* from, int64_t* to, msgpack_sbuffer* in_buf) {
-    msgpack_unpacked msg;
-    msgpack_unpacked_init(&msg);
-
-    if (msgpack_unpack_next(&msg, in_buf->data, in_buf->size, 0) != MSGPACK_UNPACK_PARSE_ERROR) {
-    }
-
-    msgpack_object* obj = &msg.data;
-
-    deserialize_stream_id(stream_id, obj);
-    deserialize_from(from, obj);
-    deserialize_to(to, obj);
-}
-
-void deserialize_stream_id(uint64_t* stream_id, msgpack_object* obj) {
-    size_t size = obj->via.array.ptr[0].via.str.size + 1;
-
-    char* buf = malloc(size);
-    strlcpy(buf, obj->via.array.ptr[0].via.str.ptr, size);
-
-    uint64_t hash[2];
-    murmur3_x64_128((uint8_t*)buf, strlen(buf), 0, hash);
-    *stream_id = hash[0];
-
-    free(buf);
-}
-
-void deserialize_from(int64_t* from, msgpack_object* obj) {
-    char buf[55];
-
-    size_t size = obj->via.array.ptr[1].via.str.size + 1;
-    strlcpy(buf, obj->via.array.ptr[1].via.str.ptr, size);
-    *from = auxts_parse_rfc3339(buf);
-}
-
-void deserialize_to(int64_t* to, msgpack_object* obj) {
-    char buf[55];
-
-    size_t size = obj->via.array.ptr[2].via.str.size + 1;
-    strlcpy(buf, obj->via.array.ptr[2].via.str.ptr, size);
-    *to = auxts_parse_rfc3339(buf);
 }

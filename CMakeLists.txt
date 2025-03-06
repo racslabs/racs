@@ -70,8 +70,12 @@ add_executable(auxts main.c
         src/parser.c
         tests/parser_test.h
         tests/parser_test.c
-        src/command.h
-        src/command.c
+        src/command_exec.h
+        src/command_exec.c
+        src/commands.h
+        src/commands.c
+        src/serialization.h
+        src/serialization.c
 )
 
 target_include_directories(auxts PUBLIC ${msgpack-c_INCLUDE_DIRS})

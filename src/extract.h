@@ -42,7 +42,10 @@ typedef struct {
     auxts_pcm_buffer_info info;
 } auxts_pcm_buffer;
 
-void auxts_extract(msgpack_sbuffer* out_buf, msgpack_sbuffer* in_buf, auxts_context* ctx);
+uint8_t* auxts_pack_pcm_data(const auxts_pcm_buffer* pbuf);
+void auxts_pcm_buffer_destroy(auxts_pcm_buffer* pbuf);
+void auxts_pcm_buffer_init(auxts_pcm_buffer* pbuf, uint32_t channels, uint32_t sample_rate, uint32_t bits_per_sample);
+auxts_extract_pcm_status auxts_extract_pcm_data(auxts_cache* cache, auxts_pcm_buffer* pbuf, uint64_t stream_id, int64_t from, int64_t to);
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,4 @@
-#include "command.h"
+#include "command_exec.h"
 
 static uint64_t command_executor_hash(void* key);
 static int command_executor_cmp(void* a, void* b);
@@ -26,7 +26,7 @@ static void command_arg_serialize_float32(auxts_command_arg* arg, msgpack_packer
 static void command_execution_plan_init(auxts_command_execution_plan* plan);
 static void command_execution_plan_destroy(auxts_command_execution_plan* plan);
 static void command_execution_plan_add_command(auxts_command_execution_plan* plan, auxts_command* cmd);
-static void command_execution_plan_execute(auxts_command_execution_plan* plan, auxts_command_executor* exec, auxts_context* ctx, msgpack_sbuffer* out_buf, msgpack_sbuffer* in_buf);
+static void command_execution_plan_execute(auxts_command_execution_plan* plan, auxts_command_executor* exec, auxts_context* ctx, msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf);
 
 auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_context* ctx, const char* cmd) {
     auxts_result result;
@@ -80,7 +80,7 @@ auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_
     msgpack_sbuffer_init(&out_buf);
 
     command_execution_plan_add_command(&plan, _cmd);
-    command_execution_plan_execute(&plan, exec, ctx, &out_buf, &in_buf);
+    command_execution_plan_execute(&plan, exec, ctx, &in_buf, &out_buf);
     command_execution_plan_destroy(&plan);
 
     auxts_result_init(&result, out_buf.size);
@@ -89,13 +89,11 @@ auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_
     msgpack_sbuffer_destroy(&in_buf);
     msgpack_sbuffer_destroy(&out_buf);
 
-
     return result;
 }
 
-void command_execution_plan_execute(auxts_command_execution_plan* plan, auxts_command_executor* exec, auxts_context* ctx, msgpack_sbuffer* out_buf, msgpack_sbuffer* in_buf) {
+void command_execution_plan_execute(auxts_command_execution_plan* plan, auxts_command_executor* exec, auxts_context* ctx, msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf) {
     msgpack_packer pk;
-
 
     for (int i = 0; i < plan->num_cmd; ++i) {
         msgpack_packer_init(&pk, in_buf, msgpack_sbuffer_write);
@@ -104,7 +102,7 @@ void command_execution_plan_execute(auxts_command_execution_plan* plan, auxts_co
         auxts_command_func func = command_executor_get(exec, cmd->name);
 
         command_serialize_args(cmd, &pk);
-        func(out_buf, in_buf, ctx);
+        func(in_buf, out_buf, ctx);
 
         msgpack_sbuffer_clear(in_buf);
     }
@@ -138,13 +136,11 @@ void command_serialize_args(auxts_command* cmd, msgpack_packer* pk) {
 }
 
 void command_arg_serialize_str(auxts_command_arg* arg, msgpack_packer* pk) {
-    msgpack_pack_str(pk, arg->as.str.size);
-    msgpack_pack_str_body(pk, arg->as.str.ptr, arg->as.str.size);
+    msgpack_pack_str_with_body(pk, arg->as.str.ptr, arg->as.str.size);
 }
 
 void command_arg_serialize_bin(auxts_command_arg* arg, msgpack_packer* pk) {
-    msgpack_pack_bin(pk, arg->as.bin.size);
-    msgpack_pack_bin_body(pk, arg->as.bin.ptr, arg->as.bin.size);
+    msgpack_pack_bin_with_body(pk, arg->as.bin.ptr, arg->as.bin.size);
 }
 
 void command_arg_serialize_int32(auxts_command_arg* arg, msgpack_packer* pk) {
@@ -181,7 +177,7 @@ void command_handle_float32(auxts_command* cmd, auxts_token* token) {
 
 void auxts_command_executor_init(auxts_command_executor* exec) {
     exec->kv = auxts_kvstore_create(10, command_executor_hash, command_executor_cmp, command_executor_destroy);
-    auxts_kvstore_put(exec->kv, "extract", auxts_extract);
+    auxts_kvstore_put(exec->kv, "extract", auxts_command_extract);
 }
 
 void auxts_command_executor_destroy(auxts_command_executor* exec) {
@@ -199,7 +195,6 @@ auxts_command* command_create(const char* name, size_t size) {
     cmd->max_num_args = 4;
 
     strlcpy(cmd->name, name, size);
-
     cmd->args = malloc(cmd->max_num_args * sizeof(auxts_command_arg*));
     if (!cmd->args) {
         perror("Failed to allocate args to auxts_command");
@@ -344,4 +339,3 @@ int command_executor_cmp(void* a, void* b) {
 }
 
 void command_executor_destroy(void* key, void* value) {}
-
