@@ -13,7 +13,7 @@ void test_extract() {
     auxts_command_executor exec;
     auxts_command_executor_init(&exec);
 
-    auxts_result result = auxts_command_executor_execute(&exec, &ctx, "extract \"test\" \"2025-02-09T22:51:52.213Z\" \"2025-02-09T22:51:52.215Z\"");
+    auxts_result result = auxts_command_executor_execute(&exec, &ctx, "extract 'test' '2025-02-09T22:51:52.213Z' '2025-02-09T22:51:52.215Z'");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
