@@ -3,7 +3,7 @@
 #define AUXTS_EXTRACT_TEST_H
 
 #include <assert.h>
-#include "../src/extract.h"
+#include "../src/command.h"
 
 void test_extract();
 

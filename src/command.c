@@ -4,7 +4,7 @@ static uint64_t command_executor_hash(void* key);
 static int command_executor_cmp(void* a, void* b);
 static void command_executor_destroy(void* key, void* value);
 static auxts_command_func command_executor_get(auxts_command_executor* exec, const char* cmd_name);
-static auxts_command* command_create(const char* name);
+static auxts_command* command_create(const char* name, size_t size);
 static void command_destroy(auxts_command* cmd);
 static auxts_command_arg* command_arg_create();
 static auxts_command_arg* command_arg_create_str(const char* ptr, size_t size);
@@ -76,9 +76,19 @@ auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_
     msgpack_sbuffer in_buf;
     msgpack_sbuffer out_buf;
 
+    msgpack_sbuffer_init(&in_buf);
+    msgpack_sbuffer_init(&out_buf);
+
     command_execution_plan_add_command(&plan, _cmd);
     command_execution_plan_execute(&plan, exec, ctx, &out_buf, &in_buf);
     command_execution_plan_destroy(&plan);
+
+    auxts_result_init(&result, out_buf.size);
+    memcpy(result.data, out_buf.data, out_buf.size);
+
+    msgpack_sbuffer_destroy(&in_buf);
+    msgpack_sbuffer_destroy(&out_buf);
+
 
     return result;
 }
@@ -86,26 +96,18 @@ auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_
 void command_execution_plan_execute(auxts_command_execution_plan* plan, auxts_command_executor* exec, auxts_context* ctx, msgpack_sbuffer* out_buf, msgpack_sbuffer* in_buf) {
     msgpack_packer pk;
 
+
     for (int i = 0; i < plan->num_cmd; ++i) {
-        msgpack_sbuffer_init(in_buf);
         msgpack_packer_init(&pk, in_buf, msgpack_sbuffer_write);
 
         auxts_command* cmd = plan->cmd[i];
         auxts_command_func func = command_executor_get(exec, cmd->name);
 
-
         command_serialize_args(cmd, &pk);
+        func(out_buf, in_buf, ctx);
 
-
-
-
-
-
+        msgpack_sbuffer_clear(in_buf);
     }
-
-    
-
-
 }
 
 auxts_command_func command_executor_get(auxts_command_executor* exec, const char* cmd_name) {
@@ -154,7 +156,7 @@ void command_arg_serialize_float32(auxts_command_arg* arg, msgpack_packer* pk) {
 }
 
 auxts_command* command_handle_id(auxts_token* token) {
-    return command_create(token->as.id.ptr);
+    return command_create(token->as.id.ptr, token->as.id.size + 1);
 }
 
 void command_handle_str(auxts_command* cmd, auxts_token* token) {
@@ -186,16 +188,17 @@ void auxts_command_executor_destroy(auxts_command_executor* exec) {
     auxts_kvstore_destroy(exec->kv);
 }
 
-auxts_command* command_create(const char* name) {
+auxts_command* command_create(const char* name, size_t size) {
     auxts_command* cmd = malloc(sizeof(auxts_command));
     if (!cmd) {
         perror("Failed to allocate auxts_command");
         return NULL;
     }
 
-    cmd->name = name;
     cmd->num_args = 0;
     cmd->max_num_args = 4;
+
+    strlcpy(cmd->name, name, size);
 
     cmd->args = malloc(cmd->max_num_args * sizeof(auxts_command_arg*));
     if (!cmd->args) {
@@ -330,14 +333,14 @@ void command_execution_plan_add_command(auxts_command_execution_plan* plan, auxt
 
 uint64_t command_executor_hash(void* key) {
     uint64_t hash[2];
-    murmur3_x64_128(key, 2 * sizeof(uint64_t), 0, hash);
+    murmur3_x64_128(key, strlen((char*)key), 0, hash);
     return hash[0];
 }
 
 int command_executor_cmp(void* a, void* b) {
     uint64_t* x = (uint64_t*)a;
     uint64_t* y = (uint64_t*)b;
-    return x[0] == y[0] && x[1] == y[1];
+    return x[0] == y[0];
 }
 
 void command_executor_destroy(void* key, void* value) {}

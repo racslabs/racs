@@ -39,9 +39,9 @@ typedef struct {
 } auxts_command_arg;
 
 typedef struct {
+    char name[255];
     int num_args;
     int max_num_args;
-    const char* name;
     auxts_command_arg** args;
 } auxts_command;
 

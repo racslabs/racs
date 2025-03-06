@@ -46,6 +46,8 @@ void auxts_extract(msgpack_sbuffer* out_buf, msgpack_sbuffer* in_buf, auxts_cont
 
     auxts_pcm_buffer pbuf;
     auxts_extract_pcm_status status = extract_pcm_data(ctx->cache, &pbuf, stream_id, from, to);
+
+    //TODO: abstract into another method
     if (status == AUXTS_EXTRACT_PCM_STATUS_OK) {
         serialize_status_ok(&pk, &pbuf);
         pcm_buffer_destroy(&pbuf);
@@ -296,6 +298,7 @@ void serialize_pcm_data(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
 
     msgpack_pack_str_with_body(pk, "pcm_data", strlen("pcm_data"));
     msgpack_pack_bin_with_body(pk, data, size);
+
     free(data);
 }
 
@@ -327,21 +330,17 @@ void deserialize_stream_id(uint64_t* stream_id, msgpack_object* obj) {
 }
 
 void deserialize_from(int64_t* from, msgpack_object* obj) {
-    size_t size = obj->via.array.ptr[1].via.str.size + 1;
+    char buf[55];
 
-    char* buf = malloc(size);
+    size_t size = obj->via.array.ptr[1].via.str.size + 1;
     strlcpy(buf, obj->via.array.ptr[1].via.str.ptr, size);
     *from = auxts_parse_rfc3339(buf);
-
-    free(buf);
 }
 
 void deserialize_to(int64_t* to, msgpack_object* obj) {
-    size_t size = obj->via.array.ptr[2].via.str.size + 1;
+    char buf[55];
 
-    char* buf = malloc(size);
+    size_t size = obj->via.array.ptr[2].via.str.size + 1;
     strlcpy(buf, obj->via.array.ptr[2].via.str.ptr, size);
     *to = auxts_parse_rfc3339(buf);
-
-    free(buf);
 }

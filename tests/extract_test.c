@@ -7,31 +7,17 @@ void msgpack_str_assert(const char* expected, const msgpack_object_str* obj_str,
 }
 
 void test_extract() {
-    msgpack_sbuffer in_buf, out_buf;
-    msgpack_packer pk;
-
-    msgpack_sbuffer_init(&in_buf);
-    msgpack_sbuffer_init(&out_buf);
-    msgpack_packer_init(&pk, &in_buf, msgpack_sbuffer_write);
-
-    msgpack_pack_array(&pk, 3);
-
-    msgpack_pack_str(&pk, 4);
-    msgpack_pack_str_body(&pk, "test", 4);
-
-    msgpack_pack_str(&pk, 24);
-    msgpack_pack_str_body(&pk, "2025-02-09T22:51:52.213Z", 24);
-
-    msgpack_pack_str(&pk, 24);
-    msgpack_pack_str_body(&pk, "2025-02-09T22:51:52.215Z", 24);
-
     auxts_context ctx;
     auxts_context_init(&ctx);
-    auxts_extract(&out_buf, &in_buf, &ctx);
+
+    auxts_command_executor exec;
+    auxts_command_executor_init(&exec);
+
+    auxts_result result = auxts_command_executor_execute(&exec, &ctx, "extract \"test\" \"2025-02-09T22:51:52.213Z\" \"2025-02-09T22:51:52.215Z\"");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
-    msgpack_unpack_next(&msg, out_buf.data, out_buf.size, 0);
+    msgpack_unpack_next(&msg, (char*)result.data, result.size, 0);
 
     msgpack_object obj = msg.data;
 
@@ -52,9 +38,5 @@ void test_extract() {
     assert(obj.via.array.ptr[9].via.u64 == 16);
 
     msgpack_unpacked_destroy(&msg);
-
-    msgpack_sbuffer_clear(&in_buf);
-    msgpack_sbuffer_clear(&out_buf);
-
     auxts_context_destroy(&ctx);
 }
