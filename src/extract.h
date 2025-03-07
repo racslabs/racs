@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-#define AUXTS_INITIAL_PCM_BUFFER_CAPACITY 2
+extern const char* const auxts_extract_pcm_status_message[];
 
 typedef enum {
     AUXTS_EXTRACT_PCM_STATUS_OK,

@@ -8,8 +8,6 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
-#define AUXTS_INITIAL_FILE_LIST_CAPACITY 2
-
 typedef struct {
     char** files;
     size_t num_files;

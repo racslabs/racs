@@ -122,7 +122,7 @@ void auxts_pcm_buffer_init(auxts_pcm_buffer* pbuf, uint32_t channels, uint32_t s
     pbuf->info.channels = channels;
     pbuf->info.sample_rate = sample_rate;
     pbuf->info.bit_depth = bits_per_sample;
-    pbuf->info.max_num_samples = AUXTS_INITIAL_PCM_BUFFER_CAPACITY;
+    pbuf->info.max_num_samples = 2;
 
     pbuf->data = malloc(channels * sizeof(int32_t*));
     if (!pbuf->data) {
@@ -130,7 +130,7 @@ void auxts_pcm_buffer_init(auxts_pcm_buffer* pbuf, uint32_t channels, uint32_t s
     }
 
     for (int channel = 0; channel < channels; ++channel) {
-        pbuf->data[channel] = malloc(AUXTS_INITIAL_PCM_BUFFER_CAPACITY * sizeof(int32_t));
+        pbuf->data[channel] = malloc(2 * sizeof(int32_t));
     }
 }
 

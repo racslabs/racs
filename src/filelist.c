@@ -1,6 +1,6 @@
 #include "filelist.h"
 
-static int path_comparator(const void* path1, const void* path2);
+static int path_cmp(const void* path1, const void* path2);
 static void list_files_recursive(auxts_filelist* list, const char* path);
 
 auxts_filelist* auxts_filelist_create() {
@@ -12,9 +12,9 @@ auxts_filelist* auxts_filelist_create() {
     }
 
     list->num_files = 0;
-    list->max_num_files = AUXTS_INITIAL_FILE_LIST_CAPACITY;
+    list->max_num_files = 2;
 
-    list->files = malloc(AUXTS_INITIAL_FILE_LIST_CAPACITY * sizeof(char*));
+    list->files = malloc(2 * sizeof(char*));
     if (!list->files) {
         perror("Failed to allocate file paths to auxts_filelist");
         auxts_filelist_destroy(list);
@@ -26,7 +26,7 @@ auxts_filelist* auxts_filelist_create() {
 
 void auxts_filelist_add(auxts_filelist* list, const char* file_path) {
     if (list->num_files == list->max_num_files) {
-        list->max_num_files = 1 << list->max_num_files;
+        list->max_num_files *= 2;
 
         char** files = realloc(list->files, list->max_num_files * sizeof(char*));
         if (!files) {
@@ -113,9 +113,9 @@ char* auxts_resolve_shared_path(const char* path1, const char* path2) {
 }
 
 void auxts_filelist_sort(auxts_filelist* list) {
-    qsort(list->files, list->num_files, sizeof(char*), path_comparator);
+    qsort(list->files, list->num_files, sizeof(char *), path_cmp);
 }
 
-int path_comparator(const void* path1, const void* path2) {
+int path_cmp(const void* path1, const void* path2) {
     return strcmp(*(const char**)path1, *(const char**) path2);
 }

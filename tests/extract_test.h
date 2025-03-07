@@ -7,5 +7,6 @@
 #include "../src/command_exec.h"
 
 void test_extract();
+void test_extract_no_data();
 
 #endif //AUXTS_EXTRACT_TEST_H

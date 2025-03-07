@@ -8,8 +8,7 @@ auxts_create_command(extract) {
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
 
     if (msgpack_unpack_next(&msg, in_buf->data, in_buf->size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
-        auxts_serialize_status_not_ok(&pk, AUXTS_COMMAND_STATUS_ERROR,
-                                      "Error deserializing args for EXTRACT command");
+        auxts_serialize_status_not_ok(&pk, AUXTS_COMMAND_STATUS_ERROR, "Error deserializing args for EXTRACT command");
         return AUXTS_COMMAND_STATUS_ERROR;
     }
 
@@ -21,8 +20,7 @@ auxts_create_command(extract) {
     int64_t from, to;
     auxts_deserialize_range(&from, &to, obj);
     if (from == -1 || to == -1) {
-        auxts_serialize_status_not_ok(&pk, AUXTS_COMMAND_STATUS_ERROR,
-                                      "Invalid RFC-3339 timestamp. Expected format: yyyy-MM-ddTHH:mm:ss.SSSZ");
+        auxts_serialize_status_not_ok(&pk, AUXTS_COMMAND_STATUS_ERROR, "Invalid RFC-3339 timestamp. Expected format: yyyy-MM-ddTHH:mm:ss.SSSZ");
         return AUXTS_COMMAND_STATUS_ERROR;
     }
 
@@ -35,5 +33,11 @@ auxts_create_command(extract) {
         return AUXTS_COMMAND_STATUS_OK;
     }
 
+    if (status == AUXTS_EXTRACT_PCM_STATUS_NO_DATA) {
+        auxts_serialize_status_not_ok(&pk, AUXTS_COMMAND_STATUS_NO_DATA, "No data found");
+        return AUXTS_COMMAND_STATUS_NO_DATA;
+    }
+
+    auxts_serialize_status_not_ok(&pk, AUXTS_COMMAND_STATUS_ERROR, "Error running EXTRACT command");
     return AUXTS_COMMAND_STATUS_ERROR;
 }
