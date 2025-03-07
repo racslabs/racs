@@ -4,7 +4,8 @@ auxts_create_command(extract) {
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
 
-    if (msgpack_unpack_next(&msg, in_buf->data, in_buf->size, 0) != MSGPACK_UNPACK_PARSE_ERROR) {
+    if (msgpack_unpack_next(&msg, in_buf->data, in_buf->size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
+        return AUXTS_COMMAND_STATUS_ERROR;
     }
 
     msgpack_object* obj = &msg.data;
@@ -30,9 +31,10 @@ auxts_create_command(extract) {
 
     //TODO: abstract into another method
     if (status == AUXTS_EXTRACT_PCM_STATUS_OK) {
-        auxts_serialize_status_ok(&pk, &pbuf);
+        auxts_serialize_pcm_buffer(&pk, &pbuf);
         auxts_pcm_buffer_destroy(&pbuf);
-    } else {
-        auxts_serialize_status_not_ok(&pk, status);
+        return AUXTS_COMMAND_STATUS_OK;
     }
+
+    return AUXTS_COMMAND_STATUS_ERROR;
 }

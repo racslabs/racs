@@ -6,19 +6,6 @@ static uint8_t* get_data_from_cache_or_sstable(auxts_cache* cache, uint64_t stre
 static auxts_flac_blocks* extract_flac_blocks(auxts_cache* cache, uint64_t stream_id, int64_t from, int64_t to);
 static void process_sstable_data(auxts_flac_blocks* blocks, uint64_t stream_id, int64_t from, int64_t to, uint8_t* data);
 
-
-const char* const auxts_extract_pcm_status_message[] = {
-        "OK",
-        "PCM data not found for the given parameters",
-        "Invalid RFC3339 timestamp. Expecting format: YYYY-MM-DDTHH:MM:SS[.sss]Z"
-};
-
-const char* const auxts_extract_pcm_status_code[] = {
-        "OK",
-        "NO_DATA",
-        "ERROR"
-};
-
 auxts_extract_pcm_status auxts_extract_pcm_data(auxts_cache* cache, auxts_pcm_buffer* pbuf, uint64_t stream_id, int64_t from, int64_t to) {
     auxts_flac_blocks* blocks = extract_flac_blocks(cache, stream_id, from, to);
     if (!blocks->num_blocks) {
@@ -31,7 +18,6 @@ auxts_extract_pcm_status auxts_extract_pcm_data(auxts_cache* cache, auxts_pcm_bu
 
     auxts_pcm_buffer_init(pbuf, pcm_block->info.channels, pcm_block->info.sample_rate, pcm_block->info.bits_per_sample);
     pcm_buffer_append(pbuf, pcm_block);
-
     pcm_block_destroy(pcm_block);
 
     for (int i = 1; i < blocks->num_blocks; ++i) {

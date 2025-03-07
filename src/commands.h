@@ -5,8 +5,14 @@
 #include <msgpack.h>
 #include "serialization.h"
 
+typedef enum {
+    AUXTS_COMMAND_STATUS_OK,
+    AUXTS_COMMAND_STATUS_NO_DATA,
+    AUXTS_COMMAND_STATUS_ERROR
+} auxts_command_status;
+
 #define auxts_create_command(name) \
-    void auxts_command_##name(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, auxts_context* ctx)
+    int auxts_command_##name(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, auxts_context* ctx)
 
 auxts_create_command(extract);
 

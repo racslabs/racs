@@ -1,20 +1,26 @@
 #include "serialization.h"
 
+
+const char* const auxts_status_code[] = {
+        "OK",
+        "NO_DATA",
+        "ERROR"
+};
+
 static void serialize_pcm_data(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
 static void serialize_pcm_bit_depth(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
 static void serialize_pcm_sample_rate(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
 static void serialize_pcm_channels(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
 static void serialize_pcm_samples(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
 
-
-void auxts_serialize_status_ok(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
-    msgpack_pack_array(pk, 12);
-
-    auxts_serialize_status(pk, AUXTS_EXTRACT_PCM_STATUS_OK);
-    auxts_serialize_pcm_buffer(pk, pbuf);
+void auxts_serialize_status_ok(msgpack_packer* pk) {
+    auxts_serialize_status(pk, 0);
 }
 
 void auxts_serialize_pcm_buffer(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
+    msgpack_pack_array(pk, 12);
+
+    auxts_serialize_status_ok(pk);
     serialize_pcm_samples(pk, pbuf);
     serialize_pcm_channels(pk, pbuf);
     serialize_pcm_sample_rate(pk, pbuf);
@@ -42,23 +48,20 @@ void serialize_pcm_bit_depth(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
     msgpack_pack_uint32(pk, pbuf->info.bit_depth);
 }
 
-void auxts_serialize_status(msgpack_packer* pk, auxts_extract_pcm_status status) {
-    const char* status_code = auxts_extract_pcm_status_code[status];
+void auxts_serialize_status(msgpack_packer* pk, int status) {
+    const char* status_code = auxts_status_code[status];
     msgpack_pack_str_with_body(pk, "status", strlen("status"));
     msgpack_pack_str_with_body(pk, status_code, strlen(status_code));
 }
 
-void auxts_serialize_message(msgpack_packer* pk, auxts_extract_pcm_status status) {
-    const char* message = auxts_extract_pcm_status_message[status];
-    msgpack_pack_str_with_body(pk, "message", strlen("message"));
-    msgpack_pack_str_with_body(pk, message, strlen(message));
+void auxts_serialize_status_not_ok(msgpack_packer* pk, int status, const char* message) {
+    auxts_serialize_status(pk, status);
+    auxts_serialize_message(pk, message);
 }
 
-void auxts_serialize_status_not_ok(msgpack_packer* pk, auxts_extract_pcm_status status) {
-    msgpack_pack_array(pk, 4);
-
-    auxts_serialize_status(pk, status);
-    auxts_serialize_message(pk, status);
+void auxts_serialize_message(msgpack_packer* pk, const char* message) {
+    msgpack_pack_str_with_body(pk, "message", strlen("message"));
+    msgpack_pack_str_with_body(pk, message, strlen(message));
 }
 
 void serialize_pcm_data(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {

@@ -22,12 +22,8 @@ extern "C" {
 
 typedef enum {
     AUXTS_EXTRACT_PCM_STATUS_OK,
-    AUXTS_EXTRACT_PCM_STATUS_NO_DATA,
-    AUXTS_EXTRACT_PCM_STATUS_INVALID_TIMESTAMP
+    AUXTS_EXTRACT_PCM_STATUS_NO_DATA
 } auxts_extract_pcm_status;
-
-extern const char* const auxts_extract_pcm_status_message[];
-extern const char* const auxts_extract_pcm_status_code[];
 
 typedef struct {
     size_t num_samples;

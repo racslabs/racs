@@ -13,6 +13,7 @@ static auxts_command_arg* command_arg_create_int32(int32_t d);
 static auxts_command_arg* command_arg_create_float32(float d);
 static void command_arg_destroy(auxts_command_arg* arg);
 static auxts_command* command_handle_id(auxts_token* token);
+static auxts_result handle_error(const char* message, msgpack_sbuffer* out_buf);
 static void command_handle_str(auxts_command* cmd, auxts_token* token);
 static void command_handle_bin(auxts_command* cmd, auxts_token* token);
 static void command_handle_int32(auxts_command* cmd, auxts_token* token);
@@ -34,12 +35,17 @@ auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_
     auxts_parser parser;
     auxts_parser_init(&parser, cmd);
 
+    msgpack_sbuffer in_buf;
+    msgpack_sbuffer out_buf;
+
+    msgpack_sbuffer_init(&in_buf);
+    msgpack_sbuffer_init(&out_buf);
+
     auxts_command_execution_plan plan;
     command_execution_plan_init(&plan);
 
     auxts_token token = auxts_parser_next_token(&parser);
     if (token.type != AUXTS_TOKEN_TYPE_ID) {
-        //TODO: add error message
         return result;
     }
 
@@ -73,12 +79,6 @@ auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_
         token = auxts_parser_next_token(&parser);
     }
 
-    msgpack_sbuffer in_buf;
-    msgpack_sbuffer out_buf;
-
-    msgpack_sbuffer_init(&in_buf);
-    msgpack_sbuffer_init(&out_buf);
-
     command_execution_plan_add_command(&plan, _cmd);
     command_execution_plan_execute(&plan, exec, ctx, &in_buf, &out_buf);
     command_execution_plan_destroy(&plan);
@@ -102,9 +102,10 @@ void command_execution_plan_execute(auxts_command_execution_plan* plan, auxts_co
         auxts_command_func func = command_executor_get(exec, cmd->name);
 
         command_serialize_args(cmd, &pk);
-        func(in_buf, out_buf, ctx);
-
+        auxts_command_status status = func(in_buf, out_buf, ctx);
         msgpack_sbuffer_clear(in_buf);
+
+        if (status != AUXTS_COMMAND_STATUS_OK) break;
     }
 }
 
