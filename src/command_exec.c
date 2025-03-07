@@ -13,7 +13,7 @@ static auxts_command_arg* command_arg_create_int32(int32_t d);
 static auxts_command_arg* command_arg_create_float32(float d);
 static void command_arg_destroy(auxts_command_arg* arg);
 static auxts_command* command_handle_id(auxts_token* token);
-static auxts_result handle_error(const char* message, msgpack_sbuffer* out_buf);
+static auxts_result handle_error(const char* message, msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf);
 static void command_handle_str(auxts_command* cmd, auxts_token* token);
 static void command_handle_bin(auxts_command* cmd, auxts_token* token);
 static void command_handle_int32(auxts_command* cmd, auxts_token* token);
@@ -41,13 +41,13 @@ auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_
     msgpack_sbuffer_init(&in_buf);
     msgpack_sbuffer_init(&out_buf);
 
-    auxts_command_execution_plan plan;
-    command_execution_plan_init(&plan);
-
     auxts_token token = auxts_parser_next_token(&parser);
     if (token.type != AUXTS_TOKEN_TYPE_ID) {
-        return result;
+        return handle_error("Invalid token at 0", &in_buf, &out_buf);
     }
+
+    auxts_command_execution_plan plan;
+    command_execution_plan_init(&plan);
 
     auxts_command* _cmd = NULL;
     while (token.type != AUXTS_TOKEN_TYPE_EOF) {
@@ -71,7 +71,7 @@ auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_
                 command_handle_float32(_cmd, &token);
                 break;
             case AUXTS_TOKEN_TYPE_ERROR:
-                return result;
+                return handle_error(token.as.err.msg, &in_buf, &out_buf);
             default:
                 break;
         }
@@ -88,6 +88,21 @@ auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_
 
     msgpack_sbuffer_destroy(&in_buf);
     msgpack_sbuffer_destroy(&out_buf);
+
+    return result;
+}
+
+auxts_result handle_error(const char* message, msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf) {
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
+    auxts_serialize_status_not_ok(&pk, AUXTS_COMMAND_STATUS_ERROR, message);
+
+    auxts_result result;
+    auxts_result_init(&result, out_buf->size);
+    memcpy(result.data, out_buf->data, out_buf->size);
+
+    msgpack_sbuffer_destroy(in_buf);
+    msgpack_sbuffer_destroy(out_buf);
 
     return result;
 }

@@ -102,3 +102,8 @@ void auxts_deserialize_to(int64_t* to, msgpack_object* obj) {
     strlcpy(buf, obj->via.array.ptr[2].via.str.ptr, size);
     *to = auxts_parse_rfc3339(buf);
 }
+
+void auxts_deserialize_range(int64_t* from, int64_t* to, msgpack_object* obj) {
+    auxts_deserialize_from(from, obj);
+    auxts_deserialize_to(to, obj);
+}

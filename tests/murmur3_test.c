@@ -1,4 +1,4 @@
-#include "mmh3-128_test.h"
+#include "murmur3_test.h"
 
 void test_murmurhash3() {
     char* data = "Hello, world!";

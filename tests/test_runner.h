@@ -7,14 +7,14 @@
 #include "extract_test.h"
 #include "memtable_test.h"
 #include "kvstore_test.h"
-#include "mmh3-128_test.h"
+#include "murmur3_test.h"
 #include "timestamp_test.h"
 #include "simd_test.h"
 #include "parser_test.h"
 
-typedef void (*Test)();
+typedef void (*test)();
 
-AUXTS_FORCE_INLINE void auxts_add_test(Test test_case, char* test_name, int argc, char* argv[]) {
+AUXTS_FORCE_INLINE void auxts_add_test(test test_case, char* test_name, int argc, char* argv[]) {
     if (argc != 3) {
         return;
     }

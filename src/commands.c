@@ -4,7 +4,12 @@ auxts_create_command(extract) {
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
 
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
+
     if (msgpack_unpack_next(&msg, in_buf->data, in_buf->size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
+        auxts_serialize_status_not_ok(&pk, AUXTS_COMMAND_STATUS_ERROR,
+                                      "Error deserializing command arguments");
         return AUXTS_COMMAND_STATUS_ERROR;
     }
 
@@ -13,23 +18,17 @@ auxts_create_command(extract) {
     uint64_t stream_id;
     auxts_deserialize_stream_id(&stream_id, obj);
 
-    int64_t from;
-    auxts_deserialize_from(&from, obj);
-    if (from == -1) {
+    int64_t from, to;
+    auxts_deserialize_range(&from, &to, obj);
+    if (from == -1 || to == -1) {
+        auxts_serialize_status_not_ok(&pk, AUXTS_COMMAND_STATUS_ERROR,
+                                      "Invalid RFC3339 timestamp. Expected format: YYY-MM-DDTHH:MM:SS[.sss]Z");
+        return AUXTS_COMMAND_STATUS_ERROR;
     }
-
-    int64_t to;
-    auxts_deserialize_to(&to, obj);
-    if (to == -1) {
-    }
-
-    msgpack_packer pk;
-    msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
 
     auxts_pcm_buffer pbuf;
     auxts_extract_pcm_status status = auxts_extract_pcm_data(ctx->cache, &pbuf, stream_id, from, to);
 
-    //TODO: abstract into another method
     if (status == AUXTS_EXTRACT_PCM_STATUS_OK) {
         auxts_serialize_pcm_buffer(&pk, &pbuf);
         auxts_pcm_buffer_destroy(&pbuf);

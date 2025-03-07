@@ -17,5 +17,6 @@ void auxts_serialize_pcm_buffer(msgpack_packer* pk, const auxts_pcm_buffer* pbuf
 void auxts_deserialize_stream_id(uint64_t* stream_id, msgpack_object* obj);
 void auxts_deserialize_from(int64_t* from, msgpack_object* obj);
 void auxts_deserialize_to(int64_t* to, msgpack_object* obj);
+void auxts_deserialize_range(int64_t* from, int64_t* to, msgpack_object* obj);
 
 #endif //AUXTS_SERIALIZATION_H

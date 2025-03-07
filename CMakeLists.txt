@@ -60,8 +60,8 @@ add_executable(auxts main.c
         tests/memtable_test.c
         tests/kvstore_test.h
         tests/kvstore_test.c
-        tests/mmh3-128_test.h
-        tests/mmh3-128_test.c
+        tests/murmur3_test.h
+        tests/murmur3_test.c
         tests/timestamp_test.h
         tests/timestamp_test.c
         tests/simd_test.h
@@ -76,6 +76,7 @@ add_executable(auxts main.c
         src/commands.c
         src/serialization.h
         src/serialization.c
+        tests/test_utils.h
 )
 
 target_include_directories(auxts PUBLIC ${msgpack-c_INCLUDE_DIRS})
