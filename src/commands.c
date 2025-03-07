@@ -9,7 +9,7 @@ auxts_create_command(extract) {
 
     if (msgpack_unpack_next(&msg, in_buf->data, in_buf->size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
         auxts_serialize_status_not_ok(&pk, AUXTS_COMMAND_STATUS_ERROR,
-                                      "Error deserializing command arguments");
+                                      "Error deserializing args for EXTRACT command");
         return AUXTS_COMMAND_STATUS_ERROR;
     }
 
@@ -22,7 +22,7 @@ auxts_create_command(extract) {
     auxts_deserialize_range(&from, &to, obj);
     if (from == -1 || to == -1) {
         auxts_serialize_status_not_ok(&pk, AUXTS_COMMAND_STATUS_ERROR,
-                                      "Invalid RFC3339 timestamp. Expected format: YYY-MM-DDTHH:MM:SS[.sss]Z");
+                                      "Invalid RFC-3339 timestamp. Expected format: yyyy-MM-ddTHH:mm:ss.SSSZ");
         return AUXTS_COMMAND_STATUS_ERROR;
     }
 

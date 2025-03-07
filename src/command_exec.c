@@ -14,6 +14,7 @@ static auxts_command_arg* command_arg_create_float32(float d);
 static void command_arg_destroy(auxts_command_arg* arg);
 static auxts_command* command_handle_id(auxts_token* token);
 static auxts_result handle_error(const char* message, msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf);
+static void handle_unknown_command(auxts_command* cmd, msgpack_sbuffer* out_buf);
 static void command_handle_str(auxts_command* cmd, auxts_token* token);
 static void command_handle_bin(auxts_command* cmd, auxts_token* token);
 static void command_handle_int32(auxts_command* cmd, auxts_token* token);
@@ -28,6 +29,7 @@ static void command_execution_plan_init(auxts_command_execution_plan* plan);
 static void command_execution_plan_destroy(auxts_command_execution_plan* plan);
 static void command_execution_plan_add_command(auxts_command_execution_plan* plan, auxts_command* cmd);
 static void command_execution_plan_execute(auxts_command_execution_plan* plan, auxts_command_executor* exec, auxts_context* ctx, msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf);
+static void to_uppercase(char *str);
 
 auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_context* ctx, const char* cmd) {
     auxts_result result;
@@ -92,21 +94,6 @@ auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_
     return result;
 }
 
-auxts_result handle_error(const char* message, msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf) {
-    msgpack_packer pk;
-    msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
-    auxts_serialize_status_not_ok(&pk, AUXTS_COMMAND_STATUS_ERROR, message);
-
-    auxts_result result;
-    auxts_result_init(&result, out_buf->size);
-    memcpy(result.data, out_buf->data, out_buf->size);
-
-    msgpack_sbuffer_destroy(in_buf);
-    msgpack_sbuffer_destroy(out_buf);
-
-    return result;
-}
-
 void command_execution_plan_execute(auxts_command_execution_plan* plan, auxts_command_executor* exec, auxts_context* ctx, msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf) {
     msgpack_packer pk;
 
@@ -115,6 +102,10 @@ void command_execution_plan_execute(auxts_command_execution_plan* plan, auxts_co
 
         auxts_command* cmd = plan->cmd[i];
         auxts_command_func func = command_executor_get(exec, cmd->name);
+        if (!func) {
+            handle_unknown_command(cmd, out_buf);
+            break;
+        }
 
         command_serialize_args(cmd, &pk);
         auxts_command_status status = func(in_buf, out_buf, ctx);
@@ -193,11 +184,37 @@ void command_handle_float32(auxts_command* cmd, auxts_token* token) {
 
 void auxts_command_executor_init(auxts_command_executor* exec) {
     exec->kv = auxts_kvstore_create(10, command_executor_hash, command_executor_cmp, command_executor_destroy);
-    auxts_kvstore_put(exec->kv, "extract", auxts_command_extract);
+    auxts_kvstore_put(exec->kv, "EXTRACT", auxts_command_extract);
 }
 
 void auxts_command_executor_destroy(auxts_command_executor* exec) {
     auxts_kvstore_destroy(exec->kv);
+}
+
+auxts_result handle_error(const char* message, msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf) {
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
+    auxts_serialize_status_not_ok(&pk, AUXTS_COMMAND_STATUS_ERROR, message);
+
+    auxts_result result;
+    auxts_result_init(&result, out_buf->size);
+    memcpy(result.data, out_buf->data, out_buf->size);
+
+    msgpack_sbuffer_destroy(in_buf);
+    msgpack_sbuffer_destroy(out_buf);
+
+    return result;
+}
+
+void handle_unknown_command(auxts_command* cmd, msgpack_sbuffer* out_buf) {
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
+
+    char* message = malloc(strlen(cmd->name) + 20);
+    sprintf(message, "Unknown command: %s", cmd->name);
+    auxts_serialize_status_not_ok(&pk, AUXTS_COMMAND_STATUS_ERROR, message);
+
+    free(message);
 }
 
 auxts_command* command_create(const char* name, size_t size) {
@@ -211,6 +228,8 @@ auxts_command* command_create(const char* name, size_t size) {
     cmd->max_num_args = 4;
 
     strlcpy(cmd->name, name, size);
+    to_uppercase(cmd->name);
+
     cmd->args = malloc(cmd->max_num_args * sizeof(auxts_command_arg*));
     if (!cmd->args) {
         perror("Failed to allocate args to auxts_command");
@@ -294,7 +313,7 @@ void command_add_arg(auxts_command* cmd, auxts_command_arg* arg) {
 
         auxts_command_arg** args = realloc(cmd->args, cmd->max_num_args * sizeof(auxts_command_arg*));
         if (!args) {
-            perror("Filed to reallocate args to auxts_command");
+            perror("Failed to reallocate args to auxts_command");
             return;
         }
 
@@ -355,3 +374,11 @@ int command_executor_cmp(void* a, void* b) {
 }
 
 void command_executor_destroy(void* key, void* value) {}
+
+void to_uppercase(char *str) {
+    while (*str) {
+        *str = (char)toupper(*str);
+        str++;
+    }
+}
+
