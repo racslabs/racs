@@ -8,7 +8,7 @@ static void process_sstable_data(auxts_flac_blocks* blocks, uint64_t stream_id, 
 
 auxts_extract_pcm_status auxts_extract_pcm_data(auxts_cache* cache, auxts_pcm_buffer* pbuf, uint64_t stream_id, int64_t from, int64_t to) {
     auxts_flac_blocks* blocks = extract_flac_blocks(cache, stream_id, from, to);
-    if (!blocks->num_blocks) {
+    if (blocks->num_blocks == 0) {
         auxts_flac_blocks_destroy(blocks);
         return AUXTS_EXTRACT_PCM_STATUS_NO_DATA;
     }

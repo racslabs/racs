@@ -31,6 +31,7 @@ AUXTS_FORCE_INLINE void auxts_add_test(test test_case, char* test_name, int argc
 AUXTS_FORCE_INLINE void auxts_run_tests(int argc, char* argv[]) {
     auxts_add_test(test_lru_cache, "test_lru_cache", argc, argv);
     auxts_add_test(test_extract, "test_extract", argc, argv);
+    auxts_add_test(test_extract_error, "test_extract_error", argc, argv);
     auxts_add_test(test_extract_no_data, "test_extract_no_data", argc, argv);
     auxts_add_test(test_multi_memtable, "test_multi_memtable", argc, argv);
     auxts_add_test(test_hashtable, "test_hashtable", argc, argv);

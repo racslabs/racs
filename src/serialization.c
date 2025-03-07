@@ -55,6 +55,7 @@ void auxts_serialize_status(msgpack_packer* pk, int status) {
 }
 
 void auxts_serialize_status_not_ok(msgpack_packer* pk, int status, const char* message) {
+    msgpack_pack_array(pk, 4);
     auxts_serialize_status(pk, status);
     auxts_serialize_message(pk, message);
 }
