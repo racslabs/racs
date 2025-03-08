@@ -19,9 +19,7 @@ AUXTS_CREATE_COMMAND(extract) {
     auxts_extract_pcm_status status = auxts_extract_pcm_data(ctx->cache, &pbuf, stream_id, from, to);
 
     if (status == AUXTS_EXTRACT_PCM_STATUS_OK) {
-        auxts_serialize_pcm_buffer(&pk, &pbuf);
-        auxts_pcm_buffer_destroy(&pbuf);
-        return AUXTS_COMMAND_STATUS_OK;
+        return auxts_serialize_pcm_buffer(&pk, &pbuf);
     }
 
     if (status == AUXTS_EXTRACT_PCM_STATUS_NO_DATA) {

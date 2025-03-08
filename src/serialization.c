@@ -17,7 +17,7 @@ void auxts_serialize_status_ok(msgpack_packer* pk) {
     auxts_serialize_status(pk, 0);
 }
 
-void auxts_serialize_pcm_buffer(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
+int auxts_serialize_pcm_buffer(msgpack_packer* pk, auxts_pcm_buffer* pbuf) {
     msgpack_pack_array(pk, 12);
 
     auxts_serialize_status_ok(pk);
@@ -26,6 +26,9 @@ void auxts_serialize_pcm_buffer(msgpack_packer* pk, const auxts_pcm_buffer* pbuf
     serialize_pcm_sample_rate(pk, pbuf);
     serialize_pcm_bit_depth(pk, pbuf);
     serialize_pcm_data(pk, pbuf);
+
+    auxts_pcm_buffer_destroy(pbuf);
+    return AUXTS_COMMAND_STATUS_OK;
 }
 
 void serialize_pcm_samples(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
