@@ -54,10 +54,11 @@ void auxts_serialize_status(msgpack_packer* pk, int status) {
     msgpack_pack_str_with_body(pk, status_code, strlen(status_code));
 }
 
-void auxts_serialize_status_not_ok(msgpack_packer* pk, int status, const char* message) {
+int auxts_serialize_status_not_ok(msgpack_packer* pk, int status, const char* message) {
     msgpack_pack_array(pk, 4);
     auxts_serialize_status(pk, status);
     auxts_serialize_message(pk, message);
+    return status;
 }
 
 void auxts_serialize_message(msgpack_packer* pk, const char* message) {
@@ -104,7 +105,14 @@ void auxts_deserialize_to(int64_t* to, msgpack_object* obj) {
     *to = auxts_parse_rfc3339(buf);
 }
 
-void auxts_deserialize_range(int64_t* from, int64_t* to, msgpack_object* obj) {
+int auxts_deserialize_range(int64_t* from, int64_t* to, msgpack_object* obj) {
     auxts_deserialize_from(from, obj);
     auxts_deserialize_to(to, obj);
+    return *from == -1 || *to == -1;
+}
+
+void auxts_serialize_invalid_num_args(msgpack_packer* pk, int expected, int actual) {
+    char message[255];
+    sprintf(message, "Expected %d args, but got %d", expected, actual);
+    auxts_serialize_status_not_ok(pk, AUXTS_COMMAND_STATUS_ERROR, message);
 }
