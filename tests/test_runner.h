@@ -33,6 +33,7 @@ AUXTS_FORCE_INLINE void auxts_run_tests(int argc, char* argv[]) {
     auxts_add_test(test_extract, "test_extract", argc, argv);
     auxts_add_test(test_extract_error, "test_extract_error", argc, argv);
     auxts_add_test(test_extract_no_data, "test_extract_no_data", argc, argv);
+    auxts_add_test(test_extract_invalid_num_args, "test_extract_invalid_num_args", argc, argv);
     auxts_add_test(test_multi_memtable, "test_multi_memtable", argc, argv);
     auxts_add_test(test_hashtable, "test_hashtable", argc, argv);
     auxts_add_test(test_murmurhash3, "test_murmurhash3", argc, argv);

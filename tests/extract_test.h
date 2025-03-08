@@ -9,5 +9,6 @@
 void test_extract();
 void test_extract_no_data();
 void test_extract_error();
+void test_extract_invalid_num_args();
 
 #endif //AUXTS_EXTRACT_TEST_H
