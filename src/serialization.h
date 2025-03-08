@@ -6,14 +6,14 @@
 #include "extract.h"
 #include "command_exec.h"
 
-#define AUXTS_PARSE_ARGS(in_buf, pk, error) \
+#define AUXTS_PARSE_ARGS(in_buf, pk) \
     msgpack_unpacked msg;                             \
     msgpack_unpacked_init(&msg);                      \
                                                       \
     if (msgpack_unpack_next(&msg, (in_buf)->data, (in_buf)->size, 0) == \
         MSGPACK_UNPACK_PARSE_ERROR) {                 \
         auxts_serialize_status_not_ok((pk), AUXTS_COMMAND_STATUS_ERROR, \
-            (error));                             \
+            "Error parsing args");          \
         return AUXTS_COMMAND_STATUS_ERROR;            \
     }                                                 \
                                                       \
