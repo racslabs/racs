@@ -47,9 +47,7 @@ void test_extract_no_data() {
     msgpack_object obj = msg.data;
 
     msgpack_str_assert("status", &obj.via.array.ptr[0].via.str);
-    msgpack_str_assert("NO_DATA", &obj.via.array.ptr[1].via.str);
-    msgpack_str_assert("message", &obj.via.array.ptr[2].via.str);
-    msgpack_str_assert("No data found", &obj.via.array.ptr[3].via.str);
+    msgpack_str_assert("NOT_FOUND", &obj.via.array.ptr[1].via.str);
 
     msgpack_unpacked_destroy(&msg);
     auxts_command_executor_destroy(&exec);

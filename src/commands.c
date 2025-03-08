@@ -12,7 +12,7 @@ AUXTS_CREATE_COMMAND(extract) {
 
     int64_t from, to;
     if (auxts_deserialize_range(&from, &to, &obj)) {
-        return auxts_serialize_status_not_ok(&pk, AUXTS_COMMAND_STATUS_ERROR, "Invalid RFC-3339 timestamp. Expected format: yyyy-MM-ddTHH:mm:ss.SSSZ");
+        return auxts_serialize_status_error(&pk,"Invalid RFC-3339 timestamp. Expected format: yyyy-MM-ddTHH:mm:ss.SSSZ");
     }
 
     auxts_pcm_buffer pbuf;
@@ -23,8 +23,8 @@ AUXTS_CREATE_COMMAND(extract) {
     }
 
     if (status == AUXTS_EXTRACT_PCM_STATUS_NO_DATA) {
-        return auxts_serialize_status_not_ok(&pk, AUXTS_COMMAND_STATUS_NO_DATA, "No data found");
+        return auxts_serialize_status_not_found(&pk);
     }
 
-    return auxts_serialize_status_not_ok(&pk, AUXTS_COMMAND_STATUS_ERROR, "Cause unknown");
+    return auxts_serialize_status_error(&pk, "Cause unknown");
 }

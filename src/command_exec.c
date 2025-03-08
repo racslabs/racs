@@ -194,7 +194,7 @@ void auxts_command_executor_destroy(auxts_command_executor* exec) {
 auxts_result handle_error(const char* message, msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf) {
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
-    auxts_serialize_status_not_ok(&pk, AUXTS_COMMAND_STATUS_ERROR, message);
+    auxts_serialize_status_error(&pk, message);
 
     auxts_result result;
     auxts_result_init(&result, out_buf->size);
@@ -212,7 +212,7 @@ void handle_unknown_command(auxts_command* cmd, msgpack_sbuffer* out_buf) {
 
     char* message = malloc(strlen(cmd->name) + 20);
     sprintf(message, "Unknown command: %s", cmd->name);
-    auxts_serialize_status_not_ok(&pk, AUXTS_COMMAND_STATUS_ERROR, message);
+    auxts_serialize_status_error(&pk, message);
 
     free(message);
 }

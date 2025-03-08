@@ -3,7 +3,7 @@
 
 const char* const auxts_status_code[] = {
         "OK",
-        "NO_DATA",
+        "NOT_FOUND",
         "ERROR"
 };
 
@@ -14,7 +14,13 @@ static void serialize_pcm_channels(msgpack_packer* pk, const auxts_pcm_buffer* p
 static void serialize_pcm_samples(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
 
 void auxts_serialize_status_ok(msgpack_packer* pk) {
-    auxts_serialize_status(pk, 0);
+    auxts_serialize_status(pk, AUXTS_COMMAND_STATUS_OK);
+}
+
+int auxts_serialize_status_not_found(msgpack_packer* pk) {
+    msgpack_pack_array(pk, 2);
+    auxts_serialize_status(pk, AUXTS_COMMAND_STATUS_NOT_FOUND);
+    return AUXTS_COMMAND_STATUS_NOT_FOUND;
 }
 
 int auxts_serialize_pcm_buffer(msgpack_packer* pk, auxts_pcm_buffer* pbuf) {
@@ -57,11 +63,11 @@ void auxts_serialize_status(msgpack_packer* pk, int status) {
     msgpack_pack_str_with_body(pk, status_code, strlen(status_code));
 }
 
-int auxts_serialize_status_not_ok(msgpack_packer* pk, int status, const char* message) {
+int auxts_serialize_status_error(msgpack_packer* pk, const char* message) {
     msgpack_pack_array(pk, 4);
-    auxts_serialize_status(pk, status);
+    auxts_serialize_status(pk, AUXTS_COMMAND_STATUS_ERROR);
     auxts_serialize_message(pk, message);
-    return status;
+    return AUXTS_COMMAND_STATUS_ERROR;
 }
 
 void auxts_serialize_message(msgpack_packer* pk, const char* message) {
@@ -114,8 +120,8 @@ int auxts_deserialize_range(int64_t* from, int64_t* to, msgpack_object* obj) {
     return *from == -1 || *to == -1;
 }
 
-void auxts_serialize_invalid_num_args(msgpack_packer* pk, int expected, int actual) {
+int auxts_serialize_invalid_num_args(msgpack_packer* pk, int expected, int actual) {
     char message[255];
     sprintf(message, "Expected %d args, but got %d", expected, actual);
-    auxts_serialize_status_not_ok(pk, AUXTS_COMMAND_STATUS_ERROR, message);
+    return auxts_serialize_status_error(pk, message);
 }

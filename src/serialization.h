@@ -12,18 +12,18 @@
                                                       \
     if (msgpack_unpack_next(&msg, (in_buf)->data, (in_buf)->size, 0) == \
         MSGPACK_UNPACK_PARSE_ERROR) {                 \
-        auxts_serialize_status_not_ok((pk), AUXTS_COMMAND_STATUS_ERROR, \
-            "Error parsing args");          \
-        return AUXTS_COMMAND_STATUS_ERROR;            \
+        return auxts_serialize_status_error((pk), "Error parsing args");\
     }                                                 \
                                                       \
     msgpack_object obj = msg.data;
 
 extern const char* const auxts_status_code[];
 
-void auxts_serialize_invalid_num_args(msgpack_packer* pk, int expected, int actual);
+
+int auxts_serialize_invalid_num_args(msgpack_packer* pk, int expected, int actual);
 void auxts_serialize_status_ok(msgpack_packer* pk);
-int auxts_serialize_status_not_ok(msgpack_packer* pk, int status, const char* message);
+int auxts_serialize_status_not_found(msgpack_packer* pk);
+int auxts_serialize_status_error(msgpack_packer* pk, const char* message);
 void auxts_serialize_message(msgpack_packer* pk, const char* message);
 void auxts_serialize_status(msgpack_packer* pk, int status);
 int auxts_serialize_pcm_buffer(msgpack_packer* pk, auxts_pcm_buffer* pbuf);

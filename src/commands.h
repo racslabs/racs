@@ -7,14 +7,13 @@
 
 typedef enum {
     AUXTS_COMMAND_STATUS_OK,
-    AUXTS_COMMAND_STATUS_NO_DATA,
+    AUXTS_COMMAND_STATUS_NOT_FOUND,
     AUXTS_COMMAND_STATUS_ERROR
 } auxts_command_status;
 
 #define AUXTS_CHECK_NUM_ARGS(pk, obj, num_args) \
     if ((obj).type == MSGPACK_OBJECT_ARRAY && (obj).via.array.size != (num_args)) { \
-        auxts_serialize_invalid_num_args(pk, num_args, (obj).via.array.size);       \
-        return AUXTS_COMMAND_STATUS_ERROR;      \
+        return auxts_serialize_invalid_num_args(pk, num_args, (obj).via.array.size);\
     }
 
 #define AUXTS_CREATE_COMMAND(name) \
