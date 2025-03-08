@@ -4,8 +4,13 @@ AUXTS_CREATE_COMMAND(extract) {
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
 
+    msgpack_unpacked msg;
+    msgpack_unpacked_init(&msg);
+
     AUXTS_PARSE_ARGS(in_buf, &pk)
-    AUXTS_CHECK_NUM_ARGS(&pk, obj, 3)
+    AUXTS_CHECK_NUM_ARGS(&pk, msg, 3)
+
+    msgpack_object obj = msg.data;
 
     uint64_t stream_id;
     auxts_deserialize_stream_id(&stream_id, &obj);

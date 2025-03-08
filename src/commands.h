@@ -11,9 +11,9 @@ typedef enum {
     AUXTS_COMMAND_STATUS_ERROR
 } auxts_command_status;
 
-#define AUXTS_CHECK_NUM_ARGS(pk, obj, num_args) \
-    if ((obj).type == MSGPACK_OBJECT_ARRAY && (obj).via.array.size != (num_args)) { \
-        return auxts_serialize_invalid_num_args(pk, num_args, (obj).via.array.size);\
+#define AUXTS_CHECK_NUM_ARGS(pk, msg, num_args) \
+    if ((msg).data.type == MSGPACK_OBJECT_ARRAY && (msg).data.via.array.size != (num_args)) { \
+        return auxts_serialize_invalid_num_args(pk, num_args, (msg).data.via.array.size);\
     }
 
 #define AUXTS_CREATE_COMMAND(name) \

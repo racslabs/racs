@@ -7,15 +7,11 @@
 #include "command_exec.h"
 
 #define AUXTS_PARSE_ARGS(in_buf, pk) \
-    msgpack_unpacked msg;                             \
-    msgpack_unpacked_init(&msg);                      \
-                                                      \
     if (msgpack_unpack_next(&msg, (in_buf)->data, (in_buf)->size, 0) == \
         MSGPACK_UNPACK_PARSE_ERROR) {                 \
         return auxts_serialize_status_error((pk), "Error parsing args");\
     }                                                 \
-                                                      \
-    msgpack_object obj = msg.data;
+
 
 extern const char* const auxts_status_code[];
 
