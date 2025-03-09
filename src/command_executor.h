@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_COMMAND_EXEC_H
-#define AUXTS_COMMAND_EXEC_H
+#ifndef AUXTS_COMMAND_EXECUTOR_H
+#define AUXTS_COMMAND_EXECUTOR_H
 
 #include "kvstore.h"
 #include "parser.h"
@@ -57,4 +57,4 @@ void auxts_command_executor_init(auxts_command_executor* exec);
 void auxts_command_executor_destroy(auxts_command_executor* exec);
 auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_context* ctx, const char* cmd);
 
-#endif //AUXTS_COMMAND_EXEC_H
+#endif //AUXTS_COMMAND_EXECUTOR_H

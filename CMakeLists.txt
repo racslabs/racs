@@ -70,13 +70,15 @@ add_executable(auxts main.c
         src/parser.c
         tests/parser_test.h
         tests/parser_test.c
-        src/command_exec.h
-        src/command_exec.c
+        src/command_executor.h
+        src/command_executor.c
         src/commands.h
         src/commands.c
         src/serialization.h
         src/serialization.c
         tests/test_utils.h
+        tests/command_executor_test.h
+        tests/command_executor_test.c
 )
 
 target_include_directories(auxts PUBLIC ${msgpack-c_INCLUDE_DIRS})
@@ -88,7 +90,10 @@ add_test(test_multi_memtable auxts "--test" "test_multi_memtable")
 add_test(test_extract auxts "--test" "test_extract")
 add_test(test_extract_no_data auxts "--test" "test_extract_no_data")
 add_test(test_extract_error auxts "--test" "test_extract_error")
+add_test(test_extract_invalid_arg_type auxts "--test" "test_extract_invalid_arg_type")
 add_test(test_extract_invalid_num_args auxts "--test" "test_extract_invalid_num_args")
+add_test(test_command_executor_unknown_command auxts "--test" "test_command_executor_unknown_command")
+add_test(test_command_executor_parse_error1 auxts "--test" "test_command_executor_parse_error1")
 add_test(test_hashtable auxts "--test" "test_hashtable")
 add_test(test_murmurhash3 auxts "--test" "test_murmurhash3")
 add_test(test_rfc3339 auxts "--test" "test_rfc3339")

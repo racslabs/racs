@@ -4,11 +4,12 @@
 
 #include <assert.h>
 #include "test_utils.h"
-#include "../src/command_exec.h"
+#include "../src/command_executor.h"
 
 void test_extract();
 void test_extract_no_data();
 void test_extract_error();
 void test_extract_invalid_num_args();
+void test_extract_invalid_arg_type();
 
 #endif //AUXTS_EXTRACT_TEST_H

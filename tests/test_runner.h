@@ -11,6 +11,7 @@
 #include "timestamp_test.h"
 #include "simd_test.h"
 #include "parser_test.h"
+#include "command_executor_test.h"
 
 typedef void (*test)();
 
@@ -34,6 +35,7 @@ AUXTS_FORCE_INLINE void auxts_run_tests(int argc, char* argv[]) {
     auxts_add_test(test_extract_error, "test_extract_error", argc, argv);
     auxts_add_test(test_extract_no_data, "test_extract_no_data", argc, argv);
     auxts_add_test(test_extract_invalid_num_args, "test_extract_invalid_num_args", argc, argv);
+    auxts_add_test(test_extract_invalid_arg_type, "test_extract_invalid_arg_type", argc, argv);
     auxts_add_test(test_multi_memtable, "test_multi_memtable", argc, argv);
     auxts_add_test(test_hashtable, "test_hashtable", argc, argv);
     auxts_add_test(test_murmurhash3, "test_murmurhash3", argc, argv);
@@ -42,6 +44,8 @@ AUXTS_FORCE_INLINE void auxts_run_tests(int argc, char* argv[]) {
     auxts_add_test(test_simd_swap24, "test_simd_swap24", argc, argv);
     auxts_add_test(test_simd_swap32, "test_simd_swap32", argc, argv);
     auxts_add_test(test_parser, "test_parser", argc, argv);
+    auxts_add_test(test_command_executor_unknown_command, "test_command_executor_unknown_command", argc, argv);
+    auxts_add_test(test_command_executor_parse_error1, "test_command_executor_parse_error1", argc, argv);
 }
 
 #endif //AUXTS_TEST_RUNNER_H

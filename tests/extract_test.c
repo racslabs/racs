@@ -103,3 +103,28 @@ void test_extract_invalid_num_args() {
     auxts_command_executor_destroy(&exec);
     auxts_context_destroy(&ctx);
 }
+
+void test_extract_invalid_arg_type() {
+    auxts_context ctx;
+    auxts_context_init(&ctx);
+
+    auxts_command_executor exec;
+    auxts_command_executor_init(&exec);
+
+    auxts_result result = auxts_command_executor_execute(&exec, &ctx, "EXTRACT 'test' 2 2");
+
+    msgpack_unpacked msg;
+    msgpack_unpacked_init(&msg);
+    msgpack_unpack_next(&msg, (char*)result.data, result.size, 0);
+
+    msgpack_object obj = msg.data;
+
+    msgpack_str_assert("status", &obj.via.array.ptr[0].via.str);
+    msgpack_str_assert("ERROR", &obj.via.array.ptr[1].via.str);
+    msgpack_str_assert("message", &obj.via.array.ptr[2].via.str);
+    msgpack_str_assert("Invalid type at arg 2 of EXTRACT command. Expected: string", &obj.via.array.ptr[3].via.str);
+
+    msgpack_unpacked_destroy(&msg);
+    auxts_command_executor_destroy(&exec);
+    auxts_context_destroy(&ctx);
+}
