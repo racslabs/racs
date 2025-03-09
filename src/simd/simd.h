@@ -4,7 +4,6 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include "simd_neon.h"
 
 #if defined(__AVX__) || defined(__SSE4_1__)
 #include <immintrin.h>

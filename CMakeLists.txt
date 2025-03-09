@@ -26,7 +26,6 @@ elseif (AUXTS_NEON8_CMAKE_BUILD)
 endif()
 
 add_executable(auxts main.c
-        src/endian.h
         src/export.h
         src/timestamp.h
         src/timestamp.c
@@ -47,10 +46,7 @@ add_executable(auxts main.c
         src/bytes.h
         src/kvstore.h
         src/kvstore.c
-        src/simd/simd_neon.h
         src/simd/simd.h
-        src/simd/simd_neon-i32.c
-        src/simd/simd_neon-i16.c
         tests/test_runner.h
         tests/cache_test.h
         tests/cache_test.c
@@ -97,7 +93,4 @@ add_test(test_command_executor_parse_error1 auxts "--test" "test_command_executo
 add_test(test_hashtable auxts "--test" "test_hashtable")
 add_test(test_murmurhash3 auxts "--test" "test_murmurhash3")
 add_test(test_rfc3339 auxts "--test" "test_rfc3339")
-add_test(test_simd_swap16 auxts "--test" "test_simd_swap16")
-add_test(test_simd_swap24 auxts "--test" "test_simd_swap24")
-add_test(test_simd_swap32 auxts "--test" "test_simd_swap32")
 add_test(test_parser auxts "--test" "test_parser")

@@ -109,7 +109,6 @@ auxts_sstable* auxts_sstable_read(const char* filename) {
         return NULL;
     }
 
-    entry_count = auxts_swap16_if_big_endian(entry_count);
     auxts_sstable* sstable = sstable_create(entry_count);
     if (!sstable) {
         close(fd);
@@ -144,8 +143,6 @@ auxts_sstable* auxts_sstable_read_in_memory(uint8_t* data, size_t size) {
     uint16_t num_entries;
 
     memcpy(&num_entries, data + (size - AUXTS_TRAILER_SIZE), sizeof(uint16_t));
-    num_entries = auxts_swap16_if_big_endian(num_entries);
-
     size_t offset = size - (num_entries * AUXTS_INDEX_ENTRY_SIZE) - AUXTS_TRAILER_SIZE;
 
     auxts_sstable* sst = sstable_create(num_entries);

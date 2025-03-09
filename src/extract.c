@@ -62,7 +62,6 @@ uint8_t* get_data_from_cache_or_sstable(auxts_cache* cache, uint64_t stream_id, 
 void process_sstable_data(auxts_flac_blocks* blocks, uint64_t stream_id, int64_t from, int64_t to, uint8_t* data) {
     size_t size;
     memcpy(&size, data, sizeof(size_t));
-    size = auxts_swap64_if_big_endian(size);
 
     auxts_sstable* sstable = auxts_sstable_read_in_memory(data, size);
     if (!sstable) {
@@ -151,7 +150,7 @@ void pcm_buffer_append(auxts_pcm_buffer* pbuf, auxts_pcm_block* block) {
     size_t num_samples = block->info.total_samples + pbuf->info.num_samples;
 
     if (num_samples > pbuf->info.max_num_samples) {
-        pbuf->info.max_num_samples = auxts_next_power_of_two(num_samples);
+        pbuf->info.max_num_samples *= num_samples;
 
         for (int channel = 0; channel < pbuf->info.channels; ++channel) {
             int32_t* audio_data = realloc(pbuf->data[channel], pbuf->info.max_num_samples * sizeof(int32_t));
@@ -178,9 +177,6 @@ uint8_t* auxts_pack_pcm_data(const auxts_pcm_buffer* pbuf) {
     }
 
     for (int channel = 0; channel < pbuf->info.channels; ++channel) {
-        #ifdef __ARM_NEON__
-            auxts_bulk_swap32_if_big_endian(pbuf->data[channel], pbuf->info.num_samples);
-        #endif
         memcpy(samples + (channel * pbuf->info.num_samples), pbuf->data[channel], pbuf->info.num_samples * sizeof(int32_t));
     }
 

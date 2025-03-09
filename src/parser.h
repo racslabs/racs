@@ -4,6 +4,8 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
+#include <stdio.h>
 #include <ctype.h>
 #include <regex.h>
 #include "bytes.h"

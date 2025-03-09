@@ -3,7 +3,7 @@
 #define AUXTS_MURMUR3_H
 
 #include <stdint.h>
-#include "endian.h"
+#include <stdlib.h>
 #include "export.h"
 
 #ifdef __cplusplus

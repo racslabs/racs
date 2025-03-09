@@ -14,7 +14,6 @@
 #include <errno.h>
 #include <pthread.h>
 #include "bytes.h"
-#include "endian.h"
 #include "timestamp.h"
 #include "murmur3.h"
 
