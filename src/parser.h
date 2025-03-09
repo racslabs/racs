@@ -12,6 +12,7 @@
 extern "C" {
 #endif
 
+#define AUXTS_REGEX_TILDE   "~"
 #define AUXTS_REGEX_BIN     "binary:"
 #define AUXTS_REGEX_PIPE    "\\|>"
 #define AUXTS_REGEX_STR_SQ  "^'([^']*)'"
@@ -25,6 +26,7 @@ typedef enum {
     AUXTS_TOKEN_TYPE_STR,
     AUXTS_TOKEN_TYPE_BIN,
     AUXTS_TOKEN_TYPE_PIPE,
+    AUXTS_TOKEN_TYPE_TILDE,
     AUXTS_TOKEN_TYPE_INT,
     AUXTS_TOKEN_TYPE_FLOAT,
     AUXTS_TOKEN_TYPE_EOF,
