@@ -108,10 +108,10 @@ void command_execution_plan_execute(auxts_command_execution_plan* plan, auxts_co
         }
 
         command_serialize_args(cmd, &pk);
-        auxts_command_status status = func(in_buf, out_buf, ctx);
+        auxts_status status = func(in_buf, out_buf, ctx);
         msgpack_sbuffer_clear(in_buf);
 
-        if (status != AUXTS_COMMAND_STATUS_OK) break;
+        if (status != AUXTS_STATUS_OK) break;
     }
 }
 

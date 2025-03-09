@@ -14,13 +14,13 @@ static void serialize_pcm_channels(msgpack_packer* pk, const auxts_pcm_buffer* p
 static void serialize_pcm_samples(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
 
 void auxts_serialize_status_ok(msgpack_packer* pk) {
-    auxts_serialize_status(pk, AUXTS_COMMAND_STATUS_OK);
+    auxts_serialize_status(pk, AUXTS_STATUS_OK);
 }
 
 int auxts_serialize_status_not_found(msgpack_packer* pk) {
     msgpack_pack_array(pk, 2);
-    auxts_serialize_status(pk, AUXTS_COMMAND_STATUS_NOT_FOUND);
-    return AUXTS_COMMAND_STATUS_NOT_FOUND;
+    auxts_serialize_status(pk, AUXTS_STATUS_NOT_FOUND);
+    return AUXTS_STATUS_NOT_FOUND;
 }
 
 int auxts_serialize_pcm_buffer(msgpack_packer* pk, auxts_pcm_buffer* pbuf) {
@@ -34,7 +34,7 @@ int auxts_serialize_pcm_buffer(msgpack_packer* pk, auxts_pcm_buffer* pbuf) {
     serialize_pcm_data(pk, pbuf);
 
     auxts_pcm_buffer_destroy(pbuf);
-    return AUXTS_COMMAND_STATUS_OK;
+    return AUXTS_STATUS_OK;
 }
 
 void serialize_pcm_samples(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
@@ -65,9 +65,9 @@ void auxts_serialize_status(msgpack_packer* pk, int status) {
 
 int auxts_serialize_status_error(msgpack_packer* pk, const char* message) {
     msgpack_pack_array(pk, 4);
-    auxts_serialize_status(pk, AUXTS_COMMAND_STATUS_ERROR);
+    auxts_serialize_status(pk, AUXTS_STATUS_ERROR);
     auxts_serialize_message(pk, message);
-    return AUXTS_COMMAND_STATUS_ERROR;
+    return AUXTS_STATUS_ERROR;
 }
 
 void auxts_serialize_message(msgpack_packer* pk, const char* message) {
@@ -85,11 +85,11 @@ void serialize_pcm_data(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
     free(data);
 }
 
-void auxts_deserialize_stream_id(uint64_t* stream_id, msgpack_object* obj) {
-    size_t size = obj->via.array.ptr[0].via.str.size + 1;
+void auxts_deserialize_stream_id(uint64_t* stream_id, msgpack_object* obj, int arg_num) {
+    size_t size = obj->via.array.ptr[arg_num].via.str.size + 1;
 
     char* buf = malloc(size);
-    strlcpy(buf, obj->via.array.ptr[0].via.str.ptr, size);
+    strlcpy(buf, obj->via.array.ptr[arg_num].via.str.ptr, size);
 
     uint64_t hash[2];
     murmur3_x64_128((uint8_t*)buf, strlen(buf), 0, hash);
@@ -117,7 +117,7 @@ void auxts_deserialize_to(int64_t* to, msgpack_object* obj) {
 int auxts_deserialize_range(int64_t* from, int64_t* to, msgpack_object* obj) {
     auxts_deserialize_from(from, obj);
     auxts_deserialize_to(to, obj);
-    return *from == -1 || *to == -1;
+    return *from != -1 && *to != -1;
 }
 
 int auxts_serialize_invalid_num_args(msgpack_packer* pk, int expected, int actual) {

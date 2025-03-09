@@ -6,19 +6,25 @@
 #include "serialization.h"
 
 typedef enum {
-    AUXTS_COMMAND_STATUS_OK,
-    AUXTS_COMMAND_STATUS_NOT_FOUND,
-    AUXTS_COMMAND_STATUS_ERROR
-} auxts_command_status;
+    AUXTS_STATUS_OK,
+    AUXTS_STATUS_NOT_FOUND,
+    AUXTS_STATUS_ERROR
+} auxts_status;
 
-#define AUXTS_CHECK_NUM_ARGS(pk, msg, num_args) \
+#define auxts_validate(pk, condition, error) \
+    if (!(condition)) { return auxts_serialize_status_error(pk, error); }
+
+#define auxts_validate_arg_type(pk, msg, arg_num, enum_type, error) \
+    auxts_validate(pk, enum_type == ((msg).data.via.array.ptr[arg_num].type), error)
+
+#define auxts_validate_num_args(pk, msg, num_args) \
     if ((msg).data.type == MSGPACK_OBJECT_ARRAY && (msg).data.via.array.size != (num_args)) { \
         return auxts_serialize_invalid_num_args(pk, num_args, (msg).data.via.array.size);\
     }
 
-#define AUXTS_CREATE_COMMAND(name) \
+#define auxts_create_command(name) \
     int auxts_command_##name(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, auxts_context* ctx)
 
-AUXTS_CREATE_COMMAND(extract);
+auxts_create_command(extract);
 
 #endif //AUXTS_COMMANDS_H
