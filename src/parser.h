@@ -24,6 +24,7 @@ extern "C" {
 #define AUXTS_REGEX_FLOAT   "^[0-9]+\\.[0-9]*"
 
 typedef enum {
+    AUXTS_TOKEN_TYPE_NONE,
     AUXTS_TOKEN_TYPE_ID,
     AUXTS_TOKEN_TYPE_STR,
     AUXTS_TOKEN_TYPE_BIN,

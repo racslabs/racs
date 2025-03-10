@@ -13,6 +13,12 @@ typedef enum {
     AUXTS_COMMAND_ARG_TYPE_FLOAT
 } auxts_command_arg_type;
 
+typedef enum {
+    AUXTS_COMMAND_OP_PIPE,
+    AUXTS_COMMAND_OP_TILDE,
+    AUXTS_COMMAND_OP_NONE
+} auxts_command_op;
+
 typedef struct {
     auxts_kvstore* kv;
 } auxts_command_executor;
@@ -42,6 +48,7 @@ typedef struct {
     char name[255];
     int num_args;
     int max_num_args;
+    auxts_command_op op;
     auxts_command_arg** args;
 } auxts_command;
 

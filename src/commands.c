@@ -10,8 +10,8 @@ auxts_create_command(extract) {
     auxts_parse_args(in_buf, &pk)
     auxts_validate_num_args(&pk, msg, 3)
 
-    uint64_t stream_id;
     int64_t from, to;
+    uint64_t stream_id;
 
     auxts_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1 of EXTRACT command. Expected: string")
     auxts_validate_arg_type(&pk, msg, 1, MSGPACK_OBJECT_STR, "Invalid type at arg 2 of EXTRACT command. Expected: string")
