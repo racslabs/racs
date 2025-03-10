@@ -43,6 +43,7 @@ AUXTS_FORCE_INLINE void auxts_run_tests(int argc, char* argv[]) {
     auxts_add_test(test_parser, "test_parser", argc, argv);
     auxts_add_test(test_command_executor_unknown_command, "test_command_executor_unknown_command", argc, argv);
     auxts_add_test(test_command_executor_parse_error1, "test_command_executor_parse_error1", argc, argv);
+    auxts_add_test(test_command_executor_is_not_command, "test_command_executor_is_not_command", argc, argv);
 }
 
 #endif //AUXTS_TEST_RUNNER_H

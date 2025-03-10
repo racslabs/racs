@@ -90,6 +90,7 @@ add_test(test_extract_invalid_arg_type auxts "--test" "test_extract_invalid_arg_
 add_test(test_extract_invalid_num_args auxts "--test" "test_extract_invalid_num_args")
 add_test(test_command_executor_unknown_command auxts "--test" "test_command_executor_unknown_command")
 add_test(test_command_executor_parse_error1 auxts "--test" "test_command_executor_parse_error1")
+add_test(test_command_executor_is_not_command auxts "--test" "test_command_executor_is_not_command")
 add_test(test_hashtable auxts "--test" "test_hashtable")
 add_test(test_murmurhash3 auxts "--test" "test_murmurhash3")
 add_test(test_rfc3339 auxts "--test" "test_rfc3339")

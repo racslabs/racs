@@ -45,11 +45,7 @@ auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_
 
     auxts_token prev;
     memset(&prev, 0, sizeof(auxts_token));
-
     auxts_token curr = auxts_parser_next_token(&parser);
-    if (curr.type != AUXTS_TOKEN_TYPE_ID) {
-        return handle_error("Invalid token at 0", &in_buf, &out_buf);
-    }
 
     auxts_command_execution_plan plan;
     command_execution_plan_init(&plan);
@@ -79,8 +75,8 @@ auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_
                 }
                 break;
             }
-            case AUXTS_TOKEN_TYPE_PIPE:
             case AUXTS_TOKEN_TYPE_TILDE:
+            case AUXTS_TOKEN_TYPE_PIPE:
                 command_execution_plan_add_command(&plan, _cmd);
                 break;
             case AUXTS_TOKEN_TYPE_INT: {
@@ -200,7 +196,9 @@ auxts_command* command_handle_id(auxts_token* curr, auxts_token* prev) {
 }
 
 int command_handle_str(auxts_command* cmd, auxts_token* curr, auxts_token* prev) {
-    if (prev->type == AUXTS_TOKEN_TYPE_PIPE || prev->type == AUXTS_TOKEN_TYPE_TILDE)
+    if (prev->type == AUXTS_TOKEN_TYPE_PIPE ||
+        prev->type == AUXTS_TOKEN_TYPE_TILDE ||
+        prev->type == AUXTS_TOKEN_TYPE_NONE)
         return false;
 
     auxts_command_arg* arg = command_arg_create_str(curr->as.str.ptr, curr->as.str.size);
@@ -209,7 +207,9 @@ int command_handle_str(auxts_command* cmd, auxts_token* curr, auxts_token* prev)
 }
 
 int command_handle_bin(auxts_command* cmd, auxts_token* curr, auxts_token* prev) {
-    if (prev->type == AUXTS_TOKEN_TYPE_PIPE || prev->type == AUXTS_TOKEN_TYPE_TILDE)
+    if (prev->type == AUXTS_TOKEN_TYPE_PIPE ||
+        prev->type == AUXTS_TOKEN_TYPE_TILDE ||
+        prev->type == AUXTS_TOKEN_TYPE_NONE)
         return false;
 
     auxts_command_arg* arg = command_arg_create_bin(curr->as.bin.ptr, curr->as.bin.size);
@@ -218,7 +218,9 @@ int command_handle_bin(auxts_command* cmd, auxts_token* curr, auxts_token* prev)
 }
 
 int command_handle_int32(auxts_command* cmd, auxts_token* curr, auxts_token* prev) {
-    if (prev->type == AUXTS_TOKEN_TYPE_PIPE || prev->type == AUXTS_TOKEN_TYPE_TILDE)
+    if (prev->type == AUXTS_TOKEN_TYPE_PIPE ||
+        prev->type == AUXTS_TOKEN_TYPE_TILDE ||
+        prev->type == AUXTS_TOKEN_TYPE_NONE)
         return false;
 
     auxts_command_arg* arg = command_arg_create_int32(curr->as.i32);
@@ -227,7 +229,9 @@ int command_handle_int32(auxts_command* cmd, auxts_token* curr, auxts_token* pre
 }
 
 int command_handle_float32(auxts_command* cmd, auxts_token* curr, auxts_token* prev) {
-    if (prev->type == AUXTS_TOKEN_TYPE_PIPE || prev->type == AUXTS_TOKEN_TYPE_TILDE)
+    if (prev->type == AUXTS_TOKEN_TYPE_PIPE ||
+        prev->type == AUXTS_TOKEN_TYPE_TILDE ||
+        prev->type == AUXTS_TOKEN_TYPE_NONE)
         return false;
 
     auxts_command_arg* arg = command_arg_create_float32(curr->as.f32);
@@ -236,6 +240,7 @@ int command_handle_float32(auxts_command* cmd, auxts_token* curr, auxts_token* p
 }
 
 void auxts_command_executor_init(auxts_command_executor* exec) {
+    exec->merge_count = 0;
     exec->kv = auxts_kvstore_create(10, command_executor_hash, command_executor_cmp, command_executor_destroy);
     auxts_kvstore_put(exec->kv, "EXTRACT", auxts_command_extract);
 }

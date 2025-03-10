@@ -20,6 +20,7 @@ typedef enum {
 } auxts_command_op;
 
 typedef struct {
+    int merge_count;
     auxts_kvstore* kv;
 } auxts_command_executor;
 

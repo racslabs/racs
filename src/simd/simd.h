@@ -10,7 +10,7 @@
 #elif defined( __ARM_NEON__)
 #include <arm_neon.h>
 #else
-#warning "SIMD instructions not found. Code will not compile."
+#warning "SIMD instructions not found."
 #endif
 
 #endif //AUXTS_SIMD_H
