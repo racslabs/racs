@@ -66,15 +66,23 @@ add_executable(auxts main.c
         src/parser.c
         tests/parser_test.h
         tests/parser_test.c
-        src/command_executor.h
-        src/command_executor.c
+        src/executor.h
+        src/executor.c
         src/commands.h
         src/commands.c
         src/serialization.h
         src/serialization.c
         tests/test_utils.h
-        tests/command_executor_test.h
-        tests/command_executor_test.c
+        tests/executor_test.h
+        tests/executor_test.c
+        src/simd/merge.h
+        src/simd/merge_neon.h
+        src/simd/merge_neon.c
+        src/simd/merge_avx2.h
+        src/simd/merge_avx2.c
+        src/simd/convert.h
+        src/simd/convert_neon.c
+        src/simd/convert_avx2.c
 )
 
 target_include_directories(auxts PUBLIC ${msgpack-c_INCLUDE_DIRS})

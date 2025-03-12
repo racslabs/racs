@@ -11,7 +11,7 @@
 #include "timestamp_test.h"
 #include "simd_test.h"
 #include "parser_test.h"
-#include "command_executor_test.h"
+#include "executor_test.h"
 
 typedef void (*test)();
 

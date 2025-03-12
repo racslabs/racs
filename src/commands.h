@@ -22,7 +22,7 @@ typedef enum {
         return auxts_serialize_invalid_num_args(pk, num_args, (msg).data.via.array.size);
 
 #define auxts_create_command(name) \
-    int auxts_command_##name(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, auxts_context* ctx)
+    int auxts_command_##name(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, auxts_context* ctx, int op, int* merge_count)
 
 auxts_create_command(extract);
 

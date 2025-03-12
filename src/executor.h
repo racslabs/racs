@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_COMMAND_EXECUTOR_H
-#define AUXTS_COMMAND_EXECUTOR_H
+#ifndef AUXTS_EXECUTOR_H
+#define AUXTS_EXECUTOR_H
 
 #include "kvstore.h"
 #include "parser.h"
@@ -59,10 +59,10 @@ typedef struct {
     auxts_command** cmd;
 } auxts_command_execution_plan;
 
-typedef int (*auxts_command_func)(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, auxts_context* ctx);
+typedef int (*auxts_command_func)(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, auxts_context* ctx, auxts_command_op op, int* merge_count);
 
 void auxts_command_executor_init(auxts_command_executor* exec);
 void auxts_command_executor_destroy(auxts_command_executor* exec);
 auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_context* ctx, const char* cmd);
 
-#endif //AUXTS_COMMAND_EXECUTOR_H
+#endif //AUXTS_EXECUTOR_H

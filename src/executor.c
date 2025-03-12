@@ -1,4 +1,4 @@
-#include "command_executor.h"
+#include "executor.h"
 
 static uint64_t command_executor_hash(void* key);
 static int command_executor_cmp(void* a, void* b);
@@ -132,7 +132,7 @@ void command_execution_plan_execute(auxts_command_execution_plan* plan, auxts_co
         }
 
         command_serialize_args(cmd, &pk);
-        auxts_status status = func(in_buf, out_buf, ctx);
+        auxts_status status = func(in_buf, out_buf, ctx, cmd->op, &exec->merge_count);
         msgpack_sbuffer_clear(in_buf);
 
         if (status != AUXTS_STATUS_OK) break;

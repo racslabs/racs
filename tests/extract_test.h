@@ -4,7 +4,7 @@
 
 #include <assert.h>
 #include "test_utils.h"
-#include "../src/command_executor.h"
+#include "../src/executor.h"
 
 void test_extract();
 void test_extract_no_data();

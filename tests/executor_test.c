@@ -1,4 +1,4 @@
-#include "command_executor_test.h"
+#include "executor_test.h"
 
 void test_command_executor_unknown_command() {
     auxts_context ctx;
