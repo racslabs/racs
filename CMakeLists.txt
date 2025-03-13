@@ -75,10 +75,6 @@ add_executable(auxts main.c
         tests/test_utils.h
         tests/executor_test.h
         tests/executor_test.c
-        src/simd/merge.h
-        src/simd/merge_neon.h
-        src/simd/merge_neon.c
-        src/merge.h
         src/simd/scale.h
         src/simd/scale_neon.h
         src/simd/scale_neon.c

@@ -132,7 +132,7 @@ void command_execution_plan_execute(auxts_command_execution_plan* plan, auxts_co
         }
 
         command_serialize_args(cmd, &pk);
-        auxts_status status = func(in_buf, out_buf, ctx, cmd->op, &exec->merge_count);
+        auxts_status status = func(in_buf, out_buf, ctx);
         msgpack_sbuffer_clear(in_buf);
 
         if (status != AUXTS_STATUS_OK) break;
@@ -186,9 +186,6 @@ auxts_command* command_handle_id(auxts_token* curr, auxts_token* prev) {
     if (prev->type == AUXTS_TOKEN_TYPE_PIPE)
         return command_create(curr->as.id.ptr, AUXTS_COMMAND_OP_PIPE, curr->as.id.size + 1);
 
-    if (prev->type == AUXTS_TOKEN_TYPE_TILDE)
-        return command_create(curr->as.id.ptr, AUXTS_COMMAND_OP_TILDE, curr->as.id.size + 1);
-
     if (prev->type == AUXTS_TOKEN_TYPE_NONE)
         return command_create(curr->as.id.ptr, AUXTS_COMMAND_OP_NONE, curr->as.id.size + 1);
 
@@ -240,7 +237,6 @@ int command_handle_float32(auxts_command* cmd, auxts_token* curr, auxts_token* p
 }
 
 void auxts_command_executor_init(auxts_command_executor* exec) {
-    exec->merge_count = 0;
     exec->kv = auxts_kvstore_create(10, command_executor_hash, command_executor_cmp, command_executor_destroy);
     auxts_kvstore_put(exec->kv, "EXTRACT", auxts_command_extract);
 }

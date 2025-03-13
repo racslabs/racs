@@ -15,12 +15,10 @@ typedef enum {
 
 typedef enum {
     AUXTS_COMMAND_OP_PIPE,
-    AUXTS_COMMAND_OP_TILDE,
     AUXTS_COMMAND_OP_NONE
 } auxts_command_op;
 
 typedef struct {
-    int merge_count;
     auxts_kvstore* kv;
 } auxts_command_executor;
 
@@ -59,7 +57,7 @@ typedef struct {
     auxts_command** cmd;
 } auxts_command_execution_plan;
 
-typedef int (*auxts_command_func)(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, auxts_context* ctx, auxts_command_op op, int* merge_count);
+typedef int (*auxts_command_func)(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, auxts_context* ctx);
 
 void auxts_command_executor_init(auxts_command_executor* exec);
 void auxts_command_executor_destroy(auxts_command_executor* exec);
