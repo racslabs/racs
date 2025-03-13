@@ -78,11 +78,10 @@ add_executable(auxts main.c
         src/simd/merge.h
         src/simd/merge_neon.h
         src/simd/merge_neon.c
-        src/simd/merge_avx2.h
-        src/simd/merge_avx2.c
-        src/simd/convert.h
-        src/simd/convert_neon.c
-        src/simd/convert_avx2.c
+        src/merge.h
+        src/simd/scale.h
+        src/simd/scale_neon.h
+        src/simd/scale_neon.c
 )
 
 target_include_directories(auxts PUBLIC ${msgpack-c_INCLUDE_DIRS})
