@@ -29,7 +29,7 @@ static void command_execution_plan_init(auxts_command_execution_plan* plan);
 static void command_execution_plan_destroy(auxts_command_execution_plan* plan);
 static void command_execution_plan_add_command(auxts_command_execution_plan* plan, auxts_command* cmd);
 static void command_execution_plan_execute(auxts_command_execution_plan* plan, auxts_command_executor* exec, auxts_context* ctx, msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf);
-static void command_execution_plan_build(auxts_command_execution_plan* plan, msgpack_sbuffer* out_buf, auxts_parser* parser);
+static int command_execution_plan_build(auxts_command_execution_plan* plan, msgpack_sbuffer* out_buf, auxts_parser* parser);
 static void to_uppercase(char *str);
 
 auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_context* ctx, const char* cmd) {
@@ -44,55 +44,11 @@ auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_
     msgpack_sbuffer_init(&in_buf);
     msgpack_sbuffer_init(&out_buf);
 
-    auxts_token prev;
-    memset(&prev, 0, sizeof(auxts_token));
-    auxts_token curr = auxts_parser_next_token(&parser);
-
     auxts_command_execution_plan plan;
     command_execution_plan_init(&plan);
 
-    auxts_command_executor_status status = AUXTS_COMMAND_EXECUTOR_STATUS_CONTINUE;
-
-    auxts_command* _cmd = NULL;
-    while (curr.type != AUXTS_TOKEN_TYPE_EOF && status == AUXTS_COMMAND_EXECUTOR_STATUS_CONTINUE) {
-        switch (curr.type) {
-            case AUXTS_TOKEN_TYPE_ID: {
-                _cmd = command_handle_id(&curr, &prev);
-                if (!_cmd) {
-                    handle_error("Token type 'id' is not a valid argument.", &out_buf);
-                    status = AUXTS_COMMAND_EXECUTOR_STATUS_ABORT;
-                }
-                break;
-            }
-            case AUXTS_TOKEN_TYPE_STR:
-                status = command_handle_str(_cmd, &out_buf, &curr, &prev);
-                break;
-            case AUXTS_TOKEN_TYPE_BIN:
-                status = command_handle_bin(_cmd, &out_buf, &curr, &prev);
-                break;
-            case AUXTS_TOKEN_TYPE_PIPE:
-                command_execution_plan_add_command(&plan, _cmd);
-                break;
-            case AUXTS_TOKEN_TYPE_INT:
-                status = command_handle_int32(_cmd, &out_buf, &curr, &prev);
-                break;
-            case AUXTS_TOKEN_TYPE_FLOAT:
-                status = command_handle_float32(_cmd, &out_buf, &curr, &prev);
-                break;
-            case AUXTS_TOKEN_TYPE_ERROR: {
-                handle_error(curr.as.err.msg, &out_buf);
-                status = AUXTS_COMMAND_EXECUTOR_STATUS_ABORT;
-            }
-            default:
-                break;
-        }
-
-        prev = curr;
-        curr = auxts_parser_next_token(&parser);
-    }
-
+    auxts_command_executor_status status = command_execution_plan_build(&plan, &out_buf, &parser);
     if (status != AUXTS_COMMAND_EXECUTOR_STATUS_ABORT) {
-        command_execution_plan_add_command(&plan, _cmd);
         command_execution_plan_execute(&plan, exec, ctx, &in_buf, &out_buf);
     }
 
@@ -105,6 +61,57 @@ auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_
     msgpack_sbuffer_destroy(&out_buf);
 
     return result;
+}
+
+int command_execution_plan_build(auxts_command_execution_plan* plan, msgpack_sbuffer* out_buf, auxts_parser* parser) {
+    auxts_token prev;
+    memset(&prev, 0, sizeof(auxts_token));
+    auxts_token curr = auxts_parser_next_token(parser);
+
+    auxts_command* cmd = NULL;
+    auxts_command_executor_status status = AUXTS_COMMAND_EXECUTOR_STATUS_CONTINUE;
+
+    while (curr.type != AUXTS_TOKEN_TYPE_EOF && status == AUXTS_COMMAND_EXECUTOR_STATUS_CONTINUE) {
+        switch (curr.type) {
+            case AUXTS_TOKEN_TYPE_ID: {
+                cmd = command_handle_id(&curr, &prev);
+                if (!cmd) {
+                    handle_error("Token type 'id' is not a valid argument.", out_buf);
+                    status = AUXTS_COMMAND_EXECUTOR_STATUS_ABORT;
+                }
+                break;
+            }
+            case AUXTS_TOKEN_TYPE_STR:
+                status = command_handle_str(cmd, out_buf, &curr, &prev);
+                break;
+            case AUXTS_TOKEN_TYPE_BIN:
+                status = command_handle_bin(cmd, out_buf, &curr, &prev);
+                break;
+            case AUXTS_TOKEN_TYPE_PIPE:
+                command_execution_plan_add_command(plan, cmd);
+                break;
+            case AUXTS_TOKEN_TYPE_INT:
+                status = command_handle_int32(cmd, out_buf, &curr, &prev);
+                break;
+            case AUXTS_TOKEN_TYPE_FLOAT:
+                status = command_handle_float32(cmd, out_buf, &curr, &prev);
+                break;
+            case AUXTS_TOKEN_TYPE_ERROR: {
+                handle_error(curr.as.err.msg, out_buf);
+                status = AUXTS_COMMAND_EXECUTOR_STATUS_ABORT;
+            }
+            default:
+                break;
+        }
+
+        prev = curr;
+        curr = auxts_parser_next_token(parser);
+    }
+
+    if (status != AUXTS_COMMAND_EXECUTOR_STATUS_ABORT)
+        command_execution_plan_add_command(plan, cmd);
+
+    return status;
 }
 
 void command_execution_plan_execute(auxts_command_execution_plan* plan, auxts_command_executor* exec, auxts_context* ctx, msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf) {
