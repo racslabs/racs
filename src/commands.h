@@ -25,5 +25,6 @@ typedef enum {
     int auxts_command_##name(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, auxts_context* ctx, int op, int* merge_count)
 
 auxts_create_command(extract);
+auxts_create_command(ping);
 
 #endif //AUXTS_COMMANDS_H

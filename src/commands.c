@@ -1,5 +1,18 @@
 #include "commands.h"
 
+auxts_create_command(ping) {
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
+
+    msgpack_unpacked msg;
+    msgpack_unpacked_init(&msg);
+
+    msgpack_pack_array(&pk, 2);
+    auxts_serialize_status_ok(&pk);
+
+    return AUXTS_STATUS_OK;
+}
+
 auxts_create_command(extract) {
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);

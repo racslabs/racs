@@ -12,9 +12,10 @@ static auxts_command_arg* command_arg_create_bin(const char* ptr, size_t size);
 static auxts_command_arg* command_arg_create_int32(int32_t d);
 static auxts_command_arg* command_arg_create_float32(float d);
 static void command_arg_destroy(auxts_command_arg* arg);
-static auxts_command* command_handle_id(auxts_token* curr, auxts_token* prev);
+static auxts_command* handle_id(auxts_token* curr, auxts_token* prev);
 static void handle_error(const char* message, msgpack_sbuffer* out_buf);
 static void handle_unknown_command(auxts_command* cmd, msgpack_sbuffer* out_buf);
+static int command_handle_id(auxts_command* cmd, msgpack_sbuffer* out_buf);
 static int command_handle_str(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token* curr, auxts_token* prev);
 static int command_handle_bin(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token* curr, auxts_token* prev);
 static int command_handle_int32(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token* curr, auxts_token* prev);
@@ -33,8 +34,6 @@ static int command_execution_plan_build(auxts_command_execution_plan* plan, msgp
 static void to_uppercase(char *str);
 
 auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_context* ctx, const char* cmd) {
-    auxts_result result;
-
     auxts_parser parser;
     auxts_parser_init(&parser, cmd);
 
@@ -48,12 +47,12 @@ auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_
     command_execution_plan_init(&plan);
 
     auxts_command_executor_status status = command_execution_plan_build(&plan, &out_buf, &parser);
-    if (status != AUXTS_COMMAND_EXECUTOR_STATUS_ABORT) {
+    if (status != AUXTS_COMMAND_EXECUTOR_STATUS_ABORT)
         command_execution_plan_execute(&plan, exec, ctx, &in_buf, &out_buf);
-    }
 
     command_execution_plan_destroy(&plan);
 
+    auxts_result result;
     auxts_result_init(&result, out_buf.size);
     memcpy(result.data, out_buf.data, out_buf.size);
 
@@ -74,11 +73,8 @@ int command_execution_plan_build(auxts_command_execution_plan* plan, msgpack_sbu
     while (curr.type != AUXTS_TOKEN_TYPE_EOF && status == AUXTS_COMMAND_EXECUTOR_STATUS_CONTINUE) {
         switch (curr.type) {
             case AUXTS_TOKEN_TYPE_ID: {
-                cmd = command_handle_id(&curr, &prev);
-                if (!cmd) {
-                    handle_error("Token type 'id' is not a valid argument.", out_buf);
-                    status = AUXTS_COMMAND_EXECUTOR_STATUS_ABORT;
-                }
+                cmd = handle_id(&curr, &prev);
+                status = command_handle_id(cmd, out_buf);
                 break;
             }
             case AUXTS_TOKEN_TYPE_STR:
@@ -178,7 +174,7 @@ void command_arg_serialize_float32(auxts_command_arg* arg, msgpack_packer* pk) {
     msgpack_pack_float(pk, arg->as.f32);
 }
 
-auxts_command* command_handle_id(auxts_token* curr, auxts_token* prev) {
+auxts_command* handle_id(auxts_token* curr, auxts_token* prev) {
     if (prev->type == AUXTS_TOKEN_TYPE_PIPE)
         return command_create(curr->as.id.ptr, AUXTS_COMMAND_OP_PIPE, curr->as.id.size + 1);
 
@@ -186,6 +182,15 @@ auxts_command* command_handle_id(auxts_token* curr, auxts_token* prev) {
         return command_create(curr->as.id.ptr, AUXTS_COMMAND_OP_NONE, curr->as.id.size + 1);
 
     return NULL;
+}
+
+int command_handle_id(auxts_command* cmd, msgpack_sbuffer* out_buf) {
+    if (!cmd) {
+        handle_error("Token type 'id' is not a valid argument.", out_buf);
+        return AUXTS_COMMAND_EXECUTOR_STATUS_ABORT;
+    }
+
+    return AUXTS_COMMAND_EXECUTOR_STATUS_CONTINUE;
 }
 
 int command_handle_str(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token* curr, auxts_token* prev) {
@@ -239,6 +244,7 @@ int command_handle_float32(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_t
 void auxts_command_executor_init(auxts_command_executor* exec) {
     exec->kv = auxts_kvstore_create(10, command_executor_hash, command_executor_cmp, command_executor_destroy);
     auxts_kvstore_put(exec->kv, "EXTRACT", auxts_command_extract);
+    auxts_kvstore_put(exec->kv, "PING", auxts_command_ping);
 }
 
 void auxts_command_executor_destroy(auxts_command_executor* exec) {
@@ -427,4 +433,3 @@ void to_uppercase(char *str) {
         str++;
     }
 }
-
