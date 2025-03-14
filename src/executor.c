@@ -13,7 +13,7 @@ static auxts_command_arg* command_arg_create_int32(int32_t d);
 static auxts_command_arg* command_arg_create_float32(float d);
 static void command_arg_destroy(auxts_command_arg* arg);
 static auxts_command* command_handle_id(auxts_token* curr, auxts_token* prev);
-static void handle_error(const char* message, msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf);
+static void handle_error(const char* message, msgpack_sbuffer* out_buf);
 static void handle_unknown_command(auxts_command* cmd, msgpack_sbuffer* out_buf);
 static int command_handle_str(auxts_command* cmd, auxts_token* curr, auxts_token* prev);
 static int command_handle_bin(auxts_command* cmd, auxts_token* curr, auxts_token* prev);
@@ -58,21 +58,21 @@ auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_
             case AUXTS_TOKEN_TYPE_ID: {
                 _cmd = command_handle_id(&curr, &prev);
                 if (!_cmd) {
-                    handle_error("Token type 'id' is not a valid argument.", &in_buf, &out_buf);
+                    handle_error("Token type 'id' is not a valid argument.", &out_buf);
                     status = AUXTS_COMMAND_EXECUTOR_STATUS_ABORT;
                 }
                 break;
             }
             case AUXTS_TOKEN_TYPE_STR: {
                 if (!command_handle_str(_cmd, &curr, &prev)) {
-                    handle_error("Token type 'string' is not a valid command.", &in_buf, &out_buf);
+                    handle_error("Token type 'string' is not a valid command.", &out_buf);
                     status = AUXTS_COMMAND_EXECUTOR_STATUS_ABORT;
                 }
                 break;
             }
             case AUXTS_TOKEN_TYPE_BIN: {
                 if (!command_handle_bin(_cmd, &curr, &prev)) {
-                    handle_error("Token type 'binary' is not a valid command.", &in_buf, &out_buf);
+                    handle_error("Token type 'binary' is not a valid command.", &out_buf);
                     status = AUXTS_COMMAND_EXECUTOR_STATUS_ABORT;
                 }
                 break;
@@ -82,20 +82,20 @@ auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_
                 break;
             case AUXTS_TOKEN_TYPE_INT: {
                 if (!command_handle_int32(_cmd, &curr, &prev)) {
-                    handle_error("Token type 'int' is not a valid command.", &in_buf, &out_buf);
+                    handle_error("Token type 'int' is not a valid command.", &out_buf);
                     status = AUXTS_COMMAND_EXECUTOR_STATUS_ABORT;
                 }
                 break;
             }
             case AUXTS_TOKEN_TYPE_FLOAT: {
                 if (!command_handle_float32(_cmd, &curr, &prev)) {
-                    handle_error("Token type 'float' is not a valid command.", &in_buf, &out_buf);
+                    handle_error("Token type 'float' is not a valid command.", &out_buf);
                     status = AUXTS_COMMAND_EXECUTOR_STATUS_ABORT;
                 }
                 break;
             }
             case AUXTS_TOKEN_TYPE_ERROR: {
-                handle_error(curr.as.err.msg, &in_buf, &out_buf);
+                handle_error(curr.as.err.msg, &out_buf);
                 status = AUXTS_COMMAND_EXECUTOR_STATUS_ABORT;
             }
             default:
@@ -250,7 +250,7 @@ void auxts_command_executor_destroy(auxts_command_executor* exec) {
     auxts_kvstore_destroy(exec->kv);
 }
 
-void handle_error(const char* message, msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf) {
+void handle_error(const char* message, msgpack_sbuffer* out_buf) {
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
     auxts_serialize_status_error(&pk, message);
