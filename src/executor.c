@@ -46,7 +46,7 @@ auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_
     auxts_command_execution_plan plan;
     command_execution_plan_init(&plan);
 
-    auxts_command_executor_status status = command_execution_plan_build(&plan, &out_buf, &parser);
+    int status = command_execution_plan_build(&plan, &out_buf, &parser);
     if (status != AUXTS_COMMAND_EXECUTOR_STATUS_ABORT)
         command_execution_plan_execute(&plan, exec, ctx, &in_buf, &out_buf);
 
@@ -68,7 +68,7 @@ int command_execution_plan_build(auxts_command_execution_plan* plan, msgpack_sbu
     auxts_token curr = auxts_parser_next_token(parser);
 
     auxts_command* cmd = NULL;
-    auxts_command_executor_status status = AUXTS_COMMAND_EXECUTOR_STATUS_CONTINUE;
+    int status = AUXTS_COMMAND_EXECUTOR_STATUS_CONTINUE;
 
     while (curr.type != AUXTS_TOKEN_TYPE_EOF && status == AUXTS_COMMAND_EXECUTOR_STATUS_CONTINUE) {
         switch (curr.type) {
@@ -243,8 +243,8 @@ int command_handle_float32(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_t
 
 void auxts_command_executor_init(auxts_command_executor* exec) {
     exec->kv = auxts_kvstore_create(10, command_executor_hash, command_executor_cmp, command_executor_destroy);
+    auxts_kvstore_put(exec->kv, "PING\0", auxts_command_ping);
     auxts_kvstore_put(exec->kv, "EXTRACT", auxts_command_extract);
-    auxts_kvstore_put(exec->kv, "PING", auxts_command_ping);
 }
 
 void auxts_command_executor_destroy(auxts_command_executor* exec) {

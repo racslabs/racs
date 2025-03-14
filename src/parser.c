@@ -8,7 +8,6 @@ static auxts_token parser_lex_token_bin(auxts_parser* parser, regmatch_t* match)
 static auxts_token parser_lex_token_int32(auxts_parser* parser, regmatch_t* match);
 static auxts_token parser_lex_token_float32(auxts_parser* parser, regmatch_t* match);
 static auxts_token parser_lex_token_pipe(auxts_parser* parser, regmatch_t* match);
-static auxts_token parser_lex_token_tilde(auxts_parser* parser, regmatch_t* match);
 static auxts_token parser_token_error(auxts_parser* parser);
 static auxts_token parser_lex_token_eof();
 static void print_n_chars(const char* str, size_t n);
@@ -42,12 +41,6 @@ auxts_token auxts_parser_next_token(auxts_parser* parser) {
     if (*parser->ptr == '.') {
         if (match_token(parser->ptr, AUXTS_REGEX_FLOAT, &match)) {
             return parser_lex_token_float32(parser, &match);
-        }
-    }
-
-    if (*parser->ptr == '~') {
-        if (match_token(parser->ptr, AUXTS_REGEX_TILDE, &match)) {
-            return parser_lex_token_tilde(parser, &match);
         }
     }
 
@@ -112,9 +105,6 @@ void auxts_token_print(auxts_token* token) {
             break;
         case AUXTS_TOKEN_TYPE_ERROR:
             printf("[ERR  ] %s\n", token->as.err.msg);
-            break;
-        case AUXTS_TOKEN_TYPE_TILDE:
-            printf("[TILDE] ~\n");
             break;
     }
 }
@@ -227,17 +217,6 @@ auxts_token parser_lex_token_pipe(auxts_parser* parser, regmatch_t* match) {
 
     auxts_token token;
     token.type = AUXTS_TOKEN_TYPE_PIPE;
-
-    parser_advance(parser, size);
-
-    return token;
-}
-
-auxts_token parser_lex_token_tilde(auxts_parser* parser, regmatch_t* match) {
-    regoff_t size = match->rm_eo - match->rm_so;
-
-    auxts_token token;
-    token.type = AUXTS_TOKEN_TYPE_TILDE;
 
     parser_advance(parser, size);
 

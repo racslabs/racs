@@ -7,6 +7,9 @@ auxts_create_command(ping) {
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
 
+    auxts_parse_args(in_buf, &pk)
+    auxts_validate_num_args(&pk, msg, 0)
+
     msgpack_pack_array(&pk, 2);
     auxts_serialize_status_ok(&pk);
 

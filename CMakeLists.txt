@@ -78,6 +78,8 @@ add_executable(auxts main.c
         src/simd/scale.h
         src/simd/scale_neon.h
         src/simd/scale_neon.c
+        tests/ping_test.h
+        tests/ping_test.c
 )
 
 target_include_directories(auxts PUBLIC ${msgpack-c_INCLUDE_DIRS})
@@ -95,6 +97,7 @@ add_test(test_command_executor_unknown_command auxts "--test" "test_command_exec
 add_test(test_command_executor_parse_error1 auxts "--test" "test_command_executor_parse_error1")
 add_test(test_command_executor_is_not_command auxts "--test" "test_command_executor_is_not_command")
 add_test(test_hashtable auxts "--test" "test_hashtable")
+add_test(test_ping auxts "--test" "test_ping")
 add_test(test_murmurhash3 auxts "--test" "test_murmurhash3")
 add_test(test_rfc3339 auxts "--test" "test_rfc3339")
 add_test(test_parser auxts "--test" "test_parser")
