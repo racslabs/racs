@@ -18,6 +18,11 @@ typedef enum {
     AUXTS_COMMAND_OP_NONE
 } auxts_command_op;
 
+typedef enum {
+    AUXTS_COMMAND_EXECUTOR_STATUS_CONTINUE,
+    AUXTS_COMMAND_EXECUTOR_STATUS_ABORT
+} auxts_command_executor_status;
+
 typedef struct {
     auxts_kvstore* kv;
 } auxts_command_executor;
