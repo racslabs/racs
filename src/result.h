@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_AUXTS_H
-#define AUXTS_AUXTS_H
+#ifndef AUXTS_RESULT_H
+#define AUXTS_RESULT_H
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -22,4 +22,4 @@ void auxts_context_init(auxts_context* ctx);
 void auxts_context_destroy(auxts_context* ctx);
 
 
-#endif //AUXTS_AUXTS_H
+#endif //AUXTS_RESULT_H

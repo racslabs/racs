@@ -39,8 +39,8 @@ add_executable(auxts main.c
         src/extract.c
         src/flac.h
         src/flac.c
-        src/auxts.h
-        src/auxts.c
+        src/result.h
+        src/result.c
         src/filelist.h
         src/filelist.c
         src/bytes.h
@@ -80,6 +80,8 @@ add_executable(auxts main.c
         src/simd/scale_neon.c
         tests/ping_test.h
         tests/ping_test.c
+        src/metadata.h
+        src/metadata.c
 )
 
 target_include_directories(auxts PUBLIC ${msgpack-c_INCLUDE_DIRS})

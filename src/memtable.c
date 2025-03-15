@@ -146,9 +146,7 @@ auxts_sstable* auxts_sstable_read_in_memory(uint8_t* data, size_t size) {
     size_t offset = size - (num_entries * AUXTS_INDEX_ENTRY_SIZE) - AUXTS_TRAILER_SIZE;
 
     auxts_sstable* sst = sstable_create(num_entries);
-    if (!sst) {
-        return NULL;
-    }
+    if (!sst) return NULL;
 
     sst->num_entries = num_entries;
     sst->fd = -1;

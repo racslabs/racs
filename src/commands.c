@@ -43,7 +43,7 @@ auxts_create_command(extract) {
         return auxts_serialize_pcm_buffer(&pk, &pbuf);
     }
 
-    if (status == AUXTS_EXTRACT_PCM_STATUS_NO_DATA) {
+    if (status == AUXTS_EXTRACT_PCM_STATUS_NOT_FOUND) {
         return auxts_serialize_status_not_found(&pk);
     }
 

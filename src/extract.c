@@ -6,11 +6,11 @@ static uint8_t* get_data_from_cache_or_sstable(auxts_cache* cache, uint64_t stre
 static auxts_flac_blocks* extract_flac_blocks(auxts_cache* cache, uint64_t stream_id, int64_t from, int64_t to);
 static void process_sstable_data(auxts_flac_blocks* blocks, uint64_t stream_id, int64_t from, int64_t to, uint8_t* data);
 
-auxts_extract_pcm_status auxts_extract_pcm_data(auxts_cache* cache, auxts_pcm_buffer* pbuf, uint64_t stream_id, int64_t from, int64_t to) {
+int auxts_extract_pcm_data(auxts_cache* cache, auxts_pcm_buffer* pbuf, uint64_t stream_id, int64_t from, int64_t to) {
     auxts_flac_blocks* blocks = extract_flac_blocks(cache, stream_id, from, to);
     if (blocks->num_blocks == 0) {
         auxts_flac_blocks_destroy(blocks);
-        return AUXTS_EXTRACT_PCM_STATUS_NO_DATA;
+        return AUXTS_EXTRACT_PCM_STATUS_NOT_FOUND;
     }
 
     auxts_flac_block* flac_block = blocks->blocks[0];

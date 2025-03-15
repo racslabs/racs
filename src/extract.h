@@ -11,7 +11,7 @@
 #include <msgpack.h>
 #include "memtable.h"
 #include "filelist.h"
-#include "auxts.h"
+#include "result.h"
 #include "flac.h"
 
 #ifdef __cplusplus
@@ -22,7 +22,7 @@ extern const char* const auxts_extract_pcm_status_message[];
 
 typedef enum {
     AUXTS_EXTRACT_PCM_STATUS_OK,
-    AUXTS_EXTRACT_PCM_STATUS_NO_DATA
+    AUXTS_EXTRACT_PCM_STATUS_NOT_FOUND
 } auxts_extract_pcm_status;
 
 typedef struct {
@@ -41,7 +41,7 @@ typedef struct {
 uint8_t* auxts_pack_pcm_data(const auxts_pcm_buffer* pbuf);
 void auxts_pcm_buffer_destroy(auxts_pcm_buffer* pbuf);
 void auxts_pcm_buffer_init(auxts_pcm_buffer* pbuf, uint32_t channels, uint32_t sample_rate, uint32_t bits_per_sample);
-auxts_extract_pcm_status auxts_extract_pcm_data(auxts_cache* cache, auxts_pcm_buffer* pbuf, uint64_t stream_id, int64_t from, int64_t to);
+int auxts_extract_pcm_data(auxts_cache* cache, auxts_pcm_buffer* pbuf, uint64_t stream_id, int64_t from, int64_t to);
 
 #ifdef __cplusplus
 }
