@@ -48,7 +48,7 @@ void test_multi_memtable() {
     uint8_t* flac_data4 = read_file_test_util("../tests/data/data-4.flac", &size4);
 
     uint64_t key[2];
-    murmur3_x64_128((uint8_t *) "tests", 4, 0, key);
+    murmur3_x64_128((uint8_t*)"tests", 4, 0, key);
 
     key[1] = 1739141512213;
     auxts_multi_memtable_append(mmt, key, flac_data1, size1);

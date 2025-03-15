@@ -82,6 +82,8 @@ add_executable(auxts main.c
         tests/ping_test.c
         src/metadata.h
         src/metadata.c
+        tests/metadata_test.h
+        tests/metadata_test.c
 )
 
 target_include_directories(auxts PUBLIC ${msgpack-c_INCLUDE_DIRS})
@@ -103,3 +105,4 @@ add_test(test_ping auxts "--test" "test_ping")
 add_test(test_murmurhash3 auxts "--test" "test_murmurhash3")
 add_test(test_rfc3339 auxts "--test" "test_rfc3339")
 add_test(test_parser auxts "--test" "test_parser")
+add_test(test_metadata auxts "--test" "test_metadata")

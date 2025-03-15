@@ -1,8 +1,35 @@
 #include "metadata.h"
 
 static off_t metadata_write(uint8_t buf[], const auxts_metadata* metadata);
+static off_t metadata_read(auxts_metadata* metadata, uint8_t buf[]);
 static int write_metadata_index(const char* name);
 static uint64_t hash_stream_name(const char* name);
+
+int auxts_metadata_get(auxts_metadata* metadata, const char* name) {
+    uint64_t hash = hash_stream_name(name);
+
+    char path[55];
+    sprintf(path, ".data/%llu", hash);
+
+    int fd = open(path, O_RDONLY);
+    if (fd == -1) {
+        perror("Failed to open metadata file");
+        return -1;
+    }
+
+    uint8_t buf[28];
+    read(fd, buf, 28);
+
+    if (metadata_read(metadata, buf) != 28) {
+        perror("Failed to read metadata");
+        close(fd);
+        return -1;
+    }
+
+    close(fd);
+
+    return 1;
+}
 
 int auxts_metadata_update(const auxts_metadata* metadata, const char* name) {
     uint64_t hash = hash_stream_name(name);
@@ -23,11 +50,13 @@ int auxts_metadata_update(const auxts_metadata* metadata, const char* name) {
     }
 
     uint8_t buf[28];
-    if (metadata_write(buf, metadata) != 28 || write(fd, buf, 28) == -1) {
+    if (metadata_write(buf, metadata) != 28) {
         perror("Failed to write metadata");
         close(fd);
         return -1;
     }
+
+    write(fd, buf, 28);
 
     flock(fd, LOCK_UN);
     close(fd);
@@ -36,7 +65,7 @@ int auxts_metadata_update(const auxts_metadata* metadata, const char* name) {
 }
 
 int write_metadata_index(const char* name) {
-    int fd = open("./data/index", O_WRONLY | O_APPEND | O_CREAT, 0644);
+    int fd = open(".data/index", O_WRONLY | O_APPEND | O_CREAT, 0644);
     if (fd == -1) {
         perror("Failed to open metadata index file");
         return -1;
@@ -58,13 +87,23 @@ int write_metadata_index(const char* name) {
     return 1;
 }
 
+off_t metadata_read(auxts_metadata* metadata, uint8_t buf[]) {
+    off_t offset = 0;
+    offset = auxts_read_uint32(&metadata->channels, buf, offset);
+    offset = auxts_read_uint32(&metadata->sample_rate, buf, offset);
+    offset = auxts_read_uint32(&metadata->bit_depth, buf, offset);
+    offset = auxts_read_uint64(&metadata->bytes, buf, offset);
+    offset = auxts_read_uint64(&metadata->created_at, buf, offset);
+    return offset;
+}
+
 off_t metadata_write(uint8_t buf[], const auxts_metadata* metadata) {
     off_t offset = 0;
     offset = auxts_write_uint32(buf, metadata->channels, offset);
     offset = auxts_write_uint32(buf, metadata->sample_rate, offset);
     offset = auxts_write_uint32(buf, metadata->bit_depth, offset);
     offset = auxts_write_uint64(buf, metadata->bytes, offset);
-    offset = auxts_write_uint64(buf, metadata->ref, offset);
+    offset = auxts_write_uint64(buf, metadata->created_at, offset);
     return offset;
 }
 

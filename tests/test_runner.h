@@ -13,6 +13,7 @@
 #include "parser_test.h"
 #include "executor_test.h"
 #include "ping_test.h"
+#include "metadata_test.h"
 
 typedef void (*test)();
 
@@ -46,6 +47,7 @@ AUXTS_FORCE_INLINE void auxts_run_tests(int argc, char* argv[]) {
     auxts_add_test(test_command_executor_unknown_command, "test_command_executor_unknown_command", argc, argv);
     auxts_add_test(test_command_executor_parse_error1, "test_command_executor_parse_error1", argc, argv);
     auxts_add_test(test_command_executor_is_not_command, "test_command_executor_is_not_command", argc, argv);
+    auxts_add_test(test_metadata, "test_metadata", argc, argv);
 }
 
 #endif //AUXTS_TEST_RUNNER_H
