@@ -12,6 +12,7 @@
 #include "memtable.h"
 #include "filelist.h"
 #include "result.h"
+#include "context.h"
 #include "flac.h"
 
 #ifdef __cplusplus

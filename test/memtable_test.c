@@ -42,13 +42,13 @@ void test_multi_memtable() {
 
     auxts_multi_memtable* mmt = auxts_multi_memtable_create(2, 2);
 
-    uint8_t* flac_data1 = read_file_test_util("../tests/data/data-1.flac", &size1);
-    uint8_t* flac_data2 = read_file_test_util("../tests/data/data-2.flac", &size2);
-    uint8_t* flac_data3 = read_file_test_util("../tests/data/data-3.flac", &size3);
-    uint8_t* flac_data4 = read_file_test_util("../tests/data/data-4.flac", &size4);
+    uint8_t* flac_data1 = read_file_test_util("../test/data/data-1.flac", &size1);
+    uint8_t* flac_data2 = read_file_test_util("../test/data/data-2.flac", &size2);
+    uint8_t* flac_data3 = read_file_test_util("../test/data/data-3.flac", &size3);
+    uint8_t* flac_data4 = read_file_test_util("../test/data/data-4.flac", &size4);
 
     uint64_t key[2];
-    murmur3_x64_128((uint8_t*)"tests", strlen("tests"), 0, key);
+    murmur3_x64_128((uint8_t*)"test", strlen("test"), 0, key);
 
     key[1] = 1739141512213;
     auxts_multi_memtable_append(mmt, key, flac_data1, size1);

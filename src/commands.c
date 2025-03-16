@@ -11,9 +11,8 @@ auxts_create_command(ping) {
     auxts_validate_num_args(&pk, msg, 0)
 
     msgpack_pack_array(&pk, 2);
-    auxts_serialize_status_ok(&pk);
 
-    return AUXTS_STATUS_OK;
+    return auxts_serialize_status_ok(&pk);
 }
 
 auxts_create_command(create) {
@@ -84,7 +83,7 @@ auxts_create_command(extract) {
                    "Invalid RFC-3339 timestamp. Expected format: yyyy-MM-ddTHH:mm:ss.SSSZ")
 
     auxts_validate(&pk, auxts_stream_id_exist(stream_id),
-                   "The stream-id provided does not exist")
+                   "The stream-id does not exist")
 
     auxts_pcm_buffer pbuf;
     int rc = auxts_extract_pcm_data(ctx->cache, &pbuf, stream_id, from, to);

@@ -47,51 +47,57 @@ add_executable(auxts main.c
         src/kvstore.h
         src/kvstore.c
         src/simd/simd.h
-        tests/test_runner.h
-        tests/cache_test.h
-        tests/cache_test.c
-        tests/extract_test.h
-        tests/extract_test.c
-        tests/memtable_test.h
-        tests/memtable_test.c
-        tests/kvstore_test.h
-        tests/kvstore_test.c
-        tests/murmur3_test.h
-        tests/murmur3_test.c
-        tests/timestamp_test.h
-        tests/timestamp_test.c
-        tests/simd_test.h
-        tests/simd_test.c
+        test/test_runner.h
+        test/cache_test.h
+        test/cache_test.c
+        test/extract_test.h
+        test/extract_test.c
+        test/memtable_test.h
+        test/memtable_test.c
+        test/kvstore_test.h
+        test/kvstore_test.c
+        test/murmur3_test.h
+        test/murmur3_test.c
+        test/timestamp_test.h
+        test/timestamp_test.c
+        test/simd_test.h
+        test/simd_test.c
         src/parser.h
         src/parser.c
-        tests/parser_test.h
-        tests/parser_test.c
+        test/parser_test.h
+        test/parser_test.c
         src/executor.h
         src/executor.c
         src/commands.h
         src/commands.c
         src/serialization.h
         src/serialization.c
-        tests/test_utils.h
-        tests/executor_test.h
-        tests/executor_test.c
+        test/test_utils.h
+        test/executor_test.h
+        test/executor_test.c
         src/simd/scale.h
         src/simd/scale_neon.h
         src/simd/scale_neon.c
-        tests/ping_test.h
-        tests/ping_test.c
+        test/ping_test.h
+        test/ping_test.c
         src/metadata.h
         src/metadata.c
-        tests/metadata_test.h
-        tests/metadata_test.c
+        test/metadata_test.h
+        test/metadata_test.c
         src/create.h
         src/create.c
+        test/create_test.h
+        test/create_test.c
+        src/db.h
+        src/db.c
+        src/context.h
+        src/context.c
 )
 
 target_include_directories(auxts PUBLIC ${msgpack-c_INCLUDE_DIRS})
 target_link_libraries(auxts msgpack-c ${FLAC_LIBRARY})
 
-# Unit tests
+# Unit test
 add_test(test_metadata auxts "--test" "test_metadata")
 add_test(test_lru_cache auxts "--test" "test_lru_cache")
 add_test(test_multi_memtable auxts "--test" "test_multi_memtable")
@@ -108,3 +114,4 @@ add_test(test_ping auxts "--test" "test_ping")
 add_test(test_murmurhash3 auxts "--test" "test_murmurhash3")
 add_test(test_rfc3339 auxts "--test" "test_rfc3339")
 add_test(test_parser auxts "--test" "test_parser")
+add_test(test_create auxts "--test" "test_create")
