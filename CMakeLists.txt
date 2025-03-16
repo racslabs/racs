@@ -84,6 +84,8 @@ add_executable(auxts main.c
         src/metadata.c
         tests/metadata_test.h
         tests/metadata_test.c
+        src/create.h
+        src/create.c
 )
 
 target_include_directories(auxts PUBLIC ${msgpack-c_INCLUDE_DIRS})

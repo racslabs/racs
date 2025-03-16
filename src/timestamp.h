@@ -21,7 +21,7 @@ extern "C" {
 
 #define AUXTS_NANOSECONDS_PER_SECOND 1000000000L
 
-int64_t auxts_get_milliseconds();
+int64_t auxts_milliseconds();
 void auxts_milliseconds_to_tm(int64_t milliseconds, struct tm* info);
 int64_t auxts_ts_to_milliseconds(struct timespec* ts);
 void auxts_format_rfc3339(int64_t milliseconds, char* buf);

@@ -1,6 +1,6 @@
 #include "timestamp.h"
 
-int64_t auxts_get_milliseconds() {
+int64_t auxts_milliseconds() {
     struct timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
     return auxts_ts_to_milliseconds(&ts);

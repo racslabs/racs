@@ -26,9 +26,6 @@ auxts_create_command(extract) {
     auxts_parse_args(in_buf, &pk)
     auxts_validate_num_args(&pk, msg, 3)
 
-    int64_t from, to;
-    uint64_t stream_id;
-
     auxts_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR,
                             "Invalid type at arg 1 of EXTRACT command. Expected: string")
 
@@ -37,6 +34,9 @@ auxts_create_command(extract) {
 
     auxts_validate_arg_type(&pk, msg, 2, MSGPACK_OBJECT_STR,
                             "Invalid type at arg 3 of EXTRACT command. Expected: string")
+
+    int64_t from, to;
+    uint64_t stream_id;
 
     auxts_deserialize_stream_id(&stream_id, &msg.data, 0);
 
@@ -49,13 +49,11 @@ auxts_create_command(extract) {
     auxts_pcm_buffer pbuf;
     int status = auxts_extract_pcm_data(ctx->cache, &pbuf, stream_id, from, to);
 
-    if (status == AUXTS_EXTRACT_PCM_STATUS_OK) {
+    if (status == AUXTS_EXTRACT_PCM_STATUS_OK)
         return auxts_serialize_pcm_buffer(&pk, &pbuf);
-    }
 
-    if (status == AUXTS_EXTRACT_PCM_STATUS_NOT_FOUND) {
+    if (status == AUXTS_EXTRACT_PCM_STATUS_NOT_FOUND)
         return auxts_serialize_status_not_found(&pk);
-    }
 
     return auxts_serialize_status_error(&pk, "Cause unknown");
 }
