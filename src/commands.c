@@ -44,10 +44,10 @@ auxts_create_command(extract) {
                    "Invalid RFC-3339 timestamp. Expected format: yyyy-MM-ddTHH:mm:ss.SSSZ")
 
     auxts_validate(&pk , auxts_stream_id_exist(stream_id),
-                   "Stream-id does not exist")
+                   "The stream-id provided does not exist")
 
     auxts_pcm_buffer pbuf;
-    auxts_extract_pcm_status status = auxts_extract_pcm_data(ctx->cache, &pbuf, stream_id, from, to);
+    int status = auxts_extract_pcm_data(ctx->cache, &pbuf, stream_id, from, to);
 
     if (status == AUXTS_EXTRACT_PCM_STATUS_OK) {
         return auxts_serialize_pcm_buffer(&pk, &pbuf);
