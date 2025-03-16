@@ -8,7 +8,7 @@ void test_metadata() {
     metadata.created_at = 1739141512213;
     metadata.bytes = 44100*2;
 
-    auxts_metadata_update(&metadata, "tests");
+    auxts_metadata_put(&metadata, "tests");
     auxts_metadata_get(&metadata, "tests");
 
     assert(metadata.channels == 2);

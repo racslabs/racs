@@ -29,12 +29,22 @@ auxts_create_command(extract) {
     int64_t from, to;
     uint64_t stream_id;
 
-    auxts_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1 of EXTRACT command. Expected: string")
-    auxts_validate_arg_type(&pk, msg, 1, MSGPACK_OBJECT_STR, "Invalid type at arg 2 of EXTRACT command. Expected: string")
-    auxts_validate_arg_type(&pk, msg, 2, MSGPACK_OBJECT_STR, "Invalid type at arg 3 of EXTRACT command. Expected: string")
+    auxts_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR,
+                            "Invalid type at arg 1 of EXTRACT command. Expected: string")
 
-    auxts_validate(&pk, auxts_deserialize_range(&from, &to, &msg.data),"Invalid RFC-3339 timestamp. Expected format: yyyy-MM-ddTHH:mm:ss.SSSZ")
+    auxts_validate_arg_type(&pk, msg, 1, MSGPACK_OBJECT_STR,
+                            "Invalid type at arg 2 of EXTRACT command. Expected: string")
+
+    auxts_validate_arg_type(&pk, msg, 2, MSGPACK_OBJECT_STR,
+                            "Invalid type at arg 3 of EXTRACT command. Expected: string")
+
     auxts_deserialize_stream_id(&stream_id, &msg.data, 0);
+
+    auxts_validate(&pk, auxts_deserialize_range(&from, &to, &msg.data),
+                   "Invalid RFC-3339 timestamp. Expected format: yyyy-MM-ddTHH:mm:ss.SSSZ")
+
+    auxts_validate(&pk , auxts_stream_id_exist(stream_id),
+                   "Stream-id does not exist")
 
     auxts_pcm_buffer pbuf;
     auxts_extract_pcm_status status = auxts_extract_pcm_data(ctx->cache, &pbuf, stream_id, from, to);

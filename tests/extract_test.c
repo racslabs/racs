@@ -7,7 +7,7 @@ void test_extract() {
     auxts_command_executor exec;
     auxts_command_executor_init(&exec);
 
-    auxts_result result = auxts_command_executor_execute(&exec, &ctx, "EXTRACT 'test' '2025-02-09T22:51:52.213Z' '2025-02-09T22:51:52.215Z'");
+    auxts_result result = auxts_command_executor_execute(&exec, &ctx, "EXTRACT 'tests' '2025-02-09T22:51:52.213Z' '2025-02-09T22:51:52.215Z'");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
@@ -38,7 +38,7 @@ void test_extract_no_data() {
     auxts_command_executor exec;
     auxts_command_executor_init(&exec);
 
-    auxts_result result = auxts_command_executor_execute(&exec, &ctx, "EXTRACT 'test' '2025-02-09T22:51:52.213Z' '2025-02-09T22:51:52.212Z'");
+    auxts_result result = auxts_command_executor_execute(&exec, &ctx, "EXTRACT 'tests' '2025-02-09T22:51:52.213Z' '2025-02-09T22:51:52.212Z'");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
@@ -86,7 +86,7 @@ void test_extract_invalid_num_args() {
     auxts_command_executor exec;
     auxts_command_executor_init(&exec);
 
-    auxts_result result = auxts_command_executor_execute(&exec, &ctx, "EXTRACT 'test' '2025-02-09T22:5'");
+    auxts_result result = auxts_command_executor_execute(&exec, &ctx, "EXTRACT 'tests' '2025-02-09T22:5'");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
@@ -111,7 +111,7 @@ void test_extract_invalid_arg_type() {
     auxts_command_executor exec;
     auxts_command_executor_init(&exec);
 
-    auxts_result result = auxts_command_executor_execute(&exec, &ctx, "EXTRACT 'test' 2 2");
+    auxts_result result = auxts_command_executor_execute(&exec, &ctx, "EXTRACT 'tests' 2 2");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);

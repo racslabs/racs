@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <sys/stat.h>
 
 typedef struct {
     uint32_t channels;
@@ -16,7 +17,8 @@ typedef struct {
     uint64_t created_at;
 } auxts_metadata;
 
-int auxts_metadata_update(const auxts_metadata* metadata, const char* name);
+int auxts_metadata_put(const auxts_metadata* metadata, const char* name);
 int auxts_metadata_get(auxts_metadata* metadata, const char* name);
+int auxts_stream_id_exist(uint64_t stream_id);
 
 #endif //AUXTS_METADATA_H

@@ -90,6 +90,7 @@ target_include_directories(auxts PUBLIC ${msgpack-c_INCLUDE_DIRS})
 target_link_libraries(auxts msgpack-c ${FLAC_LIBRARY})
 
 # Unit tests
+add_test(test_metadata auxts "--test" "test_metadata")
 add_test(test_lru_cache auxts "--test" "test_lru_cache")
 add_test(test_multi_memtable auxts "--test" "test_multi_memtable")
 add_test(test_extract auxts "--test" "test_extract")
@@ -105,4 +106,3 @@ add_test(test_ping auxts "--test" "test_ping")
 add_test(test_murmurhash3 auxts "--test" "test_murmurhash3")
 add_test(test_rfc3339 auxts "--test" "test_rfc3339")
 add_test(test_parser auxts "--test" "test_parser")
-add_test(test_metadata auxts "--test" "test_metadata")

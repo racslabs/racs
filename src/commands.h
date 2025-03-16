@@ -4,6 +4,7 @@
 
 #include <msgpack.h>
 #include "serialization.h"
+#include "metadata.h"
 
 typedef enum {
     AUXTS_STATUS_OK,
