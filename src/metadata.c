@@ -9,12 +9,14 @@ static int get_metadata_path(char* path, const char* name);
 
 int auxts_metadata_get(auxts_metadata* metadata, const char* name) {
     char path[55];
-    if (!get_metadata_path(path, name)) return -1;
+
+    if (!get_metadata_path(path, name))
+        return AUXTS_METADATA_STATUS_NOT_FOUND;
 
     int fd = open(path, O_RDONLY);
     if (fd == -1) {
         perror("Failed to open metadata file");
-        return -1;
+        return AUXTS_METADATA_STATUS_ERROR;
     }
 
     uint8_t buf[28];
@@ -23,30 +25,32 @@ int auxts_metadata_get(auxts_metadata* metadata, const char* name) {
     if (metadata_read(metadata, buf) != 28) {
         perror("Failed to read metadata");
         close(fd);
-        return -1;
+        return AUXTS_METADATA_STATUS_ERROR;
     }
 
     close(fd);
 
-    return 1;
+    return AUXTS_METADATA_STATUS_OK;
 }
 
 int auxts_metadata_put(const auxts_metadata* metadata, const char* name) {
     char path[55];
-    if (get_metadata_path(path, name)) return -1;
+
+    if (get_metadata_path(path, name))
+        return AUXTS_METADATA_STATUS_EXIST;
 
     mkdir(".data", 0777);
 
     int fd = open(path, O_WRONLY | O_TRUNC | O_CREAT, 0644);
     if (fd == -1) {
         perror("Failed to open metadata file");
-        return -1;
+        return AUXTS_METADATA_STATUS_ERROR;
     }
 
     if (flock(fd, LOCK_EX) == -1) {
         perror("Failed to lock metadata file");
         close(fd);
-        return -1;
+        return AUXTS_METADATA_STATUS_ERROR;
     }
 
     uint8_t buf[28];
@@ -92,13 +96,13 @@ int write_metadata_index(const char* name) {
     int fd = open(".data/index", O_WRONLY | O_APPEND | O_CREAT, 0644);
     if (fd == -1) {
         perror("Failed to open metadata index file");
-        return -1;
+        return AUXTS_METADATA_STATUS_ERROR;
     }
 
     if (flock(fd, LOCK_SH) == -1) {
         perror("Failed to lock metadata file");
         close(fd);
-        return -1;
+        return AUXTS_METADATA_STATUS_ERROR;
     }
 
     size_t size = strlen(name);
@@ -108,7 +112,7 @@ int write_metadata_index(const char* name) {
     flock(fd, LOCK_UN);
     close(fd);
 
-    return 1;
+    return AUXTS_METADATA_STATUS_OK;
 }
 
 off_t metadata_read(auxts_metadata* metadata, uint8_t buf[]) {

@@ -78,7 +78,7 @@ int64_t auxts_time_partitioned_path_to_timestamp(const char* path) {
     struct timespec ts;
     long milliseconds = 0;
 
-    int ret = sscanf(path, ".data/ts/%4d/%2d/%2d/%2d/%2d/%2d/%3ld",
+    int ret = sscanf(path, ".data/seg/%4d/%2d/%2d/%2d/%2d/%2d/%3ld",
                      &info.tm_year, &info.tm_mon, &info.tm_mday,
                      &info.tm_hour, &info.tm_min, &info.tm_sec, &milliseconds);
 
@@ -122,7 +122,7 @@ void auxts_get_time_partitioned_path(int64_t milliseconds, char* path) {
 
     long remainder = (long)(milliseconds % AUXTS_MILLISECONDS_PER_SECOND);
 
-    sprintf(path, ".data/ts/%d/%02d/%02d/%02d/%02d/%02d/%03ld",
+    sprintf(path, ".data/seg/%d/%02d/%02d/%02d/%02d/%02d/%03ld",
             info.tm_year + 1900, info.tm_mon + 1,
             info.tm_mday, info.tm_hour,
             info.tm_min, info.tm_sec,
@@ -138,7 +138,7 @@ void auxts_create_time_partitioned_dirs(int64_t milliseconds) {
     sprintf(dir, ".data");
     mkdir(dir, 0777);
 
-    sprintf(dir, "%s/ts", dir);
+    sprintf(dir, "%s/seg", dir);
     mkdir(dir, 0777);
 
     sprintf(dir, "%s/%d", dir, info.tm_year + 1900);

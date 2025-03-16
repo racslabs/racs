@@ -9,6 +9,13 @@
 #include <stdio.h>
 #include <sys/stat.h>
 
+typedef enum {
+    AUXTS_METADATA_STATUS_OK,
+    AUXTS_METADATA_STATUS_EXIST,
+    AUXTS_METADATA_STATUS_NOT_FOUND,
+    AUXTS_METADATA_STATUS_ERROR
+} auxts_metadata_status;
+
 typedef struct {
     uint32_t channels;
     uint32_t bit_depth;
