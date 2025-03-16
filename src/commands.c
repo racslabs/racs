@@ -16,6 +16,46 @@ auxts_create_command(ping) {
     return AUXTS_STATUS_OK;
 }
 
+auxts_create_command(create) {
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
+
+    msgpack_unpacked msg;
+    msgpack_unpacked_init(&msg);
+
+    auxts_parse_args(in_buf, &pk)
+    auxts_validate_num_args(&pk, msg, 4)
+
+    auxts_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR,
+                            "Invalid type at arg 1 of CREATE command. Expected: string")
+
+    auxts_validate_arg_type(&pk, msg, 1, MSGPACK_OBJECT_POSITIVE_INTEGER,
+                            "Invalid type at arg 2 of CREATE command. Expected: int")
+
+    auxts_validate_arg_type(&pk, msg, 2, MSGPACK_OBJECT_POSITIVE_INTEGER,
+                            "Invalid type at arg 3 of CREATE command. Expected: int")
+
+    auxts_validate_arg_type(&pk, msg, 3, MSGPACK_OBJECT_POSITIVE_INTEGER,
+                            "Invalid type at arg 4 of CREATE command. Expected: int")
+
+    char* name = auxts_deserialize_str(&msg.data, 0);
+    uint32_t sample_rate = auxts_deserialize_uint32(&msg.data, 1);
+    uint32_t channels = auxts_deserialize_uint32(&msg.data, 2);
+    uint32_t bit_depth = auxts_deserialize_uint32(&msg.data, 3);
+
+    int rc = auxts_create(name, sample_rate, channels, bit_depth);
+    if (rc == AUXTS_METADATA_STATUS_OK)
+        return auxts_serialize_status_ok(&pk);
+
+    if (rc == AUXTS_METADATA_STATUS_EXIST)
+        return auxts_serialize_status_error(&pk, "The stream-id already exist");
+
+    if (rc == AUXTS_METADATA_STATUS_ERROR)
+        return auxts_serialize_status_error(&pk, "Failed to create stream");
+
+    return auxts_serialize_status_error(&pk, "Cause unknown");
+}
+
 auxts_create_command(extract) {
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
@@ -43,16 +83,16 @@ auxts_create_command(extract) {
     auxts_validate(&pk, auxts_deserialize_range(&from, &to, &msg.data),
                    "Invalid RFC-3339 timestamp. Expected format: yyyy-MM-ddTHH:mm:ss.SSSZ")
 
-    auxts_validate(&pk , auxts_stream_id_exist(stream_id),
+    auxts_validate(&pk, auxts_stream_id_exist(stream_id),
                    "The stream-id provided does not exist")
 
     auxts_pcm_buffer pbuf;
-    int status = auxts_extract_pcm_data(ctx->cache, &pbuf, stream_id, from, to);
+    int rc = auxts_extract_pcm_data(ctx->cache, &pbuf, stream_id, from, to);
 
-    if (status == AUXTS_EXTRACT_PCM_STATUS_OK)
+    if (rc == AUXTS_EXTRACT_PCM_STATUS_OK)
         return auxts_serialize_pcm_buffer(&pk, &pbuf);
 
-    if (status == AUXTS_EXTRACT_PCM_STATUS_NOT_FOUND)
+    if (rc == AUXTS_EXTRACT_PCM_STATUS_NOT_FOUND)
         return auxts_serialize_status_not_found(&pk);
 
     return auxts_serialize_status_error(&pk, "Cause unknown");
