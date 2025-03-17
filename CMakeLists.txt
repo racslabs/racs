@@ -5,9 +5,14 @@ set(CMAKE_C_STANDARD 17)
 
 enable_testing()
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 find_library(FLAC_LIBRARY NAMES FLAC)
 find_path(FLAC_INCLUDE_DIR NAMES FLAC/all.h)
-include_directories(${FLAC_INCLUDE_DIR})
+
+find_package(Guile REQUIRED)
+
+include_directories(${FLAC_INCLUDE_DIR} ${GUILE_INCLUDE_DIRS})
 
 find_package(msgpack-c CONFIG REQUIRED)
 
@@ -95,7 +100,7 @@ add_executable(auxts main.c
 )
 
 target_include_directories(auxts PUBLIC ${msgpack-c_INCLUDE_DIRS})
-target_link_libraries(auxts msgpack-c ${FLAC_LIBRARY})
+target_link_libraries(auxts msgpack-c ${FLAC_LIBRARY} ${GUILE_LIBRARIES})
 
 # Unit test
 add_test(test_metadata auxts "--test" "test_metadata")
