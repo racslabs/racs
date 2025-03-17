@@ -3,8 +3,6 @@ project(auxts C)
 
 set(CMAKE_C_STANDARD 17)
 
-enable_testing()
-
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 find_package(FLAC REQUIRED)
@@ -94,11 +92,13 @@ add_executable(auxts main.c
         src/db.c
         src/context.h
         src/context.c
-        src/guile/bind.h
-        src/guile/bind.c
+        src/guile/bindings.h
+        src/guile/bindings.c
 )
 
 target_link_libraries(auxts msgpack-c ${FLAC_LIBRARIES} ${GUILE_LIBRARIES})
+
+enable_testing()
 
 # Unit test
 add_test(test_metadata auxts "--test" "test_metadata")
