@@ -7,14 +7,11 @@ enable_testing()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-find_library(FLAC_LIBRARY NAMES FLAC)
-find_path(FLAC_INCLUDE_DIR NAMES FLAC/all.h)
-
+find_package(FLAC REQUIRED)
 find_package(Guile REQUIRED)
+find_package(msgpack-c REQUIRED)
 
-include_directories(${FLAC_INCLUDE_DIR} ${GUILE_INCLUDE_DIRS})
-
-find_package(msgpack-c CONFIG REQUIRED)
+include_directories(${FLAC_INCLUDE_DIR} ${GUILE_INCLUDE_DIRS} ${msgpack-c_INCLUDE_DIRS})
 
 option(AUXTS_AVX2_CMAKE_BUILD "AVX2 CMake build" OFF)
 option(AUXTS_NEON8_CMAKE_BUILD "NEON8 CMake build" ON)
@@ -97,10 +94,11 @@ add_executable(auxts main.c
         src/db.c
         src/context.h
         src/context.c
+        src/guile/bind.h
+        src/guile/bind.c
 )
 
-target_include_directories(auxts PUBLIC ${msgpack-c_INCLUDE_DIRS})
-target_link_libraries(auxts msgpack-c ${FLAC_LIBRARY} ${GUILE_LIBRARIES})
+target_link_libraries(auxts msgpack-c ${FLAC_LIBRARIES} ${GUILE_LIBRARIES})
 
 # Unit test
 add_test(test_metadata auxts "--test" "test_metadata")
