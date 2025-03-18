@@ -92,8 +92,10 @@ add_executable(auxts main.c
         src/db.c
         src/context.h
         src/context.c
-        src/guile/bindings.h
-        src/guile/bindings.c
+        src/scm.h
+        src/scm.c
+        test/scm_test.h
+        test/scm_test.c
 )
 
 target_link_libraries(auxts msgpack-c ${FLAC_LIBRARIES} ${GUILE_LIBRARIES})
@@ -118,3 +120,4 @@ add_test(test_murmurhash3 auxts "--test" "test_murmurhash3")
 add_test(test_rfc3339 auxts "--test" "test_rfc3339")
 add_test(test_parser auxts "--test" "test_parser")
 add_test(test_create auxts "--test" "test_create")
+add_test(test_scm_extract auxts "--test" "test_scm_extract")

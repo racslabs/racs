@@ -15,6 +15,7 @@
 #include "ping_test.h"
 #include "metadata_test.h"
 #include "create_test.h"
+#include "scm_test.h"
 
 typedef void (*test)();
 
@@ -50,6 +51,7 @@ AUXTS_FORCE_INLINE void auxts_run_tests(int argc, char* argv[]) {
     auxts_add_test(test_command_executor_is_not_command, "test_command_executor_is_not_command", argc, argv);
     auxts_add_test(test_metadata, "test_metadata", argc, argv);
     auxts_add_test(test_create, "test_create", argc, argv);
+    auxts_add_test(test_scm_extract, "test_scm_extract", argc, argv);
 }
 
 #endif //AUXTS_TEST_RUNNER_H

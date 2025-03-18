@@ -1,7 +1,0 @@
-
-#ifndef AUXTS_BINDINGS_H
-#define AUXTS_BINDINGS_H
-
-
-
-#endif //AUXTS_BINDINGS_H

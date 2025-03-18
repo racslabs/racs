@@ -14,7 +14,7 @@
 # GUILE_ROOT_DIR         - prefix dir
 
 # Look for the header file
-# Look for guile-2.2 first, then 2.0, then 1.8
+# Look for scm-2.2 first, then 2.0, then 1.8
 # Macports for OSX puts things in /opt/local
 find_path (GUILE_INCLUDE_DIR libguile.h
         PATH_SUFFIXES
@@ -41,14 +41,14 @@ if (GMP_INCLUDE_DIR)
     list (APPEND GUILE_INCLUDE_DIRS ${GMP_INCLUDE_DIR})
 endif ()
 
-# check guile's version if we're using cmake >= 2.6
+# check scm's version if we're using cmake >= 2.6
 #if (GUILE_INCLUDE_DIR)
 #    SET(GUILE_VERSION_MAJOR 0)
 #    SET(GUILE_VERSION_MINOR 0)
 #    SET(GUILE_VERSION_PATCH 0)
 #
 #    IF(NOT EXISTS "${GUILE_INCLUDE_DIR}/libguile/version.h")
-#        MESSAGE(FATAL_ERROR "Found ${GUILE_INCLUDE_DIR}/libguile.h but not version.h; check your guile installation!")
+#        MESSAGE(FATAL_ERROR "Found ${GUILE_INCLUDE_DIR}/libguile.h but not version.h; check your scm installation!")
 #    ENDIF(NOT EXISTS "${GUILE_INCLUDE_DIR}/libguile/version.h")
 #
 #    # Extract the libguile version from the 'version.h' file

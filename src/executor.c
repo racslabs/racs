@@ -244,7 +244,7 @@ int command_handle_float32(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_t
 void auxts_command_executor_init(auxts_command_executor* exec) {
     exec->kv = auxts_kvstore_create(10, command_executor_hash, command_executor_cmp, command_executor_destroy);
     auxts_kvstore_put(exec->kv, "PING\0", auxts_command_ping);
-    auxts_kvstore_put(exec->kv, "CREATE\0", auxts_command_create);
+    auxts_kvstore_put(exec->kv, "CREATE", auxts_command_create);
     auxts_kvstore_put(exec->kv, "EXTRACT", auxts_command_extract);
 }
 
@@ -262,8 +262,8 @@ void handle_unknown_command(auxts_command* cmd, msgpack_sbuffer* out_buf) {
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
 
-    char* message = malloc(strlen(cmd->name) + 20);
-    sprintf(message, "Unknown command: %s", cmd->name);
+    char* message = NULL;
+    asprintf(&message, "Unknown command: %s", cmd->name);
     auxts_serialize_status_error(&pk, message);
 
     free(message);
