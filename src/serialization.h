@@ -6,13 +6,24 @@
 #include "extract.h"
 #include "executor.h"
 
+typedef enum {
+    AUXTS_RESPONSE_TYPE_PCM,
+    AUXTS_RESPONSE_TYPE_SCM,
+    AUXTS_RESPONSE_TYPE_FILE,
+    AUXTS_RESPONSE_TYPE_METADATA
+} auxts_response_type;
+
 #define auxts_parse_args(in_buf, pk) \
     if (msgpack_unpack_next(&msg, (in_buf)->data, (in_buf)->size, 0) == MSGPACK_UNPACK_PARSE_ERROR) { \
         return auxts_serialize_status_error((pk), "Error parsing args");\
     }
 
-extern const char* const auxts_status_code[];
+extern const char* const auxts_status_code_string[];
 
+extern const char* const auxts_response_type_string[];
+
+void auxts_serialize_pcm_data(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
+int auxts_serialize_response_type(msgpack_packer* pk, int response_type);
 int auxts_serialize_invalid_num_args(msgpack_packer* pk, int expected, int actual);
 int auxts_serialize_status_ok(msgpack_packer* pk);
 int auxts_serialize_status_not_found(msgpack_packer* pk);

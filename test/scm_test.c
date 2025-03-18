@@ -21,14 +21,9 @@ void test_scm_extract() {
 
     msgpack_str_assert("status", &obj.via.array.ptr[0].via.str);
     msgpack_str_assert("OK", &obj.via.array.ptr[1].via.str);
-    msgpack_str_assert("samples", &obj.via.array.ptr[2].via.str);
-    msgpack_str_assert("channels", &obj.via.array.ptr[4].via.str);
-    msgpack_str_assert("sample_rate", &obj.via.array.ptr[6].via.str);
-    msgpack_str_assert("bit_depth", &obj.via.array.ptr[8].via.str);
-    assert(obj.via.array.ptr[3].via.u64 == 132406);
-    assert(obj.via.array.ptr[5].via.u64 == 2);
-    assert(obj.via.array.ptr[7].via.u64 == 44100);
-    assert(obj.via.array.ptr[9].via.u64 == 16);
+    msgpack_str_assert("type", &obj.via.array.ptr[2].via.str);
+    msgpack_str_assert("pcm", &obj.via.array.ptr[3].via.str);
+    assert(obj.via.array.ptr[4].via.str.size == 1059248);
 
     msgpack_unpacked_destroy(&msg);
     auxts_db_close(db);

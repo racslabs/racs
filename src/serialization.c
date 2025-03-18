@@ -1,17 +1,18 @@
 #include "serialization.h"
 
 
-const char* const auxts_status_code[] = {
+const char* const auxts_status_code_string[] = {
         "OK",
         "NOT_FOUND",
         "ERROR"
 };
 
-static void serialize_pcm_data(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
-static void serialize_pcm_bit_depth(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
-static void serialize_pcm_sample_rate(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
-static void serialize_pcm_channels(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
-static void serialize_pcm_samples(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
+const char* const auxts_response_type_string[] = {
+        "pcm",
+        "scm",
+        "file",
+        "metadata"
+};
 
 int auxts_serialize_status_ok(msgpack_packer* pk) {
     return auxts_serialize_status(pk, AUXTS_STATUS_OK);
@@ -23,41 +24,22 @@ int auxts_serialize_status_not_found(msgpack_packer* pk) {
 }
 
 int auxts_serialize_pcm_buffer(msgpack_packer* pk, auxts_pcm_buffer* pbuf) {
-    msgpack_pack_array(pk, 12);
-
+    msgpack_pack_array(pk, 5);
     auxts_serialize_status_ok(pk);
-    serialize_pcm_samples(pk, pbuf);
-    serialize_pcm_channels(pk, pbuf);
-    serialize_pcm_sample_rate(pk, pbuf);
-    serialize_pcm_bit_depth(pk, pbuf);
-    serialize_pcm_data(pk, pbuf);
-
+    auxts_serialize_response_type(pk, AUXTS_RESPONSE_TYPE_PCM);
+    auxts_serialize_pcm_data(pk, pbuf);
     auxts_pcm_buffer_destroy(pbuf);
     return AUXTS_STATUS_OK;
 }
 
-void serialize_pcm_samples(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
-    msgpack_pack_str_with_body(pk, "samples", strlen("samples"));
-    msgpack_pack_uint32(pk, pbuf->info.num_samples);
-}
-
-void serialize_pcm_channels(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
-    msgpack_pack_str_with_body(pk, "channels", strlen("channels"));
-    msgpack_pack_uint32(pk, pbuf->info.channels);
-}
-
-void serialize_pcm_sample_rate(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
-    msgpack_pack_str_with_body(pk, "sample_rate", strlen("sample_rate"));
-    msgpack_pack_uint32(pk, pbuf->info.sample_rate);
-}
-
-void serialize_pcm_bit_depth(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
-    msgpack_pack_str_with_body(pk, "bit_depth", strlen("bit_depth"));
-    msgpack_pack_uint32(pk, pbuf->info.bit_depth);
+int auxts_serialize_response_type(msgpack_packer* pk, int response_type) {
+    const char* type = auxts_response_type_string[response_type];
+    msgpack_pack_str_with_body(pk, "type", strlen("type"));
+    msgpack_pack_str_with_body(pk, type, strlen(type));
 }
 
 int auxts_serialize_status(msgpack_packer* pk, int status) {
-    const char* status_code = auxts_status_code[status];
+    const char* status_code = auxts_status_code_string[status];
     msgpack_pack_str_with_body(pk, "status", strlen("status"));
     msgpack_pack_str_with_body(pk, status_code, strlen(status_code));
     return status;
@@ -75,20 +57,16 @@ void auxts_serialize_message(msgpack_packer* pk, const char* message) {
     msgpack_pack_str_with_body(pk, message, strlen(message));
 }
 
-void serialize_pcm_data(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
+void auxts_serialize_pcm_data(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
     uint8_t* data = auxts_pack_pcm_data(pbuf);
     size_t size = pbuf->info.num_samples * pbuf->info.channels * sizeof(int32_t);
-
-    msgpack_pack_str_with_body(pk, "pcm_data", strlen("pcm_data"));
     msgpack_pack_bin_with_body(pk, data, size);
-
     free(data);
 }
 
 void auxts_deserialize_stream_id(uint64_t* stream_id, msgpack_object* obj, int arg_num) {
     if (auxts_is_object_type(obj, MSGPACK_OBJECT_NEGATIVE_INTEGER, arg_num)) {
         *stream_id = auxts_deserialize_uint64(obj, arg_num);
-        printf("des %llu\n", *stream_id);
     }
 
     if (auxts_is_object_type(obj, MSGPACK_OBJECT_STR, arg_num)) {
