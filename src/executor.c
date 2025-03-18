@@ -9,7 +9,7 @@ static void command_destroy(auxts_command* cmd);
 static auxts_command_arg* command_arg_create();
 static auxts_command_arg* command_arg_create_str(const char* ptr, size_t size);
 static auxts_command_arg* command_arg_create_bin(const char* ptr, size_t size);
-static auxts_command_arg* command_arg_create_int32(int32_t d);
+static auxts_command_arg* command_arg_create_uint64(uint64_t d);
 static auxts_command_arg* command_arg_create_float32(float d);
 static void command_arg_destroy(auxts_command_arg* arg);
 static auxts_command* handle_id(auxts_token* curr, auxts_token* prev);
@@ -167,7 +167,7 @@ void command_arg_serialize_bin(auxts_command_arg* arg, msgpack_packer* pk) {
 }
 
 void command_arg_serialize_int32(auxts_command_arg* arg, msgpack_packer* pk) {
-    msgpack_pack_int32(pk, arg->as.i32);
+    msgpack_pack_int64(pk, arg->as.i64);
 }
 
 void command_arg_serialize_float32(auxts_command_arg* arg, msgpack_packer* pk) {
@@ -223,7 +223,7 @@ int command_handle_int32(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_tok
         return AUXTS_COMMAND_EXECUTOR_STATUS_ABORT;
     }
 
-    auxts_command_arg* arg = command_arg_create_int32(curr->as.i32);
+    auxts_command_arg* arg = command_arg_create_uint64(curr->as.u64);
     command_add_arg(cmd, arg);
 
     return AUXTS_COMMAND_EXECUTOR_STATUS_CONTINUE;
@@ -334,12 +334,12 @@ auxts_command_arg* command_arg_create_bin(const char* ptr, size_t size) {
     return arg;
 }
 
-auxts_command_arg* command_arg_create_int32(int32_t d) {
+auxts_command_arg* command_arg_create_uint64(uint64_t d) {
     auxts_command_arg* arg = command_arg_create();
     if (!arg) return NULL;
 
     arg->type = AUXTS_COMMAND_ARG_TYPE_INT;
-    arg->as.i32 = d;
+    arg->as.u64 = d;
 
     return arg;
 }

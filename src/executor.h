@@ -37,8 +37,8 @@ typedef auxts_command_arg_ auxts_command_arg_bin;
 
 typedef union {
     float                 f32;
-    int32_t               i32;
-    uint32_t              u32;
+    int64_t               i64;
+    uint64_t              u64;
     auxts_command_arg_str str;
     auxts_command_arg_bin bin;
 } auxts_command_arg_union;

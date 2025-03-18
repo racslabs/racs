@@ -1,3 +1,4 @@
+#include <sys/errno.h>
 #include "parser.h"
 
 static void parser_advance(auxts_parser* parser, regoff_t step);
@@ -5,7 +6,7 @@ static int match_token(const char* ptr, const char* pattern, regmatch_t* match);
 static auxts_token parser_lex_token_str(auxts_parser* parser, regmatch_t* match);
 static auxts_token parser_lex_token_id(auxts_parser* parser, regmatch_t* match);
 static auxts_token parser_lex_token_bin(auxts_parser* parser, regmatch_t* match);
-static auxts_token parser_lex_token_int32(auxts_parser* parser, regmatch_t* match);
+static auxts_token parser_lex_token_int64(auxts_parser* parser, regmatch_t* match);
 static auxts_token parser_lex_token_float32(auxts_parser* parser, regmatch_t* match);
 static auxts_token parser_lex_token_pipe(auxts_parser* parser, regmatch_t* match);
 static auxts_token parser_token_error(auxts_parser* parser);
@@ -34,7 +35,7 @@ auxts_token auxts_parser_next_token(auxts_parser* parser) {
         }
 
         if (match_token(parser->ptr, AUXTS_REGEX_INT, &match)) {
-            return parser_lex_token_int32(parser, &match);
+            return parser_lex_token_int64(parser, &match);
         }
     }
 
@@ -95,7 +96,7 @@ void auxts_token_print(auxts_token* token) {
             printf("[PIPE ] |>\n");
             break;
         case AUXTS_TOKEN_TYPE_INT:
-            printf("[INT  ] %d\n", token->as.i32);
+            printf("[INT  ] %lld\n", token->as.i64);
             break;
         case AUXTS_TOKEN_TYPE_FLOAT:
             printf("[FLOAT] %f\n", token->as.f32);
@@ -180,15 +181,16 @@ auxts_token parser_lex_token_bin(auxts_parser* parser, regmatch_t* match) {
     return token;
 }
 
-auxts_token parser_lex_token_int32(auxts_parser* parser, regmatch_t* match) {
+auxts_token parser_lex_token_int64(auxts_parser* parser, regmatch_t* match) {
     regoff_t size = match->rm_eo - match->rm_so;
 
     char* int_str = malloc(size + 1);
     strlcpy(int_str, parser->ptr, size + 1);
 
+    errno = 0;
     auxts_token token;
     token.type = AUXTS_TOKEN_TYPE_INT;
-    token.as.i32 = atoi(int_str);
+    token.as.u64 = strtoull(int_str, NULL, 10);
 
     parser_advance(parser, size);
     free(int_str);

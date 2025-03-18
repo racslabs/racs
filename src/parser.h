@@ -14,7 +14,6 @@
 extern "C" {
 #endif
 
-#define AUXTS_REGEX_TILDE   "~"
 #define AUXTS_REGEX_BIN     "binary:"
 #define AUXTS_REGEX_PIPE    "\\|>"
 #define AUXTS_REGEX_STR_SQ  "^'([^']*)'"
@@ -50,8 +49,8 @@ typedef struct {
 
 typedef union {
     float               f32;
-    int32_t             i32;
-    uint32_t            u32;
+    int64_t             i64;
+    uint64_t            u64;
     auxts_token_id      id;
     auxts_token_str     str;
     auxts_token_bin     bin;

@@ -27,5 +27,7 @@ int auxts_deserialize_range(int64_t* from, int64_t* to, msgpack_object* obj);
 char* auxts_deserialize_str(msgpack_object* obj, int arg_num);
 int32_t auxts_deserialize_int32(msgpack_object* obj, int arg_num);
 uint32_t auxts_deserialize_uint32(msgpack_object* obj, int arg_num);
+uint64_t auxts_deserialize_uint64(msgpack_object* obj, int arg_num);
+int auxts_is_object_type(msgpack_object* obj, msgpack_object_type type, int arg_num);
 
 #endif //AUXTS_SERIALIZATION_H

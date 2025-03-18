@@ -86,13 +86,25 @@ void serialize_pcm_data(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
 }
 
 void auxts_deserialize_stream_id(uint64_t* stream_id, msgpack_object* obj, int arg_num) {
-    char* str = auxts_deserialize_str(obj, arg_num);
+    if (auxts_is_object_type(obj, MSGPACK_OBJECT_NEGATIVE_INTEGER, arg_num)) {
+        *stream_id = auxts_deserialize_uint64(obj, arg_num);
+        printf("des %llu\n", *stream_id);
+    }
 
-    uint64_t hash[2];
-    murmur3_x64_128((uint8_t*)str, strlen(str), 0, hash);
-    *stream_id = hash[0];
+    if (auxts_is_object_type(obj, MSGPACK_OBJECT_STR, arg_num)) {
+        char* str = auxts_deserialize_str(obj, arg_num);
 
-    free(str);
+        uint64_t hash[2];
+        murmur3_x64_128((uint8_t*)str, strlen(str), 0, hash);
+        *stream_id = hash[0];
+
+        free(str);
+    }
+
+}
+
+int auxts_is_object_type(msgpack_object* obj, msgpack_object_type type, int arg_num) {
+    return obj->via.array.ptr[arg_num].type == type;
 }
 
 char* auxts_deserialize_str(msgpack_object* obj, int arg_num) {
@@ -110,6 +122,10 @@ int32_t auxts_deserialize_int32(msgpack_object* obj, int arg_num) {
 
 uint32_t auxts_deserialize_uint32(msgpack_object* obj, int arg_num) {
     return (uint32_t)obj->via.array.ptr[arg_num].via.u64;
+}
+
+uint64_t auxts_deserialize_uint64(msgpack_object* obj, int arg_num) {
+    return obj->via.array.ptr[arg_num].via.i64;
 }
 
 void auxts_deserialize_from(int64_t* from, msgpack_object* obj) {

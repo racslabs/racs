@@ -37,12 +37,12 @@ auxts_create_command(create) {
     auxts_validate_arg_type(&pk, msg, 3, MSGPACK_OBJECT_POSITIVE_INTEGER,
                             "Invalid type at arg 4 of CREATE command. Expected: int")
 
-    char* name = auxts_deserialize_str(&msg.data, 0);
+    char* stream_id = auxts_deserialize_str(&msg.data, 0);
     uint32_t sample_rate = auxts_deserialize_uint32(&msg.data, 1);
     uint32_t channels = auxts_deserialize_uint32(&msg.data, 2);
     uint32_t bit_depth = auxts_deserialize_uint32(&msg.data, 3);
 
-    int rc = auxts_create(name, sample_rate, channels, bit_depth);
+    int rc = auxts_create(stream_id, sample_rate, channels, bit_depth);
     if (rc == AUXTS_METADATA_STATUS_OK)
         return auxts_serialize_status_ok(&pk);
 
@@ -65,8 +65,8 @@ auxts_create_command(extract) {
     auxts_parse_args(in_buf, &pk)
     auxts_validate_num_args(&pk, msg, 3)
 
-    auxts_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR,
-                            "Invalid type at arg 1 of EXTRACT command. Expected: string")
+    auxts_validate_arg_type2(&pk, msg, 0, MSGPACK_OBJECT_STR, MSGPACK_OBJECT_NEGATIVE_INTEGER,
+                             "Invalid type at arg 1 of EXTRACT command. Expected int or string")
 
     auxts_validate_arg_type(&pk, msg, 1, MSGPACK_OBJECT_STR,
                             "Invalid type at arg 2 of EXTRACT command. Expected: string")
@@ -80,7 +80,7 @@ auxts_create_command(extract) {
     auxts_deserialize_stream_id(&stream_id, &msg.data, 0);
 
     auxts_validate(&pk, auxts_deserialize_range(&from, &to, &msg.data),
-                   "Invalid RFC-3339 timestamp. Expected format: yyyy-MM-ddTHH:mm:ss.SSSZ")
+                   "Invalid RFC-3339 timestamp. Expected format: yyyy-MM-ddTHH:mm:ss")
 
     auxts_validate(&pk, auxts_stream_id_exist(stream_id),
                    "The stream-id does not exist")

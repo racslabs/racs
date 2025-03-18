@@ -3,7 +3,7 @@
 void test_extract() {
     auxts_db* db = auxts_db_instance();
     auxts_db_open(db);
-    auxts_result res = auxts_db_execute(db, "EXTRACT 'test' '2025-02-09T22:51:52.213Z' '2025-02-09T22:51:52.215Z'");
+    auxts_result res = auxts_db_execute(db, "EXTRACT 12429135405209477533 '2025-02-09T22:51:52.213Z' '2025-02-09T22:51:52.215Z'");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
@@ -60,7 +60,7 @@ void test_extract_error() {
     msgpack_str_assert("status", &obj.via.array.ptr[0].via.str);
     msgpack_str_assert("ERROR", &obj.via.array.ptr[1].via.str);
     msgpack_str_assert("message", &obj.via.array.ptr[2].via.str);
-    msgpack_str_assert("Invalid RFC-3339 timestamp. Expected format: yyyy-MM-ddTHH:mm:ss.SSSZ", &obj.via.array.ptr[3].via.str);
+    msgpack_str_assert("Invalid RFC-3339 timestamp. Expected format: yyyy-MM-ddTHH:mm:ss", &obj.via.array.ptr[3].via.str);
 
     msgpack_unpacked_destroy(&msg);
     auxts_result_destroy(&res);
