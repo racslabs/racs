@@ -190,7 +190,7 @@ auxts_token parser_lex_token_int64(auxts_parser* parser, regmatch_t* match) {
     errno = 0;
     auxts_token token;
     token.type = AUXTS_TOKEN_TYPE_INT;
-    token.as.u64 = strtoull(int_str, NULL, 10);
+    token.as.i64 = strtoull(int_str, NULL, 10);
 
     parser_advance(parser, size);
     free(int_str);
