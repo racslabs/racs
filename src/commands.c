@@ -10,9 +10,7 @@ auxts_create_command(ping) {
     auxts_parse_args(in_buf, &pk)
     auxts_validate_num_args(&pk, msg, 0)
 
-    msgpack_pack_array(&pk, 2);
-
-    return auxts_serialize_status_ok(&pk);
+    return auxts_serialize_status_ok_with_none(&pk);
 }
 
 auxts_create_command(create) {
@@ -44,7 +42,7 @@ auxts_create_command(create) {
 
     int rc = auxts_create(stream_id, sample_rate, channels, bit_depth);
     if (rc == AUXTS_METADATA_STATUS_OK)
-        return auxts_serialize_status_ok(&pk);
+        return auxts_serialize_status_ok_with_none(&pk);
 
     if (rc == AUXTS_METADATA_STATUS_EXIST)
         return auxts_serialize_status_error(&pk, "The stream-id already exist");
@@ -89,7 +87,7 @@ auxts_create_command(extract) {
     int rc = auxts_extract_pcm_data(ctx->cache, &pbuf, stream_id, from, to);
 
     if (rc == AUXTS_EXTRACT_PCM_STATUS_OK)
-        return auxts_serialize_pcm_buffer(&pk, &pbuf);
+        return auxts_serialize_pcm(&pk, &pbuf);
 
     if (rc == AUXTS_EXTRACT_PCM_STATUS_NOT_FOUND)
         return auxts_serialize_status_not_found(&pk);

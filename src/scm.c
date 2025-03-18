@@ -8,7 +8,6 @@ SCM auxts_scm_extract(SCM scm_stream_id, SCM scm_from, SCM scm_to) {
     if (scm_is_integer(scm_stream_id)) {
         uint64_t stream_id = scm_to_uint64(scm_stream_id);
         asprintf(&cmd, "EXTRACT %llu '%s' '%s'", stream_id, from, to);
-        printf("%s\n", cmd);
     } else {
         const char *stream_id = scm_to_locale_string(scm_stream_id);
         asprintf(&cmd, "EXTRACT '%s' '%s' '%s'", stream_id, from, to);

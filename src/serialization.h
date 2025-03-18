@@ -10,7 +10,8 @@ typedef enum {
     AUXTS_RESPONSE_TYPE_PCM,
     AUXTS_RESPONSE_TYPE_SCM,
     AUXTS_RESPONSE_TYPE_FILE,
-    AUXTS_RESPONSE_TYPE_METADATA
+    AUXTS_RESPONSE_TYPE_METADATA,
+    AUXTS_RESPONSE_TYPE_NONE
 } auxts_response_type;
 
 #define auxts_parse_args(in_buf, pk) \
@@ -30,7 +31,8 @@ int auxts_serialize_status_not_found(msgpack_packer* pk);
 int auxts_serialize_status_error(msgpack_packer* pk, const char* message);
 void auxts_serialize_message(msgpack_packer* pk, const char* message);
 int auxts_serialize_status(msgpack_packer* pk, int status);
-int auxts_serialize_pcm_buffer(msgpack_packer* pk, auxts_pcm_buffer* pbuf);
+int auxts_serialize_pcm(msgpack_packer* pk, auxts_pcm_buffer* pbuf);
+int auxts_serialize_status_ok_with_none(msgpack_packer* pk);
 void auxts_deserialize_stream_id(uint64_t* stream_id, msgpack_object* obj, int arg_num);
 void auxts_deserialize_from(int64_t* from, msgpack_object* obj);
 void auxts_deserialize_to(int64_t* to, msgpack_object* obj);

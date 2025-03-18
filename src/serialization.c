@@ -11,7 +11,8 @@ const char* const auxts_response_type_string[] = {
         "pcm",
         "scm",
         "file",
-        "metadata"
+        "metadata",
+        "none"
 };
 
 int auxts_serialize_status_ok(msgpack_packer* pk) {
@@ -23,7 +24,14 @@ int auxts_serialize_status_not_found(msgpack_packer* pk) {
     return auxts_serialize_status(pk, AUXTS_STATUS_NOT_FOUND);
 }
 
-int auxts_serialize_pcm_buffer(msgpack_packer* pk, auxts_pcm_buffer* pbuf) {
+int auxts_serialize_status_ok_with_none(msgpack_packer* pk) {
+    msgpack_pack_array(pk, 4);
+    auxts_serialize_status_ok(pk);
+    auxts_serialize_response_type(pk, AUXTS_RESPONSE_TYPE_NONE);
+    return AUXTS_STATUS_OK;
+}
+
+int auxts_serialize_pcm(msgpack_packer* pk, auxts_pcm_buffer* pbuf) {
     msgpack_pack_array(pk, 5);
     auxts_serialize_status_ok(pk);
     auxts_serialize_response_type(pk, AUXTS_RESPONSE_TYPE_PCM);
