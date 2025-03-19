@@ -63,7 +63,7 @@ auxts_create_command(extract) {
     auxts_parse_args(in_buf, &pk)
     auxts_validate_num_args(&pk, msg, 3)
 
-    auxts_validate_arg_type2(&pk, msg, 0, MSGPACK_OBJECT_STR, MSGPACK_OBJECT_NEGATIVE_INTEGER,
+    auxts_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR,
                              "Invalid type at arg 1 of EXTRACT command. Expected int or string")
 
     auxts_validate_arg_type(&pk, msg, 1, MSGPACK_OBJECT_STR,

@@ -1,17 +1,12 @@
 #include "scm.h"
 
 SCM auxts_scm_extract(SCM scm_stream_id, SCM scm_from, SCM scm_to) {
+    const char* stream_id = scm_to_locale_string(scm_stream_id);
     const char *from = scm_to_locale_string(scm_from);
     const char *to = scm_to_locale_string(scm_to);
 
-    char *cmd = NULL;
-    if (scm_is_integer(scm_stream_id)) {
-        uint64_t stream_id = scm_to_uint64(scm_stream_id);
-        asprintf(&cmd, "EXTRACT %llu '%s' '%s'", stream_id, from, to);
-    } else {
-        const char* stream_id = scm_to_locale_string(scm_stream_id);
-        asprintf(&cmd, "EXTRACT '%s' '%s' '%s'", stream_id, from, to);
-    }
+    char* cmd = NULL;
+    asprintf(&cmd, "EXTRACT '%s' '%s' '%s'", stream_id, from, to);
 
     SCM bytevector = auxts_scm_execute(cmd);
     free(cmd);

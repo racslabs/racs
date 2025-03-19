@@ -7,7 +7,7 @@ void test_scm_extract() {
     scm_init_guile();
     auxts_scm_init_bindings();
 
-    const char* expr = "(extract 12429135405209477533 \"2025-02-09T22:51:52.213Z\" \"2025-02-09T22:51:52.215Z\")";
+    const char* expr = "(extract \"test\" \"2025-02-09T22:51:52.213Z\" \"2025-02-09T22:51:52.215Z\")";
     SCM result = scm_c_eval_string(expr);
 
     char* data = (char*)SCM_BYTEVECTOR_CONTENTS(result);

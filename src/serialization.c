@@ -80,20 +80,13 @@ int auxts_serialize_pcm32(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
 }
 
 void auxts_deserialize_stream_id(uint64_t* stream_id, msgpack_object* obj, int arg_num) {
-    if (auxts_is_object_type(obj, MSGPACK_OBJECT_NEGATIVE_INTEGER, arg_num)) {
-        *stream_id = auxts_deserialize_uint64(obj, arg_num);
-    }
+    char* str = auxts_deserialize_str(obj, arg_num);
 
-    if (auxts_is_object_type(obj, MSGPACK_OBJECT_STR, arg_num)) {
-        char* str = auxts_deserialize_str(obj, arg_num);
+    uint64_t hash[2];
+    murmur3_x64_128((uint8_t*)str, strlen(str), 0, hash);
+    *stream_id = hash[0];
 
-        uint64_t hash[2];
-        murmur3_x64_128((uint8_t*)str, strlen(str), 0, hash);
-        *stream_id = hash[0];
-
-        free(str);
-    }
-
+    free(str);
 }
 
 int auxts_is_object_type(msgpack_object* obj, msgpack_object_type type, int arg_num) {
