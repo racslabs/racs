@@ -76,3 +76,31 @@ void test_scm_int() {
 
     msgpack_unpacked_destroy(&msg);
 }
+
+void test_scm_list() {
+    msgpack_sbuffer sbuf;
+    msgpack_sbuffer_init(&sbuf);
+
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, &sbuf, msgpack_sbuffer_write);
+
+    scm_init_guile();
+
+    const char* expr = "(list 1 2 3)";
+
+    SCM result = scm_c_eval_string(expr);
+    auxts_scm_serialize(&pk, &sbuf, result);
+
+    msgpack_unpacked msg;
+    msgpack_unpacked_init(&msg);
+    msgpack_unpack_next(&msg, sbuf.data, sbuf.size, 0);
+
+    msgpack_object obj = msg.data;
+
+    msgpack_str_assert("list", &obj.via.array.ptr[0].via.str);
+    assert(obj.via.array.ptr[1].via.u64 == 1);
+    assert(obj.via.array.ptr[2].via.u64 == 2);
+    assert(obj.via.array.ptr[3].via.u64 == 3);
+
+    msgpack_unpacked_destroy(&msg);
+}

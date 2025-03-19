@@ -9,7 +9,8 @@ const char* const auxts_type_string[] = {
         "map",
         "list",
         "none",
-        "error"
+        "error",
+        "bool"
 };
 
 void auxts_serialize_type(msgpack_packer* pk, int type) {
@@ -61,6 +62,13 @@ int auxts_serialize_float32(msgpack_packer* pk, float d) {
     msgpack_pack_array(pk, 2);
     auxts_serialize_type(pk, AUXTS_TYPE_FLOAT);
     msgpack_pack_float(pk, d);
+    return AUXTS_STATUS_OK;
+}
+
+int auxts_serialize_bool(msgpack_packer* pk, bool d) {
+    msgpack_pack_array(pk, 2);
+    auxts_serialize_type(pk, AUXTS_TYPE_BOOL);
+    msgpack_pack_int(pk, d);
     return AUXTS_STATUS_OK;
 }
 
