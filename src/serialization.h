@@ -30,6 +30,7 @@ int auxts_serialize_error(msgpack_packer* pk, const char* message);
 int auxts_serialize_str(msgpack_packer* pk, const char* str);
 int auxts_serialize_bin(msgpack_packer* pk, const uint8_t* data, size_t n);
 int auxts_serialize_int64(msgpack_packer* pk, int64_t d);
+int auxts_serialize_float32(msgpack_packer* pk, float d);
 int auxts_serialize_pcm32(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
 void auxts_serialize_type(msgpack_packer* pk, int type);
 int auxts_serialize_invalid_num_args(msgpack_packer* pk, int expected, int actual);

@@ -7,6 +7,7 @@
 
 void test_scm_extract();
 void test_scm_create();
+void test_scm_int();
 
 
 #endif //AUXTS_SCM_TEST_H

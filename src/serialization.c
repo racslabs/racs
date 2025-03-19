@@ -57,7 +57,7 @@ int auxts_serialize_int64(msgpack_packer* pk, int64_t d) {
     return AUXTS_STATUS_OK;
 }
 
-int auxts_serialize_int32(msgpack_packer* pk, float d) {
+int auxts_serialize_float32(msgpack_packer* pk, float d) {
     msgpack_pack_array(pk, 2);
     auxts_serialize_type(pk, AUXTS_TYPE_FLOAT);
     msgpack_pack_float(pk, d);
