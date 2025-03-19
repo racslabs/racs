@@ -96,6 +96,7 @@ add_executable(auxts main.c
         src/scm.c
         test/scm_test.h
         test/scm_test.c
+        src/complex_t.h
 )
 
 target_link_libraries(auxts msgpack-c ${FLAC_LIBRARIES} ${GUILE_LIBRARIES})

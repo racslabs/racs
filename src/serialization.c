@@ -2,15 +2,22 @@
 
 
 const char* const auxts_type_string[] = {
-        "str",
-        "bin",
+        "string",
+        "binary",
         "int",
         "float",
+        "complex",
         "map",
         "list",
         "none",
         "error",
-        "bool"
+        "bool",
+        "u16v",
+        "i16v",
+        "u32v",
+        "i32v",
+        "f32v",
+        "c64v"
 };
 
 void auxts_serialize_type(msgpack_packer* pk, int type) {
@@ -79,10 +86,63 @@ int auxts_serialize_invalid_num_args(msgpack_packer* pk, int expected, int actua
 }
 
 int auxts_serialize_pcm32(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
-    uint8_t* data = auxts_pack_pcm_data(pbuf);
-    size_t size = pbuf->info.num_samples * pbuf->info.channels * sizeof(int32_t);
-    auxts_serialize_bin(pk, data, size);
+    int32_t* data = auxts_flatten_pcm_data(pbuf);
+    auxts_serialize_i32v(pk, data, pbuf->info.num_samples * pbuf->info.channels);
     free(data);
+
+    return AUXTS_STATUS_OK;
+}
+
+int auxts_serialize_i16v(msgpack_packer* pk, int16_t* data, size_t n) {
+    msgpack_pack_array(pk, 2);
+
+    auxts_serialize_type(pk, AUXTS_TYPE_I16VEC);
+    msgpack_pack_bin_with_body(pk, data, n * sizeof(int16_t));
+
+    return AUXTS_STATUS_OK;
+}
+
+int auxts_serialize_u16v(msgpack_packer* pk, uint16_t* data, size_t n) {
+    msgpack_pack_array(pk, 2);
+
+    auxts_serialize_type(pk, AUXTS_TYPE_U16VEC);
+    msgpack_pack_bin_with_body(pk, data, n * sizeof(uint16_t));
+
+    return AUXTS_STATUS_OK;
+}
+
+int auxts_serialize_i32v(msgpack_packer* pk, int32_t* data, size_t n) {
+    msgpack_pack_array(pk, 2);
+
+    auxts_serialize_type(pk, AUXTS_TYPE_I32VEC);
+    msgpack_pack_bin_with_body(pk, data, n * sizeof(int32_t));
+
+    return AUXTS_STATUS_OK;
+}
+
+int auxts_serialize_u32v(msgpack_packer* pk, uint32_t* data, size_t n) {
+    msgpack_pack_array(pk, 2);
+
+    auxts_serialize_type(pk, AUXTS_TYPE_U32VEC);
+    msgpack_pack_bin_with_body(pk, data, n * sizeof(uint32_t));
+
+    return AUXTS_STATUS_OK;
+}
+
+int auxts_serialize_f32v(msgpack_packer* pk, float* data, size_t n) {
+    msgpack_pack_array(pk, 2);
+
+    auxts_serialize_type(pk, AUXTS_TYPE_F32VEC);
+    msgpack_pack_bin_with_body(pk, data, n * sizeof(float));
+
+    return AUXTS_STATUS_OK;
+}
+
+int auxts_serialize_c64v(msgpack_packer* pk, auxts_complex_t* data, size_t n) {
+    msgpack_pack_array(pk, 2);
+
+    auxts_serialize_type(pk, AUXTS_TYPE_C64VEC);
+    msgpack_pack_bin_with_body(pk, data, n * sizeof(auxts_complex_t));
 
     return AUXTS_STATUS_OK;
 }

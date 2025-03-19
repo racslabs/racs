@@ -11,7 +11,7 @@ void test_ping() {
 
     msgpack_object obj = msg.data;
 
-    msgpack_str_assert("str", &obj.via.array.ptr[0].via.str);
+    msgpack_str_assert("string", &obj.via.array.ptr[0].via.str);
     msgpack_str_assert("PONG", &obj.via.array.ptr[1].via.str);
 
     msgpack_unpacked_destroy(&msg);

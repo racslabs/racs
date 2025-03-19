@@ -5,17 +5,25 @@
 #include <msgpack.h>
 #include "extract.h"
 #include "executor.h"
+#include "complex_t.h"
 
 typedef enum {
     AUXTS_TYPE_STR,
     AUXTS_TYPE_BIN,
     AUXTS_TYPE_INT,
     AUXTS_TYPE_FLOAT,
+    AUXTS_TYPE_COMPLEX,
     AUXTS_TYPE_MAP,
     AUXTS_TYPE_LIST,
     AUXTS_TYPE_NONE,
     AUXTS_TYPE_ERROR,
-    AUXTS_TYPE_BOOL
+    AUXTS_TYPE_BOOL,
+    AUXTS_TYPE_U16VEC,
+    AUXTS_TYPE_I16VEC,
+    AUXTS_TYPE_U32VEC,
+    AUXTS_TYPE_I32VEC,
+    AUXTS_TYPE_F32VEC,
+    AUXTS_TYPE_C64VEC
 } auxts_type;
 
 #define auxts_parse_args(in_buf, pk) \
@@ -33,6 +41,12 @@ int auxts_serialize_bin(msgpack_packer* pk, const uint8_t* data, size_t n);
 int auxts_serialize_int64(msgpack_packer* pk, int64_t d);
 int auxts_serialize_float32(msgpack_packer* pk, float d);
 int auxts_serialize_bool(msgpack_packer* pk, bool d);
+int auxts_serialize_i16v(msgpack_packer* pk, int16_t* data, size_t n);
+int auxts_serialize_u16v(msgpack_packer* pk, uint16_t* data, size_t n);
+int auxts_serialize_i32v(msgpack_packer* pk, int32_t* data, size_t n);
+int auxts_serialize_u32v(msgpack_packer* pk, uint32_t* data, size_t n);
+int auxts_serialize_f32v(msgpack_packer* pk, float* data, size_t n);
+int auxts_serialize_c64v(msgpack_packer* pk, auxts_complex_t* data, size_t n);
 int auxts_serialize_pcm32(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
 void auxts_serialize_type(msgpack_packer* pk, int type);
 int auxts_serialize_invalid_num_args(msgpack_packer* pk, int expected, int actual);

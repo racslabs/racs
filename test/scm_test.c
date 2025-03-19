@@ -19,8 +19,8 @@ void test_scm_extract() {
 
     msgpack_object obj = msg.data;
 
-    msgpack_str_assert("bin", &obj.via.array.ptr[0].via.str);
-    assert(obj.via.array.ptr[1].via.str.size == 1059248);
+    msgpack_str_assert("i32v", &obj.via.array.ptr[0].via.str);
+    assert(obj.via.array.ptr[1].via.bin.size == 1059248);
 
     msgpack_unpacked_destroy(&msg);
     auxts_db_close(db);

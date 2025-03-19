@@ -169,8 +169,8 @@ void pcm_buffer_append(auxts_pcm_buffer* pbuf, auxts_pcm_block* block) {
     pbuf->info.num_samples = num_samples;
 }
 
-uint8_t* auxts_pack_pcm_data(const auxts_pcm_buffer* pbuf) {
-    uint8_t* samples = malloc(pbuf->info.num_samples * pbuf->info.channels * sizeof(int32_t));
+int32_t* auxts_flatten_pcm_data(const auxts_pcm_buffer* pbuf) {
+    int32_t* samples = malloc(pbuf->info.num_samples * pbuf->info.channels * sizeof(int32_t));
     if (!samples) {
         perror("Failed to allocate samples");
         return NULL;
