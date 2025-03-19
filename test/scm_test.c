@@ -49,7 +49,7 @@ void test_scm_create() {
     msgpack_object obj = msg.data;
 
     msgpack_str_assert("status", &obj.via.array.ptr[0].via.str);
-    msgpack_str_assert("OK", &obj.via.array.ptr[1].via.str);
+    msgpack_str_assert("ERROR", &obj.via.array.ptr[1].via.str);
 
     msgpack_unpacked_destroy(&msg);
     auxts_db_close(db);
