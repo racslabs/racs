@@ -15,10 +15,8 @@ void test_command_executor_unknown_command() {
 
     msgpack_object obj = msg.data;
 
-    msgpack_str_assert("status", &obj.via.array.ptr[0].via.str);
-    msgpack_str_assert("ERROR", &obj.via.array.ptr[1].via.str);
-    msgpack_str_assert("message", &obj.via.array.ptr[2].via.str);
-    msgpack_str_assert("Unknown command: BOO", &obj.via.array.ptr[3].via.str);
+    msgpack_str_assert("error", &obj.via.array.ptr[0].via.str);
+    msgpack_str_assert("Unknown command: BOO", &obj.via.array.ptr[1].via.str);
 
     msgpack_unpacked_destroy(&msg);
     auxts_command_executor_destroy(&exec);
@@ -40,10 +38,8 @@ void test_command_executor_is_not_command() {
 
     msgpack_object obj = msg.data;
 
-    msgpack_str_assert("status", &obj.via.array.ptr[0].via.str);
-    msgpack_str_assert("ERROR", &obj.via.array.ptr[1].via.str);
-    msgpack_str_assert("message", &obj.via.array.ptr[2].via.str);
-    msgpack_str_assert("Token type 'float' is not a valid command.", &obj.via.array.ptr[3].via.str);
+    msgpack_str_assert("error", &obj.via.array.ptr[0].via.str);
+    msgpack_str_assert("Token type 'float' is not a valid command.", &obj.via.array.ptr[1].via.str);
 
     msgpack_unpacked_destroy(&msg);
     auxts_command_executor_destroy(&exec);
@@ -65,10 +61,8 @@ void test_command_executor_parse_error1() {
 
     msgpack_object obj = msg.data;
 
-    msgpack_str_assert("status", &obj.via.array.ptr[0].via.str);
-    msgpack_str_assert("ERROR", &obj.via.array.ptr[1].via.str);
-    msgpack_str_assert("message", &obj.via.array.ptr[2].via.str);
-    msgpack_str_assert("Token type 'float' is not a valid command.", &obj.via.array.ptr[3].via.str);
+    msgpack_str_assert("error", &obj.via.array.ptr[0].via.str);
+    msgpack_str_assert("Token type 'float' is not a valid command.", &obj.via.array.ptr[1].via.str);
 
     msgpack_unpacked_destroy(&msg);
     auxts_command_executor_destroy(&exec);

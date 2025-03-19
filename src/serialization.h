@@ -7,32 +7,32 @@
 #include "executor.h"
 
 typedef enum {
-    AUXTS_RESPONSE_TYPE_PCM,
-    AUXTS_RESPONSE_TYPE_SCM,
-    AUXTS_RESPONSE_TYPE_FILE,
-    AUXTS_RESPONSE_TYPE_METADATA,
-    AUXTS_RESPONSE_TYPE_NONE
-} auxts_response_type;
+    AUXTS_TYPE_STR,
+    AUXTS_TYPE_BIN,
+    AUXTS_TYPE_INT,
+    AUXTS_TYPE_FLOAT,
+    AUXTS_TYPE_MAP,
+    AUXTS_TYPE_LIST,
+    AUXTS_TYPE_NONE,
+    AUXTS_TYPE_ERROR
+} auxts_type;
 
 #define auxts_parse_args(in_buf, pk) \
     if (msgpack_unpack_next(&msg, (in_buf)->data, (in_buf)->size, 0) == MSGPACK_UNPACK_PARSE_ERROR) { \
-        return auxts_serialize_status_error((pk), "Error parsing args");\
+        return auxts_serialize_error((pk), "Error parsing args");\
     }
 
-extern const char* const auxts_status_code_string[];
+extern const char* const auxts_type_string[];
 
-extern const char* const auxts_response_type_string[];
-
-void auxts_serialize_pcm_data(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
-int auxts_serialize_response_type(msgpack_packer* pk, int response_type);
+int auxts_serialize_none_with_status_ok(msgpack_packer* pk);
+int auxts_serialize_none_with_status_not_found(msgpack_packer* pk);
+int auxts_serialize_error(msgpack_packer* pk, const char* message);
+int auxts_serialize_str(msgpack_packer* pk, const char* str);
+int auxts_serialize_bin(msgpack_packer* pk, const uint8_t* data, size_t n);
+int auxts_serialize_int64(msgpack_packer* pk, int64_t d);
+int auxts_serialize_pcm32(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
+void auxts_serialize_type(msgpack_packer* pk, int type);
 int auxts_serialize_invalid_num_args(msgpack_packer* pk, int expected, int actual);
-int auxts_serialize_status_ok(msgpack_packer* pk);
-int auxts_serialize_status_not_found(msgpack_packer* pk);
-int auxts_serialize_status_error(msgpack_packer* pk, const char* message);
-void auxts_serialize_message(msgpack_packer* pk, const char* message);
-int auxts_serialize_status(msgpack_packer* pk, int status);
-int auxts_serialize_pcm(msgpack_packer* pk, auxts_pcm_buffer* pbuf);
-int auxts_serialize_status_ok_with_none(msgpack_packer* pk);
 void auxts_deserialize_stream_id(uint64_t* stream_id, msgpack_object* obj, int arg_num);
 void auxts_deserialize_from(int64_t* from, msgpack_object* obj);
 void auxts_deserialize_to(int64_t* to, msgpack_object* obj);

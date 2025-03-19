@@ -10,7 +10,7 @@ auxts_create_command(ping) {
     auxts_parse_args(in_buf, &pk)
     auxts_validate_num_args(&pk, msg, 0)
 
-    return auxts_serialize_status_ok_with_none(&pk);
+    return auxts_serialize_str(&pk, "PONG");
 }
 
 auxts_create_command(create) {
@@ -42,15 +42,15 @@ auxts_create_command(create) {
 
     int rc = auxts_create(stream_id, sample_rate, channels, bit_depth);
     if (rc == AUXTS_METADATA_STATUS_OK)
-        return auxts_serialize_status_ok_with_none(&pk);
+        return auxts_serialize_none_with_status_ok(&pk);
 
     if (rc == AUXTS_METADATA_STATUS_EXIST)
-        return auxts_serialize_status_error(&pk, "The stream-id already exist");
+        return auxts_serialize_error(&pk, "The stream-id already exist");
 
     if (rc == AUXTS_METADATA_STATUS_ERROR)
-        return auxts_serialize_status_error(&pk, "Failed to create stream");
+        return auxts_serialize_error(&pk, "Failed to create stream");
 
-    return auxts_serialize_status_error(&pk, "Cause unknown");
+    return auxts_serialize_error(&pk, "Cause unknown");
 }
 
 auxts_create_command(extract) {
@@ -87,10 +87,10 @@ auxts_create_command(extract) {
     int rc = auxts_extract_pcm_data(ctx->cache, &pbuf, stream_id, from, to);
 
     if (rc == AUXTS_EXTRACT_PCM_STATUS_OK)
-        return auxts_serialize_pcm(&pk, &pbuf);
+        return auxts_serialize_pcm32(&pk, &pbuf);
 
     if (rc == AUXTS_EXTRACT_PCM_STATUS_NOT_FOUND)
-        return auxts_serialize_status_not_found(&pk);
+        return auxts_serialize_none_with_status_not_found(&pk);
 
-    return auxts_serialize_status_error(&pk, "Cause unknown");
+    return auxts_serialize_error(&pk, "Cause unknown");
 }

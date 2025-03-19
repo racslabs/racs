@@ -13,7 +13,7 @@ typedef enum {
 } auxts_status;
 
 #define auxts_validate(pk, condition, error) \
-    if (!(condition)) return auxts_serialize_status_error(pk, error);
+    if (!(condition)) return auxts_serialize_error(pk, error);
 
 #define auxts_validate_arg_type(pk, msg, arg_num, obj_type, error) \
     auxts_validate(pk, obj_type == ((msg).data.via.array.ptr[arg_num].type), error)

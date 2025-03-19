@@ -11,11 +11,8 @@ void test_extract() {
 
     msgpack_object obj = msg.data;
 
-    msgpack_str_assert("status", &obj.via.array.ptr[0].via.str);
-    msgpack_str_assert("OK", &obj.via.array.ptr[1].via.str);
-    msgpack_str_assert("type", &obj.via.array.ptr[2].via.str);
-    msgpack_str_assert("pcm", &obj.via.array.ptr[3].via.str);
-    assert(obj.via.array.ptr[4].via.str.size == 1059248);
+    msgpack_str_assert("bin", &obj.via.array.ptr[0].via.str);
+    assert(obj.via.array.ptr[1].via.str.size == 1059248);
 
     msgpack_unpacked_destroy(&msg);
     auxts_result_destroy(&res);
@@ -33,8 +30,7 @@ void test_extract_no_data() {
 
     msgpack_object obj = msg.data;
 
-    msgpack_str_assert("status", &obj.via.array.ptr[0].via.str);
-    msgpack_str_assert("NOT_FOUND", &obj.via.array.ptr[1].via.str);
+    msgpack_str_assert("none", &obj.via.array.ptr[0].via.str);
 
     msgpack_unpacked_destroy(&msg);
     auxts_result_destroy(&res);
@@ -52,10 +48,8 @@ void test_extract_error() {
 
     msgpack_object obj = msg.data;
 
-    msgpack_str_assert("status", &obj.via.array.ptr[0].via.str);
-    msgpack_str_assert("ERROR", &obj.via.array.ptr[1].via.str);
-    msgpack_str_assert("message", &obj.via.array.ptr[2].via.str);
-    msgpack_str_assert("Invalid RFC-3339 timestamp. Expected format: yyyy-MM-ddTHH:mm:ss", &obj.via.array.ptr[3].via.str);
+    msgpack_str_assert("error", &obj.via.array.ptr[0].via.str);
+    msgpack_str_assert("Invalid RFC-3339 timestamp. Expected format: yyyy-MM-ddTHH:mm:ss", &obj.via.array.ptr[1].via.str);
 
     msgpack_unpacked_destroy(&msg);
     auxts_result_destroy(&res);
@@ -73,10 +67,8 @@ void test_extract_invalid_num_args() {
 
     msgpack_object obj = msg.data;
 
-    msgpack_str_assert("status", &obj.via.array.ptr[0].via.str);
-    msgpack_str_assert("ERROR", &obj.via.array.ptr[1].via.str);
-    msgpack_str_assert("message", &obj.via.array.ptr[2].via.str);
-    msgpack_str_assert("Expected 3 args, but got 2", &obj.via.array.ptr[3].via.str);
+    msgpack_str_assert("error", &obj.via.array.ptr[0].via.str);
+    msgpack_str_assert("Expected 3 args, but got 2", &obj.via.array.ptr[1].via.str);
 
     msgpack_unpacked_destroy(&msg);
     auxts_result_destroy(&res);
@@ -94,10 +86,8 @@ void test_extract_invalid_arg_type() {
 
     msgpack_object obj = msg.data;
 
-    msgpack_str_assert("status", &obj.via.array.ptr[0].via.str);
-    msgpack_str_assert("ERROR", &obj.via.array.ptr[1].via.str);
-    msgpack_str_assert("message", &obj.via.array.ptr[2].via.str);
-    msgpack_str_assert("Invalid type at arg 2 of EXTRACT command. Expected: string", &obj.via.array.ptr[3].via.str);
+    msgpack_str_assert("error", &obj.via.array.ptr[0].via.str);
+    msgpack_str_assert("Invalid type at arg 2 of EXTRACT command. Expected: string", &obj.via.array.ptr[1].via.str);
 
     msgpack_unpacked_destroy(&msg);
     auxts_result_destroy(&res);

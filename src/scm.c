@@ -45,7 +45,7 @@ SCM auxts_scm_execute(const char* cmd) {
     return bytevector;
 }
 
-void auxts_init_scm_bindings() {
+void auxts_scm_init_bindings() {
     scm_c_define_gsubr("extract", 3, 0, 0, auxts_scm_extract);
     scm_c_define_gsubr("create", 4, 0, 0, auxts_scm_create);
 }

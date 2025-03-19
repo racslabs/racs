@@ -243,9 +243,9 @@ int command_handle_float32(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_t
 
 void auxts_command_executor_init(auxts_command_executor* exec) {
     exec->kv = auxts_kvstore_create(10, command_executor_hash, command_executor_cmp, command_executor_destroy);
-    auxts_kvstore_put(exec->kv, "PING\0", auxts_command_ping);
-    auxts_kvstore_put(exec->kv, "CREATE\0", auxts_command_create);
-    auxts_kvstore_put(exec->kv, "EXTRACT", auxts_command_extract);
+    auxts_kvstore_put(exec->kv, strdup("PING"), auxts_command_ping);
+    auxts_kvstore_put(exec->kv, strdup("CREATE"), auxts_command_create);
+    auxts_kvstore_put(exec->kv, strdup("EXTRACT"), auxts_command_extract);
 }
 
 void auxts_command_executor_destroy(auxts_command_executor* exec) {
@@ -255,7 +255,7 @@ void auxts_command_executor_destroy(auxts_command_executor* exec) {
 void handle_error(const char* message, msgpack_sbuffer* out_buf) {
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
-    auxts_serialize_status_error(&pk, message);
+    auxts_serialize_error(&pk, message);
 }
 
 void handle_unknown_command(auxts_command* cmd, msgpack_sbuffer* out_buf) {
@@ -264,7 +264,7 @@ void handle_unknown_command(auxts_command* cmd, msgpack_sbuffer* out_buf) {
 
     char* message = NULL;
     asprintf(&message, "Unknown command: %s", cmd->name);
-    auxts_serialize_status_error(&pk, message);
+    auxts_serialize_error(&pk, message);
 
     free(message);
 }
@@ -426,7 +426,9 @@ int command_executor_cmp(void* a, void* b) {
     return x[0] == y[0];
 }
 
-void command_executor_destroy(void* key, void* value) {}
+void command_executor_destroy(void* key, void* value) {
+    free(key);
+}
 
 void to_uppercase(char *str) {
     while (*str) {

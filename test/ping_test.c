@@ -11,10 +11,8 @@ void test_ping() {
 
     msgpack_object obj = msg.data;
 
-    msgpack_str_assert("status", &obj.via.array.ptr[0].via.str);
-    msgpack_str_assert("OK", &obj.via.array.ptr[1].via.str);
-    msgpack_str_assert("type", &obj.via.array.ptr[2].via.str);
-    msgpack_str_assert("none", &obj.via.array.ptr[3].via.str);
+    msgpack_str_assert("str", &obj.via.array.ptr[0].via.str);
+    msgpack_str_assert("PONG", &obj.via.array.ptr[1].via.str);
 
     msgpack_unpacked_destroy(&msg);
     auxts_result_destroy(&res);
