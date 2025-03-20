@@ -10,12 +10,16 @@ void test_scm_extract() {
     const char* expr = "(extract \"test\" \"2025-02-09T22:51:52.213Z\" \"2025-02-09T22:51:52.215Z\")";
     SCM result = scm_c_eval_string(expr);
 
-    char* data = (char*)SCM_BYTEVECTOR_CONTENTS(result);
-    size_t size = SCM_BYTEVECTOR_LENGTH(result);
+    msgpack_sbuffer sbuf;
+    msgpack_sbuffer_init(&sbuf);
+
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, &sbuf, msgpack_sbuffer_write);
+    auxts_scm_serialize(&pk, &sbuf, result);
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
-    msgpack_unpack_next(&msg, data, size, 0);
+    msgpack_unpack_next(&msg, sbuf.data, sbuf.size, 0);
 
     msgpack_object obj = msg.data;
 
@@ -23,6 +27,7 @@ void test_scm_extract() {
     assert(obj.via.array.ptr[1].via.bin.size == 1059248);
 
     msgpack_unpacked_destroy(&msg);
+    msgpack_sbuffer_destroy(&sbuf);
     auxts_db_close(db);
 }
 
@@ -75,6 +80,7 @@ void test_scm_int() {
     assert(obj.via.array.ptr[1].via.u64 == 7);
 
     msgpack_unpacked_destroy(&msg);
+    msgpack_sbuffer_destroy(&sbuf);
 }
 
 void test_scm_list() {

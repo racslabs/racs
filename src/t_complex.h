@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_COMPLEX_T_H
-#define AUXTS_COMPLEX_T_H
+#ifndef AUXTS_T_COMPLEX_H
+#define AUXTS_T_COMPLEX_H
 
 #if __STDC_VERSION__ >= 199901L
 
@@ -9,4 +9,4 @@ typedef float complex auxts_complex_t;
 
 #endif
 
-#endif //AUXTS_COMPLEX_T_H
+#endif //AUXTS_T_COMPLEX_H
