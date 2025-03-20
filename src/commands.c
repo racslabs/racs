@@ -42,7 +42,7 @@ auxts_create_command(create) {
 
     int rc = auxts_create(stream_id, sample_rate, channels, bit_depth);
     if (rc == AUXTS_METADATA_STATUS_OK)
-        return auxts_serialize_none_with_status_ok(&pk);
+        return auxts_pack_none_with_status_ok(&pk);
 
     if (rc == AUXTS_METADATA_STATUS_EXIST)
         return auxts_serialize_error(&pk, "The stream-id already exist");
@@ -90,7 +90,7 @@ auxts_create_command(extract) {
         return auxts_serialize_pcm32(&pk, &pbuf);
 
     if (rc == AUXTS_EXTRACT_PCM_STATUS_NOT_FOUND)
-        return auxts_serialize_none_with_status_not_found(&pk);
+        return auxts_pack_none_with_status_not_found(&pk);
 
     return auxts_serialize_error(&pk, "Cause unknown");
 }

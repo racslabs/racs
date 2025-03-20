@@ -1,27 +1,54 @@
 #include "scm.h"
 
-SCM auxts_scm_extract(SCM scm_stream_id, SCM scm_from, SCM scm_to) {
-    const char* stream_id = scm_to_locale_string(scm_stream_id);
-    const char *from = scm_to_locale_string(scm_from);
-    const char *to = scm_to_locale_string(scm_to);
-
+SCM auxts_scm_extract(SCM stream_id, SCM from, SCM to) {
     char* cmd = NULL;
-    asprintf(&cmd, "EXTRACT '%s' '%s' '%s'", stream_id, from, to);
+    asprintf(&cmd, "EXTRACT '%s' '%s' '%s'",
+             scm_to_locale_string(stream_id),
+             scm_to_locale_string(from),
+             scm_to_locale_string(to));
 
-    SCM bytevector = auxts_scm_execute(cmd);
+    auxts_db* db = auxts_db_instance();
+    auxts_result res = auxts_db_execute(db, cmd);
+
     free(cmd);
 
-    return bytevector;
+    msgpack_unpacked msg;
+    msgpack_unpacked_init(&msg);
+
+    if (msgpack_unpack_next(&msg, (char*)res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
+        //Handle error
+    }
+
+    char* type = auxts_deserialize_str(&msg.data, 0);
+    if (strcmp(type, "error") == 0) {
+        char* message = auxts_deserialize_str(&msg.data, 1);
+        SCM error = scm_from_utf8_string(message);
+
+        free(res.data);
+        free(message);
+
+        scm_misc_error("extract", "~A", scm_list_1(error));
+    }
+
+    if (strcmp(type, "none") == 0) {
+        free(res.data);
+        return SCM_EOL;
+    }
+
+    size_t size = auxts_deserialize_i32v_size(&msg.data, 1);
+    int32_t* data = auxts_deserialize_i32v(&msg.data, 1);
+
+    return scm_take_s32vector(data, size);
 }
 
-SCM auxts_scm_create(SCM scm_stream_id, SCM scm_sample_rate, SCM scm_channels, SCM scm_bit_depth) {
-    const char* stream_id = scm_to_locale_string(scm_stream_id);
-    const uint32_t sample_rate = scm_to_uint32(scm_sample_rate);
-    const uint32_t channels = scm_to_uint32(scm_channels);
-    const uint32_t bit_depth = scm_to_uint32(scm_bit_depth);
-
+SCM auxts_scm_create(SCM stream_id, SCM sample_rate, SCM channels, SCM bit_depth) {
     char* cmd = NULL;
-    asprintf(&cmd, "CREATE '%s' %d %d %d", stream_id, sample_rate, channels, bit_depth);
+    asprintf(&cmd, "CREATE '%s' %d %d %d",
+             scm_to_locale_string(stream_id),
+             scm_to_uint32(sample_rate),
+             scm_to_uint32(channels),
+             scm_to_uint32(bit_depth));
+
     SCM bytevector = auxts_scm_execute(cmd);
     free(cmd);
 
@@ -40,7 +67,7 @@ void auxts_scm_serialize(msgpack_packer* pk, msgpack_sbuffer* buf, SCM x) {
     }
 
     if (scm_is_number(x)) {
-        auxts_serialize_float32(pk, (float)scm_to_double(x));
+        auxts_serialize_float(pk, (float) scm_to_double(x));
         return;
     }
 
@@ -49,12 +76,7 @@ void auxts_scm_serialize(msgpack_packer* pk, msgpack_sbuffer* buf, SCM x) {
         return;
     }
 
-    if (scm_is_bytevector(x)) {
-        uint8_t* data = (uint8_t*)SCM_BYTEVECTOR_CONTENTS(x);
-        size_t size = SCM_BYTEVECTOR_LENGTH(x);
-        auxts_serialize_bin(pk, data, size);
-        return;
-    }
+
 
     msgpack_sbuffer_clear(buf);
     auxts_serialize_error(pk, "Unsupported SCM type");
@@ -77,12 +99,6 @@ int auxts_scm_serialize_element(msgpack_packer* pk,  msgpack_sbuffer* buf, SCM v
         return true;
     }
 
-    if (scm_is_bytevector(v)) {
-        uint8_t* data = (uint8_t*)SCM_BYTEVECTOR_CONTENTS(v);
-        size_t size = SCM_BYTEVECTOR_LENGTH(v);
-        msgpack_pack_bin_with_body(pk, data, size);
-        return true;
-    }
 
     msgpack_sbuffer_clear(buf);
     auxts_serialize_error(pk, "Unsupported SCM type");

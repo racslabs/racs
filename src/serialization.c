@@ -6,7 +6,6 @@ const char* const auxts_type_string[] = {
         "binary",
         "int",
         "float",
-        "complex",
         "map",
         "list",
         "none",
@@ -25,13 +24,13 @@ void auxts_serialize_type(msgpack_packer* pk, int type) {
     msgpack_pack_str_with_body(pk, type_string, strlen(type_string));
 }
 
-int auxts_serialize_none_with_status_ok(msgpack_packer* pk) {
+int auxts_pack_none_with_status_ok(msgpack_packer* pk) {
     msgpack_pack_array(pk, 1);
     auxts_serialize_type(pk, AUXTS_TYPE_NONE);
     return AUXTS_STATUS_OK;
 }
 
-int auxts_serialize_none_with_status_not_found(msgpack_packer* pk) {
+int auxts_pack_none_with_status_not_found(msgpack_packer* pk) {
     msgpack_pack_array(pk, 1);
     auxts_serialize_type(pk, AUXTS_TYPE_NONE);
     return AUXTS_STATUS_NOT_FOUND;
@@ -65,7 +64,7 @@ int auxts_serialize_int64(msgpack_packer* pk, int64_t d) {
     return AUXTS_STATUS_OK;
 }
 
-int auxts_serialize_float32(msgpack_packer* pk, float d) {
+int auxts_serialize_float(msgpack_packer* pk, float d) {
     msgpack_pack_array(pk, 2);
     auxts_serialize_type(pk, AUXTS_TYPE_FLOAT);
     msgpack_pack_float(pk, d);
@@ -77,12 +76,6 @@ int auxts_serialize_bool(msgpack_packer* pk, bool d) {
     auxts_serialize_type(pk, AUXTS_TYPE_BOOL);
     msgpack_pack_int(pk, d);
     return AUXTS_STATUS_OK;
-}
-
-int auxts_serialize_invalid_num_args(msgpack_packer* pk, int expected, int actual) {
-    char message[255];
-    sprintf(message, "Expected %d args, but got %d", expected, actual);
-    return auxts_serialize_error(pk, message);
 }
 
 int auxts_serialize_pcm32(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
@@ -147,6 +140,12 @@ int auxts_serialize_c64v(msgpack_packer* pk, auxts_complex_t* data, size_t n) {
     return AUXTS_STATUS_OK;
 }
 
+int auxts_serialize_invalid_num_args(msgpack_packer* pk, int expected, int actual) {
+    char message[255];
+    sprintf(message, "Expected %d args, but got %d", expected, actual);
+    return auxts_serialize_error(pk, message);
+}
+
 void auxts_deserialize_stream_id(uint64_t* stream_id, msgpack_object* obj, int arg_num) {
     char* str = auxts_deserialize_str(obj, arg_num);
 
@@ -161,25 +160,33 @@ int auxts_is_object_type(msgpack_object* obj, msgpack_object_type type, int arg_
     return obj->via.array.ptr[arg_num].type == type;
 }
 
-char* auxts_deserialize_str(msgpack_object* obj, int arg_num) {
-    size_t size = obj->via.array.ptr[arg_num].via.str.size + 1;
+char* auxts_deserialize_str(msgpack_object* obj, int n) {
+    size_t size = obj->via.array.ptr[n].via.str.size + 1;
 
     char* str = malloc(size);
-    strlcpy(str, obj->via.array.ptr[arg_num].via.str.ptr, size);
+    strlcpy(str, obj->via.array.ptr[n].via.str.ptr, size);
 
     return str;
 }
 
-int32_t auxts_deserialize_int32(msgpack_object* obj, int arg_num) {
-    return (int32_t)obj->via.array.ptr[arg_num].via.i64;
+int32_t* auxts_deserialize_i32v(msgpack_object* obj, int n) {
+    return (int32_t*)obj->via.array.ptr[n].via.bin.ptr;
 }
 
-uint32_t auxts_deserialize_uint32(msgpack_object* obj, int arg_num) {
-    return (uint32_t)obj->via.array.ptr[arg_num].via.u64;
+size_t auxts_deserialize_i32v_size(msgpack_object* obj, int n) {
+    return obj->via.array.ptr[n].via.bin.size / sizeof(int32_t);
 }
 
-uint64_t auxts_deserialize_uint64(msgpack_object* obj, int arg_num) {
-    return obj->via.array.ptr[arg_num].via.i64;
+int32_t auxts_deserialize_int32(msgpack_object* obj, int n) {
+    return (int32_t)obj->via.array.ptr[n].via.i64;
+}
+
+uint32_t auxts_deserialize_uint32(msgpack_object* obj, int n) {
+    return (uint32_t)obj->via.array.ptr[n].via.u64;
+}
+
+uint64_t auxts_deserialize_uint64(msgpack_object* obj, int n) {
+    return obj->via.array.ptr[n].via.i64;
 }
 
 void auxts_deserialize_from(int64_t* from, msgpack_object* obj) {

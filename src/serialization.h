@@ -12,7 +12,6 @@ typedef enum {
     AUXTS_TYPE_BIN,
     AUXTS_TYPE_INT,
     AUXTS_TYPE_FLOAT,
-    AUXTS_TYPE_COMPLEX,
     AUXTS_TYPE_MAP,
     AUXTS_TYPE_LIST,
     AUXTS_TYPE_NONE,
@@ -33,13 +32,13 @@ typedef enum {
 
 extern const char* const auxts_type_string[];
 
-int auxts_serialize_none_with_status_ok(msgpack_packer* pk);
-int auxts_serialize_none_with_status_not_found(msgpack_packer* pk);
+int auxts_pack_none_with_status_ok(msgpack_packer* pk);
+int auxts_pack_none_with_status_not_found(msgpack_packer* pk);
 int auxts_serialize_error(msgpack_packer* pk, const char* message);
 int auxts_serialize_str(msgpack_packer* pk, const char* str);
 int auxts_serialize_bin(msgpack_packer* pk, const uint8_t* data, size_t n);
 int auxts_serialize_int64(msgpack_packer* pk, int64_t d);
-int auxts_serialize_float32(msgpack_packer* pk, float d);
+int auxts_serialize_float(msgpack_packer* pk, float d);
 int auxts_serialize_bool(msgpack_packer* pk, bool d);
 int auxts_serialize_i16v(msgpack_packer* pk, int16_t* data, size_t n);
 int auxts_serialize_u16v(msgpack_packer* pk, uint16_t* data, size_t n);
@@ -54,10 +53,12 @@ void auxts_deserialize_stream_id(uint64_t* stream_id, msgpack_object* obj, int a
 void auxts_deserialize_from(int64_t* from, msgpack_object* obj);
 void auxts_deserialize_to(int64_t* to, msgpack_object* obj);
 int auxts_deserialize_range(int64_t* from, int64_t* to, msgpack_object* obj);
-char* auxts_deserialize_str(msgpack_object* obj, int arg_num);
-int32_t auxts_deserialize_int32(msgpack_object* obj, int arg_num);
-uint32_t auxts_deserialize_uint32(msgpack_object* obj, int arg_num);
-uint64_t auxts_deserialize_uint64(msgpack_object* obj, int arg_num);
+char* auxts_deserialize_str(msgpack_object* obj, int n);
+int32_t auxts_deserialize_int32(msgpack_object* obj, int n);
+uint32_t auxts_deserialize_uint32(msgpack_object* obj, int n);
+uint64_t auxts_deserialize_uint64(msgpack_object* obj, int n);
+int32_t* auxts_deserialize_i32v(msgpack_object* obj, int n);
+size_t auxts_deserialize_i32v_size(msgpack_object* obj, int n);
 int auxts_is_object_type(msgpack_object* obj, msgpack_object_type type, int arg_num);
 
 #endif //AUXTS_SERIALIZATION_H
