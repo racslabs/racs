@@ -120,76 +120,39 @@ void auxts_scm_serialize_c32vector(msgpack_packer* pk, SCM v) {
 }
 
 void auxts_scm_serialize(msgpack_packer* pk, msgpack_sbuffer* buf, SCM x) {
-    if (scm_is_integer(x)) {
+    if (scm_is_integer(x))
         auxts_serialize_int64(pk, scm_to_int64(x));
-        return;
-    }
-
-    if (scm_is_number(x)) {
+    else if (scm_is_number(x))
         auxts_serialize_float(pk, (float)scm_to_double(x));
-        return;
-    }
-
-    if (scm_is_bool(x)) {
+    else if (scm_is_bool(x))
         auxts_serialize_bool(pk, scm_to_bool(x));
-        return;
-    }
-
-    if (scm_is_null_or_nil(x)) {
+    else if (scm_is_null_or_nil(x))
         auxts_pack_none_with_status_ok(pk);
-        return;
-    }
-
-    if (scm_is_pair(x)) {
-        auxts_scm_serialize_list(pk, buf, x);
-        return;
-    }
-
-    if (scm_is_string(x)) {
+    else if (scm_is_pair(x))
+        auxts_scm_serialize_pair(pk, buf, x);
+    else if (scm_is_string(x))
         auxts_serialize_str(pk, scm_to_locale_string(x));
-        return;
-    }
-
-    if (scm_is_typed_array(x, scm_from_locale_symbol("u8"))) {
+    else if (scm_is_typed_array(x, scm_from_locale_symbol("u8")))
         auxts_scm_serialize_u8vector(pk, x);
-        return;
-    }
-
-    if (scm_is_typed_array(x, scm_from_locale_symbol("s16"))) {
+    else if (scm_is_typed_array(x, scm_from_locale_symbol("s16")))
         auxts_scm_serialize_s16vector(pk, x);
-        return;
-    }
-
-    if (scm_is_typed_array(x, scm_from_locale_symbol("u16"))) {
+    else if (scm_is_typed_array(x, scm_from_locale_symbol("u16")))
         auxts_scm_serialize_u16vector(pk, x);
-        return;
-    }
-
-    if (scm_is_typed_array(x, scm_from_locale_symbol("s32"))) {
+    else if (scm_is_typed_array(x, scm_from_locale_symbol("s32")))
         auxts_scm_serialize_s32vector(pk, x);
-        return;
-    }
-
-    if (scm_is_typed_array(x, scm_from_locale_symbol("u32"))) {
+    else if (scm_is_typed_array(x, scm_from_locale_symbol("u32")))
         auxts_scm_serialize_u32vector(pk, x);
-        return;
-    }
-
-    if (scm_is_typed_array(x, scm_from_locale_symbol("f32"))) {
+    else if (scm_is_typed_array(x, scm_from_locale_symbol("f32")))
         auxts_scm_serialize_f32vector(pk, x);
-        return;
-    }
-
-    if (scm_is_typed_array(x, scm_from_locale_symbol("c32"))) {
+    else if (scm_is_typed_array(x, scm_from_locale_symbol("c32")))
         auxts_scm_serialize_c32vector(pk, x);
-        return;
+    else {
+        msgpack_sbuffer_clear(buf);
+        auxts_serialize_error(pk, "Unsupported SCM type");
     }
-
-    msgpack_sbuffer_clear(buf);
-    auxts_serialize_error(pk, "Unsupported SCM type");
 }
 
-int auxts_scm_serialize_element(msgpack_packer* pk,  msgpack_sbuffer* buf, SCM v) {
+int auxts_scm_serialize_element(msgpack_packer* pk, msgpack_sbuffer* buf, SCM v) {
     if (scm_is_string(v)) {
         char* str = scm_to_locale_string(v);
         msgpack_pack_str_with_body(pk, str, strlen(str));
@@ -206,24 +169,44 @@ int auxts_scm_serialize_element(msgpack_packer* pk,  msgpack_sbuffer* buf, SCM v
         return true;
     }
 
-
     msgpack_sbuffer_clear(buf);
     auxts_serialize_error(pk, "Unsupported SCM type");
 
     return false;
 }
 
-void auxts_scm_serialize_list(msgpack_packer* pk, msgpack_sbuffer* buf, SCM x) {
+void auxts_scm_serialize_pair(msgpack_packer* pk, msgpack_sbuffer* buf, SCM x) {
+
+}
+
+int auxts_scm_is_dotted_pair(SCM x) {
+    if (scm_is_pair(x)) {
+        SCM y = scm_cdr(x);
+        return !scm_is_pair(y);
+    }
+    return false;
+}
+
+void auxts_scm_serialize_alist(msgpack_packer* pk, msgpack_sbuffer* buf, SCM x) {
     uint32_t n = scm_to_uint32(scm_length(x));
 
-    msgpack_pack_array(pk, n + 1);
-    auxts_serialize_type(pk, AUXTS_TYPE_LIST);
+    msgpack_pack_array(pk, n * 2 + 1);
+    auxts_serialize_type(pk, AUXTS_TYPE_MAP);
 
     while (scm_is_pair(x)) {
         SCM v = scm_car(x);
 
-        if (!auxts_scm_serialize_element(pk, buf, v))
-            break;
+        if (!auxts_scm_is_dotted_pair(v)) {
+            msgpack_sbuffer_clear(buf);
+            auxts_serialize_error(pk, "Unsupported SCM type");
+            return;
+        }
+
+        SCM a = scm_car(v);
+        SCM b = scm_cdr(v);
+
+        if (!auxts_scm_serialize_element(pk, buf, a)) break;
+        if (!auxts_scm_serialize_element(pk, buf, b)) break;
 
         x = scm_cdr(x);
     }
