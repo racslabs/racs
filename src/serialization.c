@@ -74,7 +74,7 @@ int auxts_serialize_float(msgpack_packer* pk, float d) {
 int auxts_serialize_bool(msgpack_packer* pk, bool d) {
     msgpack_pack_array(pk, 2);
     auxts_serialize_type(pk, AUXTS_TYPE_BOOL);
-    msgpack_pack_int(pk, d);
+    d ? msgpack_pack_true(pk) : msgpack_pack_false(pk);
     return AUXTS_STATUS_OK;
 }
 

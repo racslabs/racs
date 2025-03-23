@@ -22,13 +22,7 @@ SCM auxts_scm_extract(SCM stream_id, SCM from, SCM to) {
 
     char* type = auxts_deserialize_str(&msg.data, 0);
     if (strcmp(type, "error") == 0) {
-        char* message = auxts_deserialize_str(&msg.data, 1);
-        SCM error = scm_from_utf8_string(message);
-
-        free(res.data);
-        free(message);
-
-        scm_misc_error("extract", "~A", scm_list_1(error));
+        auxts_scm_propagate_error(&msg.data, res.data);
     }
 
     if (strcmp(type, "none") == 0) {
@@ -50,10 +44,35 @@ SCM auxts_scm_create(SCM stream_id, SCM sample_rate, SCM channels, SCM bit_depth
              scm_to_uint32(channels),
              scm_to_uint32(bit_depth));
 
-    SCM bytevector = auxts_scm_execute(cmd);
+    auxts_db* db = auxts_db_instance();
+    auxts_result res = auxts_db_execute(db, cmd);
+
     free(cmd);
 
-    return bytevector;
+    msgpack_unpacked msg;
+    msgpack_unpacked_init(&msg);
+
+    if (msgpack_unpack_next(&msg, (char*)res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
+        free(res.data);
+        scm_misc_error("extract", "Deserialization error", SCM_EOL);
+    }
+
+    char* type = auxts_deserialize_str(&msg.data, 0);
+    if (strcmp(type, "error") == 0) {
+        auxts_scm_propagate_error(&msg.data, res.data);
+    }
+
+    return SCM_EOL;
+}
+
+void auxts_scm_propagate_error(msgpack_object* obj, uint8_t* data) {
+    char* message = auxts_deserialize_str(obj, 1);
+    SCM error = scm_from_utf8_string(message);
+
+    free(data);
+    free(message);
+
+    scm_misc_error("extract", "~A", scm_list_1(error));
 }
 
 void auxts_scm_serialize_u8vector(msgpack_packer* pk, SCM v) {
@@ -169,14 +188,25 @@ int auxts_scm_serialize_element(msgpack_packer* pk, msgpack_sbuffer* buf, SCM v)
         return true;
     }
 
+    if (scm_is_bool(v)) {
+        scm_to_bool(v) ? msgpack_pack_true(pk) : msgpack_pack_false(pk);
+        return true;
+    }
+
     msgpack_sbuffer_clear(buf);
     auxts_serialize_error(pk, "Unsupported SCM type");
 
     return false;
 }
 
-void auxts_scm_serialize_pair(msgpack_packer* pk, msgpack_sbuffer* buf, SCM x) {
 
+
+void auxts_scm_serialize_pair(msgpack_packer* pk, msgpack_sbuffer* buf, SCM x) {
+    SCM y = scm_cdr(x);
+    if (auxts_scm_is_dotted_pair(y))
+        auxts_scm_serialize_alist(pk, buf, x);
+    else
+        auxts_scm_serialize_list(pk, buf, x);
 }
 
 int auxts_scm_is_dotted_pair(SCM x) {
@@ -185,6 +215,19 @@ int auxts_scm_is_dotted_pair(SCM x) {
         return !scm_is_pair(y);
     }
     return false;
+}
+
+void auxts_scm_serialize_list(msgpack_packer* pk, msgpack_sbuffer* buf, SCM x) {
+    uint32_t n = scm_to_uint32(scm_length(x));
+
+    msgpack_pack_array(pk, n + 1);
+    auxts_serialize_type(pk, AUXTS_TYPE_LIST);
+
+    while (scm_is_pair(x)) {
+        SCM v = scm_car(x);
+        if(!auxts_scm_serialize_element(pk, buf, v)) break;
+        x = scm_cdr(x);
+    }
 }
 
 void auxts_scm_serialize_alist(msgpack_packer* pk, msgpack_sbuffer* buf, SCM x) {
@@ -210,18 +253,6 @@ void auxts_scm_serialize_alist(msgpack_packer* pk, msgpack_sbuffer* buf, SCM x) 
 
         x = scm_cdr(x);
     }
-}
-
-SCM auxts_scm_execute(const char* cmd) {
-    auxts_db* db = auxts_db_instance();
-    auxts_result res = auxts_db_execute(db, cmd);
-
-    SCM size = scm_from_uint64(res.size);
-    SCM bytevector = scm_make_bytevector(size, SCM_UNDEFINED);
-    memcpy(SCM_BYTEVECTOR_CONTENTS(bytevector), res.data, res.size);
-
-    auxts_result_destroy(&res);
-    return bytevector;
 }
 
 void auxts_scm_init_bindings() {

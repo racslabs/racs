@@ -38,21 +38,26 @@ void test_scm_create() {
     scm_init_guile();
     auxts_scm_init_bindings();
 
-    const char* expr = "(create \"test001\" 44100 2 16)";
+    const char* expr = "(create \"test002\" 44100 2 16)";
     SCM result = scm_c_eval_string(expr);
 
-    char* data = (char*)SCM_BYTEVECTOR_CONTENTS(result);
-    size_t size = SCM_BYTEVECTOR_LENGTH(result);
+    msgpack_sbuffer sbuf;
+    msgpack_sbuffer_init(&sbuf);
+
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, &sbuf, msgpack_sbuffer_write);
+    auxts_scm_serialize(&pk, &sbuf, result);
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
-    msgpack_unpack_next(&msg, data, size, 0);
+    msgpack_unpack_next(&msg, sbuf.data, sbuf.size, 0);
 
     msgpack_object obj = msg.data;
 
-    msgpack_str_assert("error", &obj.via.array.ptr[0].via.str);
+    msgpack_str_assert("none", &obj.via.array.ptr[0].via.str);
 
     msgpack_unpacked_destroy(&msg);
+    msgpack_sbuffer_destroy(&sbuf);
     auxts_db_close(db);
 }
 
@@ -92,7 +97,7 @@ void test_scm_list() {
 
     scm_init_guile();
 
-    const char* expr = "(list '(2  1))";
+    const char* expr = "(list 2  1)";
 
     SCM result = scm_c_eval_string(expr);
     auxts_scm_serialize(&pk, &sbuf, result);
@@ -103,7 +108,7 @@ void test_scm_list() {
 
     msgpack_object obj = msg.data;
 
-//    msgpack_str_assert("error", &obj.via.array.ptr[0].via.str);
+    msgpack_str_assert("list", &obj.via.array.ptr[0].via.str);
 //    assert(obj.via.array.ptr[1].via.u64 == 1);
 
     msgpack_unpacked_destroy(&msg);
