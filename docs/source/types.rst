@@ -12,7 +12,7 @@ Basic Types
 | ``float``     | IEEE-754 64-bit floating-point number.                     |
 +---------------+------------------------------------------------------------+
 
-Null Types:
+Null Types
 -----------
 
 Type ``null`` represents a missing or unknown value.
@@ -22,7 +22,7 @@ String Types
 
 Type ``string`` represents a sequence of characters. All strings are expected to be UTF-8 encoded.
 
-Both single and double quotes can be used to a string.
+Strings must be enclosed in single or double quotes.
 
 
 Time Types
@@ -41,7 +41,7 @@ List Types
 
 Type ``list`` is an ordered collection of values.
 
-A list may contain mixed types but they must all be basic types or strings.
+A list may contain mixed types but they must be basic types or strings.
 
 For example: ``("1" 2 false)`` is valid, but ``((1 2) false)`` is not.
 

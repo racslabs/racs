@@ -1,0 +1,27 @@
+Streaming
+=========
+
+ASTP (AUXTS Streaming Transfer Protocol) is used to efficiently transfer audio data over TCP/IP.
+
+The audio data is transferred in real-time as PCM encoded blocks.
+
+The format is outlined below:
+
++---------------+-------------------------------------------------------+-----------+--------+
+|value          |Description                                            | bytes     | offset |
++===============+=======================================================+===========+========+
+|hash           | 64-bit hash of the stream ID.                         |8          |0       |
++---------------+-------------------------------------------------------+-----------+--------+
+|channels       | Number of audio channels                              |2          |8       |
++---------------+-------------------------------------------------------+-----------+--------+
+|sample_rate    | Audio sample rate (samples per second).               |4          |10      |
++---------------+-------------------------------------------------------+-----------+--------+
+|bit_depth      | Number of bits per sample                             |2          |14      |
++---------------+-------------------------------------------------------+-----------+--------+
+|checksum       | CRC32 checksum for error detection.                   |4          |18      |
++---------------+-------------------------------------------------------+-----------+--------+
+|block_size     | Size of PCM encoded block in bytes.                   |4          |20      |
+|               | Max block size is 2^32 bytes (4GB).                   |           |        |
++---------------+-------------------------------------------------------+-----------+--------+
+|PCM block      | Block containing the PCM data.                        |block_size |24      |
++---------------+-------------------------------------------------------+-----------+--------+

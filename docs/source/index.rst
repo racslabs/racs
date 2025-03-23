@@ -1,8 +1,9 @@
 AUXTS
-========
-
+=====
 .. toctree::
-   :caption: Data
+   :caption: Contents
    :maxdepth: 1
 
-   api/core/index
+   syntax
+   types
+   streaming
