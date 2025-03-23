@@ -12,10 +12,6 @@ Basic Types
 | ``float``     | IEEE-754 64-bit floating-point number.                     |
 +---------------+------------------------------------------------------------+
 
-.. note::
-
-   Basic Types are not nullable.
-
 Null Types:
 -----------
 
@@ -28,9 +24,6 @@ Type ``string`` represents a sequence of characters. All strings are expected to
 
 Both single and double quotes can be used to a string.
 
-.. note::
-
-   ``string`` is not nullable.
 
 Time Types
 ----------
@@ -42,9 +35,6 @@ Type ``time`` represents a single point in time with millisecond precision.
 - ``YYYY-MM-DD``
 - ``YYYY-MM-DDT00:00:000Z``
 
-.. note::
-
-   ``time`` is not nullable.
 
 List Types
 ----------
@@ -55,9 +45,6 @@ A list may contain mixed types but they must all be basic types or strings.
 
 For example: ``("1" 2 false)`` is valid, but ``((1 2) false)`` is not.
 
-.. note::
-
-   ``list`` is not nullable.
 
 Numeric Vector Types
 --------------------
@@ -79,3 +66,5 @@ Numeric Vector Types
 +---------------+--------------------------------------------------------------------------------------------------------------------------+
 | ``c64v``      | Represents a 1-D vector of complex numbers where the real and imaginary parts are IEEE-754 32-bit floating-point numbers.|
 +---------------+--------------------------------------------------------------------------------------------------------------------------+
+
+``f64v`` and ``c128v`` are not yet supported, but will be in the near future.
