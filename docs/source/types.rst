@@ -64,7 +64,7 @@ Numeric Vector Types
 +---------------+--------------------------------------------------------------------------------------------------------------------------+
 | ``f32v``      | Represents a 1-D vector of IEEE-754 32-bit floating-point numbers.                                                       |
 +---------------+--------------------------------------------------------------------------------------------------------------------------+
-| ``c64v``      | Represents a 1-D vector of complex numbers where the real and imaginary parts are IEEE-754 32-bit floating-point numbers.|
+| ``c64v``      | Represents a 1-D vector of complex numbers. Real and imaginary parts are IEEE-754 32-bit floating-point numbers.         |
 +---------------+--------------------------------------------------------------------------------------------------------------------------+
 
 ``f64v`` and ``c128v`` are not yet supported, but will be in the near future.
