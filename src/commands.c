@@ -66,12 +66,13 @@ auxts_create_command(eval) {
     auxts_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR,
                             "Invalid type at arg 1 of EVAL command. Expected int or string")
 
-//    char* expr = auxts_deserialize_str(&msg.data, 0);
-//    SCM res = scm_c_eval_string(expr);
-//    free(expr);
-//
-//    auxts_scm_serialize(&pk, out_buf, res);
+    char* error = NULL;
+    char* expr = auxts_deserialize_str(&msg.data, 0);
+    SCM res = auxts_scm_eval_with_error_handling(expr, &error);
 
+    if (error) return auxts_serialize_error(&pk, error);
+
+    return auxts_scm_serialize(&pk, out_buf, res);
 }
 
 auxts_create_command(extract) {
