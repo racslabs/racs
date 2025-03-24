@@ -3,8 +3,6 @@ Streaming
 
 ASTP (AUXTS Streaming Transfer Protocol) is used to efficiently transfer audio data over TCP/IP.
 
-The audio data is transferred in real-time as PCM encoded blocks.
-
 The format is outlined below:
 
 +---------------+-------------------------------------------------------+-----------+--------+

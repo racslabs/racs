@@ -3,6 +3,7 @@
 #define AUXTS_COMMANDS_H
 
 #include <msgpack.h>
+#include "scm.h"
 #include "serialization.h"
 #include "create.h"
 
@@ -18,13 +19,6 @@ typedef enum {
 #define auxts_validate_arg_type(pk, msg, arg_num, obj_type, error) \
     auxts_validate(pk, obj_type == ((msg).data.via.array.ptr[arg_num].type), error)
 
-#define auxts_validate_arg_type2(pk, msg, arg_num, obj_type1, obj_type2, error) \
-    auxts_validate(                                                             \
-        pk,                                                                     \
-        obj_type1 == ((msg).data.via.array.ptr[arg_num].type) ||                \
-        obj_type2 == ((msg).data.via.array.ptr[arg_num].type),                  \
-        error)
-
 #define auxts_validate_num_args(pk, msg, num_args) \
     if ((msg).data.type == MSGPACK_OBJECT_ARRAY && (msg).data.via.array.size != (num_args)) \
         return auxts_serialize_invalid_num_args(pk, num_args, (msg).data.via.array.size);
@@ -33,6 +27,7 @@ typedef enum {
     int auxts_command_##name(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, auxts_context* ctx)
 
 auxts_create_command(extract);
+auxts_create_command(eval);
 auxts_create_command(create);
 auxts_create_command(ping);
 
