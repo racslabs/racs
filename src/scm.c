@@ -156,7 +156,7 @@ int auxts_scm_serialize_list(msgpack_packer* pk, msgpack_sbuffer* buf, SCM x) {
     while (scm_is_pair(x)) {
         SCM v = scm_car(x);
 
-        if(!auxts_scm_serialize_element(pk, buf, v))
+        if (!auxts_scm_serialize_element(pk, buf, v))
             return AUXTS_STATUS_ERROR;
 
         x = scm_cdr(x);
@@ -169,20 +169,21 @@ SCM auxts_scm_eval_wrapper(void* data) {
     return scm_c_eval_string((const char*)data);
 }
 
-SCM auxts_scm_error_handler(void *data, SCM key, SCM args) {
+SCM auxts_scm_error_handler(void* data, SCM key, SCM args) {
     scm_display(args, data);
     return SCM_BOOL_F;
 }
 
-SCM auxts_scm_eval_with_error_handling(const char* code, char** error) {
+SCM auxts_scm_eval_with_error_handling(char* expr, char** error) {
     SCM original_error_port = scm_current_error_port();
     SCM error_port = scm_open_output_string();
 
     scm_set_current_error_port(error_port);
+    auxts_unescape_single_quotes(expr);
 
     SCM result = scm_c_catch(SCM_BOOL_T,
                              auxts_scm_eval_wrapper,
-                             (void*)code,
+                             (void*)expr,
                              auxts_scm_error_handler,
                              error_port,
                              NULL,
@@ -197,4 +198,12 @@ SCM auxts_scm_eval_with_error_handling(const char* code, char** error) {
     scm_close_output_port(error_port);
 
     return result;
+}
+
+void auxts_unescape_single_quotes(char* s) {
+    size_t n = strlen(s);
+
+    for (int i = 0; i < n - 1; ++i) {
+        if (s[i] == '\\' && s[i + 1] == '\'') s[i] = ' ';
+    }
 }

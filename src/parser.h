@@ -15,7 +15,7 @@ extern "C" {
 #endif
 
 #define AUXTS_REGEX_PIPE    "\\|>"
-#define AUXTS_REGEX_STR     "^'([^']*)\.'"
+#define AUXTS_REGEX_STR     "'([^'\\\\]*(\\\\'[^'\\\\]*)*)'"
 #define AUXTS_REGEX_ID      "^[a-zA-Z_][a-zA-Z0-9_]*"
 #define AUXTS_REGEX_INT     "^[0-9]+"
 #define AUXTS_REGEX_FLOAT   "^[0-9]+\\.[0-9]*"

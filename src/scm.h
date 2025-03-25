@@ -18,7 +18,9 @@ int auxts_scm_serialize_element(msgpack_packer* pk, msgpack_sbuffer* buf, SCM v)
 void auxts_scm_propagate_error(msgpack_object* obj, uint8_t* data);
 
 SCM auxts_scm_eval_wrapper(void* data);
-SCM auxts_scm_error_handler(void *data, SCM key, SCM args);
-SCM auxts_scm_eval_with_error_handling(const char* code, char** error);
+SCM auxts_scm_error_handler(void* data, SCM key, SCM args);
+SCM auxts_scm_eval_with_error_handling(char* expr, char** error);
+
+void auxts_unescape_single_quotes(char* s);
 
 #endif //AUXTS_SCM_H

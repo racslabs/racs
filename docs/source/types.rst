@@ -22,7 +22,7 @@ String Types
 
 Type ``string`` represents a sequence of characters. All strings are expected to be UTF-8 encoded.
 
-Strings must be enclosed in single or double quotes.
+String literals must be enclosed in single quotes.
 
 
 Time Types
