@@ -64,7 +64,7 @@ auxts_create_command(eval) {
     auxts_validate_num_args(&pk, msg, 1)
 
     auxts_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR,
-                            "Invalid type at arg 1 of EVAL command. Expected int or string")
+                            "Invalid type at arg 1 of EVAL command. Expected string")
 
     char* error = NULL;
     char* expr = auxts_deserialize_str(&msg.data, 0);

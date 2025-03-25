@@ -14,10 +14,8 @@
 extern "C" {
 #endif
 
-#define AUXTS_REGEX_BIN     "binary:"
 #define AUXTS_REGEX_PIPE    "\\|>"
-#define AUXTS_REGEX_STR_SQ  "^'([^']*)'"
-#define AUXTS_REGEX_STR_DQ  "^\"([^\"]*)\""
+#define AUXTS_REGEX_STR     "^'([^']*)\.'"
 #define AUXTS_REGEX_ID      "^[a-zA-Z_][a-zA-Z0-9_]*"
 #define AUXTS_REGEX_INT     "^[0-9]+"
 #define AUXTS_REGEX_FLOAT   "^[0-9]+\\.[0-9]*"
@@ -26,7 +24,6 @@ typedef enum {
     AUXTS_TOKEN_TYPE_NONE,
     AUXTS_TOKEN_TYPE_ID,
     AUXTS_TOKEN_TYPE_STR,
-    AUXTS_TOKEN_TYPE_BIN,
     AUXTS_TOKEN_TYPE_PIPE,
     AUXTS_TOKEN_TYPE_INT,
     AUXTS_TOKEN_TYPE_FLOAT,
@@ -41,7 +38,6 @@ typedef struct {
 
 typedef auxts_token_ auxts_token_id;
 typedef auxts_token_ auxts_token_str;
-typedef auxts_token_ auxts_token_bin;
 
 typedef struct {
     const char* msg;
@@ -53,7 +49,6 @@ typedef union {
     uint64_t            u64;
     auxts_token_id      id;
     auxts_token_str     str;
-    auxts_token_bin     bin;
     auxts_token_error   err;
 } auxts_token_union;
 

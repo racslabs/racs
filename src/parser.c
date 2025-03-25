@@ -5,7 +5,6 @@ static void parser_advance(auxts_parser* parser, regoff_t step);
 static int match_token(const char* ptr, const char* pattern, regmatch_t* match);
 static auxts_token parser_lex_token_str(auxts_parser* parser, regmatch_t* match);
 static auxts_token parser_lex_token_id(auxts_parser* parser, regmatch_t* match);
-static auxts_token parser_lex_token_bin(auxts_parser* parser, regmatch_t* match);
 static auxts_token parser_lex_token_int64(auxts_parser* parser, regmatch_t* match);
 static auxts_token parser_lex_token_float32(auxts_parser* parser, regmatch_t* match);
 static auxts_token parser_lex_token_pipe(auxts_parser* parser, regmatch_t* match);
@@ -45,26 +44,14 @@ auxts_token auxts_parser_next_token(auxts_parser* parser) {
         }
     }
 
-    if (*parser->ptr == 'b') {
-        if (match_token(parser->ptr, AUXTS_REGEX_BIN, &match)) {
-            return parser_lex_token_bin(parser, &match);
-        }
-    }
-
     if (isalpha(*parser->ptr) || *parser->ptr == '_') {
         if (match_token(parser->ptr, AUXTS_REGEX_ID, &match)) {
             return parser_lex_token_id(parser, &match);
         }
     }
 
-    if (*parser->ptr == '"') {
-        if (match_token(parser->ptr, AUXTS_REGEX_STR_DQ, &match)) {
-            return parser_lex_token_str(parser, &match);
-        }
-    }
-
     if (*parser->ptr == '\'') {
-        if (match_token(parser->ptr, AUXTS_REGEX_STR_SQ, &match)) {
+        if (match_token(parser->ptr, AUXTS_REGEX_STR, &match)) {
             return parser_lex_token_str(parser, &match);
         }
     }
@@ -87,10 +74,6 @@ void auxts_token_print(auxts_token* token) {
         case AUXTS_TOKEN_TYPE_STR:
             printf("[STR  ] ");
             print_n_chars(token->as.str.ptr, token->as.str.size);
-            break;
-        case AUXTS_TOKEN_TYPE_BIN:
-            printf("[BIN  ] ");
-            print_n_chars(token->as.bin.ptr, token->as.bin.size);
             break;
         case AUXTS_TOKEN_TYPE_PIPE:
             printf("[PIPE ] |>\n");
@@ -157,26 +140,6 @@ auxts_token parser_lex_token_id(auxts_parser* parser, regmatch_t* match) {
     token.as.id.size = size;
 
     parser_advance(parser, size);
-
-    return token;
-}
-
-auxts_token parser_lex_token_bin(auxts_parser* parser, regmatch_t* match) {
-    regoff_t prefix_size = match->rm_eo - match->rm_so;
-
-    parser_advance(parser, prefix_size);
-
-    uint32_t binary_size;
-    auxts_read_uint32(&binary_size, (uint8_t*)parser->ptr, 0);
-
-    parser_advance(parser, sizeof(uint32_t));
-
-    auxts_token token;
-    token.type = AUXTS_TOKEN_TYPE_BIN;
-    token.as.bin.ptr = parser->ptr;
-    token.as.bin.size = binary_size;
-
-    parser_advance(parser, binary_size);
 
     return token;
 }

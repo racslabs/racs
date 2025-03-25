@@ -8,7 +8,6 @@ static auxts_command* command_create(const char* name, auxts_command_op op, size
 static void command_destroy(auxts_command* cmd);
 static auxts_command_arg* command_arg_create();
 static auxts_command_arg* command_arg_create_str(const char* ptr, size_t size);
-static auxts_command_arg* command_arg_create_bin(const char* ptr, size_t size);
 static auxts_command_arg* command_arg_create_int64(int64_t d);
 static auxts_command_arg* command_arg_create_float32(float d);
 static void command_arg_destroy(auxts_command_arg* arg);
@@ -17,13 +16,11 @@ static void handle_error(const char* message, msgpack_sbuffer* out_buf);
 static void handle_unknown_command(auxts_command* cmd, msgpack_sbuffer* out_buf);
 static int command_handle_id(auxts_command* cmd, msgpack_sbuffer* out_buf);
 static int command_handle_str(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token* curr, auxts_token* prev);
-static int command_handle_bin(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token* curr, auxts_token* prev);
 static int command_handle_int64(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token* curr, auxts_token* prev);
 static int command_handle_float32(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token* curr, auxts_token* prev);
 static void command_add_arg(auxts_command* cmd, auxts_command_arg* arg);
 static void command_serialize_args(auxts_command* cmd, msgpack_packer* pk);
 static void command_arg_serialize_str(auxts_command_arg* arg, msgpack_packer* pk);
-static void command_arg_serialize_bin(auxts_command_arg* arg, msgpack_packer* pk);
 static void command_arg_serialize_int64(auxts_command_arg* arg, msgpack_packer* pk);
 static void command_arg_serialize_float32(auxts_command_arg* arg, msgpack_packer* pk);
 static void command_execution_plan_init(auxts_command_execution_plan* plan);
@@ -79,9 +76,6 @@ int command_execution_plan_build(auxts_command_execution_plan* plan, msgpack_sbu
             }
             case AUXTS_TOKEN_TYPE_STR:
                 status = command_handle_str(cmd, out_buf, &curr, &prev);
-                break;
-            case AUXTS_TOKEN_TYPE_BIN:
-                status = command_handle_bin(cmd, out_buf, &curr, &prev);
                 break;
             case AUXTS_TOKEN_TYPE_PIPE:
                 command_execution_plan_add_command(plan, cmd);
@@ -145,9 +139,6 @@ void command_serialize_args(auxts_command* cmd, msgpack_packer* pk) {
             case AUXTS_COMMAND_ARG_TYPE_STR:
                 command_arg_serialize_str(arg, pk);
                 break;
-            case AUXTS_COMMAND_ARG_TYPE_BIN:
-                command_arg_serialize_bin(arg, pk);
-                break;
             case AUXTS_COMMAND_ARG_TYPE_INT:
                 command_arg_serialize_int64(arg, pk);
                 break;
@@ -160,10 +151,6 @@ void command_serialize_args(auxts_command* cmd, msgpack_packer* pk) {
 
 void command_arg_serialize_str(auxts_command_arg* arg, msgpack_packer* pk) {
     msgpack_pack_str_with_body(pk, arg->as.str.ptr, arg->as.str.size);
-}
-
-void command_arg_serialize_bin(auxts_command_arg* arg, msgpack_packer* pk) {
-    msgpack_pack_bin_with_body(pk, arg->as.bin.ptr, arg->as.bin.size);
 }
 
 void command_arg_serialize_int64(auxts_command_arg* arg, msgpack_packer* pk) {
@@ -205,18 +192,6 @@ int command_handle_str(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token
     return AUXTS_COMMAND_EXECUTOR_STATUS_CONTINUE;
 }
 
-int command_handle_bin(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token* curr, auxts_token* prev) {
-    if (prev->type == AUXTS_TOKEN_TYPE_PIPE || prev->type == AUXTS_TOKEN_TYPE_NONE) {
-        handle_error("Token type 'binary' is not a valid command.", out_buf);
-        return AUXTS_COMMAND_EXECUTOR_STATUS_ABORT;
-    }
-
-    auxts_command_arg* arg = command_arg_create_bin(curr->as.bin.ptr, curr->as.bin.size);
-    command_add_arg(cmd, arg);
-
-    return AUXTS_COMMAND_EXECUTOR_STATUS_CONTINUE;
-}
-
 int command_handle_int64(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token* curr, auxts_token* prev) {
     if (prev->type == AUXTS_TOKEN_TYPE_PIPE || prev->type == AUXTS_TOKEN_TYPE_NONE) {
         handle_error("Token type 'int' is not a valid command.", out_buf);
@@ -246,6 +221,7 @@ void auxts_command_executor_init(auxts_command_executor* exec) {
     auxts_kvstore_put(exec->kv, strdup("PING"), auxts_command_ping);
     auxts_kvstore_put(exec->kv, strdup("CREATE"), auxts_command_create);
     auxts_kvstore_put(exec->kv, strdup("EXTRACT"), auxts_command_extract);
+    auxts_kvstore_put(exec->kv, strdup("EVAL"), auxts_command_eval);
 }
 
 void auxts_command_executor_destroy(auxts_command_executor* exec) {
@@ -319,17 +295,6 @@ auxts_command_arg* command_arg_create_str(const char* ptr, size_t size) {
     arg->type = AUXTS_COMMAND_ARG_TYPE_STR;
     arg->as.str.ptr = ptr;
     arg->as.str.size = size;
-
-    return arg;
-}
-
-auxts_command_arg* command_arg_create_bin(const char* ptr, size_t size) {
-    auxts_command_arg* arg = command_arg_create();
-    if (!arg) return NULL;
-
-    arg->type = AUXTS_COMMAND_ARG_TYPE_BIN;
-    arg->as.bin.ptr = ptr;
-    arg->as.bin.size = size;
 
     return arg;
 }

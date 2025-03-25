@@ -8,7 +8,6 @@
 
 typedef enum {
     AUXTS_COMMAND_ARG_TYPE_STR,
-    AUXTS_COMMAND_ARG_TYPE_BIN,
     AUXTS_COMMAND_ARG_TYPE_INT,
     AUXTS_COMMAND_ARG_TYPE_FLOAT
 } auxts_command_arg_type;
@@ -40,7 +39,6 @@ typedef union {
     int64_t               i64;
     uint64_t              u64;
     auxts_command_arg_str str;
-    auxts_command_arg_bin bin;
 } auxts_command_arg_union;
 
 typedef struct {
