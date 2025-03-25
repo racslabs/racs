@@ -6,7 +6,7 @@ static int match_token(const char* ptr, const char* pattern, regmatch_t* match);
 static auxts_token parser_lex_token_str(auxts_parser* parser, regmatch_t* match);
 static auxts_token parser_lex_token_id(auxts_parser* parser, regmatch_t* match);
 static auxts_token parser_lex_token_int64(auxts_parser* parser, regmatch_t* match);
-static auxts_token parser_lex_token_float32(auxts_parser* parser, regmatch_t* match);
+static auxts_token parser_lex_token_float64(auxts_parser* parser, regmatch_t* match);
 static auxts_token parser_lex_token_pipe(auxts_parser* parser, regmatch_t* match);
 static auxts_token parser_token_error(auxts_parser* parser);
 static auxts_token parser_lex_token_eof();
@@ -30,7 +30,7 @@ auxts_token auxts_parser_next_token(auxts_parser* parser) {
 
     if (isdigit(*parser->ptr)) {
         if (match_token(parser->ptr, AUXTS_REGEX_FLOAT, &match)) {
-            return parser_lex_token_float32(parser, &match);
+            return parser_lex_token_float64(parser, &match);
         }
 
         if (match_token(parser->ptr, AUXTS_REGEX_INT, &match)) {
@@ -40,7 +40,7 @@ auxts_token auxts_parser_next_token(auxts_parser* parser) {
 
     if (*parser->ptr == '.') {
         if (match_token(parser->ptr, AUXTS_REGEX_FLOAT, &match)) {
-            return parser_lex_token_float32(parser, &match);
+            return parser_lex_token_float64(parser, &match);
         }
     }
 
@@ -82,7 +82,7 @@ void auxts_token_print(auxts_token* token) {
             printf("[INT  ] %lld\n", token->as.i64);
             break;
         case AUXTS_TOKEN_TYPE_FLOAT:
-            printf("[FLOAT] %f\n", token->as.f32);
+            printf("[FLOAT] %f\n", token->as.f64);
             break;
         case AUXTS_TOKEN_TYPE_EOF:
             printf("[EOF  ]\n");
@@ -161,7 +161,7 @@ auxts_token parser_lex_token_int64(auxts_parser* parser, regmatch_t* match) {
     return token;
 }
 
-auxts_token parser_lex_token_float32(auxts_parser* parser, regmatch_t* match) {
+auxts_token parser_lex_token_float64(auxts_parser* parser, regmatch_t* match) {
     regoff_t size = match->rm_eo - match->rm_so;
 
     char* float_str = malloc(size + 1);
@@ -169,7 +169,7 @@ auxts_token parser_lex_token_float32(auxts_parser* parser, regmatch_t* match) {
 
     auxts_token token;
     token.type = AUXTS_TOKEN_TYPE_FLOAT;
-    token.as.f32 = atof(float_str);
+    token.as.f64 = atof(float_str);
 
     parser_advance(parser, size);
     free(float_str);

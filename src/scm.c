@@ -91,7 +91,7 @@ int auxts_scm_serialize(msgpack_packer* pk, msgpack_sbuffer* buf, SCM x) {
     if (scm_is_integer(x))
         return auxts_serialize_int64(pk, scm_to_int64(x));
     if (scm_is_number(x))
-        return auxts_serialize_float(pk, (float)scm_to_double(x));
+        return auxts_serialize_float64(pk, scm_to_double(x));
     if (scm_is_bool(x))
         return auxts_serialize_bool(pk, scm_to_bool(x));
     if (scm_is_null_or_nil(x))

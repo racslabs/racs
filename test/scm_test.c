@@ -21,7 +21,6 @@ void test_scm_extract() {
     msgpack_unpacked_destroy(&msg);
     auxts_result_destroy(&res);
     auxts_db_close(db);
-
 }
 
 void test_scm_create() {
@@ -89,4 +88,3 @@ void test_scm_list() {
     auxts_result_destroy(&res);
     auxts_db_close(db);
 }
-

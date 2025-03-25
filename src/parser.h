@@ -44,7 +44,7 @@ typedef struct {
 } auxts_token_error;
 
 typedef union {
-    float               f32;
+    double              f64;
     int64_t             i64;
     uint64_t            u64;
     auxts_token_id      id;

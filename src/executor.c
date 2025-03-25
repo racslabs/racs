@@ -9,7 +9,7 @@ static void command_destroy(auxts_command* cmd);
 static auxts_command_arg* command_arg_create();
 static auxts_command_arg* command_arg_create_str(const char* ptr, size_t size);
 static auxts_command_arg* command_arg_create_int64(int64_t d);
-static auxts_command_arg* command_arg_create_float32(float d);
+static auxts_command_arg* command_arg_create_float64(double d);
 static void command_arg_destroy(auxts_command_arg* arg);
 static auxts_command* handle_id(auxts_token* curr, auxts_token* prev);
 static void handle_error(const char* message, msgpack_sbuffer* out_buf);
@@ -17,12 +17,12 @@ static void handle_unknown_command(auxts_command* cmd, msgpack_sbuffer* out_buf)
 static int command_handle_id(auxts_command* cmd, msgpack_sbuffer* out_buf);
 static int command_handle_str(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token* curr, auxts_token* prev);
 static int command_handle_int64(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token* curr, auxts_token* prev);
-static int command_handle_float32(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token* curr, auxts_token* prev);
+static int command_handle_float64(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token* curr, auxts_token* prev);
 static void command_add_arg(auxts_command* cmd, auxts_command_arg* arg);
 static void command_serialize_args(auxts_command* cmd, msgpack_packer* pk);
 static void command_arg_serialize_str(auxts_command_arg* arg, msgpack_packer* pk);
 static void command_arg_serialize_int64(auxts_command_arg* arg, msgpack_packer* pk);
-static void command_arg_serialize_float32(auxts_command_arg* arg, msgpack_packer* pk);
+static void command_arg_serialize_float64(auxts_command_arg* arg, msgpack_packer* pk);
 static void command_execution_plan_init(auxts_command_execution_plan* plan);
 static void command_execution_plan_destroy(auxts_command_execution_plan* plan);
 static void command_execution_plan_add_command(auxts_command_execution_plan* plan, auxts_command* cmd);
@@ -84,7 +84,7 @@ int command_execution_plan_build(auxts_command_execution_plan* plan, msgpack_sbu
                 status = command_handle_int64(cmd, out_buf, &curr, &prev);
                 break;
             case AUXTS_TOKEN_TYPE_FLOAT:
-                status = command_handle_float32(cmd, out_buf, &curr, &prev);
+                status = command_handle_float64(cmd, out_buf, &curr, &prev);
                 break;
             case AUXTS_TOKEN_TYPE_ERROR: {
                 handle_error(curr.as.err.msg, out_buf);
@@ -143,7 +143,7 @@ void command_serialize_args(auxts_command* cmd, msgpack_packer* pk) {
                 command_arg_serialize_int64(arg, pk);
                 break;
             case AUXTS_COMMAND_ARG_TYPE_FLOAT:
-                command_arg_serialize_float32(arg, pk);
+                command_arg_serialize_float64(arg, pk);
                 break;
         }
     }
@@ -157,8 +157,8 @@ void command_arg_serialize_int64(auxts_command_arg* arg, msgpack_packer* pk) {
     msgpack_pack_int64(pk, arg->as.i64);
 }
 
-void command_arg_serialize_float32(auxts_command_arg* arg, msgpack_packer* pk) {
-    msgpack_pack_float(pk, arg->as.f32);
+void command_arg_serialize_float64(auxts_command_arg* arg, msgpack_packer* pk) {
+    msgpack_pack_double(pk, arg->as.f64);
 }
 
 auxts_command* handle_id(auxts_token* curr, auxts_token* prev) {
@@ -204,13 +204,13 @@ int command_handle_int64(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_tok
     return AUXTS_COMMAND_EXECUTOR_STATUS_CONTINUE;
 }
 
-int command_handle_float32(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token* curr, auxts_token* prev) {
+int command_handle_float64(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token* curr, auxts_token* prev) {
     if (prev->type == AUXTS_TOKEN_TYPE_PIPE || prev->type == AUXTS_TOKEN_TYPE_NONE) {
         handle_error("Token type 'float' is not a valid command.", out_buf);
         return AUXTS_COMMAND_EXECUTOR_STATUS_ABORT;
     }
 
-    auxts_command_arg* arg = command_arg_create_float32(curr->as.f32);
+    auxts_command_arg* arg = command_arg_create_float64(curr->as.f64);
     command_add_arg(cmd, arg);
 
     return AUXTS_COMMAND_EXECUTOR_STATUS_CONTINUE;
@@ -309,12 +309,12 @@ auxts_command_arg* command_arg_create_int64(int64_t d) {
     return arg;
 }
 
-auxts_command_arg* command_arg_create_float32(float d) {
+auxts_command_arg* command_arg_create_float64(double d) {
     auxts_command_arg* arg = command_arg_create();
     if (!arg) return NULL;
 
     arg->type = AUXTS_COMMAND_ARG_TYPE_FLOAT;
-    arg->as.f32 = d;
+    arg->as.f64 = d;
 
     return arg;
 }

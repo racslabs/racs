@@ -32,10 +32,9 @@ typedef struct {
 } auxts_command_arg_;
 
 typedef auxts_command_arg_ auxts_command_arg_str;
-typedef auxts_command_arg_ auxts_command_arg_bin;
 
 typedef union {
-    float                 f32;
+    double                f64;
     int64_t               i64;
     uint64_t              u64;
     auxts_command_arg_str str;
