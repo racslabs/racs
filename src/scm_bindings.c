@@ -2,7 +2,7 @@
 
 SCM auxts_scm_extract(SCM stream_id, SCM from, SCM to) {
     char* cmd = NULL;
-    asprintf(&cmd, "EXTRACT '%s' '%s' '%s'",
+    asprintf(&cmd, "EXTRACT '%s' %s %s",
              scm_to_locale_string(stream_id),
              scm_to_locale_string(from),
              scm_to_locale_string(to));

@@ -9,6 +9,7 @@
 #include <ctype.h>
 #include <regex.h>
 #include "bytes.h"
+#include "timestamp.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,6 +20,7 @@ extern "C" {
 #define AUXTS_REGEX_ID      "^[a-zA-Z_][a-zA-Z0-9_]*"
 #define AUXTS_REGEX_INT     "^[0-9]+"
 #define AUXTS_REGEX_FLOAT   "^[0-9]+\\.[0-9]*"
+#define AUXTS_REGEX_TIME    "^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})(\\.[0-9]+)?(Z|([+-])([0-9]{2}):([0-9]{2}))"
 
 typedef enum {
     AUXTS_TOKEN_TYPE_NONE,
@@ -27,6 +29,7 @@ typedef enum {
     AUXTS_TOKEN_TYPE_PIPE,
     AUXTS_TOKEN_TYPE_INT,
     AUXTS_TOKEN_TYPE_FLOAT,
+    AUXTS_TOKEN_TYPE_TIME,
     AUXTS_TOKEN_TYPE_EOF,
     AUXTS_TOKEN_TYPE_ERROR
 } auxts_token_type;
@@ -46,6 +49,7 @@ typedef struct {
 typedef union {
     double              f64;
     int64_t             i64;
+    int64_t             time;
     uint64_t            u64;
     auxts_token_id      id;
     auxts_token_str     str;

@@ -53,7 +53,7 @@ int64_t auxts_parse_rfc3339(const char* buf) {
                      &info.tm_hour, &info.tm_min, &info.tm_sec,
                      &milliseconds);
 
-    if (ret < 6) {
+    if (ret < 3) {
         perror("Invalid RFC 3339 format");
         return -1;
     }

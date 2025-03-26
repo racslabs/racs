@@ -7,6 +7,7 @@ static auxts_token parser_lex_token_str(auxts_parser* parser, regmatch_t* match)
 static auxts_token parser_lex_token_id(auxts_parser* parser, regmatch_t* match);
 static auxts_token parser_lex_token_int64(auxts_parser* parser, regmatch_t* match);
 static auxts_token parser_lex_token_float64(auxts_parser* parser, regmatch_t* match);
+static auxts_token parser_lex_token_time(auxts_parser* parser, regmatch_t* match);
 static auxts_token parser_lex_token_pipe(auxts_parser* parser, regmatch_t* match);
 static auxts_token parser_token_error(auxts_parser* parser);
 static auxts_token parser_lex_token_eof();
@@ -28,7 +29,12 @@ auxts_token auxts_parser_next_token(auxts_parser* parser) {
         return parser_lex_token_eof();
     }
 
+
     if (isdigit(*parser->ptr)) {
+        if (match_token(parser->ptr, AUXTS_REGEX_TIME, &match)) {
+            return parser_lex_token_time(parser, &match);
+        }
+
         if (match_token(parser->ptr, AUXTS_REGEX_FLOAT, &match)) {
             return parser_lex_token_float64(parser, &match);
         }
@@ -87,6 +93,9 @@ void auxts_token_print(auxts_token* token) {
         case AUXTS_TOKEN_TYPE_EOF:
             printf("[EOF  ]\n");
             break;
+        case AUXTS_TOKEN_TYPE_TIME:
+            printf("[TIME ] %lld\n", token->as.time);
+            break;
         case AUXTS_TOKEN_TYPE_ERROR:
             printf("[ERR  ] %s\n", token->as.err.msg);
             break;
@@ -114,6 +123,22 @@ int match_token(const char* ptr, const char* pattern, regmatch_t* match) {
 void parser_advance(auxts_parser* parser, regoff_t step) {
     parser->ptr += step;
     parser->curr += step;
+}
+
+auxts_token parser_lex_token_time(auxts_parser* parser, regmatch_t* match) {
+    regoff_t size = match->rm_eo - match->rm_so;
+
+    char* time_str = malloc(size + 1);
+    strlcpy(time_str, parser->ptr, size + 1);
+
+    auxts_token token;
+    token.type = AUXTS_TOKEN_TYPE_TIME;
+    token.as.time = auxts_parse_rfc3339(time_str);
+
+    parser_advance(parser, size);
+    free(time_str);
+
+    return token;
 }
 
 auxts_token parser_lex_token_str(auxts_parser* parser, regmatch_t* match) {

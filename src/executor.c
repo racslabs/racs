@@ -18,6 +18,7 @@ static int command_handle_id(auxts_command* cmd, msgpack_sbuffer* out_buf);
 static int command_handle_str(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token* curr, auxts_token* prev);
 static int command_handle_int64(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token* curr, auxts_token* prev);
 static int command_handle_float64(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token* curr, auxts_token* prev);
+static int command_handle_time(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token* curr, auxts_token* prev);
 static void command_add_arg(auxts_command* cmd, auxts_command_arg* arg);
 static void command_serialize_args(auxts_command* cmd, msgpack_packer* pk);
 static void command_arg_serialize_str(auxts_command_arg* arg, msgpack_packer* pk);
@@ -82,6 +83,9 @@ int command_execution_plan_build(auxts_command_execution_plan* plan, msgpack_sbu
                 break;
             case AUXTS_TOKEN_TYPE_INT:
                 status = command_handle_int64(cmd, out_buf, &curr, &prev);
+                break;
+            case AUXTS_TOKEN_TYPE_TIME:
+                status = command_handle_time(cmd, out_buf, &curr, &prev);
                 break;
             case AUXTS_TOKEN_TYPE_FLOAT:
                 status = command_handle_float64(cmd, out_buf, &curr, &prev);
@@ -187,6 +191,18 @@ int command_handle_str(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token
     }
 
     auxts_command_arg* arg = command_arg_create_str(curr->as.str.ptr, curr->as.str.size);
+    command_add_arg(cmd, arg);
+
+    return AUXTS_COMMAND_EXECUTOR_STATUS_CONTINUE;
+}
+
+int command_handle_time(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token* curr, auxts_token* prev) {
+    if (prev->type == AUXTS_TOKEN_TYPE_PIPE || prev->type == AUXTS_TOKEN_TYPE_NONE) {
+        handle_error("Token type 'time' is not a valid command.", out_buf);
+        return AUXTS_COMMAND_EXECUTOR_STATUS_ABORT;
+    }
+
+    auxts_command_arg* arg = command_arg_create_int64(curr->as.time);
     command_add_arg(cmd, arg);
 
     return AUXTS_COMMAND_EXECUTOR_STATUS_CONTINUE;

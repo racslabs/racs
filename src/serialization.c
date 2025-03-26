@@ -67,7 +67,7 @@ int auxts_serialize_int64(msgpack_packer* pk, int64_t d) {
 int auxts_serialize_float64(msgpack_packer* pk, double d) {
     msgpack_pack_array(pk, 2);
     auxts_serialize_type(pk, AUXTS_TYPE_FLOAT);
-    msgpack_pack_float(pk, d);
+    msgpack_pack_double(pk, d);
     return AUXTS_STATUS_OK;
 }
 
@@ -185,7 +185,7 @@ uint32_t auxts_deserialize_uint32(msgpack_object* obj, int n) {
     return (uint32_t)obj->via.array.ptr[n].via.u64;
 }
 
-uint64_t auxts_deserialize_uint64(msgpack_object* obj, int n) {
+int64_t auxts_deserialize_int64(msgpack_object* obj, int n) {
     return obj->via.array.ptr[n].via.i64;
 }
 
