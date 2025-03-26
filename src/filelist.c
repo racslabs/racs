@@ -113,7 +113,7 @@ char* auxts_resolve_shared_path(const char* path1, const char* path2) {
 }
 
 void auxts_filelist_sort(auxts_filelist* list) {
-    qsort(list->files, list->num_files, sizeof(char *), path_cmp);
+    qsort(list->files, list->num_files, sizeof(char*), path_cmp);
 }
 
 int path_cmp(const void* path1, const void* path2) {

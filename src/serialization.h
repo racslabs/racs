@@ -9,14 +9,14 @@
 
 typedef enum {
     AUXTS_TYPE_STR,
-    AUXTS_TYPE_BIN,
     AUXTS_TYPE_INT,
     AUXTS_TYPE_FLOAT,
-    AUXTS_TYPE_MAP,
     AUXTS_TYPE_LIST,
-    AUXTS_TYPE_NONE,
+    AUXTS_TYPE_NULL,
     AUXTS_TYPE_ERROR,
     AUXTS_TYPE_BOOL,
+    AUXTS_TYPE_U8VEC,
+    AUXTS_TYPE_I8VEC,
     AUXTS_TYPE_U16VEC,
     AUXTS_TYPE_I16VEC,
     AUXTS_TYPE_U32VEC,
@@ -32,14 +32,15 @@ typedef enum {
 
 extern const char* const auxts_type_string[];
 
-int auxts_pack_none_with_status_ok(msgpack_packer* pk);
-int auxts_pack_none_with_status_not_found(msgpack_packer* pk);
+int auxts_serialize_null_with_status_ok(msgpack_packer* pk);
+int auxts_serialize_null_with_status_not_found(msgpack_packer* pk);
 int auxts_serialize_error(msgpack_packer* pk, const char* message);
 int auxts_serialize_str(msgpack_packer* pk, const char* str);
-int auxts_serialize_bin(msgpack_packer* pk, const uint8_t* data, size_t n);
 int auxts_serialize_int64(msgpack_packer* pk, int64_t d);
 int auxts_serialize_float64(msgpack_packer* pk, double d);
 int auxts_serialize_bool(msgpack_packer* pk, bool d);
+int auxts_serialize_i8v(msgpack_packer* pk, int8_t* data, size_t n);
+int auxts_serialize_u8v(msgpack_packer* pk, uint8_t* data, size_t n);
 int auxts_serialize_i16v(msgpack_packer* pk, int16_t* data, size_t n);
 int auxts_serialize_u16v(msgpack_packer* pk, uint16_t* data, size_t n);
 int auxts_serialize_i32v(msgpack_packer* pk, int32_t* data, size_t n);
@@ -50,9 +51,6 @@ int auxts_serialize_pcm32(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
 void auxts_serialize_type(msgpack_packer* pk, int type);
 int auxts_serialize_invalid_num_args(msgpack_packer* pk, int expected, int actual);
 void auxts_deserialize_stream_id(uint64_t* stream_id, msgpack_object* obj, int arg_num);
-void auxts_deserialize_from(int64_t* from, msgpack_object* obj);
-void auxts_deserialize_to(int64_t* to, msgpack_object* obj);
-int auxts_deserialize_range(int64_t* from, int64_t* to, msgpack_object* obj);
 char* auxts_deserialize_str(msgpack_object* obj, int n);
 int32_t auxts_deserialize_int32(msgpack_object* obj, int n);
 uint32_t auxts_deserialize_uint32(msgpack_object* obj, int n);

@@ -5,6 +5,7 @@
 #include "serialization.h"
 #include <libguile.h>
 
+int auxts_scm_serialize_s8vector(msgpack_packer* pk, SCM v);
 int auxts_scm_serialize_u8vector(msgpack_packer* pk, SCM v);
 int auxts_scm_serialize_s16vector(msgpack_packer* pk, SCM v);
 int auxts_scm_serialize_u16vector(msgpack_packer* pk, SCM v);

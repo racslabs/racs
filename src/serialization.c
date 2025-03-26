@@ -3,14 +3,14 @@
 
 const char* const auxts_type_string[] = {
         "string",
-        "binary",
         "int",
         "float",
-        "map",
         "list",
-        "none",
+        "null",
         "error",
         "bool",
+        "u8v",
+        "i8v",
         "u16v",
         "i16v",
         "u32v",
@@ -24,15 +24,15 @@ void auxts_serialize_type(msgpack_packer* pk, int type) {
     msgpack_pack_str_with_body(pk, type_string, strlen(type_string));
 }
 
-int auxts_pack_none_with_status_ok(msgpack_packer* pk) {
+int auxts_serialize_null_with_status_ok(msgpack_packer* pk) {
     msgpack_pack_array(pk, 1);
-    auxts_serialize_type(pk, AUXTS_TYPE_NONE);
+    auxts_serialize_type(pk, AUXTS_TYPE_NULL);
     return AUXTS_STATUS_OK;
 }
 
-int auxts_pack_none_with_status_not_found(msgpack_packer* pk) {
+int auxts_serialize_null_with_status_not_found(msgpack_packer* pk) {
     msgpack_pack_array(pk, 1);
-    auxts_serialize_type(pk, AUXTS_TYPE_NONE);
+    auxts_serialize_type(pk, AUXTS_TYPE_NULL);
     return AUXTS_STATUS_NOT_FOUND;
 }
 
@@ -47,13 +47,6 @@ int auxts_serialize_str(msgpack_packer* pk, const char* str) {
     msgpack_pack_array(pk, 2);
     auxts_serialize_type(pk, AUXTS_TYPE_STR);
     msgpack_pack_str_with_body(pk, str, strlen(str));
-    return AUXTS_STATUS_OK;
-}
-
-int auxts_serialize_bin(msgpack_packer* pk, const uint8_t* data, size_t n) {
-    msgpack_pack_array(pk, 2);
-    auxts_serialize_type(pk, AUXTS_TYPE_BIN);
-    msgpack_pack_bin_with_body(pk, data, n);
     return AUXTS_STATUS_OK;
 }
 
@@ -82,6 +75,24 @@ int auxts_serialize_pcm32(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
     int32_t* data = auxts_flatten_pcm_data(pbuf);
     auxts_serialize_i32v(pk, data, pbuf->info.num_samples * pbuf->info.channels);
     free(data);
+
+    return AUXTS_STATUS_OK;
+}
+
+int auxts_serialize_i8v(msgpack_packer* pk, int8_t* data, size_t n) {
+    msgpack_pack_array(pk, 2);
+
+    auxts_serialize_type(pk, AUXTS_TYPE_I8VEC);
+    msgpack_pack_bin_with_body(pk, data, n * sizeof(int8_t));
+
+    return AUXTS_STATUS_OK;
+}
+
+int auxts_serialize_u8v(msgpack_packer* pk, uint8_t* data, size_t n) {
+    msgpack_pack_array(pk, 2);
+
+    auxts_serialize_type(pk, AUXTS_TYPE_U8VEC);
+    msgpack_pack_bin_with_body(pk, data, n * sizeof(uint8_t));
 
     return AUXTS_STATUS_OK;
 }
@@ -187,22 +198,4 @@ uint32_t auxts_deserialize_uint32(msgpack_object* obj, int n) {
 
 int64_t auxts_deserialize_int64(msgpack_object* obj, int n) {
     return obj->via.array.ptr[n].via.i64;
-}
-
-void auxts_deserialize_from(int64_t* from, msgpack_object* obj) {
-    char* str = auxts_deserialize_str(obj, 1);
-    *from = auxts_parse_rfc3339(str);
-    free(str);
-}
-
-void auxts_deserialize_to(int64_t* to, msgpack_object* obj) {
-    char* str = auxts_deserialize_str(obj, 2);
-    *to = auxts_parse_rfc3339(str);
-    free(str);
-}
-
-int auxts_deserialize_range(int64_t* from, int64_t* to, msgpack_object* obj) {
-    auxts_deserialize_from(from, obj);
-    auxts_deserialize_to(to, obj);
-    return *from != -1 && *to != -1;
 }

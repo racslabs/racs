@@ -10,12 +10,23 @@ void auxts_scm_propagate_error(msgpack_object* obj, uint8_t* data) {
     scm_misc_error("extract", "~A", scm_list_1(error));
 }
 
+int auxts_scm_serialize_s8vector(msgpack_packer* pk, SCM v) {
+    scm_t_array_handle handle;
+    size_t n;
+
+    const int8_t* data = scm_s8vector_elements(v, &handle, &n, NULL);
+    auxts_serialize_i8v(pk, (int8_t*)data, n);
+    scm_array_handle_release (&handle);
+
+    return AUXTS_STATUS_OK;
+}
+
 int auxts_scm_serialize_u8vector(msgpack_packer* pk, SCM v) {
     scm_t_array_handle handle;
     size_t n;
 
     const uint8_t* data = scm_u8vector_elements(v, &handle, &n, NULL);
-    auxts_serialize_bin(pk, (uint8_t*)data, n);
+    auxts_serialize_u8v(pk, (uint8_t*)data, n);
     scm_array_handle_release (&handle);
 
     return AUXTS_STATUS_OK;
@@ -95,11 +106,13 @@ int auxts_scm_serialize(msgpack_packer* pk, msgpack_sbuffer* buf, SCM x) {
     if (scm_is_bool(x))
         return auxts_serialize_bool(pk, scm_to_bool(x));
     if (scm_is_null_or_nil(x))
-        return auxts_pack_none_with_status_ok(pk);
+        return auxts_serialize_null_with_status_ok(pk);
     if (scm_is_pair(x))
         return auxts_scm_serialize_list(pk, buf, x);
     if (scm_is_string(x))
         return auxts_serialize_str(pk, scm_to_locale_string(x));
+    if (scm_is_typed_array(x, scm_from_locale_symbol("s8")))
+        return auxts_scm_serialize_s8vector(pk, x);
     if (scm_is_typed_array(x, scm_from_locale_symbol("u8")))
         return auxts_scm_serialize_u8vector(pk, x);
     if (scm_is_typed_array(x, scm_from_locale_symbol("s16")))
@@ -132,7 +145,7 @@ int auxts_scm_serialize_element(msgpack_packer* pk, msgpack_sbuffer* buf, SCM v)
     }
 
     if (scm_is_number(v)) {
-        msgpack_pack_float(pk, (float)scm_to_double(v));
+        msgpack_pack_double(pk, scm_to_double(v));
         return true;
     }
 
