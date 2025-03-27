@@ -99,6 +99,8 @@ add_executable(auxts main.c
         src/t_complex.h
         src/scm_bindings.h
         src/scm_bindings.c
+        src/crc32c.h
+        src/crc32c.c
 )
 
 target_link_libraries(auxts msgpack-c ${FLAC_LIBRARIES} ${GUILE_LIBRARIES})
