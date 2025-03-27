@@ -56,6 +56,7 @@ AUXTS_FORCE_INLINE void auxts_run_tests(int argc, char* argv[]) {
     auxts_add_test(test_scm_create, "test_scm_create", argc, argv);
     auxts_add_test(test_scm_int, "test_scm_int", argc, argv);
     auxts_add_test(test_scm_list, "test_scm_list", argc, argv);
+    auxts_add_test(test_scm_metadata, "test_scm_metadata", argc, argv);
 }
 
 #endif //AUXTS_TEST_RUNNER_H

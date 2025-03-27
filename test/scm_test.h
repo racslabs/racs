@@ -10,6 +10,7 @@ void test_scm_extract();
 void test_scm_create();
 void test_scm_int();
 void test_scm_list();
+void test_scm_metadata();
 
 
 #endif //AUXTS_SCM_TEST_H

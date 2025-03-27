@@ -206,3 +206,7 @@ uint32_t auxts_deserialize_uint32(msgpack_object* obj, int n) {
 int64_t auxts_deserialize_int64(msgpack_object* obj, int n) {
     return obj->via.array.ptr[n].via.i64;
 }
+
+uint64_t auxts_deserialize_uint64(msgpack_object* obj, int n) {
+    return obj->via.array.ptr[n].via.u64;
+}

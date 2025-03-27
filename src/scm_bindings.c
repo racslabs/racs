@@ -25,7 +25,7 @@ SCM auxts_scm_extract(SCM stream_id, SCM from, SCM to) {
         auxts_scm_propagate_error(&msg.data, res.data);
     }
 
-    if (strcmp(type, "none") == 0) {
+    if (strcmp(type, "null") == 0) {
         free(res.data);
         return SCM_EOL;
     }
@@ -54,7 +54,7 @@ SCM auxts_scm_create(SCM stream_id, SCM sample_rate, SCM channels, SCM bit_depth
 
     if (msgpack_unpack_next(&msg, (char*)res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
         free(res.data);
-        scm_misc_error("extract", "Deserialization error", SCM_EOL);
+        scm_misc_error("create", "Deserialization error", SCM_EOL);
     }
 
     char* type = auxts_deserialize_str(&msg.data, 0);
@@ -65,7 +65,41 @@ SCM auxts_scm_create(SCM stream_id, SCM sample_rate, SCM channels, SCM bit_depth
     return SCM_EOL;
 }
 
+SCM auxts_scm_metadata(SCM stream_id, SCM attr) {
+    char* cmd = NULL;
+    asprintf(&cmd, "METADATA '%s' '%s'",
+             scm_to_locale_string(stream_id),
+             scm_to_locale_string(attr));
+
+    auxts_db* db = auxts_db_instance();
+    auxts_result res = auxts_db_execute(db, cmd);
+
+    free(cmd);
+
+    msgpack_unpacked msg;
+    msgpack_unpacked_init(&msg);
+
+    if (msgpack_unpack_next(&msg, (char*)res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
+        free(res.data);
+        scm_misc_error("metadata", "Deserialization error", SCM_EOL);
+    }
+
+    char* type = auxts_deserialize_str(&msg.data, 0);
+    if (strcmp(type, "error") == 0) {
+        auxts_scm_propagate_error(&msg.data, res.data);
+    }
+
+    if (strcmp(type, "null") == 0) {
+        free(res.data);
+        return SCM_EOL;
+    }
+
+    uint64_t value = auxts_deserialize_uint64(&msg.data, 1);
+    return scm_from_uint64(value);
+}
+
 void auxts_scm_init_bindings() {
     scm_c_define_gsubr("extract", 3, 0, 0, auxts_scm_extract);
     scm_c_define_gsubr("create", 4, 0, 0, auxts_scm_create);
+    scm_c_define_gsubr("metadata", 2, 0, 0, auxts_scm_metadata);
 }
