@@ -1,4 +1,4 @@
-#include "commands.h"
+#include "command.h"
 
 auxts_create_command(ping) {
     msgpack_packer pk;

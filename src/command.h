@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_COMMANDS_H
-#define AUXTS_COMMANDS_H
+#ifndef AUXTS_COMMAND_H
+#define AUXTS_COMMAND_H
 
 #include <msgpack.h>
 #include "scm.h"
@@ -32,4 +32,4 @@ auxts_create_command(create);
 auxts_create_command(metadata);
 auxts_create_command(ping);
 
-#endif //AUXTS_COMMANDS_H
+#endif //AUXTS_COMMAND_H

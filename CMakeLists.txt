@@ -68,8 +68,8 @@ add_executable(auxts main.c
         test/parser_test.c
         src/command_executor.h
         src/command_executor.c
-        src/commands.h
-        src/commands.c
+        src/command.h
+        src/command.c
         src/serialization.h
         src/serialization.c
         test/test_utils.h
@@ -101,6 +101,8 @@ add_executable(auxts main.c
         src/scm_bindings.c
         src/crc32c.h
         src/crc32c.c
+        src/atsp.h
+        src/atsp.c
 )
 
 target_link_libraries(auxts msgpack-c ${FLAC_LIBRARIES} ${GUILE_LIBRARIES})

@@ -4,7 +4,7 @@
 
 #include "kvstore.h"
 #include "parser.h"
-#include "commands.h"
+#include "command.h"
 
 typedef enum {
     AUXTS_COMMAND_ARG_TYPE_STR,
