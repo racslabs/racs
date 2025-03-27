@@ -37,6 +37,7 @@ int auxts_serialize_null_with_status_not_found(msgpack_packer* pk);
 int auxts_serialize_error(msgpack_packer* pk, const char* message);
 int auxts_serialize_str(msgpack_packer* pk, const char* str);
 int auxts_serialize_int64(msgpack_packer* pk, int64_t d);
+int auxts_serialize_uint64(msgpack_packer* pk, uint64_t d);
 int auxts_serialize_float64(msgpack_packer* pk, double d);
 int auxts_serialize_bool(msgpack_packer* pk, bool d);
 int auxts_serialize_i8v(msgpack_packer* pk, int8_t* data, size_t n);

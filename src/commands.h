@@ -29,6 +29,7 @@ typedef enum {
 auxts_create_command(extract);
 auxts_create_command(eval);
 auxts_create_command(create);
+auxts_create_command(metadata);
 auxts_create_command(ping);
 
 #endif //AUXTS_COMMANDS_H

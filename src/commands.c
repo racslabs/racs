@@ -21,19 +21,12 @@ auxts_create_command(create) {
     msgpack_unpacked_init(&msg);
 
     auxts_parse_args(in_buf, &pk)
+
     auxts_validate_num_args(&pk, msg, 4)
-
-    auxts_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR,
-                            "Invalid type at arg 1 of CREATE command. Expected: string")
-
-    auxts_validate_arg_type(&pk, msg, 1, MSGPACK_OBJECT_POSITIVE_INTEGER,
-                            "Invalid type at arg 2 of CREATE command. Expected: int")
-
-    auxts_validate_arg_type(&pk, msg, 2, MSGPACK_OBJECT_POSITIVE_INTEGER,
-                            "Invalid type at arg 3 of CREATE command. Expected: int")
-
-    auxts_validate_arg_type(&pk, msg, 3, MSGPACK_OBJECT_POSITIVE_INTEGER,
-                            "Invalid type at arg 4 of CREATE command. Expected: int")
+    auxts_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected: string")
+    auxts_validate_arg_type(&pk, msg, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: int")
+    auxts_validate_arg_type(&pk, msg, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: int")
+    auxts_validate_arg_type(&pk, msg, 3, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 4. Expected: int")
 
     char* stream_id = auxts_deserialize_str(&msg.data, 0);
     uint32_t sample_rate = auxts_deserialize_uint32(&msg.data, 1);
@@ -41,6 +34,8 @@ auxts_create_command(create) {
     uint32_t bit_depth = auxts_deserialize_uint32(&msg.data, 3);
 
     int rc = auxts_create(stream_id, sample_rate, channels, bit_depth);
+    free(stream_id);
+
     if (rc == AUXTS_METADATA_STATUS_OK)
         return auxts_serialize_null_with_status_ok(&pk);
 
@@ -53,6 +48,39 @@ auxts_create_command(create) {
     return auxts_serialize_error(&pk, "Cause unknown");
 }
 
+auxts_create_command(metadata) {
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
+
+    msgpack_unpacked msg;
+    msgpack_unpacked_init(&msg);
+
+    auxts_parse_args(in_buf, &pk)
+
+    auxts_validate_num_args(&pk, msg, 2)
+    auxts_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
+    auxts_validate_arg_type(&pk, msg, 1, MSGPACK_OBJECT_STR, "Invalid type at arg 2. Expected string")
+
+    char* stream_id = auxts_deserialize_str(&msg.data, 0);
+    char* attr = auxts_deserialize_str(&msg.data, 1);
+
+    uint64_t value;
+    int rc = auxts_metadata_attr(stream_id, attr, &value);
+
+    free(stream_id);
+    free(attr);
+
+    if (rc == AUXTS_METADATA_STATUS_OK) {
+        return auxts_serialize_uint64(&pk, value);
+    }
+
+    if (rc == AUXTS_METADATA_STATUS_NOT_FOUND) {
+        return auxts_serialize_null_with_status_not_found(&pk);
+    }
+
+    return auxts_serialize_error(&pk, "Failure reading metadata");
+}
+
 auxts_create_command(eval) {
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
@@ -61,14 +89,14 @@ auxts_create_command(eval) {
     msgpack_unpacked_init(&msg);
 
     auxts_parse_args(in_buf, &pk)
-    auxts_validate_num_args(&pk, msg, 1)
 
-    auxts_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR,
-                            "Invalid type at arg 1 of EVAL command. Expected string")
+    auxts_validate_num_args(&pk, msg, 1)
+    auxts_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
 
     char* error = NULL;
     char* expr = auxts_deserialize_str(&msg.data, 0);
     SCM res = auxts_scm_eval_with_error_handling(expr, &error);
+    free(expr);
 
     if (error) return auxts_serialize_error(&pk, error);
 
@@ -83,16 +111,11 @@ auxts_create_command(extract) {
     msgpack_unpacked_init(&msg);
 
     auxts_parse_args(in_buf, &pk)
+
     auxts_validate_num_args(&pk, msg, 3)
-
-    auxts_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR,
-                             "Invalid type at arg 1 of EXTRACT command. Expected int or string")
-
-    auxts_validate_arg_type(&pk, msg, 1, MSGPACK_OBJECT_POSITIVE_INTEGER,
-                            "Invalid type at arg 2. Expected: time")
-
-    auxts_validate_arg_type(&pk, msg, 2, MSGPACK_OBJECT_POSITIVE_INTEGER,
-                            "Invalid type at arg 3. Expected: time")
+    auxts_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected: string")
+    auxts_validate_arg_type(&pk, msg, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: time")
+    auxts_validate_arg_type(&pk, msg, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: time")
 
     uint64_t stream_id;
     auxts_deserialize_stream_id(&stream_id, &msg.data, 0);

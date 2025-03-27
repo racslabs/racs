@@ -237,6 +237,7 @@ void auxts_command_executor_init(auxts_command_executor* exec) {
     auxts_kvstore_put(exec->kv, strdup("PING"), auxts_command_ping);
     auxts_kvstore_put(exec->kv, strdup("CREATE"), auxts_command_create);
     auxts_kvstore_put(exec->kv, strdup("EXTRACT"), auxts_command_extract);
+    auxts_kvstore_put(exec->kv, strdup("METADATA"), auxts_command_metadata);
     auxts_kvstore_put(exec->kv, strdup("EVAL"), auxts_command_eval);
 }
 

@@ -107,6 +107,7 @@ enable_testing()
 
 # Unit test
 add_test(test_metadata auxts "--test" "test_metadata")
+add_test(test_metadata_attr auxts "--test" "test_metadata_attr")
 add_test(test_lru_cache auxts "--test" "test_lru_cache")
 add_test(test_multi_memtable auxts "--test" "test_multi_memtable")
 add_test(test_extract auxts "--test" "test_extract")
