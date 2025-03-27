@@ -42,10 +42,7 @@ auxts_create_command(create) {
     if (rc == AUXTS_METADATA_STATUS_EXIST)
         return auxts_serialize_error(&pk, "The stream-id already exist");
 
-    if (rc == AUXTS_METADATA_STATUS_ERROR)
-        return auxts_serialize_error(&pk, "Failed to create stream");
-
-    return auxts_serialize_error(&pk, "Cause unknown");
+    return auxts_serialize_error(&pk, "Failed to create stream");
 }
 
 auxts_create_command(metadata) {

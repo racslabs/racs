@@ -3,7 +3,7 @@
 #define AUXTS_EXECUTOR_TEST_H
 
 #include "test_utils.h"
-#include "../src/executor.h"
+#include "../src/command_executor.h"
 
 void test_command_executor_unknown_command();
 void test_command_executor_parse_error1();

@@ -66,8 +66,8 @@ add_executable(auxts main.c
         src/parser.c
         test/parser_test.h
         test/parser_test.c
-        src/executor.h
-        src/executor.c
+        src/command_executor.h
+        src/command_executor.c
         src/commands.h
         src/commands.c
         src/serialization.h
