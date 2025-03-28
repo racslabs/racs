@@ -2,9 +2,11 @@
 #ifndef AUXTS_ATSP_H
 #define AUXTS_ATSP_H
 
-#include <sys/socket.h>
+#include <stdlib.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include "bytes.h"
+#include "crc32c.h"
 
 typedef struct {
     char chunk_id[4];
@@ -21,6 +23,8 @@ typedef struct {
     uint8_t* pcm_block;
 } auxts_atsp_frame;
 
-int auxts_atsp_header_parse(int socket_fd, auxts_atsp_header* header);
+int auxts_atsp_frame_read(uint8_t* buf, auxts_atsp_frame* frame);
+void auxts_atsp_header_parse(uint8_t* buf, auxts_atsp_header* header);
+int auxts_atsp_validate_chunk_id(const char* id);
 
 #endif //AUXTS_ATSP_H
