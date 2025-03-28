@@ -3,7 +3,7 @@
 void test_ping() {
     auxts_db* db = auxts_db_instance();
     auxts_db_open(db);
-    auxts_result res = auxts_db_execute(db, "PING");
+    auxts_result res = auxts_db_exec(db, "PING");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);

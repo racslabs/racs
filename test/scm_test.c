@@ -7,7 +7,8 @@ void test_scm_extract() {
     auxts_db* db = auxts_db_instance();
     auxts_db_open(db);
 
-    auxts_result res = auxts_db_execute(db, "EVAL '(extract \"test\" \"2025-02-09T22:51:52.213Z\" \"2025-02-09T22:51:52.215Z\")'");
+    auxts_result res = auxts_db_exec(db,
+                                     "EVAL '(extract \"test\" \"2025-02-09T22:51:52.213Z\" \"2025-02-09T22:51:52.215Z\")'");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
@@ -30,7 +31,7 @@ void test_scm_create() {
     auxts_db* db = auxts_db_instance();
     auxts_db_open(db);
 
-    auxts_result res = auxts_db_execute(db, "EVAL '(create \"test\" 44100 2 16)'");
+    auxts_result res = auxts_db_exec(db, "EVAL '(create \"test\" 44100 2 16)'");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
@@ -52,7 +53,7 @@ void test_scm_int() {
     auxts_db* db = auxts_db_instance();
     auxts_db_open(db);
 
-    auxts_result res = auxts_db_execute(db, "EVAL '(+ 1 2)'");
+    auxts_result res = auxts_db_exec(db, "EVAL '(+ 1 2)'");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
@@ -74,7 +75,8 @@ void test_scm_list() {
     auxts_db* db = auxts_db_instance();
     auxts_db_open(db);
 
-    auxts_result res = auxts_db_execute(db, "EVAL '(extract \"test\" \"2025-02-09T22:51:52.213Z\" \"2025-02-09T22:51:52.215Z\")'");
+    auxts_result res = auxts_db_exec(db,
+                                     "EVAL '(extract \"test\" \"2025-02-09T22:51:52.213Z\" \"2025-02-09T22:51:52.215Z\")'");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
@@ -96,7 +98,7 @@ void test_scm_metadata() {
     auxts_db* db = auxts_db_instance();
     auxts_db_open(db);
 
-    auxts_result res = auxts_db_execute(db, "EVAL '(metadata \"test\" \"sample_rate\")'");
+    auxts_result res = auxts_db_exec(db, "EVAL '(metadata \"test\" \"sample_rate\")'");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);

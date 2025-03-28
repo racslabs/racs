@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_COMMAND_EXECUTOR_H
-#define AUXTS_COMMAND_EXECUTOR_H
+#ifndef AUXTS_EXEC_H
+#define AUXTS_EXEC_H
 
 #include "kvstore.h"
 #include "parser.h"
@@ -18,13 +18,13 @@ typedef enum {
 } auxts_command_op;
 
 typedef enum {
-    AUXTS_COMMAND_EXECUTOR_STATUS_CONTINUE,
-    AUXTS_COMMAND_EXECUTOR_STATUS_ABORT
-} auxts_command_executor_status;
+    AUXTS_EXEC_STATUS_CONTINUE,
+    AUXTS_EXEC_STATUS_ABORT
+} auxts_exec_status;
 
 typedef struct {
     auxts_kvstore* kv;
-} auxts_command_executor;
+} auxts_exec;
 
 typedef struct {
     const char* ptr;
@@ -57,12 +57,12 @@ typedef struct {
     int num_cmd;
     int max_num_cmd;
     auxts_command** cmd;
-} auxts_command_execution_plan;
+} auxts_exec_plan;
 
 typedef int (*auxts_command_func)(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, auxts_context* ctx);
 
-void auxts_command_executor_init(auxts_command_executor* exec);
-void auxts_command_executor_destroy(auxts_command_executor* exec);
-auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_context* ctx, const char* cmd);
+void auxts_exec_init(auxts_exec* exec);
+void auxts_exec_destroy(auxts_exec* exec);
+auxts_result auxts_exec_exec(auxts_exec* exec, auxts_context* ctx, const char* cmd);
 
-#endif //AUXTS_COMMAND_EXECUTOR_H
+#endif //AUXTS_EXEC_H

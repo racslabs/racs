@@ -66,15 +66,15 @@ add_executable(auxts main.c
         src/parser.c
         test/parser_test.h
         test/parser_test.c
-        src/command_executor.h
-        src/command_executor.c
+        src/exec.h
+        src/exec.c
         src/command.h
         src/command.c
         src/serialization.h
         src/serialization.c
         test/test_utils.h
-        test/executor_test.h
-        test/executor_test.c
+        test/exec_test.h
+        test/exec_test.c
         src/simd/scale.h
         src/simd/scale_neon.h
         src/simd/scale_neon.c

@@ -8,7 +8,7 @@ SCM auxts_scm_extract(SCM stream_id, SCM from, SCM to) {
              scm_to_locale_string(to));
 
     auxts_db* db = auxts_db_instance();
-    auxts_result res = auxts_db_execute(db, cmd);
+    auxts_result res = auxts_db_exec(db, cmd);
 
     free(cmd);
 
@@ -45,7 +45,7 @@ SCM auxts_scm_create(SCM stream_id, SCM sample_rate, SCM channels, SCM bit_depth
              scm_to_uint32(bit_depth));
 
     auxts_db* db = auxts_db_instance();
-    auxts_result res = auxts_db_execute(db, cmd);
+    auxts_result res = auxts_db_exec(db, cmd);
 
     free(cmd);
 
@@ -72,7 +72,7 @@ SCM auxts_scm_metadata(SCM stream_id, SCM attr) {
              scm_to_locale_string(attr));
 
     auxts_db* db = auxts_db_instance();
-    auxts_result res = auxts_db_execute(db, cmd);
+    auxts_result res = auxts_db_exec(db, cmd);
 
     free(cmd);
 

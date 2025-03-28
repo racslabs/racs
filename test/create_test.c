@@ -3,7 +3,7 @@
 void test_create() {
     auxts_db* db = auxts_db_instance();
     auxts_db_open(db);
-    auxts_result res = auxts_db_execute(db, "CREATE 'my-stream' 44100 2 16");
+    auxts_result res = auxts_db_exec(db, "CREATE 'my-stream' 44100 2 16");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);

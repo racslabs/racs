@@ -1,13 +1,13 @@
-#include "executor_test.h"
+#include "exec_test.h"
 
 void test_command_executor_unknown_command() {
     auxts_context ctx;
     auxts_context_init(&ctx);
 
-    auxts_command_executor exec;
-    auxts_command_executor_init(&exec);
+    auxts_exec exec;
+    auxts_exec_init(&exec);
 
-    auxts_result result = auxts_command_executor_execute(&exec, &ctx, "BOO 0.5");
+    auxts_result result = auxts_exec_exec(&exec, &ctx, "BOO 0.5");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
@@ -19,7 +19,7 @@ void test_command_executor_unknown_command() {
     msgpack_str_assert("Unknown command: BOO", &obj.via.array.ptr[1].via.str);
 
     msgpack_unpacked_destroy(&msg);
-    auxts_command_executor_destroy(&exec);
+    auxts_exec_destroy(&exec);
     auxts_context_destroy(&ctx);
 }
 
@@ -27,10 +27,10 @@ void test_command_executor_is_not_command() {
     auxts_context ctx;
     auxts_context_init(&ctx);
 
-    auxts_command_executor exec;
-    auxts_command_executor_init(&exec);
+    auxts_exec exec;
+    auxts_exec_init(&exec);
 
-    auxts_result result = auxts_command_executor_execute(&exec, &ctx, "PING |> 0.5");
+    auxts_result result = auxts_exec_exec(&exec, &ctx, "PING |> 0.5");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
@@ -42,7 +42,7 @@ void test_command_executor_is_not_command() {
     msgpack_str_assert("Token type 'float' is not a valid command.", &obj.via.array.ptr[1].via.str);
 
     msgpack_unpacked_destroy(&msg);
-    auxts_command_executor_destroy(&exec);
+    auxts_exec_destroy(&exec);
     auxts_context_destroy(&ctx);
 }
 
@@ -50,10 +50,10 @@ void test_command_executor_parse_error1() {
     auxts_context ctx;
     auxts_context_init(&ctx);
 
-    auxts_command_executor exec;
-    auxts_command_executor_init(&exec);
+    auxts_exec exec;
+    auxts_exec_init(&exec);
 
-    auxts_result result = auxts_command_executor_execute(&exec, &ctx, "0.5 BOO");
+    auxts_result result = auxts_exec_exec(&exec, &ctx, "0.5 BOO");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
@@ -65,6 +65,6 @@ void test_command_executor_parse_error1() {
     msgpack_str_assert("Token type 'float' is not a valid command.", &obj.via.array.ptr[1].via.str);
 
     msgpack_unpacked_destroy(&msg);
-    auxts_command_executor_destroy(&exec);
+    auxts_exec_destroy(&exec);
     auxts_context_destroy(&ctx);
 }

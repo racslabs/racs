@@ -1,9 +1,9 @@
-#include "command_executor.h"
+#include "exec.h"
 
-static uint64_t command_executor_hash(void* key);
-static int command_executor_cmp(void* a, void* b);
-static void command_executor_destroy(void* key, void* value);
-static auxts_command_func command_executor_get(auxts_command_executor* exec, const char* cmd_name);
+static uint64_t exec_hash(void* key);
+static int exec_cmp(void* a, void* b);
+static void exec_destroy(void* key, void* value);
+static auxts_command_func exec_get(auxts_exec* exec, const char* cmd_name);
 static auxts_command* command_create(const char* name, auxts_command_op op, size_t size);
 static void command_destroy(auxts_command* cmd);
 static auxts_command_arg* command_arg_create();
@@ -24,14 +24,14 @@ static void command_serialize_args(auxts_command* cmd, msgpack_packer* pk);
 static void command_arg_serialize_str(auxts_command_arg* arg, msgpack_packer* pk);
 static void command_arg_serialize_int64(auxts_command_arg* arg, msgpack_packer* pk);
 static void command_arg_serialize_float64(auxts_command_arg* arg, msgpack_packer* pk);
-static void command_execution_plan_init(auxts_command_execution_plan* plan);
-static void command_execution_plan_destroy(auxts_command_execution_plan* plan);
-static void command_execution_plan_add_command(auxts_command_execution_plan* plan, auxts_command* cmd);
-static void command_execution_plan_execute(auxts_command_execution_plan* plan, auxts_command_executor* exec, auxts_context* ctx, msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf);
-static int command_execution_plan_build(auxts_command_execution_plan* plan, msgpack_sbuffer* out_buf, auxts_parser* parser);
+static void exec_plan_init(auxts_exec_plan* plan);
+static void exec_plan_destroy(auxts_exec_plan* plan);
+static void exec_plan_add_command(auxts_exec_plan* plan, auxts_command* cmd);
+static void exec_plan_exec(auxts_exec_plan* plan, auxts_exec* exec, auxts_context* ctx, msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf);
+static int exec_plan_build(auxts_exec_plan* plan, msgpack_sbuffer* out_buf, auxts_parser* parser);
 static void to_uppercase(char *str);
 
-auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_context* ctx, const char* cmd) {
+auxts_result auxts_exec_exec(auxts_exec* exec, auxts_context* ctx, const char* cmd) {
     auxts_parser parser;
     auxts_parser_init(&parser, cmd);
 
@@ -41,14 +41,14 @@ auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_
     msgpack_sbuffer_init(&in_buf);
     msgpack_sbuffer_init(&out_buf);
 
-    auxts_command_execution_plan plan;
-    command_execution_plan_init(&plan);
+    auxts_exec_plan plan;
+    exec_plan_init(&plan);
 
-    int status = command_execution_plan_build(&plan, &out_buf, &parser);
-    if (status != AUXTS_COMMAND_EXECUTOR_STATUS_ABORT)
-        command_execution_plan_execute(&plan, exec, ctx, &in_buf, &out_buf);
+    int status = exec_plan_build(&plan, &out_buf, &parser);
+    if (status != AUXTS_EXEC_STATUS_ABORT)
+        exec_plan_exec(&plan, exec, ctx, &in_buf, &out_buf);
 
-    command_execution_plan_destroy(&plan);
+    exec_plan_destroy(&plan);
 
     auxts_result result;
     auxts_result_init(&result, out_buf.size);
@@ -60,15 +60,15 @@ auxts_result auxts_command_executor_execute(auxts_command_executor* exec, auxts_
     return result;
 }
 
-int command_execution_plan_build(auxts_command_execution_plan* plan, msgpack_sbuffer* out_buf, auxts_parser* parser) {
+int exec_plan_build(auxts_exec_plan* plan, msgpack_sbuffer* out_buf, auxts_parser* parser) {
     auxts_token prev;
     memset(&prev, 0, sizeof(auxts_token));
     auxts_token curr = auxts_parser_next_token(parser);
 
     auxts_command* cmd = NULL;
-    int status = AUXTS_COMMAND_EXECUTOR_STATUS_CONTINUE;
+    int status = AUXTS_EXEC_STATUS_CONTINUE;
 
-    while (curr.type != AUXTS_TOKEN_TYPE_EOF && status == AUXTS_COMMAND_EXECUTOR_STATUS_CONTINUE) {
+    while (curr.type != AUXTS_TOKEN_TYPE_EOF && status == AUXTS_EXEC_STATUS_CONTINUE) {
         switch (curr.type) {
             case AUXTS_TOKEN_TYPE_ID: {
                 cmd = handle_id(&curr, &prev);
@@ -79,7 +79,7 @@ int command_execution_plan_build(auxts_command_execution_plan* plan, msgpack_sbu
                 status = command_handle_str(cmd, out_buf, &curr, &prev);
                 break;
             case AUXTS_TOKEN_TYPE_PIPE:
-                command_execution_plan_add_command(plan, cmd);
+                exec_plan_add_command(plan, cmd);
                 break;
             case AUXTS_TOKEN_TYPE_INT:
                 status = command_handle_int64(cmd, out_buf, &curr, &prev);
@@ -92,7 +92,7 @@ int command_execution_plan_build(auxts_command_execution_plan* plan, msgpack_sbu
                 break;
             case AUXTS_TOKEN_TYPE_ERROR: {
                 handle_error(curr.as.err.msg, out_buf);
-                status = AUXTS_COMMAND_EXECUTOR_STATUS_ABORT;
+                status = AUXTS_EXEC_STATUS_ABORT;
             }
             default:
                 break;
@@ -102,20 +102,20 @@ int command_execution_plan_build(auxts_command_execution_plan* plan, msgpack_sbu
         curr = auxts_parser_next_token(parser);
     }
 
-    if (status != AUXTS_COMMAND_EXECUTOR_STATUS_ABORT)
-        command_execution_plan_add_command(plan, cmd);
+    if (status != AUXTS_EXEC_STATUS_ABORT)
+        exec_plan_add_command(plan, cmd);
 
     return status;
 }
 
-void command_execution_plan_execute(auxts_command_execution_plan* plan, auxts_command_executor* exec, auxts_context* ctx, msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf) {
+void exec_plan_exec(auxts_exec_plan* plan, auxts_exec* exec, auxts_context* ctx, msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf) {
     msgpack_packer pk;
 
     for (int i = 0; i < plan->num_cmd; ++i) {
         msgpack_packer_init(&pk, in_buf, msgpack_sbuffer_write);
 
         auxts_command* cmd = plan->cmd[i];
-        auxts_command_func func = command_executor_get(exec, cmd->name);
+        auxts_command_func func = exec_get(exec, cmd->name);
         if (!func) {
             handle_unknown_command(cmd, out_buf);
             break;
@@ -129,7 +129,7 @@ void command_execution_plan_execute(auxts_command_execution_plan* plan, auxts_co
     }
 }
 
-auxts_command_func command_executor_get(auxts_command_executor* exec, const char* cmd_name) {
+auxts_command_func exec_get(auxts_exec* exec, const char* cmd_name) {
     return auxts_kvstore_get(exec->kv, (void*)cmd_name);
 }
 
@@ -178,62 +178,62 @@ auxts_command* handle_id(auxts_token* curr, auxts_token* prev) {
 int command_handle_id(auxts_command* cmd, msgpack_sbuffer* out_buf) {
     if (!cmd) {
         handle_error("Token type 'id' is not a valid argument.", out_buf);
-        return AUXTS_COMMAND_EXECUTOR_STATUS_ABORT;
+        return AUXTS_EXEC_STATUS_ABORT;
     }
 
-    return AUXTS_COMMAND_EXECUTOR_STATUS_CONTINUE;
+    return AUXTS_EXEC_STATUS_CONTINUE;
 }
 
 int command_handle_str(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token* curr, auxts_token* prev) {
     if (prev->type == AUXTS_TOKEN_TYPE_PIPE || prev->type == AUXTS_TOKEN_TYPE_NONE) {
         handle_error("Token type 'string' is not a valid command.", out_buf);
-        return AUXTS_COMMAND_EXECUTOR_STATUS_ABORT;
+        return AUXTS_EXEC_STATUS_ABORT;
     }
 
     auxts_command_arg* arg = command_arg_create_str(curr->as.str.ptr, curr->as.str.size);
     command_add_arg(cmd, arg);
 
-    return AUXTS_COMMAND_EXECUTOR_STATUS_CONTINUE;
+    return AUXTS_EXEC_STATUS_CONTINUE;
 }
 
 int command_handle_time(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token* curr, auxts_token* prev) {
     if (prev->type == AUXTS_TOKEN_TYPE_PIPE || prev->type == AUXTS_TOKEN_TYPE_NONE) {
         handle_error("Token type 'time' is not a valid command.", out_buf);
-        return AUXTS_COMMAND_EXECUTOR_STATUS_ABORT;
+        return AUXTS_EXEC_STATUS_ABORT;
     }
 
     auxts_command_arg* arg = command_arg_create_int64(curr->as.time);
     command_add_arg(cmd, arg);
 
-    return AUXTS_COMMAND_EXECUTOR_STATUS_CONTINUE;
+    return AUXTS_EXEC_STATUS_CONTINUE;
 }
 
 int command_handle_int64(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token* curr, auxts_token* prev) {
     if (prev->type == AUXTS_TOKEN_TYPE_PIPE || prev->type == AUXTS_TOKEN_TYPE_NONE) {
         handle_error("Token type 'int' is not a valid command.", out_buf);
-        return AUXTS_COMMAND_EXECUTOR_STATUS_ABORT;
+        return AUXTS_EXEC_STATUS_ABORT;
     }
 
     auxts_command_arg* arg = command_arg_create_int64(curr->as.i64);
     command_add_arg(cmd, arg);
 
-    return AUXTS_COMMAND_EXECUTOR_STATUS_CONTINUE;
+    return AUXTS_EXEC_STATUS_CONTINUE;
 }
 
 int command_handle_float64(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_token* curr, auxts_token* prev) {
     if (prev->type == AUXTS_TOKEN_TYPE_PIPE || prev->type == AUXTS_TOKEN_TYPE_NONE) {
         handle_error("Token type 'float' is not a valid command.", out_buf);
-        return AUXTS_COMMAND_EXECUTOR_STATUS_ABORT;
+        return AUXTS_EXEC_STATUS_ABORT;
     }
 
     auxts_command_arg* arg = command_arg_create_float64(curr->as.f64);
     command_add_arg(cmd, arg);
 
-    return AUXTS_COMMAND_EXECUTOR_STATUS_CONTINUE;
+    return AUXTS_EXEC_STATUS_CONTINUE;
 }
 
-void auxts_command_executor_init(auxts_command_executor* exec) {
-    exec->kv = auxts_kvstore_create(10, command_executor_hash, command_executor_cmp, command_executor_destroy);
+void auxts_exec_init(auxts_exec* exec) {
+    exec->kv = auxts_kvstore_create(10, exec_hash, exec_cmp, exec_destroy);
     auxts_kvstore_put(exec->kv, strdup("PING"), auxts_command_ping);
     auxts_kvstore_put(exec->kv, strdup("CREATE"), auxts_command_create);
     auxts_kvstore_put(exec->kv, strdup("EXTRACT"), auxts_command_extract);
@@ -241,7 +241,7 @@ void auxts_command_executor_init(auxts_command_executor* exec) {
     auxts_kvstore_put(exec->kv, strdup("EVAL"), auxts_command_eval);
 }
 
-void auxts_command_executor_destroy(auxts_command_executor* exec) {
+void auxts_exec_destroy(auxts_exec* exec) {
     auxts_kvstore_destroy(exec->kv);
 }
 
@@ -359,25 +359,25 @@ void command_add_arg(auxts_command* cmd, auxts_command_arg* arg) {
     ++cmd->num_args;
 }
 
-void command_execution_plan_init(auxts_command_execution_plan* plan) {
+void exec_plan_init(auxts_exec_plan* plan) {
     plan->num_cmd = 0;
     plan->max_num_cmd = 4;
 
     plan->cmd = malloc(plan->max_num_cmd * sizeof(auxts_command*));
     if (!plan->cmd) {
-        perror("Failed to allocate commands to auxts_command_execution_plan");
+        perror("Failed to allocate commands to auxts_exec_plan");
         return;
     }
 }
 
-void command_execution_plan_destroy(auxts_command_execution_plan* plan) {
+void exec_plan_destroy(auxts_exec_plan* plan) {
     for (int i = 0; i < plan->num_cmd; ++i) {
         command_destroy(plan->cmd[i]);
     }
     free(plan->cmd);
 }
 
-void command_execution_plan_add_command(auxts_command_execution_plan* plan, auxts_command* cmd) {
+void exec_plan_add_command(auxts_exec_plan* plan, auxts_command* cmd) {
     if (!plan || !cmd) return;
 
     if (plan->num_cmd >= plan->max_num_cmd) {
@@ -385,7 +385,7 @@ void command_execution_plan_add_command(auxts_command_execution_plan* plan, auxt
 
         auxts_command** _cmd = realloc(plan->cmd, plan->max_num_cmd * sizeof(auxts_command*));
         if (!_cmd) {
-            perror("Error reallocating commands to auxts_command_execution_plan");
+            perror("Error reallocating commands to auxts_exec_plan");
             return;
         }
 
@@ -396,19 +396,19 @@ void command_execution_plan_add_command(auxts_command_execution_plan* plan, auxt
     ++plan->num_cmd;
 }
 
-uint64_t command_executor_hash(void* key) {
+uint64_t exec_hash(void* key) {
     uint64_t hash[2];
     murmur3_x64_128(key, strlen((char*)key), 0, hash);
     return hash[0];
 }
 
-int command_executor_cmp(void* a, void* b) {
+int exec_cmp(void* a, void* b) {
     uint64_t* x = (uint64_t*)a;
     uint64_t* y = (uint64_t*)b;
     return x[0] == y[0];
 }
 
-void command_executor_destroy(void* key, void* value) {
+void exec_destroy(void* key, void* value) {
     free(key);
 }
 

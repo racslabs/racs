@@ -11,7 +11,7 @@
 #include "timestamp_test.h"
 #include "simd_test.h"
 #include "parser_test.h"
-#include "executor_test.h"
+#include "exec_test.h"
 #include "ping_test.h"
 #include "metadata_test.h"
 #include "create_test.h"

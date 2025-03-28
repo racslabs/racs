@@ -21,7 +21,7 @@ void test_metadata() {
 void test_metadata_attr() {
     auxts_db* db = auxts_db_instance();
     auxts_db_open(db);
-    auxts_result res = auxts_db_execute(db,"METADATA 'test' 'sample_rate'");
+    auxts_result res = auxts_db_exec(db, "METADATA 'test' 'sample_rate'");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
