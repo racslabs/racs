@@ -31,7 +31,7 @@ typedef struct {
     size_t total_samples;
     uint32_t channels;
     uint32_t sample_rate;
-    uint32_t bits_per_sample;
+    uint32_t bit_depth;
 } auxts_pcm_block_info;
 
 typedef struct {

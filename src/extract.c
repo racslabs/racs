@@ -16,7 +16,7 @@ int auxts_extract_pcm_data(auxts_cache* cache, auxts_pcm_buffer* pbuf, uint64_t 
     auxts_flac_block* flac_block = blocks->blocks[0];
     auxts_pcm_block* pcm_block = auxts_decode_flac_block(flac_block);
 
-    auxts_pcm_buffer_init(pbuf, pcm_block->info.channels, pcm_block->info.sample_rate, pcm_block->info.bits_per_sample);
+    auxts_pcm_buffer_init(pbuf, pcm_block->info.channels, pcm_block->info.sample_rate, pcm_block->info.bit_depth);
     pcm_buffer_append(pbuf, pcm_block);
     pcm_block_destroy(pcm_block);
 
@@ -116,11 +116,11 @@ auxts_flac_blocks* extract_flac_blocks(auxts_cache* cache, uint64_t stream_id, i
     return blocks;
 }
 
-void auxts_pcm_buffer_init(auxts_pcm_buffer* pbuf, uint32_t channels, uint32_t sample_rate, uint32_t bits_per_sample) {
+void auxts_pcm_buffer_init(auxts_pcm_buffer* pbuf, uint32_t channels, uint32_t sample_rate, uint32_t bit_depth) {
     pbuf->info.num_samples = 0;
     pbuf->info.channels = channels;
     pbuf->info.sample_rate = sample_rate;
-    pbuf->info.bit_depth = bits_per_sample;
+    pbuf->info.bit_depth = bit_depth;
     pbuf->info.max_num_samples = 2;
 
     pbuf->data = malloc(channels * sizeof(int32_t*));

@@ -1,9 +1,10 @@
 #include "flac.h"
 
-static FLAC__StreamDecoderReadStatus read_callback(const FLAC__StreamDecoder* decoder, FLAC__byte buffer[], size_t* bytes, void* client_data);
-static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *const buffer[], void *client_data);
-static void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
-static void error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
+static FLAC__StreamDecoderReadStatus decode_read_callback(const FLAC__StreamDecoder* decoder, FLAC__byte buffer[], size_t* bytes, void* client_data);
+static FLAC__StreamDecoderWriteStatus decode_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame,
+                                                            const FLAC__int32 *const buffer[], void *client_data);
+static void decode_metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
+static void decode_error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
 static auxts_decoder_context* decoder_context_create(auxts_flac_block* block);
 
 auxts_flac_blocks* auxts_flac_blocks_create() {
@@ -42,7 +43,8 @@ auxts_pcm_block* auxts_decode_flac_block(auxts_flac_block* block) {
         return NULL;
     }
 
-    FLAC__stream_decoder_init_stream(decoder, read_callback, NULL, NULL, NULL, NULL, write_callback, metadata_callback, error_callback, ctx);
+    FLAC__stream_decoder_init_stream(decoder, decode_read_callback, NULL, NULL, NULL, NULL, decode_write_callback,
+                                     decode_metadata_callback, decode_error_callback, ctx);
     FLAC__stream_decoder_process_until_end_of_stream(decoder);
     FLAC__stream_decoder_delete(decoder);
 
@@ -58,7 +60,7 @@ void auxts_flac_blocks_append(auxts_flac_blocks* blocks, uint8_t* block_data, ui
     }
 
     if (blocks->num_blocks == blocks->capacity) {
-        blocks->capacity = 1 << blocks->capacity;
+        blocks->capacity *= 2;
 
         auxts_flac_block** new_blocks = realloc(blocks->blocks, blocks->capacity * sizeof(auxts_flac_block));
         if (!new_blocks) {
@@ -93,7 +95,7 @@ void auxts_flac_blocks_destroy(auxts_flac_blocks* blocks) {
     free(blocks);
 }
 
-void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data) {
+void decode_metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data) {
     (void)decoder;
 
     if (!client_data) {
@@ -109,7 +111,7 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 
     if (metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
         block->info.channels = metadata->data.stream_info.channels;
-        block->info.bits_per_sample = metadata->data.stream_info.bits_per_sample;
+        block->info.bit_depth = metadata->data.stream_info.bits_per_sample;
         block->info.sample_rate = metadata->data.stream_info.sample_rate;
         block->info.total_samples = metadata->data.stream_info.total_samples;
 
@@ -121,15 +123,11 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 
         for (int channel = 0; channel < block->info.channels; ++channel) {
             block->data[channel] = malloc(block->info.total_samples * sizeof(int32_t));
-            if (!block->data[channel]) {
-                perror("Failed to allocate samples to auxts_pcm_block");
-                return;
-            }
         }
     }
 }
 
-FLAC__StreamDecoderReadStatus read_callback(const FLAC__StreamDecoder* decoder, FLAC__byte buffer[], size_t* bytes, void* client_data) {
+FLAC__StreamDecoderReadStatus decode_read_callback(const FLAC__StreamDecoder* decoder, FLAC__byte buffer[], size_t* bytes, void* client_data) {
     (void)decoder;
 
     if (!client_data) {
@@ -157,7 +155,8 @@ FLAC__StreamDecoderReadStatus read_callback(const FLAC__StreamDecoder* decoder, 
     return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
 }
 
-FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *const buffer[], void *client_data) {
+FLAC__StreamDecoderWriteStatus decode_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame,
+                                                     const FLAC__int32 *const buffer[], void *client_data) {
     (void)decoder;
 
     if (!client_data) {
@@ -185,7 +184,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
     return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 
-void error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data) {
+void decode_error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data) {
     (void)decoder;
     (void)client_data;
 
@@ -208,7 +207,7 @@ auxts_decoder_context* decoder_context_create(auxts_flac_block* block) {
     }
 
     ctx->pcm->info.channels = 0;
-    ctx->pcm->info.bits_per_sample = 0;
+    ctx->pcm->info.bit_depth = 0;
     ctx->pcm->info.num_samples = 0;
 
     return ctx;

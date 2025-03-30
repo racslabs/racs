@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.27)
 project(auxts C)
 
 set(CMAKE_C_STANDARD 17)
+set(AUXTS_DEPS ${CMAKE_CURRENT_SOURCE_DIR}/deps)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -9,7 +10,7 @@ find_package(FLAC REQUIRED)
 find_package(Guile REQUIRED)
 find_package(msgpack-c REQUIRED)
 
-include_directories(${FLAC_INCLUDE_DIR} ${GUILE_INCLUDE_DIRS} ${msgpack-c_INCLUDE_DIRS})
+include_directories(${AUXTS_DEPS} ${FLAC_INCLUDE_DIR} ${GUILE_INCLUDE_DIRS} ${msgpack-c_INCLUDE_DIRS})
 
 option(AUXTS_AVX2_CMAKE_BUILD "AVX2 CMake build" OFF)
 option(AUXTS_NEON8_CMAKE_BUILD "NEON8 CMake build" ON)
@@ -96,13 +97,17 @@ add_executable(auxts main.c
         src/scm.c
         test/scm_test.h
         test/scm_test.c
-        src/t_complex.h
         src/scm_bindings.h
         src/scm_bindings.c
         src/crc32c.h
         src/crc32c.c
         src/atsp.h
         src/atsp.c
+        src/pcm.h
+        src/type.h
+        src/stream.h
+        src/stream.c
+        src/pcm.c
 )
 
 target_link_libraries(auxts msgpack-c ${FLAC_LIBRARIES} ${GUILE_LIBRARIES})
