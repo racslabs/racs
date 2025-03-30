@@ -17,4 +17,3 @@ void auxts_pcm_write_s32(auxts_pcm* pcm, auxts_int32* samples, auxts_uint64 n) {
 void auxts_pcm_write_s16(auxts_pcm* pcm, auxts_int16* samples, auxts_uint64 n) {
     auxts_memory_stream_write(&pcm->memory_stream, samples, n * sizeof(auxts_int16));
 }
-

@@ -1,25 +1,34 @@
 #include "stream.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
+#define auxts_max(a, b) ((a) > (b) ? (a) : (b))
 
 void auxts_memory_stream_init(auxts_memory_stream* stream, void* data, size_t size) {
     memset(stream, 0, sizeof(auxts_memory_stream));
     stream->size = size;
-    stream->data = (uint8_t*)data;
+    stream->data = (auxts_uint8*)data;
 }
 
 int auxts_memory_stream_write(auxts_memory_stream* stream, void* data, size_t size) {
-    if (stream->current_pos + size >= stream->size) {
-        stream->size = (size + stream->size) * 2;
+    size_t required_size = stream->current_pos + size;
 
-        const auxts_uint8* s_data = realloc(stream->data, stream->size);
-        if (!s_data) {
+    if (required_size > stream->size) {
+        size_t new_size = auxts_max(required_size, stream->size * 2);
+
+        auxts_uint8* new_data = realloc(stream->data, new_size);
+        if (!new_data) {
             perror("Failed to re-allocate auxts_memory_stream data");
             return AUXTS_MEMORY_STREAM_ABORT;
         }
 
-        stream->data = (auxts_uint8*)s_data;
+        stream->data = new_data;
+        stream->size = new_size;
     }
 
     memcpy(stream->data + stream->current_pos, data, size);
+    stream->current_pos = required_size;
 
     return AUXTS_MEMORY_STREAM_CONTINUE;
 }
