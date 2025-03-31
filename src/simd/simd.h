@@ -3,8 +3,9 @@
 #define AUXTS_SIMD_H
 
 #include <stddef.h>
-#include <stdint.h>
+#include "../type.h"
 #include "../export.h"
+#include "pcm_simd.h"
 
 #if defined(__AVX__) || defined(__SSE4_1__)
 #include <immintrin.h>
@@ -13,7 +14,5 @@
 #else
 #warning "SIMD instructions not found."
 #endif
-
-#define AUXTS_SIMD AUXTS_FORCE_INLINE
 
 #endif //AUXTS_SIMD_H

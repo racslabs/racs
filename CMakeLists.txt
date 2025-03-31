@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.27)
 project(auxts C)
 
 set(CMAKE_C_STANDARD 17)
-set(AUXTS_DEPS ${CMAKE_CURRENT_SOURCE_DIR}/deps)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -10,7 +9,7 @@ find_package(FLAC REQUIRED)
 find_package(Guile REQUIRED)
 find_package(msgpack-c REQUIRED)
 
-include_directories(${AUXTS_DEPS} ${FLAC_INCLUDE_DIR} ${GUILE_INCLUDE_DIRS} ${msgpack-c_INCLUDE_DIRS})
+include_directories(${FLAC_INCLUDE_DIR} ${GUILE_INCLUDE_DIRS} ${msgpack-c_INCLUDE_DIRS})
 
 option(AUXTS_AVX2_CMAKE_BUILD "AVX2 CMake build" OFF)
 option(AUXTS_NEON8_CMAKE_BUILD "NEON8 CMake build" ON)
@@ -76,9 +75,6 @@ add_executable(auxts main.c
         test/test_utils.h
         test/exec_test.h
         test/exec_test.c
-        src/simd/scale.h
-        src/simd/scale_neon.h
-        src/simd/scale_neon.c
         test/ping_test.h
         test/ping_test.c
         src/metadata.h
@@ -110,6 +106,8 @@ add_executable(auxts main.c
         src/pcm.c
         src/flac0.h
         src/flac0.c
+        src/simd/pcm_simd.h
+        src/simd/pcm_neon.c
 )
 
 target_link_libraries(auxts msgpack-c ${FLAC_LIBRARIES} ${GUILE_LIBRARIES})
@@ -140,3 +138,4 @@ add_test(test_scm_create auxts "--test" "test_scm_create")
 add_test(test_scm_int auxts "--test" "test_scm_int")
 add_test(test_scm_list auxts "--test" "test_scm_list")
 add_test(test_scm_metadata auxts "--test" "test_scm_metadata")
+add_test(test_simd_interleave auxts "--test" "test_simd_interleave")
