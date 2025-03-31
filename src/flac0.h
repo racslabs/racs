@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "stream.h"
+#include "pcm.h"
 
 /** this file is a wrapper of libFLAC */
 

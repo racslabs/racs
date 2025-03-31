@@ -33,14 +33,11 @@ FLAC__StreamDecoderWriteStatus auxts_flac_decoder_write_callback(const FLAC__Str
     if (block_size + flac->out_stream.current_pos > flac->total_samples)
         return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 
+    auxts_pcm pcm;
+    if (flac->bit_depth == 16) {
+//        auxts_pcm_init_s16(&pcm, (auxts_int16*)flac->out_stream.data, flac->out_stream.size);
 
-
-//
-//    for (int channel = 0; channel < block->info.channels; ++channel) {
-//        memcpy(block->data[channel] + block->info.num_samples, buffer[channel], block_size * sizeof(int32_t));
-//    }
-//
-//    block->info.num_samples += block_size;
+    }
 
     return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }

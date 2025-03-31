@@ -41,16 +41,13 @@ void auxts_simd_extract_s16(auxts_int32* q0, auxts_int16* q1, size_t n) {
     size_t m = n & ~3;
 
     for ( ; i < m; i += 4) {
-        int32x4_t _q0;
-        _q0 = vld1q_s32(q0 + i);
-        _q0 = vshrq_n_u32(_q0, 16);
-
+        int32x4_t _q0 = vld1q_s32(q0 + i);
         int16x4_t _q1  = vmovn_u32(_q0);
         vst1_s16(q1 + i, _q1);
     }
 
     for ( ; i < n; ++i) {
-        q1[i] = (auxts_int16)(q0[i] >> 16);
+        q1[i] = (auxts_int16)(q0[i]);
     }
 }
 
