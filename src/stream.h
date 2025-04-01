@@ -19,6 +19,6 @@ typedef struct {
 } auxts_memory_stream;
 
 void auxts_memory_stream_init(auxts_memory_stream* stream, void* data, size_t size);
-int auxts_memory_stream_write(auxts_memory_stream* stream, void* data, size_t size);
+int auxts_memory_stream_write(auxts_memory_stream* stream, const void* data, size_t size);
 
 #endif //AUXTS_STREAM_H

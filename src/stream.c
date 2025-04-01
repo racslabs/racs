@@ -11,7 +11,7 @@ void auxts_memory_stream_init(auxts_memory_stream* stream, void* data, size_t si
     stream->data = (auxts_uint8*)data;
 }
 
-int auxts_memory_stream_write(auxts_memory_stream* stream, void* data, size_t size) {
+int auxts_memory_stream_write(auxts_memory_stream* stream, const void* data, size_t size) {
     size_t required_size = stream->current_pos + size;
 
     if (required_size > stream->size) {
