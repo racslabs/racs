@@ -1,89 +1,55 @@
 #include "timestamp.h"
 
-int64_t auxts_milliseconds() {
+int64_t auxts_time_now() {
     struct timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
-    return auxts_ts_to_milliseconds(&ts);
+    return auxts_time_ts_to_milliseconds(&ts);
 }
 
-int64_t auxts_ts_to_milliseconds(struct timespec* ts) {
-    return (ts->tv_sec * AUXTS_NANOSECONDS_PER_SECOND + ts->tv_nsec) / AUXTS_NANOSECONDS_PER_MILLISECOND;
+int64_t auxts_time_ts_to_milliseconds(struct timespec* ts) {
+    return (ts->tv_sec * 1000000000 + ts->tv_nsec) / 1000000;
 }
 
-void auxts_milliseconds_to_tm(int64_t milliseconds, struct tm* info) {
-    time_t seconds = (time_t)(milliseconds / AUXTS_MILLISECONDS_PER_SECOND);
+void auxts_time_to_tm(int64_t time, struct tm* info) {
+    time_t seconds = (time_t)(time / 1000);
     gmtime_r(&seconds, info);
 }
 
-void auxts_format_rfc3339(int64_t milliseconds, char* buf) {
-    if (strlen(buf) < AUXTS_RFC3339_MAX_SIZE) {
-    }
-
-    time_t seconds = (time_t)(milliseconds / AUXTS_MILLISECONDS_PER_SECOND);
-    long remainder = (long)(milliseconds % AUXTS_MILLISECONDS_PER_SECOND);
-
+void auxts_time_format_rfc3339(int64_t time, char* buf) {
     struct tm info;
-    gmtime_r(&seconds, &info);
+    auxts_time_to_tm(time, &info);
+    long remainder = time % 1000;
 
-    // Manually format into RFC 3339
     sprintf(buf, "%04d-%02d-%02dT%02d:%02d:%02d.%03ldZ",
-            info.tm_year + 1900,  // Year
-            info.tm_mon + 1,      // Month (0-based in info structure)
-            info.tm_mday,         // Day
-            info.tm_hour,         // Hour
-            info.tm_min,          // Minute
-            info.tm_sec,          // Second
-            remainder);           // Milliseconds
+            info.tm_year + 1900, info.tm_mon + 1, info.tm_mday,
+            info.tm_hour, info.tm_min, info.tm_sec, remainder);
 }
 
-int64_t auxts_parse_rfc3339(const char* buf) {
-    struct tm info;
-    struct timespec ts;
+int64_t auxts_time_parse_rfc3339(const char* buf) {
+    struct tm info = {0};
     int milliseconds = 0;
 
-    if (strlen(buf) != AUXTS_RFC3339_MAX_SIZE) {
-    }
-
-    memset(&info, 0, sizeof(info));
-
-    // Parse the RFC 3339 string
-    // Expecting the format YYYY-MM-DDTHH:MM:SS[.sss]Z
-    int ret = sscanf(buf, "%d-%d-%dT%d:%d:%d.%dZ",
-                     &info.tm_year, &info.tm_mon, &info.tm_mday,
-                     &info.tm_hour, &info.tm_min, &info.tm_sec,
-                     &milliseconds);
-
-    if (ret < 3) {
-        perror("Invalid RFC 3339 format");
+    if (sscanf(buf, "%d-%d-%dT%d:%d:%d.%dZ",
+               &info.tm_year, &info.tm_mon, &info.tm_mday,
+               &info.tm_hour, &info.tm_min, &info.tm_sec, &milliseconds) < 3) {
+        fprintf(stderr, "Invalid RFC 3339 format\n");
         return -1;
     }
 
     info.tm_year -= 1900;
     info.tm_mon -= 1;
-
     time_t t = timegm(&info);
-    if (t == -1) {
-        perror("timegm");
-        return -1;
-    }
-
-    ts.tv_sec = t;
-    ts.tv_nsec = milliseconds * AUXTS_NANOSECONDS_PER_MILLISECOND;
-
-    return auxts_ts_to_milliseconds(&ts);
+    return (t == -1) ? -1 : (int64_t)t * 1000 + milliseconds;
 }
 
-int64_t auxts_time_partitioned_path_to_timestamp(const char* path) {
+int64_t auxts_time_path_to_time(const char* path) {
     struct tm info = {0};
-    struct timespec ts;
     long milliseconds = 0;
 
-    int ret = sscanf(path, ".data/seg/%4d/%2d/%2d/%2d/%2d/%2d/%3ld",
-                     &info.tm_year, &info.tm_mon, &info.tm_mday,
-                     &info.tm_hour, &info.tm_min, &info.tm_sec, &milliseconds);
-
-    if (ret != 7) {
-        fprintf(stderr, "Invalid format: expected 7 values, got %d\n", ret);
+    if (sscanf(path, ".data/seg/%4d/%2d/%2d/%2d/%2d/%2d/%3ld",
+               &info.tm_year, &info.tm_mon, &info.tm_mday,
+               &info.tm_hour, &info.tm_min, &info.tm_sec, &milliseconds) != 7) {
+        fprintf(stderr, "Invalid path format\n");
         return -1;
     }
 
@@ -94,33 +60,23 @@ int64_t auxts_time_partitioned_path_to_timestamp(const char* path) {
 
     info.tm_year -= 1900;
     info.tm_mon -= 1;
-
     time_t t = timegm(&info);
-    if (t == -1) {
-        perror("timegm failed");
-        return -1;
-    }
-
-    ts.tv_sec = t;
-    ts.tv_nsec = milliseconds * AUXTS_NANOSECONDS_PER_MILLISECOND;
-
-    return auxts_ts_to_milliseconds(&ts);
+    return (t == -1) ? -1 : (int64_t)t * 1000 + milliseconds;
 }
 
-char* auxts_get_path_from_timestamp_range(int64_t from, int64_t to) {
+char* auxts_time_range_to_path(int64_t from, int64_t to) {
     char path1[255], path2[255];
 
-    auxts_get_time_partitioned_path(from, path1);
-    auxts_get_time_partitioned_path(to, path2);
+    auxts_time_to_path(from, path1);
+    auxts_time_to_path(to, path2);
 
     return auxts_resolve_shared_path(path1, path2);
 }
 
-void auxts_get_time_partitioned_path(int64_t milliseconds, char* path) {
-    struct tm info = {0};
-    auxts_milliseconds_to_tm(milliseconds, &info);
-
-    long remainder = (long)(milliseconds % AUXTS_MILLISECONDS_PER_SECOND);
+void auxts_time_to_path(int64_t time, char* path) {
+    struct tm info;
+    auxts_time_to_tm(time, &info);
+    long remainder = time % 1000;
 
     sprintf(path, ".data/seg/%d/%02d/%02d/%02d/%02d/%02d/%03ld",
             info.tm_year + 1900, info.tm_mon + 1,
@@ -129,33 +85,22 @@ void auxts_get_time_partitioned_path(int64_t milliseconds, char* path) {
             remainder);
 }
 
-void auxts_create_time_partitioned_dirs(int64_t milliseconds) {
-    char dir[34];
+void auxts_time_create_dirs(int64_t time) {
     struct tm info;
+    auxts_time_to_tm(time, &info);
 
-    auxts_milliseconds_to_tm(milliseconds, &info);
+    char dir[128];
+    snprintf(dir, sizeof(dir), ".data/seg/%d/%02d/%02d/%02d/%02d/%02d",
+             info.tm_year + 1900, info.tm_mon + 1,
+             info.tm_mday, info.tm_hour,
+             info.tm_min, info.tm_sec);
 
-    sprintf(dir, ".data");
-    mkdir(dir, 0777);
-
-    sprintf(dir, "%s/seg", dir);
-    mkdir(dir, 0777);
-
-    sprintf(dir, "%s/%d", dir, info.tm_year + 1900);
-    mkdir(dir, 0777);
-
-    sprintf(dir, "%s/%02d", dir, info.tm_mon + 1);
-    mkdir(dir, 0777);
-
-    sprintf(dir, "%s/%02d", dir, info.tm_mday);
-    mkdir(dir, 0777);
-
-    sprintf(dir, "%s/%02d", dir, info.tm_hour);
-    mkdir(dir, 0777);
-
-    sprintf(dir, "%s/%02d", dir, info.tm_min);
-    mkdir(dir, 0777);
-
-    sprintf(dir, "%s/%02d", dir, info.tm_sec);
-    mkdir(dir, 0777);
+    mkdir(".data", 0777);
+    mkdir(".data/seg", 0777);
+    char* p = dir;
+    while ((p = strchr(p + 1, '/')) != NULL) {
+        *p = '\0';
+        mkdir(dir, 0777);
+        *p = '/';
+    }
 }

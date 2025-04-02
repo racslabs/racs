@@ -294,8 +294,8 @@ void memtable_write(auxts_memtable* mt) {
 }
 
 void get_sstable_path(int64_t timestamp, char* path) {
-    auxts_create_time_partitioned_dirs(timestamp);
-    auxts_get_time_partitioned_path(timestamp, path);
+    auxts_time_create_dirs(timestamp);
+    auxts_time_to_path(timestamp, path);
 }
 
 uint8_t* allocate_buffer(size_t size, auxts_sstable* sst) {

@@ -90,7 +90,7 @@ void process_sstable_data(auxts_flac_blocks* blocks, uint64_t stream_id, int64_t
 }
 
 auxts_flac_blocks* extract_flac_blocks(auxts_cache* cache, uint64_t stream_id, int64_t from, int64_t to) {
-    char* path = auxts_get_path_from_timestamp_range(from, to);
+    char* path = auxts_time_range_to_path(from, to);
     auxts_filelist* list = get_sorted_filelist(path);
 
     auxts_flac_blocks* blocks = auxts_flac_blocks_create();
@@ -103,7 +103,7 @@ auxts_flac_blocks* extract_flac_blocks(auxts_cache* cache, uint64_t stream_id, i
     for (int i = 0; i < list->num_files; ++i) {
         char* file_path = list->files[i];
 
-        int64_t timestamp = auxts_time_partitioned_path_to_timestamp(file_path);
+        int64_t timestamp = auxts_time_path_to_time(file_path);
         if (timestamp >= from && timestamp <= to) {
             uint8_t* buffer = get_data_from_cache_or_sstable(cache, stream_id, timestamp, file_path);
             process_sstable_data(blocks, stream_id, from, to, buffer);

@@ -108,6 +108,8 @@ add_executable(auxts main.c
         src/flac0.c
         src/simd/pcm_simd.h
         src/simd/pcm_neon.c
+        src/extract0.h
+        src/extract0.c
 )
 
 target_link_libraries(auxts msgpack-c ${FLAC_LIBRARIES} ${GUILE_LIBRARIES})

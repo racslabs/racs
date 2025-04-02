@@ -13,23 +13,15 @@
 extern "C" {
 #endif
 
-#define AUXTS_RFC3339_MAX_SIZE 35
-
-#define AUXTS_MILLISECONDS_PER_SECOND 1000L
-
-#define AUXTS_NANOSECONDS_PER_MILLISECOND 1000000L
-
-#define AUXTS_NANOSECONDS_PER_SECOND 1000000000L
-
-int64_t auxts_milliseconds();
-void auxts_milliseconds_to_tm(int64_t milliseconds, struct tm* info);
-int64_t auxts_ts_to_milliseconds(struct timespec* ts);
-void auxts_format_rfc3339(int64_t milliseconds, char* buf);
-int64_t auxts_parse_rfc3339(const char* buf);
-int64_t auxts_time_partitioned_path_to_timestamp(const char* path);
-void auxts_get_time_partitioned_path(int64_t milliseconds, char* path);
-char* auxts_get_path_from_timestamp_range(int64_t from, int64_t to);
-void auxts_create_time_partitioned_dirs(int64_t milliseconds);
+int64_t auxts_time_now();
+void auxts_time_to_tm(int64_t time, struct tm* info);
+int64_t auxts_time_ts_to_milliseconds(struct timespec* ts);
+void auxts_time_format_rfc3339(int64_t time, char* buf);
+int64_t auxts_time_parse_rfc3339(const char* buf);
+int64_t auxts_time_path_to_time(const char* path);
+void auxts_time_to_path(int64_t time, char* path);
+char* auxts_time_range_to_path(int64_t from, int64_t to);
+void auxts_time_create_dirs(int64_t time);
 
 #ifdef __cplusplus
 }

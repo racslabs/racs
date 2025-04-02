@@ -2,6 +2,8 @@
 #ifndef AUXTS_TYPE_H
 #define AUXTS_TYPE_H
 
+#include <time.h>
+
 typedef   signed char       auxts_int8;
 typedef unsigned char       auxts_uint8;
 typedef   signed short      auxts_int16;
@@ -11,6 +13,8 @@ typedef unsigned int        auxts_uint32;
 
 typedef   signed long long  auxts_int64;
 typedef unsigned long long  auxts_uint64;
+
+typedef __darwin_time_t     auxts_time;
 
 #if __STDC_VERSION__ >= 199901L
 

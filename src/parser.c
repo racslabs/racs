@@ -133,7 +133,7 @@ auxts_token parser_lex_token_time(auxts_parser* parser, regmatch_t* match) {
 
     auxts_token token;
     token.type = AUXTS_TOKEN_TYPE_TIME;
-    token.as.time = auxts_parse_rfc3339(time_str);
+    token.as.time = auxts_time_parse_rfc3339(time_str);
 
     parser_advance(parser, size);
     free(time_str);
