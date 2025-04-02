@@ -9,7 +9,7 @@
 #include <ctype.h>
 #include <regex.h>
 #include "bytes.h"
-#include "timestamp.h"
+#include "time.h"
 
 #ifdef __cplusplus
 extern "C" {

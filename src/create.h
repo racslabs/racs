@@ -3,7 +3,7 @@
 #define AUXTS_CREATE_H
 
 #include "metadata.h"
-#include "timestamp.h"
+#include "time.h"
 
 int auxts_create(const char* name, uint32_t sample_rate, uint32_t channels, uint32_t bit_depth);
 

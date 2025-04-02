@@ -3,7 +3,7 @@
 #define AUXTS_TIMESTAMP_TEST_H
 
 #include <assert.h>
-#include "../src/timestamp.h"
+#include "../src/time.h"
 
 void test_rfc3339();
 

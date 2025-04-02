@@ -1,21 +1,22 @@
-#include "timestamp.h"
+#include "time.h"
+#include "type.h"
 
-int64_t auxts_time_now() {
+auxts_time auxts_time_now() {
     struct timespec ts;
     clock_gettime(CLOCK_REALTIME, &ts);
-    return auxts_time_ts_to_milliseconds(&ts);
+    return auxts_time_ts_to_time(&ts);
 }
 
-int64_t auxts_time_ts_to_milliseconds(struct timespec* ts) {
+auxts_time auxts_time_ts_to_time(struct timespec* ts) {
     return (ts->tv_sec * 1000000000 + ts->tv_nsec) / 1000000;
 }
 
-void auxts_time_to_tm(int64_t time, struct tm* info) {
+void auxts_time_to_tm(auxts_time time, struct tm* info) {
     time_t seconds = (time_t)(time / 1000);
     gmtime_r(&seconds, info);
 }
 
-void auxts_time_format_rfc3339(int64_t time, char* buf) {
+void auxts_time_format_rfc3339(auxts_time time, char* buf) {
     struct tm info;
     auxts_time_to_tm(time, &info);
     long remainder = time % 1000;
@@ -25,7 +26,7 @@ void auxts_time_format_rfc3339(int64_t time, char* buf) {
             info.tm_hour, info.tm_min, info.tm_sec, remainder);
 }
 
-int64_t auxts_time_parse_rfc3339(const char* buf) {
+auxts_time auxts_time_parse_rfc3339(const char* buf) {
     struct tm info = {0};
     int milliseconds = 0;
 
@@ -42,7 +43,7 @@ int64_t auxts_time_parse_rfc3339(const char* buf) {
     return (t == -1) ? -1 : (int64_t)t * 1000 + milliseconds;
 }
 
-int64_t auxts_time_path_to_time(const char* path) {
+auxts_time auxts_time_path_to_time(const char* path) {
     struct tm info = {0};
     long milliseconds = 0;
 
@@ -64,7 +65,7 @@ int64_t auxts_time_path_to_time(const char* path) {
     return (t == -1) ? -1 : (int64_t)t * 1000 + milliseconds;
 }
 
-char* auxts_time_range_to_path(int64_t from, int64_t to) {
+char* auxts_time_range_to_path(auxts_time from, auxts_time to) {
     char path1[255], path2[255];
 
     auxts_time_to_path(from, path1);
@@ -73,7 +74,7 @@ char* auxts_time_range_to_path(int64_t from, int64_t to) {
     return auxts_resolve_shared_path(path1, path2);
 }
 
-void auxts_time_to_path(int64_t time, char* path) {
+void auxts_time_to_path(auxts_time time, char* path) {
     struct tm info;
     auxts_time_to_tm(time, &info);
     long remainder = time % 1000;
@@ -85,7 +86,7 @@ void auxts_time_to_path(int64_t time, char* path) {
             remainder);
 }
 
-void auxts_time_create_dirs(int64_t time) {
+void auxts_time_create_dirs(auxts_time time) {
     struct tm info;
     auxts_time_to_tm(time, &info);
 

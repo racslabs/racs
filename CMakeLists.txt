@@ -27,8 +27,8 @@ endif()
 
 add_executable(auxts main.c
         src/export.h
-        src/timestamp.h
-        src/timestamp.c
+        src/time.h
+        src/time.c
         src/murmur3.h
         src/murmur3.c
         src/memtable.h

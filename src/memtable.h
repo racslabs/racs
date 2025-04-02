@@ -14,7 +14,7 @@
 #include <errno.h>
 #include <pthread.h>
 #include "bytes.h"
-#include "timestamp.h"
+#include "time.h"
 #include "murmur3.h"
 
 #ifdef __cplusplus
