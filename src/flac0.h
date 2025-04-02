@@ -29,6 +29,7 @@ void auxts_flac_close(auxts_flac* flac);
 
 auxts_uint64 auxts_flac_read_pcm_s32(auxts_flac* flac, auxts_int32* data);
 auxts_uint64 auxts_flac_read_pcm_s16(auxts_flac* flac, auxts_int16* data);
+auxts_uint64 auxts_flac_read_pcm(auxts_flac* flac, void* data);
 
 
 void auxts_flac_decoder_metadata_callback(const FLAC__StreamDecoder *decoder,
