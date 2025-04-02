@@ -24,13 +24,15 @@ typedef struct {
     auxts_memory_stream out_stream;
 } auxts_flac;
 
-void auxts_flac_open(auxts_flac* flac, void* data, size_t size);
+void auxts_flac_open(auxts_flac* flac, void* in, size_t size);
 void auxts_flac_close(auxts_flac* flac);
 
-auxts_uint64 auxts_flac_read_pcm_s32(auxts_flac* flac, auxts_int32* data);
-auxts_uint64 auxts_flac_read_pcm_s16(auxts_flac* flac, auxts_int16* data);
-auxts_uint64 auxts_flac_read_pcm(auxts_flac* flac, void* data);
+auxts_uint64 auxts_flac_read_pcm_s32(auxts_flac* flac, auxts_int32* in);
+auxts_uint64 auxts_flac_read_pcm_s16(auxts_flac* flac, auxts_int16* in);
+auxts_uint64 auxts_flac_read_pcm(auxts_flac* flac, void* in);
 
+int auxts_flac_decoder_write_pcm_s16(auxts_flac* flac, auxts_pcm* pcm, const auxts_int32* in, size_t n);
+int auxts_flac_decoder_write_pcm_s32(auxts_flac* flac, auxts_pcm* pcm, const auxts_int32** in, size_t n);
 
 void auxts_flac_decoder_metadata_callback(const FLAC__StreamDecoder *decoder,
                                           const FLAC__StreamMetadata *metadata,
