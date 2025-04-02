@@ -103,7 +103,7 @@ auxts_flac_blocks* extract_flac_blocks(auxts_cache* cache, uint64_t stream_id, i
     for (int i = 0; i < list->num_files; ++i) {
         char* file_path = list->files[i];
 
-        int64_t timestamp = auxts_time_path_to_time(file_path);
+        int64_t timestamp = auxts_time_from_path(file_path);
         if (timestamp >= from && timestamp <= to) {
             uint8_t* buffer = get_data_from_cache_or_sstable(cache, stream_id, timestamp, file_path);
             process_sstable_data(blocks, stream_id, from, to, buffer);
