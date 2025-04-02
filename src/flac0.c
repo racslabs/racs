@@ -3,18 +3,26 @@
 
 void auxts_flac_open(auxts_flac* flac, void* data, size_t size) {
     memset(flac, 0, sizeof(auxts_flac));
-
     auxts_memory_stream_init(&flac->in_stream, data, size);
+}
+
+auxts_uint64 auxts_flac_read_pcm_s32(auxts_flac* flac, auxts_int32* data) {
+    flac->out_stream.data = (void*)data;
+
     FLAC__stream_decoder_init_stream(flac->decoder,
-                                     auxts_flac_decoder_read_callback,
-                                     NULL,
-                                     NULL,
-                                     NULL,
-                                     NULL,
-                                     auxts_flac_decoder_write_callback,
-                                     auxts_flac_decoder_metadata_callback,
-                                     auxts_flac_decoder_error_callback,
-                                     flac);
+                                 auxts_flac_decoder_read_callback,
+                                 NULL,
+                                 NULL,
+                                 NULL,
+                                 NULL,
+                                 auxts_flac_decoder_write_callback,
+                                 auxts_flac_decoder_metadata_callback,
+                                 auxts_flac_decoder_error_callback,
+                                 flac);
+    FLAC__stream_decoder_process_until_end_of_stream(flac->decoder);
+    FLAC__stream_decoder_delete(flac->decoder);
+
+    return flac->out_stream.size;
 }
 
 FLAC__StreamDecoderReadStatus auxts_flac_decoder_read_callback(const FLAC__StreamDecoder* decoder,
@@ -54,8 +62,7 @@ FLAC__StreamDecoderWriteStatus auxts_flac_decoder_write_callback(const FLAC__Str
     }
 
     auxts_uint32 block_size = frame->header.blocksize;
-    auxts_uint32 sample_size = flac->bit_depth == AUXTS_PCM_BIT_DEPTH_16 ?
-            sizeof(auxts_int16) : sizeof(auxts_int32);
+    auxts_uint32 sample_size = flac->bit_depth == AUXTS_PCM_BIT_DEPTH_16 ? sizeof(auxts_int16) : sizeof(auxts_int32);
 
     size_t bytes = block_size * sample_size * flac->channels;
     if (bytes + flac->out_stream.current_pos > flac->total_samples)
@@ -105,13 +112,9 @@ void auxts_flac_decoder_metadata_callback(const FLAC__StreamDecoder *decoder,
         flac->total_samples = metadata->data.stream_info.total_samples;
     }
 
-    auxts_uint32 sample_size = flac->bit_depth == AUXTS_PCM_BIT_DEPTH_16 ?
-            sizeof(auxts_int16) : sizeof(auxts_int32);
+    auxts_uint32 sample_size = flac->bit_depth == AUXTS_PCM_BIT_DEPTH_16 ? sizeof(auxts_int16) : sizeof(auxts_int32);
 
-    size_t size = flac->channels * flac->total_samples * sample_size;
-
-    void* buf = malloc(size);
-    auxts_memory_stream_init(&flac->out_stream, buf, size);
+    flac->out_stream.size = sample_size * flac->total_samples * flac->channels;
 }
 
 void auxts_flac_decoder_error_callback(const FLAC__StreamDecoder *decoder,
@@ -122,3 +125,4 @@ void auxts_flac_decoder_error_callback(const FLAC__StreamDecoder *decoder,
 
     fprintf(stderr, "FLAC decoding error: %s\n", FLAC__StreamDecoderErrorStatusString[status]);
 }
+
