@@ -30,12 +30,22 @@ void auxts_flac_close(auxts_flac* flac);
 auxts_uint64 auxts_flac_read_pcm_s32(auxts_flac* flac, auxts_int32* data);
 auxts_uint64 auxts_flac_read_pcm_s16(auxts_flac* flac, auxts_int16* data);
 
-void auxts_flac_metadata_callback(const FLAC__StreamDecoder *decoder,
-                                  const FLAC__StreamMetadata *metadata,
-                                  void *client_data);
+
+void auxts_flac_decoder_metadata_callback(const FLAC__StreamDecoder *decoder,
+                                          const FLAC__StreamMetadata *metadata,
+                                          void *client_data);
+
+FLAC__StreamDecoderReadStatus auxts_flac_decoder_read_callback(const FLAC__StreamDecoder* decoder,
+                                                               FLAC__byte buffer[],
+                                                               size_t* bytes,
+                                                               void* client_data);
 
 FLAC__StreamDecoderWriteStatus auxts_flac_decoder_write_callback(const FLAC__StreamDecoder *decoder,
-                                                                 const FLAC__Frame *frame,
-                                                                 const FLAC__int32 *const buffer[],
-                                                                 void *client_data);
+                                                         const FLAC__Frame *frame,
+                                                         const FLAC__int32 *const buffer[],
+                                                         void *client_data);
+
+void auxts_flac_decoder_error_callback(const FLAC__StreamDecoder *decoder,
+                                       FLAC__StreamDecoderErrorStatus status,
+                                       void *client_data);
 #endif //AUXTS_FLAC0_H
