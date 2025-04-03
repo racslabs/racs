@@ -71,7 +71,7 @@ void process_sstable_data(auxts_flac_blocks* blocks, uint64_t stream_id, int64_t
     for (int j = 0; j < sstable->num_entries; ++j) {
         size_t offset = sstable->index_entries[j].offset;
 
-        auxts_memtable_entry* entry = auxts_memtable_read_entry(data, offset);
+        auxts_memtable_entry* entry = auxts_memtable_entry_read(data, offset);
         if (!entry) {
             return;
         }

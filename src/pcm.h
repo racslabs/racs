@@ -23,12 +23,12 @@ typedef struct {
     auxts_memory_stream memory_stream;
 } auxts_pcm;
 
-void auxts_pcm_init_s32(auxts_pcm* pcm, auxts_int32* buf, auxts_uint8 channels, auxts_uint32 sample_rate, size_t sample_count);
-void auxts_pcm_init_s16(auxts_pcm* pcm, auxts_int16* buf, auxts_uint8 channels, auxts_uint32 sample_rate, size_t sample_count);
+void auxts_pcm_init_s32(auxts_pcm* pcm, auxts_int32* out, auxts_uint8 channels, auxts_uint32 sample_rate, size_t sample_count);
+void auxts_pcm_init_s16(auxts_pcm* pcm, auxts_int16* out, auxts_uint8 channels, auxts_uint32 sample_rate, size_t sample_count);
 
-void auxts_pcm_write_s32i(auxts_pcm* pcm, const auxts_int32* samples, size_t sample_count);
-void auxts_pcm_write_s16i(auxts_pcm* pcm, const auxts_int16* samples, size_t sample_count);
-void auxts_pcm_write_s32p(auxts_pcm* pcm, const auxts_int32** samples, size_t sample_count);
-void auxts_pcm_write_s16p(auxts_pcm* pcm, const auxts_int16** samples, size_t sample_count);
+void auxts_pcm_write_s32i(auxts_pcm* pcm, const auxts_int32* in, size_t sample_count);
+void auxts_pcm_write_s16i(auxts_pcm* pcm, const auxts_int16* in, size_t sample_count);
+void auxts_pcm_write_s32p(auxts_pcm* pcm, const auxts_int32** in, size_t sample_count);
+void auxts_pcm_write_s16p(auxts_pcm* pcm, const auxts_int16** in, size_t sample_count);
 
 #endif //AUXTS_PCM_H

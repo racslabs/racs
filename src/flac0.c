@@ -5,16 +5,16 @@ void auxts_flac_open(auxts_flac* flac, void* in, size_t size) {
     auxts_memory_stream_init(&flac->in_stream, in, size);
 }
 
-auxts_uint64 auxts_flac_read_pcm_s32(auxts_flac* flac, auxts_int32* in) {
-    return auxts_flac_read_pcm(flac, in);
+auxts_uint64 auxts_flac_read_pcm_s32(auxts_flac* flac, auxts_int32* out) {
+    return auxts_flac_read_pcm(flac, out);
 }
 
-auxts_uint64 auxts_flac_read_pcm_s16(auxts_flac* flac, auxts_int16* in) {
-    return auxts_flac_read_pcm(flac, in);
+auxts_uint64 auxts_flac_read_pcm_s16(auxts_flac* flac, auxts_int16* out) {
+    return auxts_flac_read_pcm(flac, out);
 }
 
-auxts_uint64 auxts_flac_read_pcm(auxts_flac* flac, void* in) {
-    flac->out_stream.data = in;
+auxts_uint64 auxts_flac_read_pcm(auxts_flac* flac, void* out) {
+    flac->out_stream.data = out;
 
     FLAC__stream_decoder_init_stream(flac->decoder,
                                      auxts_flac_decoder_read_callback,

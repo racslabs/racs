@@ -161,7 +161,7 @@ void auxts_sstable_destroy_except_data(auxts_sstable* sst) {
     free(sst);
 }
 
-auxts_memtable_entry* auxts_memtable_read_entry(uint8_t* buf, size_t offset) {
+auxts_memtable_entry* auxts_memtable_entry_read(uint8_t* buf, size_t offset) {
     auxts_memtable_entry* entry = malloc(sizeof(auxts_memtable_entry));
     if (!entry) {
         perror("Failed to allocate auxts_memtable_entry");
