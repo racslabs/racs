@@ -28,5 +28,6 @@ int auxts_metadata_put(const auxts_metadata* metadata, const char* stream_id);
 int auxts_metadata_get(auxts_metadata* metadata, const char* stream_id);
 int auxts_metadata_attr(const char* stream_id, const char* attr, uint64_t* value);
 int auxts_stream_id_exist(uint64_t stream_id);
+uint64_t auxts_hash_stream_id(const char* stream_id);
 
 #endif //AUXTS_METADATA_H

@@ -4,7 +4,6 @@ static off_t metadata_write(uint8_t buf[], const auxts_metadata* metadata);
 static off_t metadata_read(auxts_metadata* metadata, uint8_t buf[]);
 static int metadata_exist(const char* path);
 static int write_metadata_index(const char* stream_id);
-static uint64_t hash_stream_name(const char* stream_id);
 static int get_metadata_path(char* path, const char* stream_id);
 
 int auxts_metadata_attr(const char* stream_id, const char* attr, uint64_t* value) {
@@ -104,7 +103,7 @@ int metadata_exist(const char* path) {
 }
 
 int get_metadata_path(char* path, const char* stream_id) {
-    uint64_t hash = hash_stream_name(stream_id);
+    uint64_t hash = auxts_hash_stream_id(stream_id);
 
     sprintf(path, ".data/%llu", hash);
 
@@ -165,7 +164,7 @@ off_t metadata_write(uint8_t buf[], const auxts_metadata* metadata) {
     return offset;
 }
 
-uint64_t hash_stream_name(const char* stream_id) {
+uint64_t auxts_hash_stream_id(const char* stream_id) {
     uint64_t hash[2];
     murmur3_x64_128(stream_id, strlen(stream_id), 0, hash);
     return hash[0];
