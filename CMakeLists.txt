@@ -35,10 +35,6 @@ add_executable(auxts main.c
         src/memtable.c
         src/cache.h
         src/cache.c
-        src/extract.h
-        src/extract.c
-        src/flac.h
-        src/flac.c
         src/result.h
         src/result.c
         src/filelist.h
@@ -104,12 +100,12 @@ add_executable(auxts main.c
         src/stream.h
         src/stream.c
         src/pcm.c
-        src/flac0.h
-        src/flac0.c
+        src/flac.h
+        src/flac.c
         src/simd/pcm_simd.h
         src/simd/pcm_neon.c
-        src/extract0.h
-        src/extract0.c
+        src/extract.h
+        src/extract.c
 )
 
 target_link_libraries(auxts msgpack-c ${FLAC_LIBRARIES} ${GUILE_LIBRARIES})

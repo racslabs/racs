@@ -2,55 +2,48 @@
 #ifndef AUXTS_FLAC_H
 #define AUXTS_FLAC_H
 
-#include "export.h"
-#include <memory.h>
+#include <FLAC/stream_decoder.h>
+#include <FLAC/stream_encoder.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <FLAC/stream_decoder.h>
+#include "pcm.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#define AUXTS_INITIAL_FLAC_STREAM_CAPACITY 2
+/** this file is a wrapper of libFLAC */
 
 typedef struct {
-    uint8_t* data;
-    uint16_t size;
-    uint16_t offset;
-} auxts_flac_block;
+    auxts_uint8  channels;
+    auxts_uint8  bit_depth;
+    auxts_uint32 block_size;
+    auxts_uint32 samples_rate;
+    auxts_uint64 pcm_frame_count;
+    auxts_uint64 total_samples;
+    FLAC__StreamDecoder* decoder;
+    FLAC__StreamEncoder* encoder;
+    auxts_memory_stream in_stream;
+    auxts_memory_stream out_stream;
+} auxts_flac;
 
-typedef struct {
-    auxts_flac_block** blocks;
-    size_t num_blocks;
-    size_t capacity;
-} auxts_flac_blocks;
+auxts_uint64 auxts_flac_read_pcm(auxts_flac* flac, void* in, size_t size);
 
-typedef struct {
-    size_t num_samples;
-    size_t total_samples;
-    uint32_t channels;
-    uint32_t sample_rate;
-    uint32_t bit_depth;
-} auxts_pcm_block_info;
+int auxts_flac_decoder_write_pcm_s16(auxts_flac* flac, auxts_pcm* pcm, const auxts_int32** in, size_t n);
+int auxts_flac_decoder_write_pcm_s32(auxts_flac* flac, auxts_pcm* pcm, const auxts_int32** in, size_t n);
 
-typedef struct {
-    int32_t** data;
-    auxts_pcm_block_info info;
-} auxts_pcm_block;
+void auxts_flac_decoder_metadata_callback(const FLAC__StreamDecoder *decoder,
+                                          const FLAC__StreamMetadata *metadata,
+                                          void *client_data);
 
-typedef struct {
-    auxts_flac_block* flac;
-    auxts_pcm_block* pcm;
-} auxts_decoder_context;
+FLAC__StreamDecoderReadStatus auxts_flac_decoder_read_callback(const FLAC__StreamDecoder* decoder,
+                                                               FLAC__byte buffer[],
+                                                               size_t* bytes,
+                                                               void* client_data);
 
-auxts_pcm_block* auxts_decode_flac_block(auxts_flac_block* block);
-auxts_flac_blocks* auxts_flac_blocks_create();
-void auxts_flac_blocks_append(auxts_flac_blocks* blocks, uint8_t* block_data, uint16_t size);
-void auxts_flac_blocks_destroy(auxts_flac_blocks* blocks);
+FLAC__StreamDecoderWriteStatus auxts_flac_decoder_write_callback(const FLAC__StreamDecoder *decoder,
+                                                         const FLAC__Frame *frame,
+                                                         const FLAC__int32 *const buffer[],
+                                                         void *client_data);
 
-#ifdef __cplusplus
-}
-#endif
-
+void auxts_flac_decoder_error_callback(const FLAC__StreamDecoder *decoder,
+                                       FLAC__StreamDecoderErrorStatus status,
+                                       void *client_data);
 #endif //AUXTS_FLAC_H

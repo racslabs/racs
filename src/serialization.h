@@ -48,7 +48,6 @@ int auxts_serialize_i32v(msgpack_packer* pk, int32_t* data, size_t n);
 int auxts_serialize_u32v(msgpack_packer* pk, uint32_t* data, size_t n);
 int auxts_serialize_f32v(msgpack_packer* pk, float* data, size_t n);
 int auxts_serialize_c64v(msgpack_packer* pk, auxts_complex_t* data, size_t n);
-int auxts_serialize_pcm32(msgpack_packer* pk, const auxts_pcm_buffer* pbuf);
 void auxts_serialize_type(msgpack_packer* pk, int type);
 int auxts_serialize_invalid_num_args(msgpack_packer* pk, int expected, int actual);
 void auxts_deserialize_stream_id(uint64_t* stream_id, msgpack_object* obj, int arg_num);

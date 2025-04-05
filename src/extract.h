@@ -14,38 +14,16 @@
 #include "result.h"
 #include "context.h"
 #include "flac.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-extern const char* const auxts_extract_pcm_status_message[];
+#include "metadata.h"
 
 typedef enum {
-    AUXTS_EXTRACT_PCM_STATUS_OK,
-    AUXTS_EXTRACT_PCM_STATUS_NOT_FOUND
-} auxts_extract_pcm_status;
+    AUXTS_EXTRACT_STATUS_OK,
+    AUXTS_EXTRACT_STATUS_NOT_FOUND
+} auxts_extract_status;
 
-typedef struct {
-    size_t num_samples;
-    size_t max_num_samples;
-    uint32_t channels;
-    uint32_t sample_rate;
-    uint32_t bit_depth;
-} auxts_pcm_buffer_info;
+int auxts_extract_pcm(auxts_cache* cache, auxts_pcm* pcm, const char* stream_id, auxts_time from, auxts_time to);
+uint8_t* auxts_extract_data_from_cache_or_sstable(auxts_cache* cache, uint64_t stream_id, auxts_time time, const char* path);
+void auxts_extract_process_sstable_data(auxts_pcm* pcm, uint8_t* data, uint64_t stream_id, int64_t from, int64_t to);
 
-typedef struct {
-    int32_t** data;
-    auxts_pcm_buffer_info info;
-} auxts_pcm_buffer;
-
-int32_t* auxts_flatten_pcm_data(const auxts_pcm_buffer* pbuf);
-void auxts_pcm_buffer_destroy(auxts_pcm_buffer* pbuf);
-void auxts_pcm_buffer_init(auxts_pcm_buffer* pbuf, uint32_t channels, uint32_t sample_rate, uint32_t bit_depth);
-int auxts_extract_pcm_data(auxts_cache* cache, auxts_pcm_buffer* pbuf, uint64_t stream_id, int64_t from, int64_t to);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif //AUXTS_EXTRACT_H

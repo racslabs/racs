@@ -78,14 +78,6 @@ int auxts_serialize_bool(msgpack_packer* pk, bool d) {
     return AUXTS_STATUS_OK;
 }
 
-int auxts_serialize_pcm32(msgpack_packer* pk, const auxts_pcm_buffer* pbuf) {
-    int32_t* data = auxts_flatten_pcm_data(pbuf);
-    auxts_serialize_i32v(pk, data, pbuf->info.num_samples * pbuf->info.channels);
-    free(data);
-
-    return AUXTS_STATUS_OK;
-}
-
 int auxts_serialize_i8v(msgpack_packer* pk, int8_t* data, size_t n) {
     msgpack_pack_array(pk, 2);
 

@@ -1,214 +1,152 @@
 #include "flac.h"
 
-static FLAC__StreamDecoderReadStatus decode_read_callback(const FLAC__StreamDecoder* decoder, FLAC__byte buffer[], size_t* bytes, void* client_data);
-static FLAC__StreamDecoderWriteStatus decode_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame,
-                                                            const FLAC__int32 *const buffer[], void *client_data);
-static void decode_metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
-static void decode_error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
-static auxts_decoder_context* decoder_context_create(auxts_flac_block* block);
+auxts_uint64 auxts_flac_read_pcm(auxts_flac* flac, void* in, size_t size) {
+    memset(flac, 0, sizeof(auxts_flac));
+    auxts_memory_stream_init(&flac->in_stream, in, size);
 
-auxts_flac_blocks* auxts_flac_blocks_create() {
-    auxts_flac_blocks* blocks = malloc(sizeof(auxts_flac_blocks));
-    if (!blocks) {
-        perror("Failed to allocate auxts_flac_blocks");
-        return NULL;
-    }
+    flac->decoder = FLAC__stream_decoder_new();
 
-    blocks->capacity = AUXTS_INITIAL_FLAC_STREAM_CAPACITY;
-    blocks->num_blocks = 0;
+    FLAC__stream_decoder_init_stream(flac->decoder,
+                                     auxts_flac_decoder_read_callback,
+                                     NULL,
+                                     NULL,
+                                     NULL,
+                                     NULL,
+                                     auxts_flac_decoder_write_callback,
+                                     auxts_flac_decoder_metadata_callback,
+                                     auxts_flac_decoder_error_callback,
+                                     flac);
+    FLAC__stream_decoder_process_until_end_of_stream(flac->decoder);
+    FLAC__stream_decoder_delete(flac->decoder);
 
-    blocks->blocks = malloc(blocks->capacity * sizeof(auxts_flac_block));
-    if (!blocks->blocks) {
-        perror("Failed to allocate blocks to auxts_flac_blocks");
-        auxts_flac_blocks_destroy(blocks);
-        return NULL;
-    }
-
-    return blocks;
+    return flac->out_stream.current_pos;
 }
 
-auxts_pcm_block* auxts_decode_flac_block(auxts_flac_block* block) {
-    if (!block) {
-        return NULL;
-    }
-
-    FLAC__StreamDecoder* decoder = FLAC__stream_decoder_new();
-    if (!decoder) {
-        perror("Failed to allocate FLAC__StreamDecoder");
-        return NULL;
-    }
-
-    auxts_decoder_context* ctx = decoder_context_create(block);
-    if (!ctx) {
-        return NULL;
-    }
-
-    FLAC__stream_decoder_init_stream(decoder, decode_read_callback, NULL, NULL, NULL, NULL, decode_write_callback,
-                                     decode_metadata_callback, decode_error_callback, ctx);
-    FLAC__stream_decoder_process_until_end_of_stream(decoder);
-    FLAC__stream_decoder_delete(decoder);
-
-    auxts_pcm_block* pcm = ctx->pcm;
-    free(ctx);
-
-    return pcm;
-}
-
-void auxts_flac_blocks_append(auxts_flac_blocks* blocks, uint8_t* block_data, uint16_t size) {
-    if (!blocks) {
-        return;
-    }
-
-    if (blocks->num_blocks == blocks->capacity) {
-        blocks->capacity *= 2;
-
-        auxts_flac_block** new_blocks = realloc(blocks->blocks, blocks->capacity * sizeof(auxts_flac_block));
-        if (!new_blocks) {
-            perror("Error reallocating blocks to auxts_flac_blocks");
-            return;
-        }
-
-        blocks->blocks = new_blocks;
-    }
-
-    auxts_flac_block* block = malloc(sizeof(auxts_flac_block));
-    if (!block) {
-        perror("Failed to allocate auxts_flac_block");
-        return;
-    }
-
-    block->data = block_data;
-    block->size = size;
-
-    blocks->blocks[blocks->num_blocks] = block;
-    ++blocks->num_blocks;
-}
-
-void auxts_flac_blocks_destroy(auxts_flac_blocks* blocks) {
-    for (int i = 0; i < blocks->num_blocks; ++i) {
-        auxts_flac_block* block = blocks->blocks[i];
-        free(block->data);
-        free(block);
-    }
-
-    free(blocks->blocks);
-    free(blocks);
-}
-
-void decode_metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data) {
+FLAC__StreamDecoderReadStatus auxts_flac_decoder_read_callback(const FLAC__StreamDecoder* decoder,
+                                                               FLAC__byte buffer[],
+                                                               size_t* bytes,
+                                                               void* client_data) {
     (void)decoder;
 
-    if (!client_data) {
-        perror("auxts_decoder_context cannot be null");
-        return;
-    }
-
-    auxts_pcm_block *block = ((auxts_decoder_context*) client_data)->pcm;
-    if (!block) {
-        perror("auxts_pcm_block cannot be null");
-        return;
-    }
-
-    if (metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
-        block->info.channels = metadata->data.stream_info.channels;
-        block->info.bit_depth = metadata->data.stream_info.bits_per_sample;
-        block->info.sample_rate = metadata->data.stream_info.sample_rate;
-        block->info.total_samples = metadata->data.stream_info.total_samples;
-
-        block->data = malloc(block->info.channels * sizeof(int32_t*));
-        if (!block->data) {
-            perror("Failed to allocate data to auxts_pcm_block");
-            return;
-        }
-
-        for (int channel = 0; channel < block->info.channels; ++channel) {
-            block->data[channel] = malloc(block->info.total_samples * sizeof(int32_t));
-        }
-    }
-}
-
-FLAC__StreamDecoderReadStatus decode_read_callback(const FLAC__StreamDecoder* decoder, FLAC__byte buffer[], size_t* bytes, void* client_data) {
-    (void)decoder;
-
-    if (!client_data) {
-        perror("auxts_decoder_context cannot be null");
-        return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
-    }
-
-    auxts_flac_block* block = ((auxts_decoder_context*) client_data)->flac;
-    if (!block) {
+    auxts_flac* flac = (auxts_flac*)client_data;
+    if (!flac) {
         perror("auxts_flac_block cannot be null");
         return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
     }
 
-    if (*bytes > block->size - block->offset) {
-        *bytes = block->size - block->offset;
+    if (*bytes > flac->in_stream.size - flac->in_stream.current_pos) {
+        *bytes = flac->in_stream.size - flac->in_stream.current_pos;
     }
 
-    if (*bytes == 0) {
+    if (*bytes == 0)
         return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
-    }
 
-    memcpy(buffer, block->data + block->offset, *bytes);
-    block->offset += *bytes;
+    memcpy(buffer, flac->in_stream.data + flac->in_stream.current_pos, *bytes);
+    flac->in_stream.current_pos += *bytes;
 
     return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
 }
 
-FLAC__StreamDecoderWriteStatus decode_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame,
-                                                     const FLAC__int32 *const buffer[], void *client_data) {
-    (void)decoder;
+int auxts_flac_decoder_write_pcm_s16(auxts_flac* flac, auxts_pcm* pcm, const auxts_int32** in, size_t n) {
+    auxts_int16* buf1 = malloc(n * pcm->channels * sizeof(auxts_int16));
 
-    if (!client_data) {
-        perror("auxts_decoder_context cannot be null");
-        return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+    for (int channel = 0; channel < pcm->channels; ++channel) {
+        auxts_simd_extract_s16(in[channel], buf1 + n * channel, n);
     }
 
-    auxts_pcm_block* block = ((auxts_decoder_context*) client_data)->pcm;
-    if (!block) {
-        perror("auxts_pcm_block cannot be null");
-        return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+    if (pcm->channels == AUXTS_PCM_CHANNELS_STEREO) {
+        auxts_int16* buf2 = malloc(n * pcm->channels * sizeof(auxts_int16));
+
+        auxts_simd_interleave_s16(buf1, buf1 + n, buf2, n);
+        auxts_pcm_write_s16i(pcm, buf2, n);
+
+        free(buf2);
     }
 
-    uint32_t block_size = frame->header.blocksize;
-    if (block_size + block->info.num_samples >= block->info.total_samples) {
-        return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
-    }
+    free(buf1);
 
-    for (int channel = 0; channel < block->info.channels; ++channel) {
-        memcpy(block->data[channel] + block->info.num_samples, buffer[channel], block_size * sizeof(int32_t));
-    }
-
-    block->info.num_samples += block_size;
-
+    flac->out_stream = pcm->memory_stream;
     return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 
-void decode_error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data) {
+int auxts_flac_decoder_write_pcm_s32(auxts_flac* flac, auxts_pcm* pcm, const auxts_int32** in, size_t n) {
+    auxts_pcm_write_s32p(pcm, in, n);
+
+    flac->out_stream = pcm->memory_stream;
+    return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
+}
+
+FLAC__StreamDecoderWriteStatus auxts_flac_decoder_write_callback(const FLAC__StreamDecoder *decoder,
+                                                                 const FLAC__Frame *frame,
+                                                                 const FLAC__int32 *const buffer[],
+                                                                 void *client_data) {
+    (void)decoder;
+
+    auxts_flac* flac = (auxts_flac*)client_data;
+    if (!flac) {
+        perror("auxts_flac cannot be null");
+        return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+    }
+
+    auxts_uint32 block_size = frame->header.blocksize;
+    auxts_uint32 sample_size = flac->bit_depth == AUXTS_PCM_BIT_DEPTH_16 ? sizeof(auxts_int16) : sizeof(auxts_int32);
+
+    size_t bytes = block_size * sample_size * flac->channels;
+    if (bytes + flac->out_stream.current_pos > flac->total_samples)
+        return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+
+    auxts_pcm pcm;
+
+
+    if (flac->bit_depth == AUXTS_PCM_BIT_DEPTH_16) {
+        auxts_pcm_init_s16(&pcm, flac->channels, flac->samples_rate);
+        return auxts_flac_decoder_write_pcm_s16(flac, &pcm, buffer, block_size);
+    }
+
+    if (flac->bit_depth == AUXTS_PCM_BIT_DEPTH_24) {
+        auxts_pcm_init_s32(&pcm, flac->channels, flac->samples_rate);
+        return auxts_flac_decoder_write_pcm_s32(flac, &pcm, buffer, block_size);
+    }
+
+    return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+}
+
+void auxts_flac_decoder_metadata_callback(const FLAC__StreamDecoder *decoder,
+                                          const FLAC__StreamMetadata *metadata,
+                                          void *client_data) {
+    (void)decoder;
+
+    auxts_flac* flac = (auxts_flac*)client_data;
+    if (!flac) {
+        perror("auxts_flac cannot be null");
+        return;
+    }
+
+    if (metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
+        flac->channels      = metadata->data.stream_info.channels;
+        flac->bit_depth     = metadata->data.stream_info.bits_per_sample;
+        flac->samples_rate  = metadata->data.stream_info.sample_rate;
+        flac->total_samples = metadata->data.stream_info.total_samples;
+    }
+
+    auxts_uint32 sample_size = flac->bit_depth == AUXTS_PCM_BIT_DEPTH_16 ? sizeof(auxts_int16) : sizeof(auxts_int32);
+    size_t size = sample_size * flac->total_samples * flac->channels;
+
+    void* out = malloc(size);
+    if (!out) {
+        perror("Failed to allocate data to auxts_flac");
+        return;
+    }
+
+    auxts_memory_stream_init(&flac->out_stream, out, size);
+}
+
+void auxts_flac_decoder_error_callback(const FLAC__StreamDecoder *decoder,
+                                       FLAC__StreamDecoderErrorStatus status,
+                                       void *client_data) {
     (void)decoder;
     (void)client_data;
 
     fprintf(stderr, "FLAC decoding error: %s\n", FLAC__StreamDecoderErrorStatusString[status]);
 }
 
-auxts_decoder_context* decoder_context_create(auxts_flac_block* block) {
-    auxts_decoder_context* ctx = malloc(sizeof(auxts_decoder_context));
-    if (!ctx) {
-        perror("Error allocating auxts_decoder_context");
-        return NULL;
-    }
-
-    ctx->flac = block;
-    ctx->pcm = malloc(sizeof(auxts_pcm_block));
-    if (!ctx->pcm) {
-        perror("Error allocating auxts_pcm_block");
-        free(ctx);
-        return NULL;
-    }
-
-    ctx->pcm->info.channels = 0;
-    ctx->pcm->info.bit_depth = 0;
-    ctx->pcm->info.num_samples = 0;
-
-    return ctx;
-}
