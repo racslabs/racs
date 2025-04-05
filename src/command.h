@@ -6,6 +6,7 @@
 #include "scm.h"
 #include "serialization.h"
 #include "create.h"
+#include "extract0.h"
 
 typedef enum {
     AUXTS_STATUS_OK,

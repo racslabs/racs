@@ -114,21 +114,21 @@ auxts_create_command(extract) {
     auxts_validate_arg_type(&pk, msg, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: time")
     auxts_validate_arg_type(&pk, msg, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: time")
 
-    uint64_t stream_id;
-    auxts_deserialize_stream_id(&stream_id, &msg.data, 0);
-
     int64_t from = auxts_deserialize_int64(&msg.data, 1);
     int64_t to = auxts_deserialize_int64(&msg.data, 2);
 
+    char* stream_id = auxts_deserialize_str(&msg.data, 0);
 
-    auxts_pcm_buffer pbuf;
-    int rc = auxts_extract_pcm_data(ctx->cache, &pbuf, stream_id, from, to);
+    auxts_pcm pcm;
+    auxts_extract_pcm(ctx->cache, &pcm, stream_id, from, to);
 
-    if (rc == AUXTS_EXTRACT_PCM_STATUS_OK)
-        return auxts_serialize_pcm32(&pk, &pbuf);
+    if (pcm.bit_depth == AUXTS_PCM_BIT_DEPTH_16) {
+        return auxts_serialize_i16v(&pk, (auxts_int16*)pcm.memory_stream.data, pcm.memory_stream.size);
+    }
 
-    if (rc == AUXTS_EXTRACT_PCM_STATUS_NOT_FOUND)
-        return auxts_serialize_null_with_status_not_found(&pk);
+    if (pcm.bit_depth == AUXTS_PCM_BIT_DEPTH_24) {
+        return auxts_serialize_i32v(&pk, (auxts_int32*)pcm.memory_stream.data, pcm.memory_stream.size);
+    }
 
     return auxts_serialize_error(&pk, "Cause unknown");
 }

@@ -12,10 +12,10 @@ void auxts_memory_stream_init(auxts_memory_stream* stream, void* data, size_t si
 }
 
 int auxts_memory_stream_write(auxts_memory_stream* stream, const void* data, size_t size) {
-    size_t required_size = stream->current_pos + size;
+    size_t pos = stream->current_pos + size;
 
-    if (required_size > stream->size) {
-        size_t new_size = auxts_max(required_size, stream->size * 2);
+    if (pos > stream->size) {
+        size_t new_size = auxts_max(pos, stream->size * 2);
 
         auxts_uint8* new_data = realloc(stream->data, new_size);
         if (!new_data) {
@@ -28,7 +28,8 @@ int auxts_memory_stream_write(auxts_memory_stream* stream, const void* data, siz
     }
 
     memcpy(stream->data + stream->current_pos, data, size);
-    stream->current_pos = required_size;
+    stream->current_pos += size;
 
     return AUXTS_MEMORY_STREAM_CONTINUE;
 }
+
