@@ -78,3 +78,6 @@ void auxts_pcm_write_s16p(auxts_pcm* pcm, const auxts_int16** in, size_t sample_
     }
 }
 
+void auxts_pcm_destroy(auxts_pcm* pcm) {
+    free(pcm->memory_stream.data);
+}

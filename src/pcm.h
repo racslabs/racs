@@ -31,4 +31,6 @@ void auxts_pcm_write_s16i(auxts_pcm* pcm, const auxts_int16* in, size_t sample_c
 void auxts_pcm_write_s32p(auxts_pcm* pcm, const auxts_int32** in, size_t sample_count);
 void auxts_pcm_write_s16p(auxts_pcm* pcm, const auxts_int16** in, size_t sample_count);
 
+void auxts_pcm_destroy(auxts_pcm* pcm);
+
 #endif //AUXTS_PCM_H

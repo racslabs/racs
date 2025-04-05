@@ -5,7 +5,10 @@ int auxts_extract_pcm(auxts_cache* cache, auxts_pcm* pcm, const char* stream_id,
     auxts_filelist* list = get_sorted_filelist(path);
 
     auxts_metadata metadata;
-    auxts_metadata_get(&metadata, stream_id);
+    int rc = auxts_metadata_get(&metadata, stream_id);
+    if (rc == AUXTS_METADATA_STATUS_NOT_FOUND) {
+        return AUXTS_EXTRACT_STATUS_NOT_FOUND;
+    }
 
     if (metadata.bit_depth == AUXTS_PCM_BIT_DEPTH_16) {
         auxts_pcm_init_s16(pcm, metadata.channels, metadata.channels);
@@ -66,19 +69,18 @@ void auxts_extract_process_sstable_data(auxts_pcm* pcm, uint8_t* data, uint64_t 
 
         auxts_time time = (auxts_time)entry->key[1];
         if (entry->key[0] == stream_id && time >= from && time <= to) {
-
             auxts_flac flac;
             auxts_flac_read_pcm(&flac, entry->block, entry->block_size);
 
             if (pcm->bit_depth == AUXTS_PCM_BIT_DEPTH_16) {
                 auxts_pcm_write_s16i(pcm, (auxts_int16*)flac.out_stream.data, flac.total_samples);
-                continue;
             }
 
             if (pcm->bit_depth == AUXTS_PCM_BIT_DEPTH_24) {
                 auxts_pcm_write_s32i(pcm, (auxts_int32*)flac.out_stream.data, flac.total_samples);
-                continue;
             }
+
+            auxts_flac_destroy(&flac);
         } else {
             free(entry->block);
         }

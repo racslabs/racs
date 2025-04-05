@@ -114,21 +114,30 @@ auxts_create_command(extract) {
     auxts_validate_arg_type(&pk, msg, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: time")
     auxts_validate_arg_type(&pk, msg, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: time")
 
+    char* stream_id = auxts_deserialize_str(&msg.data, 0);
     int64_t from = auxts_deserialize_int64(&msg.data, 1);
     int64_t to = auxts_deserialize_int64(&msg.data, 2);
 
-    char* stream_id = auxts_deserialize_str(&msg.data, 0);
-
     auxts_pcm pcm;
-    auxts_extract_pcm(ctx->cache, &pcm, stream_id, from, to);
+
+    int rc = auxts_extract_pcm(ctx->cache, &pcm, stream_id, from, to);
+    if (rc == AUXTS_EXTRACT_STATUS_NOT_FOUND) {
+        return auxts_serialize_error(&pk, "The stream-id does not exist");
+    }
 
     if (pcm.bit_depth == AUXTS_PCM_BIT_DEPTH_16) {
-        return auxts_serialize_i16v(&pk, (auxts_int16*)pcm.memory_stream.data, pcm.memory_stream.size);
+        rc = auxts_serialize_i16v(&pk, (auxts_int16*)pcm.memory_stream.data, pcm.memory_stream.current_pos);
+        auxts_pcm_destroy(&pcm);
+
+        return rc;
     }
 
     if (pcm.bit_depth == AUXTS_PCM_BIT_DEPTH_24) {
-        return auxts_serialize_i32v(&pk, (auxts_int32*)pcm.memory_stream.data, pcm.memory_stream.size);
+        rc = auxts_serialize_i32v(&pk, (auxts_int32*)pcm.memory_stream.data, pcm.memory_stream.current_pos);
+        auxts_pcm_destroy(&pcm);
+
+        return rc;
     }
 
-    return auxts_serialize_error(&pk, "Cause unknown");
+    return auxts_serialize_error(&pk, "Invalid bit-depth");
 }

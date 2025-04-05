@@ -22,6 +22,10 @@ auxts_uint64 auxts_flac_read_pcm(auxts_flac* flac, void* in, size_t size) {
     return flac->out_stream.current_pos;
 }
 
+void auxts_flac_destroy(auxts_flac* flac) {
+    free(flac->out_stream.data);
+}
+
 FLAC__StreamDecoderReadStatus auxts_flac_decoder_read_callback(const FLAC__StreamDecoder* decoder,
                                                                FLAC__byte buffer[],
                                                                size_t* bytes,

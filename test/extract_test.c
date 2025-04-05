@@ -30,7 +30,8 @@ void test_extract_no_data() {
 
     msgpack_object obj = msg.data;
 
-    msgpack_str_assert("null", &obj.via.array.ptr[0].via.str);
+    msgpack_str_assert("i16v", &obj.via.array.ptr[0].via.str);
+    assert(obj.via.array.ptr[1].via.bin.size == 0);
 
     msgpack_unpacked_destroy(&msg);
     auxts_result_destroy(&res);

@@ -25,6 +25,7 @@ typedef struct {
 } auxts_flac;
 
 auxts_uint64 auxts_flac_read_pcm(auxts_flac* flac, void* in, size_t size);
+void auxts_flac_destroy(auxts_flac* flac);
 
 int auxts_flac_decoder_write_pcm_s16(auxts_flac* flac, auxts_pcm* pcm, const auxts_int32** in, size_t n);
 int auxts_flac_decoder_write_pcm_s32(auxts_flac* flac, auxts_pcm* pcm, const auxts_int32** in, size_t n);
