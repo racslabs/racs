@@ -106,6 +106,8 @@ add_executable(auxts main.c
         src/simd/pcm_neon.c
         src/extract.h
         src/extract.c
+        test/flac_test.h
+        test/flac_test.c
 )
 
 target_link_libraries(auxts msgpack-c ${FLAC_LIBRARIES} ${GUILE_LIBRARIES})
@@ -137,3 +139,4 @@ add_test(test_scm_int auxts "--test" "test_scm_int")
 add_test(test_scm_list auxts "--test" "test_scm_list")
 add_test(test_scm_metadata auxts "--test" "test_scm_metadata")
 add_test(test_simd_interleave auxts "--test" "test_simd_interleave")
+add_test(test_flac auxts "--test" "test_flac")

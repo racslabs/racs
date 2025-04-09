@@ -14,6 +14,7 @@
 typedef struct {
     auxts_uint8  channels;
     auxts_uint8  bit_depth;
+    auxts_uint8  compression_level;
     auxts_uint32 block_size;
     auxts_uint32 samples_rate;
     auxts_uint64 pcm_frame_count;
@@ -24,6 +25,9 @@ typedef struct {
     auxts_memory_stream out_stream;
 } auxts_flac;
 
+auxts_uint64 auxts_flac_write_pcm_s16(auxts_flac* flac, auxts_int16* in, size_t samples);
+auxts_uint64 auxts_flac_write_pcm_s32(auxts_flac* flac, auxts_int32* in, size_t samples);
+
 auxts_uint64 auxts_flac_read_pcm(auxts_flac* flac, void* in, size_t size);
 void auxts_flac_destroy(auxts_flac* flac);
 
@@ -33,6 +37,13 @@ int auxts_flac_decoder_write_pcm_s32(auxts_flac* flac, auxts_pcm* pcm, const aux
 void auxts_flac_decoder_metadata_callback(const FLAC__StreamDecoder *decoder,
                                           const FLAC__StreamMetadata *metadata,
                                           void *client_data);
+
+FLAC__StreamEncoderWriteStatus auxts_flac_encoder_write_callback(const FLAC__StreamEncoder *encoder,
+                                                                 const FLAC__byte buffer[],
+                                                                 size_t bytes,
+                                                                 unsigned samples,
+                                                                 unsigned current_frame,
+                                                                 void *client_data);
 
 FLAC__StreamDecoderReadStatus auxts_flac_decoder_read_callback(const FLAC__StreamDecoder* decoder,
                                                                FLAC__byte buffer[],

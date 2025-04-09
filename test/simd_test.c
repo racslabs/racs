@@ -34,9 +34,19 @@ void test_simd_interleave() {
     auxts_int32 p[4] = {32767, -32767, 32767, -32767};
     auxts_int16 q[4];
 
-    auxts_simd_extract_s16(p, q, 4);
+    auxts_simd_s32_s16(p, q, 4);
     assert(q[0] == 32767);
     assert(q[1] == -32767);
     assert(q[2] == 32767);
     assert(q[3] == -32767);
+
+    auxts_int16 j[4] = {32767, -32767, 32767, -32767};
+    auxts_int32 k[4];
+
+    auxts_simd_s16_s32(j, k, 4);
+    assert(k[0] == 32767);
+    assert(k[1] == -32767);
+    assert(k[2] == 32767);
+    assert(k[3] == -32767);
+
 }
