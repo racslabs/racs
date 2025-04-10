@@ -13,6 +13,8 @@ int auxts_extract_pcm(auxts_cache* cache, auxts_pcm* pcm, const char* stream_id,
     auxts_pcm_init(pcm, metadata.channels, metadata.bit_depth, metadata.sample_rate);
     auxts_uint64 hash = auxts_hash_stream_id(stream_id);
 
+    printf("samples %hu\n", pcm->channels);
+
     for (int i = 0; i < list->num_files; ++i) {
         char* file_path = list->files[i];
 
@@ -62,6 +64,7 @@ void auxts_extract_process_sstable_data(auxts_pcm* pcm, uint8_t* data, uint64_t 
 
         auxts_time time = (auxts_time)entry->key[1];
         if (entry->key[0] == stream_id && time >= from && time <= to) {
+            printf("size %d\n", entry->block_size);
             size_t samples = entry->block_size / (pcm->channels * pcm->bit_depth/8);
             auxts_pcm_write(pcm, entry->block, samples);
         } else {

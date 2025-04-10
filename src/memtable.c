@@ -1,6 +1,6 @@
 #include "memtable.h"
 
-static void memtable_append(auxts_memtable* mt, uint64_t* key, uint8_t* block, int block_size);
+static void memtable_append(auxts_memtable* mt, uint64_t* key, uint8_t* block, uint16_t block_size);
 static void memtable_flush(auxts_memtable* mt);
 static void memtable_destroy(auxts_memtable* mt);
 static void sstable_read_index_entries(auxts_sstable* sst);
@@ -43,7 +43,7 @@ auxts_multi_memtable* auxts_multi_memtable_create(int num_tables, int capacity) 
     return mmt;
 }
 
-void auxts_multi_memtable_append(auxts_multi_memtable* mmt, uint64_t* key, uint8_t* block, int block_size) {
+void auxts_multi_memtable_append(auxts_multi_memtable* mmt, uint64_t* key, uint8_t* block, uint16_t block_size) {
     if (!mmt) return;
 
     auxts_memtable* mt = mmt->tables[mmt->index];
@@ -208,7 +208,7 @@ auxts_memtable* memtable_create(int capacity) {
     return mt;
 }
 
-void memtable_append(auxts_memtable* mt, uint64_t* key, uint8_t* block, int block_size) {
+void memtable_append(auxts_memtable* mt, uint64_t* key, uint8_t* block, uint16_t block_size) {
     if (!mt) return;
 
     pthread_mutex_lock(&mt->mutex);

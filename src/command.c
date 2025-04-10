@@ -126,7 +126,7 @@ auxts_create_command(extract) {
     }
 
     if (pcm.bit_depth == AUXTS_PCM_16) {
-        rc = auxts_serialize_i16v(&pk, (auxts_int16*)pcm.memory_stream.data, pcm.memory_stream.current_pos);
+        rc = auxts_serialize_i16v(&pk, (auxts_int16*)pcm.memory_stream.data, pcm.samples * pcm.channels);
         auxts_pcm_destroy(&pcm);
 
         return rc;

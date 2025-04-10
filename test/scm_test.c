@@ -7,8 +7,7 @@ void test_scm_extract() {
     auxts_db* db = auxts_db_instance();
     auxts_db_open(db);
 
-    auxts_result res = auxts_db_exec(db,
-                                     "EVAL '(extract \"test\" \"2025-02-09T22:51:52.213Z\" \"2025-02-09T22:51:52.215Z\")'");
+    auxts_result res = auxts_db_exec(db, "EVAL '(extract \"test\" \"2025-02-09T22:51:52.213Z\" \"2025-02-09T22:51:52.215Z\")'");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
@@ -17,7 +16,7 @@ void test_scm_extract() {
     msgpack_object obj = msg.data;
 
     msgpack_str_assert("i32v", &obj.via.array.ptr[0].via.str);
-    assert(obj.via.array.ptr[1].via.bin.size == 1059248);
+    assert(obj.via.array.ptr[1].via.bin.size == 44100*4);
 
     msgpack_unpacked_destroy(&msg);
     auxts_result_destroy(&res);

@@ -5,10 +5,10 @@ void test_multi_memtable() {
 
     auxts_multi_memtable* mmt = auxts_multi_memtable_create(2, 2);
 
-    uint8_t* flac_data1 = read_file("../test/data/data-1.flac", &size1);
-    uint8_t* flac_data2 = read_file("../test/data/data-2.flac", &size2);
-    uint8_t* flac_data3 = read_file("../test/data/data-3.flac", &size3);
-    uint8_t* flac_data4 = read_file("../test/data/data-4.flac", &size4);
+    uint8_t* flac_data1 = read_file("../test/data/data-1.pcm", &size1);
+    uint8_t* flac_data2 = read_file("../test/data/data-2.pcm", &size2);
+    uint8_t* flac_data3 = read_file("../test/data/data-3.pcm", &size3);
+    uint8_t* flac_data4 = read_file("../test/data/data-4.pcm", &size4);
 
     uint64_t key[2];
     murmur3_x64_128((uint8_t*)"test", strlen("test"), 0, key);

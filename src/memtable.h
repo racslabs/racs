@@ -67,7 +67,7 @@ typedef struct {
 } auxts_multi_memtable;
 
 auxts_multi_memtable* auxts_multi_memtable_create(int num_tables, int capacity);
-void auxts_multi_memtable_append(auxts_multi_memtable* mmt, uint64_t* key, uint8_t* block, int block_size);
+void auxts_multi_memtable_append(auxts_multi_memtable* mmt, uint64_t* key, uint8_t* block, uint16_t block_size);
 void auxts_multi_memtable_destroy(auxts_multi_memtable* mmt);
 void auxts_multi_memtable_flush(auxts_multi_memtable* mmt);
 auxts_sstable* auxts_sstable_read(const char* filename);
