@@ -141,11 +141,11 @@ int auxts_serialize_f32v(msgpack_packer* pk, float* data, size_t n) {
     return AUXTS_STATUS_OK;
 }
 
-int auxts_serialize_c64v(msgpack_packer* pk, auxts_complex_t* data, size_t n) {
+int auxts_serialize_c64v(msgpack_packer* pk, auxts_complex* data, size_t n) {
     msgpack_pack_array(pk, 2);
 
     auxts_serialize_type(pk, AUXTS_TYPE_C64VEC);
-    msgpack_pack_bin_with_body(pk, data, n * sizeof(auxts_complex_t));
+    msgpack_pack_bin_with_body(pk, data, n * sizeof(auxts_complex));
 
     return AUXTS_STATUS_OK;
 }

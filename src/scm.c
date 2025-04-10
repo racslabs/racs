@@ -92,7 +92,7 @@ int auxts_scm_serialize_c32vector(msgpack_packer* pk, SCM v) {
     size_t n;
 
     const float* data = scm_c32vector_elements(v, &handle, &n, NULL);
-    auxts_serialize_c64v(pk, (auxts_complex_t*)data, n);
+    auxts_serialize_c64v(pk, (auxts_complex*)data, n);
     scm_array_handle_release (&handle);
 
     return AUXTS_STATUS_OK;

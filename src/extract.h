@@ -13,7 +13,7 @@
 #include "filelist.h"
 #include "result.h"
 #include "context.h"
-#include "flac.h"
+#include "pcm.h"
 #include "metadata.h"
 
 typedef enum {

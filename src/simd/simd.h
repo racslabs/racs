@@ -15,4 +15,9 @@
 #warning "SIMD instructions not found."
 #endif
 
+#if defined(__GNUG__) || defined(__GNUC__)
+#define AUXTS_DO_PRAGMA(x) _Pragma(#x)
+#define AUXTS_UNROLL(N) AUXTS_DO_PRAGMA(GCC unroll N)
+#endif
+
 #endif //AUXTS_SIMD_H

@@ -125,16 +125,22 @@ auxts_create_command(extract) {
         return auxts_serialize_error(&pk, "The stream-id does not exist");
     }
 
-    if (pcm.bit_depth == AUXTS_PCM_BIT_DEPTH_16) {
+    if (pcm.bit_depth == AUXTS_PCM_16) {
         rc = auxts_serialize_i16v(&pk, (auxts_int16*)pcm.memory_stream.data, pcm.memory_stream.current_pos);
         auxts_pcm_destroy(&pcm);
 
         return rc;
     }
 
-    if (pcm.bit_depth == AUXTS_PCM_BIT_DEPTH_24) {
-        rc = auxts_serialize_i32v(&pk, (auxts_int32*)pcm.memory_stream.data, pcm.memory_stream.current_pos);
+    if (pcm.bit_depth == AUXTS_PCM_24) {
+        size_t size = pcm.channels * pcm.samples * sizeof(auxts_int32);
+        auxts_int32* out = malloc(size);
+
+        auxts_simd_s24_s32((auxts_int24*)pcm.memory_stream.data, out, pcm.samples * pcm.channels);
+        rc = auxts_serialize_i32v(&pk, out, size);
+
         auxts_pcm_destroy(&pcm);
+        free(out);
 
         return rc;
     }

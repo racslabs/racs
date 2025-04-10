@@ -5,11 +5,10 @@ set(CMAKE_C_STANDARD 17)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-find_package(FLAC REQUIRED)
 find_package(Guile REQUIRED)
 find_package(msgpack-c REQUIRED)
 
-include_directories(${FLAC_INCLUDE_DIR} ${GUILE_INCLUDE_DIRS} ${msgpack-c_INCLUDE_DIRS})
+include_directories(${GUILE_INCLUDE_DIRS} ${msgpack-c_INCLUDE_DIRS})
 
 option(AUXTS_AVX2_CMAKE_BUILD "AVX2 CMake build" OFF)
 option(AUXTS_NEON8_CMAKE_BUILD "NEON8 CMake build" ON)
@@ -100,17 +99,14 @@ add_executable(auxts main.c
         src/stream.h
         src/stream.c
         src/pcm.c
-        src/flac.h
-        src/flac.c
         src/simd/pcm_simd.h
         src/simd/pcm_neon.c
         src/extract.h
         src/extract.c
-        test/flac_test.h
-        test/flac_test.c
+        src/simd/pcm_simd.c
 )
 
-target_link_libraries(auxts msgpack-c ${FLAC_LIBRARIES} ${GUILE_LIBRARIES})
+target_link_libraries(auxts msgpack-c ${GUILE_LIBRARIES})
 
 enable_testing()
 
@@ -139,4 +135,3 @@ add_test(test_scm_int auxts "--test" "test_scm_int")
 add_test(test_scm_list auxts "--test" "test_scm_list")
 add_test(test_scm_metadata auxts "--test" "test_scm_metadata")
 add_test(test_simd_interleave auxts "--test" "test_simd_interleave")
-add_test(test_flac auxts "--test" "test_flac")
