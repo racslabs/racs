@@ -6,11 +6,6 @@
 #include "simd/pcm_simd.h"
 
 typedef enum {
-    AUXTS_PCM_CHANNELS_MONO   = 1,
-    AUXTS_PCM_CHANNELS_STEREO = 2
-} auxts_pcm_channels;
-
-typedef enum {
     AUXTS_PCM_16 = 16,
     AUXTS_PCM_24 = 24
 } auxts_pcm_bit_depth;
@@ -27,6 +22,7 @@ void auxts_pcm_init(auxts_pcm* pcm, auxts_uint8 channels, auxts_uint8 bit_depth,
 
 void auxts_pcm_write_s24(auxts_pcm* pcm, const auxts_int24* in, size_t samples);
 void auxts_pcm_write_s16(auxts_pcm* pcm, const auxts_int16* in, size_t samples);
+void auxts_pcm_write(auxts_pcm* pcm, const void* in, size_t samples);
 
 void auxts_pcm_destroy(auxts_pcm* pcm);
 
