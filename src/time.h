@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include "export.h"
 #include "filelist.h"
-#include "type.h"
+#include "types.h"
 
 #ifdef __cplusplus
 extern "C" {

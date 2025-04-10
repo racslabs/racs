@@ -95,7 +95,7 @@ add_executable(auxts main.c
         src/atsp.h
         src/atsp.c
         src/pcm.h
-        src/type.h
+        src/types.h
         src/stream.h
         src/stream.c
         src/pcm.c
@@ -104,6 +104,8 @@ add_executable(auxts main.c
         src/extract.h
         src/extract.c
         src/simd/pcm_simd.c
+        src/wav.h
+        src/wav.c
 )
 
 target_link_libraries(auxts msgpack-c ${GUILE_LIBRARIES})

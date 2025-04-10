@@ -3,7 +3,7 @@
 #define AUXTS_SIMD_H
 
 #include <stddef.h>
-#include "../type.h"
+#include "../types.h"
 #include "../export.h"
 #include "pcm_simd.h"
 

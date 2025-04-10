@@ -5,7 +5,7 @@
 #include <msgpack.h>
 #include "extract.h"
 #include "exec.h"
-#include "type.h"
+#include "types.h"
 
 typedef enum {
     AUXTS_TYPE_STR,

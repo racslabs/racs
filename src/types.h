@@ -1,5 +1,5 @@
-#ifndef AUXTS_TYPE_H
-#define AUXTS_TYPE_H
+#ifndef AUXTS_TYPES_H
+#define AUXTS_TYPES_H
 
 #include <time.h>
 
@@ -29,4 +29,4 @@ typedef time_t               auxts_time;
 typedef float complex auxts_complex;
 #endif
 
-#endif // AUXTS_TYPE_H
+#endif // AUXTS_TYPES_H

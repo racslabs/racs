@@ -1,5 +1,5 @@
 #include "time.h"
-#include "type.h"
+#include "types.h"
 
 auxts_time auxts_time_now() {
     struct timespec ts;
