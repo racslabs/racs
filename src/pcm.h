@@ -20,9 +20,9 @@ typedef struct {
 
 void auxts_pcm_init(auxts_pcm* pcm, auxts_uint8 channels, auxts_uint8 bit_depth, auxts_uint32 sample_rate);
 
-void auxts_pcm_write_s24(auxts_pcm* pcm, const auxts_int24* in, size_t samples);
-void auxts_pcm_write_s16(auxts_pcm* pcm, const auxts_int16* in, size_t samples);
-void auxts_pcm_write(auxts_pcm* pcm, const void* in, size_t samples);
+size_t auxts_pcm_write_s24(auxts_pcm* pcm, const auxts_int24* in, size_t samples);
+size_t auxts_pcm_write_s16(auxts_pcm* pcm, const auxts_int16* in, size_t samples);
+size_t auxts_pcm_write(auxts_pcm* pcm, const void* in, size_t samples);
 
 void auxts_pcm_destroy(auxts_pcm* pcm);
 

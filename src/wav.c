@@ -18,6 +18,22 @@ void auxts_wav_init(auxts_wav* wav, auxts_uint16 channels, auxts_uint16 bit_dept
     auxts_memory_stream_init(&wav->data.memory_stream, data, size);
 }
 
+size_t auxts_wav_write_s24(auxts_wav* wav, auxts_int24* in, size_t samples) {
+    return auxts_wav_write(wav, in, samples);
+}
+
+size_t auxts_wav_write_s16(auxts_wav* wav, auxts_int16* in, size_t samples) {
+    return auxts_wav_write(wav, in, samples);
+}
+
+size_t auxts_wav_write(auxts_wav* wav, void* in, size_t samples) {
+    auxts_wav_encode_header(wav, samples);
+    auxts_wav_encode_format(wav);
+    auxts_wav_encode_data(wav, in, samples);
+
+    return wav->data.memory_stream.current_pos;
+}
+
 void auxts_wav_encode_header(auxts_wav* wav, auxts_uint32 samples) {
     memcpy(wav->header.chunk_id, "RIFF", 4);
     wav->header.chunk_size = samples * wav->format.channels * wav->format.bit_depth/8;
