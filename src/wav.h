@@ -3,6 +3,7 @@
 #define AUXTS_WAV_H
 
 #include "stream.h"
+#include "simd/pcm_simd.h"
 
 typedef struct {
     char         chunk_id[4];
@@ -42,5 +43,7 @@ size_t auxts_wav_write(auxts_wav* wav, void* in, size_t samples);
 void auxts_wav_encode_header(auxts_wav* wav, auxts_uint32 samples);
 void auxts_wav_encode_format(auxts_wav* wav);
 void auxts_wav_encode_data(auxts_wav* wav, void* data, auxts_uint32 samples);
+
+void auxts_wav_destroy(auxts_wav* wav);
 
 #endif //AUXTS_WAV_H

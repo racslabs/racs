@@ -18,6 +18,9 @@ void auxts_pcm_init(auxts_pcm* pcm, auxts_uint8 channels, auxts_uint8 bit_depth,
     auxts_memory_stream_init(&pcm->memory_stream, data, size);
 }
 
+size_t auxts_pcm_write_s24(auxts_pcm* pcm, const auxts_int24* in, size_t samples) {
+    return auxts_pcm_write(pcm, in, samples);
+}
 
 size_t auxts_pcm_write_s16(auxts_pcm* pcm, const auxts_int16* in, size_t samples) {
     return auxts_pcm_write(pcm, in, samples);

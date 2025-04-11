@@ -16,6 +16,7 @@
 #include "metadata_test.h"
 #include "create_test.h"
 #include "scm_test.h"
+#include "wav_test.h"
 
 typedef void (*test)();
 
@@ -58,6 +59,7 @@ AUXTS_FORCE_INLINE void auxts_run_tests(int argc, char* argv[]) {
     auxts_add_test(test_scm_list, "test_scm_list", argc, argv);
     auxts_add_test(test_scm_metadata, "test_scm_metadata", argc, argv);
     auxts_add_test(test_simd_interleave, "test_simd_interleave", argc, argv);
+    auxts_add_test(test_write_wav, "test_write_wav", argc, argv);
 }
 
 #endif //AUXTS_TEST_RUNNER_H
