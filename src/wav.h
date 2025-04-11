@@ -33,7 +33,9 @@ typedef struct {
     auxts_wav_data      data;
 } auxts_wav;
 
+void auxts_wav_init(auxts_wav* wav, auxts_uint16 channels, auxts_uint16 bit_depth, auxts_uint32 sample_rate);
 void auxts_wav_encode_header(auxts_wav* wav, auxts_uint32 samples);
 void auxts_wav_encode_format(auxts_wav* wav);
+void auxts_wav_encode_data(auxts_wav* wav, void* data, auxts_uint32 samples);
 
 #endif //AUXTS_WAV_H
