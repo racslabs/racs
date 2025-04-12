@@ -15,7 +15,7 @@ void auxts_wav_init(auxts_wav* wav, auxts_uint16 channels, auxts_uint16 bit_dept
         return;
     }
 
-    auxts_memory_stream_init(&wav->data.memory_stream, data, size);
+    auxts_memory_stream_init(&wav->out_stream, data, size);
 }
 
 size_t auxts_wav_write_s24(auxts_wav* wav, auxts_int24* in, size_t samples) {
@@ -52,7 +52,7 @@ size_t auxts_wav_write(auxts_wav* wav, void* in, size_t samples) {
     auxts_wav_encode_format(wav);
     auxts_wav_encode_data(wav, in, samples);
 
-    return wav->data.memory_stream.current_pos;
+    return wav->out_stream.current_pos;
 }
 
 void auxts_wav_encode_header(auxts_wav* wav, auxts_uint32 samples) {
@@ -60,9 +60,9 @@ void auxts_wav_encode_header(auxts_wav* wav, auxts_uint32 samples) {
     wav->header.chunk_size = (samples * wav->format.channels * wav->format.bit_depth/8) + 36;
     memcpy(wav->header.format, "WAVE", 4);
 
-    auxts_memory_stream_write(&wav->data.memory_stream, wav->header.chunk_id, 4);
-    auxts_memory_stream_write(&wav->data.memory_stream, &wav->header.chunk_size, 4);
-    auxts_memory_stream_write(&wav->data.memory_stream, wav->header.format, 4);
+    auxts_memory_stream_write(&wav->out_stream, wav->header.chunk_id, 4);
+    auxts_memory_stream_write(&wav->out_stream, &wav->header.chunk_size, 4);
+    auxts_memory_stream_write(&wav->out_stream, wav->header.format, 4);
 }
 
 void auxts_wav_encode_format(auxts_wav* wav) {
@@ -73,25 +73,25 @@ void auxts_wav_encode_format(auxts_wav* wav) {
 
     memcpy(wav->format.sub_chunk1_id, "fmt ", 4);
 
-    auxts_memory_stream_write(&wav->data.memory_stream, &wav->format.sub_chunk1_id, 4);
-    auxts_memory_stream_write(&wav->data.memory_stream, &wav->format.sub_chunk1_size, 4);
-    auxts_memory_stream_write(&wav->data.memory_stream, &wav->format.audio_format, 2);
-    auxts_memory_stream_write(&wav->data.memory_stream, &wav->format.channels, 2);
-    auxts_memory_stream_write(&wav->data.memory_stream, &wav->format.sample_rate, 4);
-    auxts_memory_stream_write(&wav->data.memory_stream, &wav->format.byte_rate, 4);
-    auxts_memory_stream_write(&wav->data.memory_stream, &wav->format.block_align, 2);
-    auxts_memory_stream_write(&wav->data.memory_stream, &wav->format.bit_depth, 2);
+    auxts_memory_stream_write(&wav->out_stream, &wav->format.sub_chunk1_id, 4);
+    auxts_memory_stream_write(&wav->out_stream, &wav->format.sub_chunk1_size, 4);
+    auxts_memory_stream_write(&wav->out_stream, &wav->format.audio_format, 2);
+    auxts_memory_stream_write(&wav->out_stream, &wav->format.channels, 2);
+    auxts_memory_stream_write(&wav->out_stream, &wav->format.sample_rate, 4);
+    auxts_memory_stream_write(&wav->out_stream, &wav->format.byte_rate, 4);
+    auxts_memory_stream_write(&wav->out_stream, &wav->format.block_align, 2);
+    auxts_memory_stream_write(&wav->out_stream, &wav->format.bit_depth, 2);
 }
 
 void auxts_wav_encode_data(auxts_wav* wav, void* data, auxts_uint32 samples) {
     memcpy(wav->data.sub_chunk2_id, "data", 4);
     wav->data.sub_chunk2_size = samples * wav->format.channels * wav->format.bit_depth/8;
 
-    auxts_memory_stream_write(&wav->data.memory_stream, wav->data.sub_chunk2_id, 4);
-    auxts_memory_stream_write(&wav->data.memory_stream, &wav->data.sub_chunk2_size, 4);
-    auxts_memory_stream_write(&wav->data.memory_stream, data, wav->data.sub_chunk2_size);
+    auxts_memory_stream_write(&wav->out_stream, wav->data.sub_chunk2_id, 4);
+    auxts_memory_stream_write(&wav->out_stream, &wav->data.sub_chunk2_size, 4);
+    auxts_memory_stream_write(&wav->out_stream, data, wav->data.sub_chunk2_size);
 }
 
 void auxts_wav_destroy(auxts_wav* wav) {
-    free(wav->data.memory_stream.data);
+    free(wav->out_stream.data);
 }

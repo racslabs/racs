@@ -16,9 +16,7 @@ void test_write_wav() {
     auxts_wav_write_s16(&wav, in, 44100);
 
     FILE* f = fopen("test1.wav", "wb");
-    fwrite(wav.data.memory_stream.data, 1, wav.data.memory_stream.current_pos, f);
-
-    printf("byte: %zu\n", wav.data.memory_stream.current_pos);
+    fwrite(wav.out_stream.data, 1, wav.out_stream.current_pos, f);
 
     fclose(f);
     auxts_wav_destroy(&wav);

@@ -25,13 +25,13 @@ typedef struct {
 typedef struct {
     char         sub_chunk2_id[4];
     auxts_uint32 sub_chunk2_size;
-    auxts_memory_stream memory_stream;
 } auxts_wav_data;
 
 typedef struct {
     auxts_wav_header    header;
     auxts_wav_format    format;
     auxts_wav_data      data;
+    auxts_memory_stream out_stream;
 } auxts_wav;
 
 void auxts_wav_init(auxts_wav* wav, auxts_uint16 channels, auxts_uint16 bit_depth, auxts_uint32 sample_rate);
