@@ -16,3 +16,11 @@ void auxts_simd_s24_s32(const auxts_int24* q0, auxts_int32* q1, size_t n) {
         if (q1[i] & 0x800000) q1[i] |= ~0xffffff;
     }
 }
+
+void auxts_simd_planar_s24(const auxts_int24* q0, auxts_int24* q1, size_t n) {
+    AUXTS_UNROLL(8)
+    for (int i = 0; i < n / 2; ++i) {
+        q1[i] = q0[i * 2];
+        q1[i + n / 2] = q0[i * 2 + 1];
+    }
+}

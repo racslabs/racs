@@ -19,13 +19,34 @@ void auxts_wav_init(auxts_wav* wav, auxts_uint16 channels, auxts_uint16 bit_dept
 }
 
 size_t auxts_wav_write_s24(auxts_wav* wav, auxts_int24* in, size_t samples) {
+    if (wav->format.channels == 2) {
+        auxts_int24* out = malloc(wav->format.channels * samples * sizeof(auxts_int24));
+        auxts_simd_planar_s24(in, out, wav->format.channels * samples);
+
+        size_t size = auxts_wav_write(wav, out, samples);
+
+        free(out);
+        return size;
+    }
+
     return auxts_wav_write(wav, in, samples);
 }
 
 size_t auxts_wav_write_s16(auxts_wav* wav, auxts_int16* in, size_t samples) {
+    if (wav->format.channels == 2) {
+        auxts_int16* out = malloc(wav->format.channels * samples * sizeof(auxts_int16));
+        auxts_simd_planar_s16(in, out, wav->format.channels * samples);
+
+        size_t size = auxts_wav_write(wav, out, samples);
+
+        free(out);
+        return size;
+    }
+
     return auxts_wav_write(wav, in, samples);
 }
 
+/* For internal use ONLY */
 size_t auxts_wav_write(auxts_wav* wav, void* in, size_t samples) {
     auxts_wav_encode_header(wav, samples);
     auxts_wav_encode_format(wav);
