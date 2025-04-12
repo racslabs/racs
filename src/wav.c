@@ -18,7 +18,7 @@ void auxts_wav_init(auxts_wav* wav, auxts_uint16 channels, auxts_uint16 bit_dept
     auxts_memory_stream_init(&wav->out_stream, data, size);
 }
 
-size_t auxts_wav_write_s24(auxts_wav* wav, auxts_int24* in, size_t samples) {
+size_t auxts_wav_write_s24(auxts_wav* wav, const auxts_int24* in, size_t samples) {
     if (wav->format.channels == 2) {
         auxts_int24* out = malloc(wav->format.channels * samples * sizeof(auxts_int24));
         auxts_simd_planar_s24(in, out, wav->format.channels * samples);
@@ -32,7 +32,7 @@ size_t auxts_wav_write_s24(auxts_wav* wav, auxts_int24* in, size_t samples) {
     return auxts_wav_write(wav, in, samples);
 }
 
-size_t auxts_wav_write_s16(auxts_wav* wav, auxts_int16* in, size_t samples) {
+size_t auxts_wav_write_s16(auxts_wav* wav, const auxts_int16* in, size_t samples) {
     if (wav->format.channels == 2) {
         auxts_int16* out = malloc(wav->format.channels * samples * sizeof(auxts_int16));
         auxts_simd_planar_s16(in, out, wav->format.channels * samples);
@@ -47,7 +47,7 @@ size_t auxts_wav_write_s16(auxts_wav* wav, auxts_int16* in, size_t samples) {
 }
 
 /* For internal use ONLY */
-size_t auxts_wav_write(auxts_wav* wav, void* in, size_t samples) {
+size_t auxts_wav_write(auxts_wav* wav, const void* in, size_t samples) {
     auxts_wav_encode_header(wav, samples);
     auxts_wav_encode_format(wav);
     auxts_wav_encode_data(wav, in, samples);
@@ -83,7 +83,7 @@ void auxts_wav_encode_format(auxts_wav* wav) {
     auxts_memory_stream_write(&wav->out_stream, &wav->format.bit_depth, 2);
 }
 
-void auxts_wav_encode_data(auxts_wav* wav, void* data, auxts_uint32 samples) {
+void auxts_wav_encode_data(auxts_wav* wav, const void* data, auxts_uint32 samples) {
     memcpy(wav->data.sub_chunk2_id, "data", 4);
     wav->data.sub_chunk2_size = samples * wav->format.channels * wav->format.bit_depth/8;
 
