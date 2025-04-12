@@ -34,11 +34,13 @@ typedef struct {
     auxts_memory_stream out_stream;
 } auxts_wav;
 
-void auxts_wav_init(auxts_wav* wav, auxts_uint16 channels, auxts_uint16 bit_depth, auxts_uint32 sample_rate);
+void auxts_wav_set_channels(auxts_wav* wav, auxts_uint16 channels);
+void auxts_wav_set_bit_depth(auxts_wav* wav, auxts_uint16 bit_depth);
+void auxts_wav_set_sample_rate(auxts_wav* wav, auxts_uint32 sample_rate);
 
-size_t auxts_wav_write_s24(auxts_wav* wav, const auxts_int24* in, size_t samples);
-size_t auxts_wav_write_s16(auxts_wav* wav, const auxts_int16* in, size_t samples);
-size_t auxts_wav_write(auxts_wav* wav, const void* in, size_t samples);
+size_t auxts_wav_write(auxts_wav* wav, const void* in, void* out, size_t samples, size_t size);
+size_t auxts_wav_write_s24(auxts_wav* wav, const auxts_int24* in, void* out, size_t samples, size_t size);
+size_t auxts_wav_write_s16(auxts_wav* wav, const auxts_int16* in, void* out, size_t samples, size_t size);
 
 void auxts_wav_encode_header(auxts_wav* wav, auxts_uint32 samples);
 void auxts_wav_encode_format(auxts_wav* wav);

@@ -11,13 +11,18 @@ void test_write_wav() {
         in[i] = (auxts_int16)(32767 * sin((double)i * 440 * 2 * pi * ts));
     }
 
+    void* out = malloc(1024);
+
     auxts_wav wav;
-    auxts_wav_init(&wav, 1, 16, 44100);
-    auxts_wav_write_s16(&wav, in, 44100);
+    auxts_wav_set_bit_depth(&wav, 16);
+    auxts_wav_set_channels(&wav, 1);
+    auxts_wav_set_sample_rate(&wav, 44100);
+
+    size_t size = auxts_wav_write_s16(&wav, in, out, 44100, 1024);
 
     FILE* f = fopen("test1.wav", "wb");
-    fwrite(wav.out_stream.data, 1, wav.out_stream.current_pos, f);
+    fwrite(out, 1, size, f);
 
-    fclose(f);
+    fclose(out);
     auxts_wav_destroy(&wav);
 }

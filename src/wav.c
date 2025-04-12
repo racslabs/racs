@@ -1,53 +1,49 @@
 #include "wav.h"
 
-void auxts_wav_init(auxts_wav* wav, auxts_uint16 channels, auxts_uint16 bit_depth, auxts_uint32 sample_rate) {
-    memset(wav, 0, sizeof(auxts_wav));
-
+void auxts_wav_set_channels(auxts_wav* wav, auxts_uint16 channels) {
     wav->format.channels = channels;
-    wav->format.sample_rate = sample_rate;
+}
+
+void auxts_wav_set_bit_depth(auxts_wav* wav, auxts_uint16 bit_depth) {
     wav->format.bit_depth = bit_depth;
-
-    size_t size = 1024 * channels * wav->format.bit_depth/8;
-
-    void* data = malloc(size);
-    if (!data) {
-        perror("Failed to allocate data to auxts_wav");
-        return;
-    }
-
-    auxts_memory_stream_init(&wav->out_stream, data, size);
 }
 
-size_t auxts_wav_write_s24(auxts_wav* wav, const auxts_int24* in, size_t samples) {
-    if (wav->format.channels == 2) {
-        auxts_int24* out = malloc(wav->format.channels * samples * sizeof(auxts_int24));
-        auxts_simd_planar_s24(in, out, wav->format.channels * samples);
-
-        size_t size = auxts_wav_write(wav, out, samples);
-
-        free(out);
-        return size;
-    }
-
-    return auxts_wav_write(wav, in, samples);
+void auxts_wav_set_sample_rate(auxts_wav* wav, auxts_uint32 sample_rate) {
+    wav->format.sample_rate = sample_rate;
 }
 
-size_t auxts_wav_write_s16(auxts_wav* wav, const auxts_int16* in, size_t samples) {
+size_t auxts_wav_write_s24(auxts_wav* wav, const auxts_int24* in, void* out, size_t samples, size_t size) {
     if (wav->format.channels == 2) {
-        auxts_int16* out = malloc(wav->format.channels * samples * sizeof(auxts_int16));
-        auxts_simd_planar_s16(in, out, wav->format.channels * samples);
+        auxts_int24* _in = malloc(wav->format.channels * samples * sizeof(auxts_int24));
+        auxts_simd_planar_s24(in, _in, wav->format.channels * samples);
 
-        size_t size = auxts_wav_write(wav, out, samples);
+        size_t _size = auxts_wav_write(wav, _in, out, samples, size);
 
         free(out);
-        return size;
+        return _size;
     }
 
-    return auxts_wav_write(wav, in, samples);
+    return auxts_wav_write(wav, in, out, samples, size);
+}
+
+size_t auxts_wav_write_s16(auxts_wav* wav, const auxts_int16* in, void* out, size_t samples, size_t size) {
+    if (wav->format.channels == 2) {
+        auxts_int16* _in = malloc(wav->format.channels * samples * sizeof(auxts_int16));
+        auxts_simd_planar_s16(in, _in, wav->format.channels * samples);
+
+        size_t _size = auxts_wav_write(wav, _in, out, samples, size);
+
+        free(out);
+        return _size;
+    }
+
+    return auxts_wav_write(wav, in, out, samples, size);
 }
 
 /* For internal use ONLY */
-size_t auxts_wav_write(auxts_wav* wav, const void* in, size_t samples) {
+size_t auxts_wav_write(auxts_wav* wav, const void* in, void* out, size_t samples, size_t size) {
+    auxts_memory_stream_write(&wav->out_stream, out, size);
+
     auxts_wav_encode_header(wav, samples);
     auxts_wav_encode_format(wav);
     auxts_wav_encode_data(wav, in, samples);
