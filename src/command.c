@@ -119,16 +119,15 @@ auxts_create_command(extract) {
     int64_t to = auxts_deserialize_int64(&msg.data, 2);
 
     auxts_pcm pcm;
-    void* out = malloc(1024);
-    auxts_pcm_init(&pcm, out, 1024);
 
     int rc = auxts_extract_pcm(ctx->cache, &pcm, stream_id, from, to);
     if (rc == AUXTS_EXTRACT_STATUS_NOT_FOUND) {
+        free(pcm.out_stream.data);
         return auxts_serialize_error(&pk, "The stream-id does not exist");
     }
 
     if (pcm.bit_depth == AUXTS_PCM_16) {
-        rc = auxts_serialize_i16v(&pk, (auxts_int16*)out, pcm.samples * pcm.channels);
+        rc = auxts_serialize_i16v(&pk, (auxts_int16*)pcm.out_stream.data, pcm.samples * pcm.channels);
         free(pcm.out_stream.data);
 
         return rc;
@@ -138,11 +137,11 @@ auxts_create_command(extract) {
         size_t size = pcm.channels * pcm.samples * sizeof(auxts_int32);
         auxts_int32* _out = malloc(size);
 
-        auxts_simd_s24_s32(out, _out, pcm.samples * pcm.channels);
+        auxts_simd_s24_s32((auxts_int24*)pcm.out_stream.data, _out, pcm.samples * pcm.channels);
         rc = auxts_serialize_i32v(&pk, _out, size);
 
         free(_out);
-        free(out);
+        free(pcm.out_stream.data);
 
         return rc;
     }

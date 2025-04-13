@@ -10,6 +10,9 @@ int auxts_extract_pcm(auxts_cache* cache, auxts_pcm* pcm, const char* stream_id,
         return AUXTS_EXTRACT_STATUS_NOT_FOUND;
     }
 
+    void* out = malloc(1024);
+
+    auxts_pcm_init(pcm, out, 1024);
     auxts_pcm_set_bit_depth(pcm, metadata.bit_depth);
     auxts_pcm_set_channels(pcm, metadata.channels);
     auxts_pcm_set_sample_rate(pcm, metadata.sample_rate);
