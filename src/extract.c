@@ -12,10 +12,10 @@ int auxts_extract_pcm(auxts_cache* cache, auxts_pcm* pcm, const char* stream_id,
 
     void* out = malloc(1024);
 
-    auxts_pcm_init(pcm, out, 1024);
     auxts_pcm_set_bit_depth(pcm, metadata.bit_depth);
     auxts_pcm_set_channels(pcm, metadata.channels);
     auxts_pcm_set_sample_rate(pcm, metadata.sample_rate);
+    auxts_pcm_init(pcm, out, 1024);
 
     auxts_uint64 hash = auxts_hash_stream_id(stream_id);
 

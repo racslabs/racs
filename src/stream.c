@@ -8,7 +8,7 @@
 void auxts_memory_stream_init(auxts_memory_stream* stream, void* data, size_t size) {
     memset(stream, 0, sizeof(auxts_memory_stream));
     stream->size = size;
-    stream->data = data;
+    stream->data = (auxts_uint8*)data;
 }
 
 int auxts_memory_stream_write(auxts_memory_stream* stream, const void* data, size_t size) {
