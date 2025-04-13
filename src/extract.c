@@ -10,10 +10,11 @@ int auxts_extract_pcm(auxts_cache* cache, auxts_pcm* pcm, const char* stream_id,
         return AUXTS_EXTRACT_STATUS_NOT_FOUND;
     }
 
-    auxts_pcm_init(pcm, metadata.channels, metadata.bit_depth, metadata.sample_rate);
-    auxts_uint64 hash = auxts_hash_stream_id(stream_id);
+    auxts_pcm_set_bit_depth(pcm, metadata.bit_depth);
+    auxts_pcm_set_channels(pcm, metadata.channels);
+    auxts_pcm_set_sample_rate(pcm, metadata.sample_rate);
 
-    printf("samples %hu\n", pcm->channels);
+    auxts_uint64 hash = auxts_hash_stream_id(stream_id);
 
     for (int i = 0; i < list->num_files; ++i) {
         char* file_path = list->files[i];
