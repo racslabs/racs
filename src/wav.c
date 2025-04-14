@@ -12,20 +12,6 @@ void auxts_wav_set_sample_rate(auxts_wav* wav, auxts_uint32 sample_rate) {
     wav->format.sample_rate = sample_rate;
 }
 
-size_t auxts_wav_write_s24(auxts_wav* wav, const auxts_int24* in, void* out, size_t samples, size_t size) {
-    if (wav->format.channels == 2) {
-        auxts_int24* _in = malloc(wav->format.channels * samples * sizeof(auxts_int24));
-        auxts_simd_planar_s24(in, _in, wav->format.channels * samples);
-
-        size_t _size = auxts_wav_write(wav, _in, out, samples, size);
-
-        free(out);
-        return _size;
-    }
-
-    return auxts_wav_write(wav, in, out, samples, size);
-}
-
 size_t auxts_wav_write_s16(auxts_wav* wav, const auxts_int16* in, void* out, size_t samples, size_t size) {
     if (wav->format.channels == 2) {
         auxts_int16* _in = malloc(wav->format.channels * samples * sizeof(auxts_int16));

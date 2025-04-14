@@ -17,10 +17,6 @@ void auxts_pcm_init(auxts_pcm* pcm, void* out, size_t size) {
     auxts_memory_stream_init(&pcm->out_stream, out, size);
 }
 
-size_t auxts_pcm_write_s24(auxts_pcm* pcm, const auxts_int24* in, size_t samples) {
-    return auxts_pcm_write(pcm, in, samples);
-}
-
 size_t auxts_pcm_write_s16(auxts_pcm* pcm, const auxts_int16* in, size_t samples) {
     return auxts_pcm_write(pcm, in, samples);
 }

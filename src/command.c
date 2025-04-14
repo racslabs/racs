@@ -132,17 +132,5 @@ auxts_create_command(extract) {
         return rc;
     }
 
-    if (pcm.bit_depth == AUXTS_PCM_24) {
-        size_t size = pcm.channels * pcm.samples * sizeof(auxts_int32);
-        auxts_int32* _out = malloc(size);
-
-        auxts_simd_s24_s32((auxts_int24*)pcm.out_stream.data, _out, pcm.samples * pcm.channels);
-        rc = auxts_serialize_i32v(&pk, _out, size);
-
-        free(_out);
-        free(pcm.out_stream.data);
-        return rc;
-    }
-
-    return auxts_serialize_error(&pk, "Invalid bit-depth");
+    return auxts_serialize_error(&pk, "Unsupported bit-depth");
 }

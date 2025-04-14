@@ -1,21 +1,6 @@
 #include "simd_test.h"
 
 void test_simd_interleave() {
-    auxts_int32 x[4] = {1, 2, 3, 4};
-    auxts_int32 y[4] = {5, 6, 7, 8};
-    auxts_int32 z[8];
-
-    auxts_simd_interleave_s32(x, y, z, 8);
-
-    assert(z[0] == 1);
-    assert(z[1] == 5);
-    assert(z[2] == 2);
-    assert(z[3] == 6);
-    assert(z[4] == 3);
-    assert(z[5] == 7);
-    assert(z[6] == 4);
-    assert(z[7] == 8);
-
     auxts_int16 a[4] = {1, 2, 3, 4};
     auxts_int16 b[4] = {5, 6, 7, 8};
     auxts_int16 c[8];
@@ -30,23 +15,4 @@ void test_simd_interleave() {
     assert(c[5] == 7);
     assert(c[6] == 4);
     assert(c[7] == 8);
-
-    auxts_int32 p[4] = {32767, -32767, 32767, -32767};
-    auxts_int16 q[4];
-
-    auxts_simd_s32_s16(p, q, 4);
-    assert(q[0] == 32767);
-    assert(q[1] == -32767);
-    assert(q[2] == 32767);
-    assert(q[3] == -32767);
-
-    auxts_int16 j[4] = {32767, -32767, 32767, -32767};
-    auxts_int32 k[4];
-
-    auxts_simd_s16_s32(j, k, 4);
-    assert(k[0] == 32767);
-    assert(k[1] == -32767);
-    assert(k[2] == 32767);
-    assert(k[3] == -32767);
-
 }

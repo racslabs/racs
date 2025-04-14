@@ -103,7 +103,6 @@ add_executable(auxts main.c
         src/simd/pcm_neon.c
         src/extract.h
         src/extract.c
-        src/simd/pcm_simd.c
         src/wav.h
         src/wav.c
         test/wav_test.h
