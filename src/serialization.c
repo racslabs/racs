@@ -169,12 +169,20 @@ char* auxts_deserialize_str(msgpack_object* obj, int n) {
     return str;
 }
 
+uint8_t* auxts_deserialize_u8v(msgpack_object* obj, int n) {
+    return (uint8_t*)obj->via.array.ptr[n].via.bin.ptr;
+}
+
 int16_t* auxts_deserialize_i16v(msgpack_object* obj, int n) {
     return (int16_t*)obj->via.array.ptr[n].via.bin.ptr;
 }
 
 int32_t* auxts_deserialize_i32v(msgpack_object* obj, int n) {
     return (int32_t*)obj->via.array.ptr[n].via.bin.ptr;
+}
+
+size_t auxts_deserialize_u8v_size(msgpack_object* obj, int n) {
+    return obj->via.array.ptr[n].via.bin.size;
 }
 
 size_t auxts_deserialize_i16v_size(msgpack_object* obj, int n) {

@@ -110,6 +110,7 @@ add_executable(auxts main.c
         src/format.h
         src/format.c
         test/format_test.h
+        test/format_test.c
 )
 
 target_link_libraries(auxts msgpack-c ${GUILE_LIBRARIES})
@@ -142,3 +143,4 @@ add_test(test_scm_list auxts "--test" "test_scm_list")
 add_test(test_scm_metadata auxts "--test" "test_scm_metadata")
 add_test(test_simd_interleave auxts "--test" "test_simd_interleave")
 add_test(test_write_wav auxts "--test" "test_write_wav")
+add_test(test_format_wav auxts "--test" "test_format_wav")

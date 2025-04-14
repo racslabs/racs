@@ -19,8 +19,9 @@ void auxts_format_set_sample_rate(auxts_format* fmt, auxts_uint32 sample_rate) {
 int auxts_format_pcm_s16(auxts_format* fmt, const auxts_int16* in, size_t samples, const char* mime_type) {
     if (strcmp(mime_type, "audio/wav") == 0) {
         auxts_wav wav;
+        memset(&wav, 0, sizeof(auxts_wav));
 
-        auxts_wav_set_sample_rate(&wav, fmt->sample_rate);
+        auxts_wav_set_channels(&wav, fmt->channels);
         auxts_wav_set_bit_depth(&wav, fmt->bit_depth);
         auxts_wav_set_sample_rate(&wav, fmt->sample_rate);
 
