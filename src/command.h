@@ -7,6 +7,7 @@
 #include "serialization.h"
 #include "create.h"
 #include "extract.h"
+#include "format.h"
 
 typedef enum {
     AUXTS_STATUS_OK,
@@ -15,9 +16,12 @@ typedef enum {
 } auxts_status;
 
 #define auxts_validate(pk, condition, error) \
-    if (!(condition)) return auxts_serialize_error(pk, error);
+    if (!(condition)) {                      \
+        msgpack_sbuffer_clear(out_buf);      \
+        return auxts_serialize_error(pk, error); \
+    }
 
-#define auxts_validate_arg_type(pk, msg, arg_num, obj_type, error) \
+#define auxts_validate_type(pk, msg, arg_num, obj_type, error) \
     auxts_validate(pk, obj_type == ((msg).data.via.array.ptr[arg_num].type), error)
 
 #define auxts_validate_num_args(pk, msg, num_args) \
@@ -32,5 +36,6 @@ auxts_create_command(eval);
 auxts_create_command(create);
 auxts_create_command(metadata);
 auxts_create_command(ping);
+auxts_create_command(format);
 
 #endif //AUXTS_COMMAND_H

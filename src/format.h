@@ -11,6 +11,8 @@ typedef struct {
     auxts_memory_stream out_stream;
 } auxts_format;
 
+void auxts_format_init(auxts_format* fmt, void* out, size_t size);
+
 void auxts_format_set_channels(auxts_format* fmt, auxts_uint16 channels);
 void auxts_format_set_bit_depth(auxts_format* fmt, auxts_uint16 bit_depth);
 void auxts_format_set_sample_rate(auxts_format* fmt, auxts_uint32 sample_rate);

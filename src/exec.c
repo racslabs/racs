@@ -239,6 +239,7 @@ void auxts_exec_init(auxts_exec* exec) {
     auxts_kvstore_put(exec->kv, strdup("EXTRACT"), auxts_command_extract);
     auxts_kvstore_put(exec->kv, strdup("METADATA"), auxts_command_metadata);
     auxts_kvstore_put(exec->kv, strdup("EVAL"), auxts_command_eval);
+    auxts_kvstore_put(exec->kv, strdup("FORMAT"), auxts_command_format);
 }
 
 void auxts_exec_destroy(auxts_exec* exec) {

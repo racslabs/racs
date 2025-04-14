@@ -25,9 +25,9 @@ typedef enum {
     AUXTS_TYPE_C64VEC
 } auxts_type;
 
-#define auxts_parse_args(in_buf, pk) \
-    if (msgpack_unpack_next(&msg, (in_buf)->data, (in_buf)->size, 0) == MSGPACK_UNPACK_PARSE_ERROR) { \
-        return auxts_serialize_error((pk), "Error parsing args");\
+#define auxts_parse_buf(buf, pk, msg, message) \
+    if (msgpack_unpack_next(msg, (buf)->data, (buf)->size, 0) == MSGPACK_UNPACK_PARSE_ERROR) { \
+        return auxts_serialize_error((pk), message);\
     }
 
 extern const char* const auxts_type_string[];
@@ -50,13 +50,15 @@ int auxts_serialize_f32v(msgpack_packer* pk, float* data, size_t n);
 int auxts_serialize_c64v(msgpack_packer* pk, auxts_complex* data, size_t n);
 void auxts_serialize_type(msgpack_packer* pk, int type);
 int auxts_serialize_invalid_num_args(msgpack_packer* pk, int expected, int actual);
-void auxts_deserialize_stream_id(uint64_t* stream_id, msgpack_object* obj, int arg_num);
 char* auxts_deserialize_str(msgpack_object* obj, int n);
+uint16_t auxts_deserialize_uint16(msgpack_object* obj, int n);
 int32_t auxts_deserialize_int32(msgpack_object* obj, int n);
 uint32_t auxts_deserialize_uint32(msgpack_object* obj, int n);
 int64_t auxts_deserialize_int64(msgpack_object* obj, int n);
 uint64_t auxts_deserialize_uint64(msgpack_object* obj, int n);
+int16_t* auxts_deserialize_i16v(msgpack_object* obj, int n);
 int32_t* auxts_deserialize_i32v(msgpack_object* obj, int n);
+size_t auxts_deserialize_i16v_size(msgpack_object* obj, int n);
 size_t auxts_deserialize_i32v_size(msgpack_object* obj, int n);
 int auxts_is_object_type(msgpack_object* obj, msgpack_object_type type, int arg_num);
 

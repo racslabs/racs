@@ -156,16 +156,6 @@ int auxts_serialize_invalid_num_args(msgpack_packer* pk, int expected, int actua
     return auxts_serialize_error(pk, message);
 }
 
-void auxts_deserialize_stream_id(uint64_t* stream_id, msgpack_object* obj, int arg_num) {
-    char* str = auxts_deserialize_str(obj, arg_num);
-
-    uint64_t hash[2];
-    murmur3_x64_128((uint8_t*)str, strlen(str), 0, hash);
-    *stream_id = hash[0];
-
-    free(str);
-}
-
 int auxts_is_object_type(msgpack_object* obj, msgpack_object_type type, int arg_num) {
     return obj->via.array.ptr[arg_num].type == type;
 }
@@ -179,12 +169,24 @@ char* auxts_deserialize_str(msgpack_object* obj, int n) {
     return str;
 }
 
+int16_t* auxts_deserialize_i16v(msgpack_object* obj, int n) {
+    return (int16_t*)obj->via.array.ptr[n].via.bin.ptr;
+}
+
 int32_t* auxts_deserialize_i32v(msgpack_object* obj, int n) {
     return (int32_t*)obj->via.array.ptr[n].via.bin.ptr;
 }
 
+size_t auxts_deserialize_i16v_size(msgpack_object* obj, int n) {
+    return obj->via.array.ptr[n].via.bin.size / sizeof(int16_t);
+}
+
 size_t auxts_deserialize_i32v_size(msgpack_object* obj, int n) {
     return obj->via.array.ptr[n].via.bin.size / sizeof(int32_t);
+}
+
+uint16_t auxts_deserialize_uint16(msgpack_object* obj, int n) {
+    return (uint16_t)obj->via.array.ptr[n].via.u64;
 }
 
 int32_t auxts_deserialize_int32(msgpack_object* obj, int n) {

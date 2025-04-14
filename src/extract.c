@@ -69,7 +69,7 @@ void auxts_extract_process_sstable_data(auxts_pcm* pcm, uint8_t* data, uint64_t 
         auxts_time time = (auxts_time)entry->key[1];
         if (entry->key[0] == stream_id && time >= from && time <= to) {
             size_t samples = entry->block_size / (pcm->channels * pcm->bit_depth/8);
-            auxts_pcm_write(pcm, entry->block, samples);
+            auxts_pcm_write_s16(pcm, (auxts_int16*)entry->block, samples);
         } else {
             free(entry->block);
         }
