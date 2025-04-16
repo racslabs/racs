@@ -1,3 +1,4 @@
+#include <math.h>
 #include "command.h"
 
 auxts_create_command(ping) {
@@ -151,7 +152,6 @@ auxts_create_command(format) {
     auxts_validate_type(&pk, msg1, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected: string")
     auxts_validate_type(&pk, msg1, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: int")
     auxts_validate_type(&pk, msg1, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: int")
-    auxts_validate_type(&pk, msg1, 3, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 4. Expected: int")
 
     char* type = auxts_deserialize_str(&msg2.data, 0);
     if (strcmp(type, "i16v") != 0) {
@@ -165,31 +165,27 @@ auxts_create_command(format) {
 
     char* mime_type = auxts_deserialize_str(&msg1.data, 0);
     uint16_t channels = auxts_deserialize_uint16(&msg1.data, 1);
-    uint16_t bit_depth = auxts_deserialize_uint16(&msg1.data, 2);
-    uint32_t sample_rate = auxts_deserialize_uint32(&msg1.data, 3);
+    uint32_t sample_rate = auxts_deserialize_uint32(&msg1.data, 2);
 
-    auxts_format fmt;
-    auxts_format_set_channels(&fmt, channels);
-    auxts_format_set_bit_depth(&fmt, bit_depth);
-    auxts_format_set_sample_rate(&fmt, sample_rate);
+    uint8_t* out = malloc(1024);
 
-    void* out = malloc(1024);
-    auxts_format_init(&fmt, out, 1024);
+    if (strcmp(mime_type, "audio/wav") == 0) {
+        auxts_wav wav;
 
-    int rc = auxts_format_pcm_s16(&fmt, in, size / fmt.channels, mime_type);
-    if (rc != 0) {
-        free(type);
-        free(mime_type);
-        free(out);
+        auxts_wav_set_channels(&wav, channels);
+        auxts_wav_set_bit_depth(&wav, 16);
+        auxts_wav_set_sample_rate(&wav, sample_rate);
+        auxts_wav_write_s16(&wav, in, out, size / channels, 1024);
 
-        return auxts_serialize_error(&pk, "Cannot format data provided.");
+        msgpack_sbuffer_clear(out_buf);
+        int rc = auxts_serialize_u8v(&pk, wav.out_stream.data, wav.out_stream.current_pos);
+
+        free(wav.out_stream.data);
+        return rc;
     }
 
-    rc = auxts_serialize_u8v(&pk, fmt.out_stream.data, fmt.out_stream.size);
-
-    free(type);
-    free(mime_type);
     free(out);
+    msgpack_sbuffer_clear(out_buf);
+    return auxts_serialize_error(&pk, "Unsupported format");
 
-    return rc;
 }

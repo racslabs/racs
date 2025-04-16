@@ -107,8 +107,6 @@ add_executable(auxts main.c
         src/wav.c
         test/wav_test.h
         test/wav_test.c
-        src/format.h
-        src/format.c
         test/format_test.h
         test/format_test.c
 )

@@ -7,7 +7,7 @@
 #include "serialization.h"
 #include "create.h"
 #include "extract.h"
-#include "format.h"
+#include "wav.h"
 
 typedef enum {
     AUXTS_STATUS_OK,

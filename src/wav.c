@@ -19,7 +19,7 @@ size_t auxts_wav_write_s16(auxts_wav* wav, const auxts_int16* in, void* out, siz
 
         size_t _size = auxts_wav_write(wav, _in, out, samples, size);
 
-        free(out);
+        free(_in);
         return _size;
     }
 
@@ -28,7 +28,7 @@ size_t auxts_wav_write_s16(auxts_wav* wav, const auxts_int16* in, void* out, siz
 
 /* For internal use ONLY */
 size_t auxts_wav_write(auxts_wav* wav, const void* in, void* out, size_t samples, size_t size) {
-    auxts_memory_stream_write(&wav->out_stream, out, size);
+    auxts_memory_stream_init(&wav->out_stream, out, size);
 
     auxts_wav_encode_header(wav, samples);
     auxts_wav_encode_format(wav);
