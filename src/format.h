@@ -2,7 +2,7 @@
 #ifndef AUXTS_FORMAT_H
 #define AUXTS_FORMAT_H
 
-#include <lame/lame.h>
+#include "mp3.h"
 #include "wav.h"
 
 typedef struct {

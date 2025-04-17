@@ -13,16 +13,16 @@ int auxts_memory_stream_write(auxts_memory_stream* stream, const void* data, siz
     size_t pos = stream->current_pos + size;
 
     if (pos > stream->size) {
-        size_t new_size = auxts_max(pos, stream->size * 2);
+        size_t _size = auxts_max(pos, stream->size * 2);
 
-        auxts_uint8* new_data = realloc(stream->data, new_size);
-        if (!new_data) {
+        auxts_uint8* _data = realloc(stream->data, _size);
+        if (!_data) {
             perror("Failed to re-allocate auxts_memory_stream data");
             return AUXTS_MEMORY_STREAM_ABORT;
         }
 
-        stream->data = new_data;
-        stream->size = new_size;
+        stream->data = _data;
+        stream->size = _size;
     }
 
     memcpy(stream->data + stream->current_pos, data, size);
