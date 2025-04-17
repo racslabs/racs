@@ -6,8 +6,7 @@
 #include "simd/pcm_simd.h"
 
 typedef enum {
-    AUXTS_PCM_16 = 16,
-    AUXTS_PCM_24 = 24
+    AUXTS_PCM_16 = 16
 } auxts_pcm_bit_depth;
 
 typedef struct {
@@ -22,9 +21,11 @@ void auxts_pcm_set_channels(auxts_pcm* pcm, auxts_uint16 channels);
 void auxts_pcm_set_bit_depth(auxts_pcm* pcm, auxts_uint16 bit_depth);
 void auxts_pcm_set_sample_rate(auxts_pcm* pcm, auxts_uint32 sample_rate);
 
-void auxts_pcm_init(auxts_pcm* pcm, void* out, size_t size);
+void auxts_pcm_init(auxts_pcm* pcm);
 
 size_t auxts_pcm_write_s16(auxts_pcm* pcm, const auxts_int16* in, size_t samples);
 size_t auxts_pcm_write(auxts_pcm* pcm, const void* in, size_t samples);
+
+void auxts_pcm_destroy(auxts_pcm* pcm);
 
 #endif //AUXTS_PCM_H

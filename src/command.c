@@ -122,13 +122,13 @@ auxts_create_command(extract) {
 
     int rc = auxts_extract_pcm(ctx->cache, &pcm, stream_id, from, to);
     if (rc == AUXTS_EXTRACT_STATUS_NOT_FOUND) {
-        free(pcm.out_stream.data);
+        auxts_pcm_destroy(&pcm);
         return auxts_serialize_error(&pk, "The stream-id does not exist");
     }
 
     if (pcm.bit_depth == AUXTS_PCM_16) {
         rc = auxts_serialize_i16v(&pk, (auxts_int16*)pcm.out_stream.data, pcm.samples * pcm.channels);
-        free(pcm.out_stream.data);
+        auxts_pcm_destroy(&pcm);
         return rc;
     }
 
@@ -184,6 +184,10 @@ auxts_create_command(format) {
 
         return rc;
     }
+
+    free(type);
+    free(mime_type);
+    free(out);
 
     msgpack_sbuffer_clear(out_buf);
     return auxts_serialize_error(&pk, "Unsupported format");
