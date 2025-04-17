@@ -8,6 +8,7 @@
 #include "create.h"
 #include "extract.h"
 #include "wav.h"
+#include "format.h"
 
 typedef enum {
     AUXTS_STATUS_OK,

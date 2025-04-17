@@ -1,5 +1,4 @@
 #include "wav_test.h"
-#include <math.h>
 
 void test_write_wav() {
     auxts_int16 in[44100];
@@ -11,7 +10,7 @@ void test_write_wav() {
         in[i] = (auxts_int16)(32767 * sin((double)i * 440 * 2 * pi * ts));
     }
 
-    void* out = malloc(1024);
+    void* out = malloc(44100 + 44);
 
     auxts_wav wav;
 
@@ -21,8 +20,8 @@ void test_write_wav() {
     size_t size = auxts_wav_write(&wav, in, out, 44100, 1024);
 
     FILE* f = fopen("test1.wav", "wb");
-    fwrite(wav.out_stream.data, 1, size, f);
+    fwrite(out, 1, size, f);
+    free(out);
 
     fclose(f);
-    auxts_wav_destroy(&wav);
 }

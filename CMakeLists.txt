@@ -115,6 +115,8 @@ add_executable(auxts main.c
         test/wav_test.c
         test/format_test.h
         test/format_test.c
+        src/format.c
+        src/format.h
 )
 
 target_link_libraries(auxts msgpack-c ${GUILE_LIBRARIES} ${LAME_LIBRARIES} ${OPUS_LIBRARIES})

@@ -2,7 +2,8 @@
 #ifndef AUXTS_WAV_H
 #define AUXTS_WAV_H
 
-#include "stream.h"
+#include <stdlib.h>
+#include "bytes.h"
 #include "simd/pcm_simd.h"
 
 typedef struct {
@@ -31,7 +32,7 @@ typedef struct {
     auxts_wav_header    header;
     auxts_wav_format    format;
     auxts_wav_data      data;
-    auxts_memory_stream out_stream;
+    off_t               pos;
 } auxts_wav;
 
 void auxts_wav_set_channels(auxts_wav* wav, auxts_uint16 channels);
@@ -40,10 +41,8 @@ void auxts_wav_set_sample_rate(auxts_wav* wav, auxts_uint32 sample_rate);
 size_t auxts_wav_write(auxts_wav* wav, const void* in, void* out, size_t samples, size_t size);
 size_t auxts_wav_write_s16(auxts_wav* wav, const auxts_int16* in, void* out, size_t samples, size_t size);
 
-void auxts_wav_encode_header(auxts_wav* wav, auxts_uint32 samples);
-void auxts_wav_encode_format(auxts_wav* wav);
-void auxts_wav_encode_data(auxts_wav* wav, const void* data, auxts_uint32 samples);
-
-void auxts_wav_destroy(auxts_wav* wav);
+void auxts_wav_encode_header(void* out, auxts_wav* wav, auxts_uint32 samples);
+void auxts_wav_encode_format(void* out, auxts_wav* wav);
+void auxts_wav_encode_data(void* out, auxts_wav* wav, const void* data, auxts_uint32 samples);
 
 #endif //AUXTS_WAV_H
