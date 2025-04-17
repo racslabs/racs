@@ -9,9 +9,11 @@ find_package(Guile REQUIRED)
 find_package(msgpack-c REQUIRED)
 find_package(Lame)
 find_package(Opus)
+find_package(OpusEnc)
 
 include_directories(
         ${OPUS_INCLUDE_DIRS}
+        ${OPUSENC_INCLUDE_DIRS}
         ${LAME_INCLUDE_DIRS}
         ${GUILE_INCLUDE_DIRS}
         ${msgpack-c_INCLUDE_DIRS})
@@ -119,9 +121,11 @@ add_executable(auxts main.c
         src/format.h
         src/mp3.h
         src/mp3.c
+        src/ogg.h
+        src/ogg.c
 )
 
-target_link_libraries(auxts msgpack-c ${GUILE_LIBRARIES} ${LAME_LIBRARIES} ${OPUS_LIBRARIES})
+target_link_libraries(auxts msgpack-c ${GUILE_LIBRARIES} ${LAME_LIBRARIES} ${OPUS_LIBRARIES} ${OPUSENC_LIBRARIES})
 
 enable_testing()
 

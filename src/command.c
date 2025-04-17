@@ -126,13 +126,9 @@ auxts_create_command(extract) {
         return auxts_serialize_error(&pk, "The stream-id does not exist");
     }
 
-    if (pcm.bit_depth == AUXTS_PCM_16) {
-        rc = auxts_serialize_i16v(&pk, (auxts_int16*)pcm.out_stream.data, pcm.samples * pcm.channels);
-        auxts_pcm_destroy(&pcm);
-        return rc;
-    }
-
-    return auxts_serialize_error(&pk, "Unsupported bit-depth");
+    rc = auxts_serialize_i16v(&pk, (auxts_int16*)pcm.out_stream.data, pcm.samples * pcm.channels);
+    auxts_pcm_destroy(&pcm);
+    return rc;
 }
 
 auxts_create_command(format) {
@@ -166,13 +162,13 @@ auxts_create_command(format) {
     uint16_t channels = auxts_deserialize_uint16(&msg1.data, 1);
     uint32_t sample_rate = auxts_deserialize_uint32(&msg1.data, 2);
 
-    void* out = malloc(size + 44);
+    void* out = malloc(size * 2 + 44);
 
     auxts_format fmt;
     fmt.channels = channels;
     fmt.sample_rate = sample_rate;
 
-    size_t n = auxts_format_pcm(&fmt, in, out, size / channels, size + 44, mime_type);
+    size_t n = auxts_format_pcm(&fmt, in, out, size / channels, size * 2 + 44, mime_type);
 
     if (n != 0) {
         msgpack_sbuffer_clear(out_buf);
