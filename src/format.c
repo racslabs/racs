@@ -17,7 +17,10 @@ size_t auxts_format_pcm(auxts_format* fmt, const void* in, void* out, size_t sam
         auxts_mp3_set_sample_rate(&mp3, fmt->sample_rate);
         auxts_mp3_init(&mp3);
 
-        return auxts_mp3_write_s16(&mp3, in, out, samples, size);
+        size_t bytes = auxts_mp3_write_s16(&mp3, in, out, samples, size);
+        auxts_mp3_destroy(&mp3);
+
+        return bytes;
     }
 
     return 0;
