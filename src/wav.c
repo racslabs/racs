@@ -4,10 +4,6 @@ void auxts_wav_set_channels(auxts_wav* wav, auxts_uint16 channels) {
     wav->format.channels = channels;
 }
 
-void auxts_wav_set_bit_depth(auxts_wav* wav, auxts_uint16 bit_depth) {
-    wav->format.bit_depth = bit_depth;
-}
-
 void auxts_wav_set_sample_rate(auxts_wav* wav, auxts_uint32 sample_rate) {
     wav->format.sample_rate = sample_rate;
 }
@@ -38,6 +34,8 @@ size_t auxts_wav_write(auxts_wav* wav, const void* in, void* out, size_t samples
 }
 
 void auxts_wav_encode_header(auxts_wav* wav, auxts_uint32 samples) {
+    wav->format.bit_depth = 16;
+
     memcpy(wav->header.chunk_id, "RIFF", 4);
     wav->header.chunk_size = (samples * wav->format.channels * wav->format.bit_depth/8) + 36;
     memcpy(wav->header.format, "WAVE", 4);

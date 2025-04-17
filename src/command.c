@@ -1,4 +1,4 @@
-#include <math.h>
+#include <lame/lame.h>
 #include "command.h"
 
 auxts_create_command(ping) {
@@ -167,25 +167,45 @@ auxts_create_command(format) {
     uint16_t channels = auxts_deserialize_uint16(&msg1.data, 1);
     uint32_t sample_rate = auxts_deserialize_uint32(&msg1.data, 2);
 
-    uint8_t* out = malloc(1024);
-
     if (strcmp(mime_type, "audio/wav") == 0) {
+        uint8_t* out = malloc(1024);
+
         auxts_wav wav;
 
         auxts_wav_set_channels(&wav, channels);
-        auxts_wav_set_bit_depth(&wav, 16);
         auxts_wav_set_sample_rate(&wav, sample_rate);
         auxts_wav_write_s16(&wav, in, out, size / channels, 1024);
 
         msgpack_sbuffer_clear(out_buf);
         int rc = auxts_serialize_u8v(&pk, wav.out_stream.data, wav.out_stream.current_pos);
 
-        free(wav.out_stream.data);
+        auxts_wav_destroy(&wav);
         return rc;
     }
 
-    free(out);
+    if (strcmp(mime_type, "audio/mpeg") == 0 || strcmp(mime_type, "audio/mp3") == 0) {
+        lame_t lame = lame_init();
+        lame_set_in_samplerate(lame, sample_rate);
+        lame_set_num_channels(lame, channels);
+        lame_set_VBR(lame, vbr_default);
+        lame_init_params(lame);
+
+        size_t mp3_buffer_size = 1.25 * (size / channels) + 7200;
+
+        uint8_t* out = malloc(mp3_buffer_size);
+        memset(out, 0, mp3_buffer_size);
+
+        int n = lame_encode_buffer_interleaved(lame, in, size / channels,out, mp3_buffer_size);
+
+        msgpack_sbuffer_clear(out_buf);
+        int rc = auxts_serialize_u8v(&pk, out, n);
+
+        lame_close(lame);
+        free(out);
+
+        return rc;
+    }
+
     msgpack_sbuffer_clear(out_buf);
     return auxts_serialize_error(&pk, "Unsupported format");
-
 }

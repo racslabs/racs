@@ -7,8 +7,14 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 find_package(Guile REQUIRED)
 find_package(msgpack-c REQUIRED)
+find_package(Lame)
+find_package(Opus)
 
-include_directories(${GUILE_INCLUDE_DIRS} ${msgpack-c_INCLUDE_DIRS})
+include_directories(
+        ${OPUS_INCLUDE_DIRS}
+        ${LAME_INCLUDE_DIRS}
+        ${GUILE_INCLUDE_DIRS}
+        ${msgpack-c_INCLUDE_DIRS})
 
 option(AUXTS_AVX2_CMAKE_BUILD "AVX2 CMake build" OFF)
 option(AUXTS_NEON8_CMAKE_BUILD "NEON8 CMake build" ON)
@@ -111,7 +117,7 @@ add_executable(auxts main.c
         test/format_test.c
 )
 
-target_link_libraries(auxts msgpack-c ${GUILE_LIBRARIES})
+target_link_libraries(auxts msgpack-c ${GUILE_LIBRARIES} ${LAME_LIBRARIES} ${OPUS_LIBRARIES})
 
 enable_testing()
 

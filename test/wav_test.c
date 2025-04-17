@@ -15,7 +15,6 @@ void test_write_wav() {
 
     auxts_wav wav;
 
-    auxts_wav_set_bit_depth(&wav, 16);
     auxts_wav_set_channels(&wav, 1);
     auxts_wav_set_sample_rate(&wav, 44100);
 

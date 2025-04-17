@@ -28,7 +28,8 @@ find_path (GUILE_INCLUDE_DIR libguile.h
 )
 
 # Look for the library
-find_library (GUILE_LIBRARY NAMES guile-3.0 guile-2.2 guile-2.0 guile
+find_library (GUILE_LIBRARY
+        NAMES guile-3.0 guile-2.2 guile-2.0 guile
         HINTS
         /opt/local/lib
 )
@@ -40,31 +41,6 @@ find_path (GMP_INCLUDE_DIR gmp.h)
 if (GMP_INCLUDE_DIR)
     list (APPEND GUILE_INCLUDE_DIRS ${GMP_INCLUDE_DIR})
 endif ()
-
-# check scm's version if we're using cmake >= 2.6
-#if (GUILE_INCLUDE_DIR)
-#    SET(GUILE_VERSION_MAJOR 0)
-#    SET(GUILE_VERSION_MINOR 0)
-#    SET(GUILE_VERSION_PATCH 0)
-#
-#    IF(NOT EXISTS "${GUILE_INCLUDE_DIR}/libguile/version.h")
-#        MESSAGE(FATAL_ERROR "Found ${GUILE_INCLUDE_DIR}/libguile.h but not version.h; check your scm installation!")
-#    ENDIF(NOT EXISTS "${GUILE_INCLUDE_DIR}/libguile/version.h")
-#
-#    # Extract the libguile version from the 'version.h' file
-#    SET(GUILE_MAJOR_VERSION 0)
-#    FILE(READ "${GUILE_INCLUDE_DIR}/libguile/version.h" _GUILE_VERSION_H_CONTENTS)
-#
-#    STRING(REGEX MATCH "#define SCM_MAJOR_VERSION[	 ]+([0-9])" _MATCH "${_GUILE_VERSION_H_CONTENTS}")
-#    SET(GUILE_VERSION_MAJOR ${CMAKE_MATCH_1})
-#    STRING(REGEX MATCH "#define SCM_MINOR_VERSION[	 ]+([0-9]+)" _MATCH "${_GUILE_VERSION_H_CONTENTS}")
-#    SET(GUILE_VERSION_MINOR ${CMAKE_MATCH_1})
-#    STRING(REGEX MATCH "#define SCM_MICRO_VERSION[	 ]+([0-9]+)" _MATCH "${_GUILE_VERSION_H_CONTENTS}")
-#    SET(GUILE_VERSION_PATCH ${CMAKE_MATCH_1})
-#
-#    SET(GUILE_VERSION_STRING "${GUILE_VERSION_MAJOR}.${GUILE_VERSION_MINOR}.${GUILE_VERSION_PATCH}")
-#
-#endif ()
 
 find_program(GUILE_EXECUTABLE
         NAMES guile3.0 guile2.2 guile2.0 guile
@@ -88,10 +64,6 @@ if (GUILE_CONFIG_EXECUTABLE)
             OUTPUT_VARIABLE GUILE_EXTENSION_DIR
             OUTPUT_STRIP_TRAILING_WHITESPACE)
 endif ()
-
-# IF(GUILE_FOUND AND GUILE_VERSION_MAJOR EQUAL 2)
-# 	ADD_DEFINITIONS(-DHAVE_GUILE2)
-# ENDIF(GUILE_FOUND AND GUILE_VERSION_MAJOR EQUAL 2)
 
 # handle REQUIRED and QUIET options
 include (FindPackageHandleStandardArgs)

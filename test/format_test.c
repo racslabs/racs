@@ -3,7 +3,7 @@
 void test_format_wav() {
     auxts_db* db = auxts_db_instance();
     auxts_db_open(db);
-    auxts_result res = auxts_db_exec(db, "EXTRACT 'test' 2025-02-09T22:51:52.213Z 2025-02-09T22:51:52.214Z "
+    auxts_result res = auxts_db_exec(db, "EXTRACT 'test' 2025-02-09T22:51:52.213Z 2025-02-09T22:51:52.215Z "
                                          "|> FORMAT 'audio/wav' 1 44100");
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
