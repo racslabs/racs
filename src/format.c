@@ -23,5 +23,17 @@ size_t auxts_format_pcm(auxts_format* fmt, const void* in, void* out, size_t sam
         return bytes;
     }
 
+    if (strcmp(mime_type, "audio/ogg") == 0) {
+        auxts_ogg ogg;
+
+        auxts_ogg_set_channels(&ogg, fmt->channels);
+        auxts_ogg_set_sample_rate(&ogg, fmt->sample_rate);
+
+        auxts_ogg_write_s16(&ogg, in, out, samples, size);
+        auxts_ogg_destroy(&ogg);
+
+        return ogg.w_pos;
+    }
+
     return 0;
 }

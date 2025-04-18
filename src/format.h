@@ -4,6 +4,7 @@
 
 #include "mp3.h"
 #include "wav.h"
+#include "ogg.h"
 
 typedef struct {
     auxts_uint16 channels;
