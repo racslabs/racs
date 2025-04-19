@@ -120,7 +120,7 @@ auxts_create_command(extract) {
 
     auxts_pcm pcm;
 
-    int rc = auxts_extract_pcm(ctx->cache, &pcm, stream_id, from, to);
+    int rc = auxts_extract_pcm(ctx->scache, &pcm, stream_id, from, to);
     if (rc == AUXTS_EXTRACT_STATUS_NOT_FOUND) {
         auxts_pcm_destroy(&pcm);
         return auxts_serialize_error(&pk, "The stream-id does not exist");

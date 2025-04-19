@@ -22,8 +22,8 @@ typedef enum {
 } auxts_extract_status;
 
 int auxts_extract_pcm(auxts_cache* cache, auxts_pcm* pcm, const char* stream_id, auxts_time from, auxts_time to);
-uint8_t* auxts_extract_data_from_cache_or_sstable(auxts_cache* cache, uint64_t stream_id, auxts_time time, const char* path);
-void auxts_extract_process_sstable_data(auxts_pcm* pcm, uint8_t* data, uint64_t stream_id, int64_t from, int64_t to);
+uint8_t* auxts_extract_from_cache_or_sstable(auxts_cache* cache, uint64_t stream_id, auxts_time time, const char* path);
+void auxts_extract_process_sstable(auxts_pcm* pcm, uint8_t* data, uint64_t stream_id, int64_t from, int64_t to);
 
 
 #endif //AUXTS_EXTRACT_H

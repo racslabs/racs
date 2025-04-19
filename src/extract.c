@@ -22,8 +22,8 @@ int auxts_extract_pcm(auxts_cache* cache, auxts_pcm* pcm, const char* stream_id,
 
         auxts_time time = auxts_time_from_path(file_path);
         if (time >= from && time <= to) {
-            auxts_uint8* data = auxts_extract_data_from_cache_or_sstable(cache, hash, time, file_path);
-            auxts_extract_process_sstable_data(pcm, data, hash, from, to);
+            auxts_uint8* data = auxts_extract_from_cache_or_sstable(cache, hash, time, file_path);
+            auxts_extract_process_sstable(pcm, data, hash, from, to);
         }
     }
 
@@ -33,15 +33,13 @@ int auxts_extract_pcm(auxts_cache* cache, auxts_pcm* pcm, const char* stream_id,
     return AUXTS_EXTRACT_STATUS_OK;
 }
 
-uint8_t* auxts_extract_data_from_cache_or_sstable(auxts_cache* cache, uint64_t stream_id, auxts_time time, const char* path) {
+uint8_t* auxts_extract_from_cache_or_sstable(auxts_cache* cache, uint64_t stream_id, auxts_time time, const char* path) {
     uint64_t key[2] = {stream_id, time};
     uint8_t* data = auxts_cache_get(cache, key);
 
     if (!data) {
         auxts_sstable* sstable = auxts_sstable_read(path);
-        if (!sstable) {
-            return NULL;
-        }
+        if (!sstable) return NULL;
 
         data = sstable->data;
         auxts_sstable_destroy_except_data(sstable);
@@ -51,7 +49,7 @@ uint8_t* auxts_extract_data_from_cache_or_sstable(auxts_cache* cache, uint64_t s
     return data;
 }
 
-void auxts_extract_process_sstable_data(auxts_pcm* pcm, uint8_t* data, uint64_t stream_id, int64_t from, int64_t to) {
+void auxts_extract_process_sstable(auxts_pcm* pcm, uint8_t* data, uint64_t stream_id, int64_t from, int64_t to) {
     size_t size;
     memcpy(&size, data, sizeof(size_t));
 

@@ -2,12 +2,8 @@
 #ifndef AUXTS_PCM_H
 #define AUXTS_PCM_H
 
-#include "stream.h"
+#include "memory.h"
 #include "simd/pcm_simd.h"
-
-typedef enum {
-    AUXTS_PCM_16 = 16
-} auxts_pcm_bit_depth;
 
 typedef struct {
     auxts_uint8  channels;

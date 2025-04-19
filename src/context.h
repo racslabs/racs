@@ -5,7 +5,7 @@
 #include "cache.h"
 
 typedef struct {
-    auxts_cache* cache;
+    auxts_cache* scache;
 } auxts_context;
 
 void auxts_context_init(auxts_context* ctx);

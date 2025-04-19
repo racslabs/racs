@@ -3,7 +3,7 @@
 #define AUXTS_OGG_H
 
 #include <opus/opusenc.h>
-#include "stream.h"
+#include "memory.h"
 
 #define AUXTS_OGG_FRAMESIZE_20MS 0.02
 

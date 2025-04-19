@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_STREAM_H
-#define AUXTS_STREAM_H
+#ifndef AUXTS_MEMORY_H
+#define AUXTS_MEMORY_H
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -21,4 +21,4 @@ typedef struct {
 void auxts_memstream_init(auxts_memstream* stream);
 int auxts_memstream_write(auxts_memstream* stream, const void* data, size_t size);
 
-#endif //AUXTS_STREAM_H
+#endif //AUXTS_MEMORY_H

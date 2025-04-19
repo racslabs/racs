@@ -17,7 +17,7 @@ int auxts_atsp_frame_read(uint8_t* buf, auxts_atsp_frame* frame) {
 
 void auxts_atsp_header_parse(uint8_t* buf, auxts_atsp_header* header) {
     memcpy(&header->chunk_id, buf, 4);
-    auxts_read_uint64(&header->hash, buf, 4);
+    auxts_read_uint64(&header->stream_id, buf, 4);
     auxts_read_uint32(&header->checksum, buf, 12);
     auxts_read_uint16(&header->channels, buf, 16);
     auxts_read_uint32(&header->sample_rate, buf, 18);

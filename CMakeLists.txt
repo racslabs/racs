@@ -104,8 +104,8 @@ add_executable(auxts main.c
         src/atsp.c
         src/pcm.h
         src/types.h
-        src/stream.h
-        src/stream.c
+        src/memory.h
+        src/memory.c
         src/pcm.c
         src/simd/pcm_simd.h
         src/simd/pcm_neon.c

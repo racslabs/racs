@@ -10,7 +10,7 @@
 
 typedef struct {
     char chunk_id[4];
-    uint64_t hash;
+    uint64_t stream_id;
     uint32_t checksum;
     uint16_t channels;
     uint32_t sample_rate;
