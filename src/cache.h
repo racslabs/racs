@@ -30,7 +30,7 @@ typedef struct auxts_cache {
     pthread_rwlock_t rwlock;
 } auxts_cache;
 
-auxts_cache* auxts_cache_create(size_t capacity);
+auxts_cache* auxts_scache_create(size_t capacity);
 uint8_t* auxts_cache_get(auxts_cache* cache, const uint64_t* key);
 void auxts_cache_put(auxts_cache* cache, const uint64_t* key, uint8_t* value);
 void auxts_cache_evict(auxts_cache* cache);

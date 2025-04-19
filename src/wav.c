@@ -1,4 +1,5 @@
 #include "wav.h"
+#include <stdio.h>
 
 void auxts_wav_set_channels(auxts_wav* wav, auxts_uint16 channels) {
     wav->format.channels = channels;

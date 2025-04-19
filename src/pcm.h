@@ -14,7 +14,7 @@ typedef struct {
     auxts_uint8  bit_depth;
     auxts_uint32 sample_rate;
     size_t       samples;
-    auxts_memory_stream out_stream;
+    auxts_memstream out_stream;
 } auxts_pcm;
 
 void auxts_pcm_set_channels(auxts_pcm* pcm, auxts_uint16 channels);

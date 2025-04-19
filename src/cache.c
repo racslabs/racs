@@ -7,7 +7,7 @@ static uint64_t cache_hash(void* key);
 static int cache_cmp(void* a, void* b);
 static void cache_destroy(void* key, void* value);
 
-auxts_cache* auxts_cache_create(size_t capacity) {
+auxts_cache* auxts_scache_create(size_t capacity) {
     auxts_cache* cache = malloc(sizeof(auxts_cache));
     if (!cache) {
         perror("Failed to allocate auxts_cache");

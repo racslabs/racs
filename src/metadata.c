@@ -69,6 +69,7 @@ int auxts_metadata_put(const auxts_metadata* metadata, const char* stream_id) {
         return AUXTS_METADATA_STATUS_EXIST;
 
     mkdir(".data", 0777);
+    mkdir(".data/md", 0777);
 
     int fd = open(path, O_WRONLY | O_TRUNC | O_CREAT, 0644);
     if (fd == -1) {
@@ -105,7 +106,7 @@ int metadata_exist(const char* path) {
 int get_metadata_path(char* path, const char* stream_id) {
     uint64_t hash = auxts_hash_stream_id(stream_id);
 
-    sprintf(path, ".data/%llu", hash);
+    sprintf(path, ".data/md/%llu", hash);
 
     if (!metadata_exist(path)) {
         perror("Metadata not found");
@@ -117,7 +118,7 @@ int get_metadata_path(char* path, const char* stream_id) {
 
 int auxts_stream_id_exist(uint64_t stream_id) {
     char path[55];
-    sprintf(path, ".data/%llu", stream_id);
+    sprintf(path, ".data/md/%llu", stream_id);
     return metadata_exist(path);
 }
 

@@ -4,7 +4,7 @@ static void kvstore_bin_init(auxts_kvstore_bin* bin);
 static void kvstore_bin_append(auxts_kvstore_bin* bin, void* key, void* value);
 static auxts_kvstore_bin* kvstore_get_bin(auxts_kvstore* kv, void* key);
 
-auxts_kvstore* auxts_kvstore_create(size_t capacity, auxts_hash_func hash, auxts_cmp_func cmp, auxts_destroy_func destroy) {
+auxts_kvstore* auxts_kvstore_create(size_t capacity, auxts_kvstore_hash_callback hash, auxts_kvstore_cmp_callback cmp, auxts_kvstore_destroy_callback destroy) {
     auxts_kvstore* kv = malloc(sizeof(auxts_kvstore));
     if (!kv) {
         perror("Error allocating auxts_kvstore");
