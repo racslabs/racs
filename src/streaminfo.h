@@ -17,6 +17,8 @@ typedef struct {
     auxts_time   ref;
 } auxts_streaminfo;
 
+auxts_uint64 auxts_streaminfo_attr(auxts_cache* mcache, auxts_uint64 stream_id, const char* attr);
+int auxts_streaminfo_get(auxts_cache* mcache, auxts_streaminfo* streaminfo, auxts_uint64 stream_id);
 int auxts_streaminfo_put(auxts_cache* mcache, auxts_streaminfo* streaminfo, auxts_uint64 stream_id);
 off_t auxts_streaminfo_write(auxts_uint8* buf, auxts_streaminfo* streaminfo);
 off_t auxts_streaminfo_read(auxts_streaminfo* streaminfo, auxts_uint8* buf);

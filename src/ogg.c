@@ -68,9 +68,9 @@ size_t auxts_ogg_write(auxts_ogg* ogg, const void* in, void* out, size_t samples
         ogg->err = ope_encoder_write(ogg->enc, pcm, samples_per_channel);
         if (ogg->err != OPE_OK) {
             fprintf(stderr, "Filed to encode ogg: %s\n", ope_strerror(ogg->err));
-            free(pcm);
             ope_comments_destroy(ogg->comments);
             ope_encoder_destroy(ogg->enc);
+            free(pcm);
             break;
         }
 

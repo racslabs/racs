@@ -175,7 +175,6 @@ auxts_token parser_lex_token_int64(auxts_parser* parser, regmatch_t* match) {
     char* int_str = malloc(size + 1);
     strlcpy(int_str, parser->ptr, size + 1);
 
-    errno = 0;
     auxts_token token;
     token.type = AUXTS_TOKEN_TYPE_INT;
     token.as.i64 = strtoull(int_str, NULL, 10);

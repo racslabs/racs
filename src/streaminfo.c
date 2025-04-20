@@ -1,5 +1,36 @@
 #include "streaminfo.h"
 
+auxts_uint64 auxts_streaminfo_attr(auxts_cache* mcache, auxts_uint64 stream_id, const char* attr) {
+    auxts_streaminfo streaminfo;
+    if (!auxts_streaminfo_get(mcache, &streaminfo, stream_id)) return 0;
+
+    if (strcmp(attr, "rate") == 0)
+        return streaminfo.sample_rate;
+
+    if (strcmp(attr, "channels") == 0)
+        return streaminfo.channels;
+
+    if (strcmp(attr, "bitdepth") == 0)
+        return streaminfo.bit_depth;
+
+    if (strcmp(attr, "size") == 0)
+        return streaminfo.size;
+
+    return 0;
+}
+
+int auxts_streaminfo_get(auxts_cache* mcache, auxts_streaminfo* streaminfo, auxts_uint64 stream_id) {
+    auxts_uint64 key[2] = {stream_id, 0};
+
+    auxts_uint8* data = auxts_cache_get(mcache, key);
+    if (!data) return 0;
+
+    off_t bytes = auxts_streaminfo_read(streaminfo, data);
+    if (bytes != sizeof(auxts_streaminfo)) return 0;
+
+    return 1;
+}
+
 int auxts_streaminfo_put(auxts_cache* mcache, auxts_streaminfo* streaminfo, auxts_uint64 stream_id) {
     auxts_uint8* data = malloc(sizeof(auxts_streaminfo));
     if (!data) return 0;
