@@ -123,6 +123,8 @@ add_executable(auxts main.c
         src/mp3.c
         src/ogg.h
         src/ogg.c
+        src/streaminfo.h
+        src/streaminfo.c
 )
 
 target_link_libraries(auxts msgpack-c ${GUILE_LIBRARIES} ${LAME_LIBRARIES} ${OPUS_LIBRARIES} ${OPUSENC_LIBRARIES})

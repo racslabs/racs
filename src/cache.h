@@ -35,6 +35,9 @@ uint8_t* auxts_cache_get(auxts_cache* cache, const uint64_t* key);
 void auxts_cache_put(auxts_cache* cache, const uint64_t* key, uint8_t* value);
 void auxts_cache_evict(auxts_cache* cache);
 void auxts_cache_destroy(auxts_cache* cache);
+uint64_t auxts_cache_hash(void* key);
+int auxts_cache_cmp(void* a, void* b);
+void auxts_scache_destroy(void* key, void* value);
 
 #ifdef __cplusplus
 }

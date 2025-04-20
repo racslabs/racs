@@ -3,9 +3,6 @@
 static auxts_cache_node* cache_node_create(const uint64_t* key, uint8_t* value);
 static void cache_node_destroy(auxts_cache_node* node);
 static void cache_insert_at_head(auxts_cache* cache, auxts_cache_node* node);
-static uint64_t cache_hash(void* key);
-static int cache_cmp(void* a, void* b);
-static void cache_destroy(void* key, void* value);
 
 auxts_cache* auxts_scache_create(size_t capacity) {
     auxts_cache* cache = malloc(sizeof(auxts_cache));
@@ -20,7 +17,7 @@ auxts_cache* auxts_scache_create(size_t capacity) {
     cache->capacity = capacity;
     cache->head = NULL;
     cache->tail = NULL;
-    cache->kv = auxts_kvstore_create(capacity, cache_hash, cache_cmp, cache_destroy);
+    cache->kv = auxts_kvstore_create(capacity, auxts_cache_hash, auxts_cache_cmp, auxts_scache_destroy);
 
     return cache;
 }
@@ -130,19 +127,19 @@ void cache_insert_at_head(auxts_cache* cache, auxts_cache_node* node) {
     cache->head = node;
 }
 
-uint64_t cache_hash(void* key) {
+uint64_t auxts_cache_hash(void* key) {
     uint64_t hash[2];
     murmur3_x64_128(key, 2 * sizeof(uint64_t), 0, hash);
     return hash[0];
 }
 
-int cache_cmp(void* a, void* b) {
+int auxts_cache_cmp(void* a, void* b) {
     uint64_t* x = (uint64_t*)a;
     uint64_t* y = (uint64_t*)b;
     return x[0] == y[0] && x[1] == y[1];
 }
 
-void cache_destroy(void* key, void* value) {
+void auxts_scache_destroy(void* key, void* value) {
     auxts_cache_entry* entry = (auxts_cache_entry*)value;
     free(entry->value);
 }
