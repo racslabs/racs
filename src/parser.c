@@ -1,4 +1,3 @@
-#include <sys/errno.h>
 #include "parser.h"
 
 static void parser_advance(auxts_parser* parser, regoff_t step);

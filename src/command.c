@@ -22,18 +22,18 @@ auxts_create_command(create) {
 
     auxts_parse_buf(in_buf, &pk, &msg, "Error parsing args")
 
-    auxts_validate_num_args(&pk, msg, 4)
+    auxts_validate_num_args(&pk, msg, 3)
     auxts_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected: string")
     auxts_validate_type(&pk, msg, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: int")
     auxts_validate_type(&pk, msg, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: int")
-    auxts_validate_type(&pk, msg, 3, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 4. Expected: int")
 
     char* stream_id = auxts_deserialize_str(&msg.data, 0);
     uint32_t sample_rate = auxts_deserialize_uint32(&msg.data, 1);
-    uint32_t channels = auxts_deserialize_uint32(&msg.data, 2);
-    uint32_t bit_depth = auxts_deserialize_uint32(&msg.data, 3);
+    uint16_t channels = auxts_deserialize_uint16(&msg.data, 2);
 
-    int rc = auxts_create(stream_id, sample_rate, channels, bit_depth);
+    uint64_t hash = auxts_hash_stream_id(stream_id);
+
+    int rc = auxts_create(ctx->mcache, hash, sample_rate, channels);
     free(stream_id);
 
     if (rc == AUXTS_METADATA_STATUS_OK)

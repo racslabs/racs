@@ -1,5 +1,23 @@
 #include "streaminfo.h"
 
+auxts_cache* auxts_mcache_create(size_t capacity) {
+    auxts_cache* cache = malloc(sizeof(auxts_cache));
+    if (!cache) {
+        perror("Failed to allocate auxts_mcache");
+        return NULL;
+    }
+
+    pthread_rwlock_init(&cache->rwlock, NULL);
+
+    cache->size = 0;
+    cache->capacity = capacity;
+    cache->head = NULL;
+    cache->tail = NULL;
+    cache->kv = auxts_kvstore_create(capacity, auxts_cache_hash, auxts_cache_cmp, auxts_mcache_destroy);
+
+    return cache;
+}
+
 auxts_uint64 auxts_streaminfo_attr(auxts_cache* mcache, auxts_uint64 stream_id, const char* attr) {
     auxts_streaminfo streaminfo;
     if (!auxts_streaminfo_get(mcache, &streaminfo, stream_id)) return 0;

@@ -3,9 +3,11 @@
 #define AUXTS_CONTEXT_H
 
 #include "cache.h"
+#include "streaminfo.h"
 
 typedef struct {
     auxts_cache* scache;
+    auxts_cache* mcache;
 } auxts_context;
 
 void auxts_context_init(auxts_context* ctx);
