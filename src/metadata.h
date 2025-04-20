@@ -17,8 +17,8 @@ typedef enum {
 } auxts_metadata_status;
 
 typedef struct {
-    uint32_t channels;
-    uint32_t bit_depth;
+    uint16_t channels;
+    uint16_t bit_depth;
     uint32_t sample_rate;
     uint64_t bytes;
     uint64_t ref;

@@ -48,10 +48,10 @@ int auxts_metadata_get(auxts_metadata* metadata, const char* stream_id) {
         return AUXTS_METADATA_STATUS_ERROR;
     }
 
-    uint8_t buf[28];
-    read(fd, buf, 28);
+    uint8_t buf[24];
+    read(fd, buf, 24);
 
-    if (metadata_read(metadata, buf) != 28) {
+    if (metadata_read(metadata, buf) != 24) {
         perror("Failed to read metadata");
         close(fd);
         return AUXTS_METADATA_STATUS_ERROR;
@@ -83,14 +83,14 @@ int auxts_metadata_put(const auxts_metadata* metadata, const char* stream_id) {
         return AUXTS_METADATA_STATUS_ERROR;
     }
 
-    uint8_t buf[28];
-    if (metadata_write(buf, metadata) != 28) {
+    uint8_t buf[24];
+    if (metadata_write(buf, metadata) != 24) {
         perror("Failed to write metadata");
         close(fd);
         return -1;
     }
 
-    write(fd, buf, 28);
+    write(fd, buf, 24);
 
     flock(fd, LOCK_UN);
     close(fd);
@@ -147,9 +147,9 @@ int write_metadata_index(const char* stream_id) {
 
 off_t metadata_read(auxts_metadata* metadata, uint8_t buf[]) {
     off_t offset = 0;
-    offset = auxts_read_uint32(&metadata->channels, buf, offset);
+    offset = auxts_read_uint16(&metadata->channels, buf, offset);
+    offset = auxts_read_uint16(&metadata->bit_depth, buf, offset);
     offset = auxts_read_uint32(&metadata->sample_rate, buf, offset);
-    offset = auxts_read_uint32(&metadata->bit_depth, buf, offset);
     offset = auxts_read_uint64(&metadata->bytes, buf, offset);
     offset = auxts_read_uint64(&metadata->ref, buf, offset);
     return offset;
@@ -157,9 +157,9 @@ off_t metadata_read(auxts_metadata* metadata, uint8_t buf[]) {
 
 off_t metadata_write(uint8_t buf[], const auxts_metadata* metadata) {
     off_t offset = 0;
-    offset = auxts_write_uint32(buf, metadata->channels, offset);
+    offset = auxts_write_uint16(buf, metadata->channels, offset);
+    offset = auxts_write_uint16(buf, metadata->bit_depth, offset);
     offset = auxts_write_uint32(buf, metadata->sample_rate, offset);
-    offset = auxts_write_uint32(buf, metadata->bit_depth, offset);
     offset = auxts_write_uint64(buf, metadata->bytes, offset);
     offset = auxts_write_uint64(buf, metadata->ref, offset);
     return offset;

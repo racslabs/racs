@@ -5,6 +5,6 @@
 #include "metadata.h"
 #include "time.h"
 
-int auxts_create(const char* name, uint32_t sample_rate, uint32_t channels, uint32_t bit_depth);
+int auxts_create(const char* name, uint32_t sample_rate, uint16_t channels, uint16_t bit_depth);
 
 #endif //AUXTS_CREATE_H
