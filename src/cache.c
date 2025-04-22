@@ -1,7 +1,6 @@
 #include "cache.h"
 
 static auxts_cache_node* cache_node_create(const uint64_t* key, uint8_t* value);
-static void cache_node_destroy(auxts_cache_node* node);
 static void cache_insert_at_head(auxts_cache* cache, auxts_cache_node* node);
 
 auxts_cache* auxts_scache_create(size_t capacity) {
@@ -63,16 +62,14 @@ void auxts_cache_destroy(auxts_cache* cache) {
     if (!cache) return;
 
     pthread_rwlock_wrlock(&cache->rwlock);
+    auxts_kvstore_destroy(cache->kv);
 
     auxts_cache_node* node = cache->head;
-
-//    while (node) {
-//        auxts_cache_node* next = (auxts_cache_node*) node->next;
-//        cache_node_destroy(node);
-//        node = next;
-//    }
-
-    auxts_kvstore_destroy(cache->kv);
+    while (node) {
+        auxts_cache_node* next = (auxts_cache_node*) node->next;
+        free(node);
+        node = next;
+    }
 
     pthread_rwlock_unlock(&cache->rwlock);
     pthread_rwlock_destroy(&cache->rwlock);
@@ -93,7 +90,6 @@ void auxts_cache_evict(auxts_cache* cache) {
 
     --cache->size;
 }
-
 
 auxts_cache_node* cache_node_create(const uint64_t* key, uint8_t* value) {
     auxts_cache_node* node = malloc(sizeof(auxts_cache_node));
@@ -141,12 +137,4 @@ int auxts_cache_cmp(void* a, void* b) {
 void auxts_scache_destroy(void* key, void* value) {
     auxts_cache_entry* entry = (auxts_cache_entry*)value;
     free(entry->value);
-}
-
-void cache_node_destroy(auxts_cache_node* node) {
-    if (!node) return;
-
-    auxts_cache_entry* entry = &node->entry;
-    free(entry->value);
-    free(node);
 }
