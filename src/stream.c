@@ -24,6 +24,32 @@ auxts_streamkv* auxts_streamkv_create(int capacity) {
     return kv;
 }
 
+char* auxts_streamkv_get(auxts_streamkv* kv, auxts_uint64 stream_id) {
+    pthread_rwlock_rdlock(&kv->rwlock);
+
+    auxts_uint64 key[2] = {stream_id, 0};
+    char* mac_addr = auxts_kvstore_get(kv->kv, key);
+
+    pthread_rwlock_unlock(&kv->rwlock);
+
+    return mac_addr;
+}
+
+void auxts_streamkv_put(auxts_streamkv* kv, auxts_uint64 stream_id, char mac_addr[]) {
+    pthread_rwlock_wrlock(&kv->rwlock);
+
+    auxts_uint64 key[2] = {stream_id, 0};
+
+    char* _mac_addr = malloc(6);
+    if (!_mac_addr) {
+        perror("Failed to allocate mac_addr buffer");
+        return;
+    }
+
+    auxts_kvstore_put(kv->kv, key, _mac_addr);
+    pthread_rwlock_unlock(&kv->rwlock);
+}
+
 void auxts_streamkv_destroy(auxts_streamkv* kv) {
     pthread_rwlock_destroy(&kv->rwlock);
     auxts_kvstore_destroy(kv->kv);
