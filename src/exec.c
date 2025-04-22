@@ -235,9 +235,9 @@ int command_handle_float64(auxts_command* cmd, msgpack_sbuffer* out_buf, auxts_t
 void auxts_exec_init(auxts_exec* exec) {
     exec->kv = auxts_kvstore_create(10, exec_hash, exec_cmp, exec_destroy);
     auxts_kvstore_put(exec->kv, strdup("PING"), auxts_command_ping);
-    auxts_kvstore_put(exec->kv, strdup("CREATE"), auxts_command_create);
+    auxts_kvstore_put(exec->kv, strdup("STREAM"), auxts_command_stream);
+    auxts_kvstore_put(exec->kv, strdup("STREAMINFO"), auxts_command_streaminfo);
     auxts_kvstore_put(exec->kv, strdup("EXTRACT"), auxts_command_extract);
-    auxts_kvstore_put(exec->kv, strdup("METADATA"), auxts_command_metadata);
     auxts_kvstore_put(exec->kv, strdup("EVAL"), auxts_command_eval);
     auxts_kvstore_put(exec->kv, strdup("FORMAT"), auxts_command_format);
 }

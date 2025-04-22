@@ -5,7 +5,7 @@
 #include <msgpack.h>
 #include "scm.h"
 #include "serialization.h"
-#include "create.h"
+#include "stream.h"
 #include "extract.h"
 #include "wav.h"
 #include "format.h"
@@ -34,8 +34,8 @@ typedef enum {
 
 auxts_create_command(extract);
 auxts_create_command(eval);
-auxts_create_command(create);
-auxts_create_command(metadata);
+auxts_create_command(stream);
+auxts_create_command(streaminfo);
 auxts_create_command(ping);
 auxts_create_command(format);
 

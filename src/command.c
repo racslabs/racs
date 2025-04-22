@@ -13,7 +13,7 @@ auxts_create_command(ping) {
     return auxts_serialize_str(&pk, "PONG");
 }
 
-auxts_create_command(create) {
+auxts_create_command(stream) {
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
 
@@ -28,24 +28,21 @@ auxts_create_command(create) {
     auxts_validate_type(&pk, msg, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: int")
 
     char* stream_id = auxts_deserialize_str(&msg.data, 0);
+
     uint32_t sample_rate = auxts_deserialize_uint32(&msg.data, 1);
     uint16_t channels = auxts_deserialize_uint16(&msg.data, 2);
+    uint64_t hash = auxts_hash(stream_id);
 
-    uint64_t hash = auxts_hash_stream_id(stream_id);
-
-    int rc = auxts_create(ctx->mcache, hash, sample_rate, channels);
+    int rc = auxts_stream(ctx->mcache, hash, sample_rate, channels);
     free(stream_id);
 
-    if (rc == AUXTS_METADATA_STATUS_OK)
+    if (rc == 1)
         return auxts_serialize_null_with_status_ok(&pk);
-
-    if (rc == AUXTS_METADATA_STATUS_EXIST)
-        return auxts_serialize_error(&pk, "The stream-id already exist");
 
     return auxts_serialize_error(&pk, "Failed to create stream");
 }
 
-auxts_create_command(metadata) {
+auxts_create_command(streaminfo) {
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
 
@@ -61,19 +58,14 @@ auxts_create_command(metadata) {
     char* stream_id = auxts_deserialize_str(&msg.data, 0);
     char* attr = auxts_deserialize_str(&msg.data, 1);
 
-    uint64_t value;
-    int rc = auxts_metadata_attr(stream_id, attr, &value);
+    auxts_uint64 hash = auxts_hash(stream_id);
+    auxts_uint64 value = auxts_streaminfo_attr(ctx->mcache, hash, attr);
 
     free(stream_id);
     free(attr);
 
-    if (rc == AUXTS_METADATA_STATUS_OK) {
+    if (value != 0)
         return auxts_serialize_uint64(&pk, value);
-    }
-
-    if (rc == AUXTS_METADATA_STATUS_NOT_FOUND) {
-        return auxts_serialize_null_with_status_not_found(&pk);
-    }
 
     return auxts_serialize_error(&pk, "Failure reading metadata");
 }
@@ -120,7 +112,7 @@ auxts_create_command(extract) {
 
     auxts_pcm pcm;
 
-    int rc = auxts_extract_pcm(ctx->scache, &pcm, stream_id, from, to);
+    int rc = auxts_extract_pcm(ctx, &pcm, stream_id, from, to);
     if (rc == AUXTS_EXTRACT_STATUS_NOT_FOUND) {
         auxts_pcm_destroy(&pcm);
         return auxts_serialize_error(&pk, "The stream-id does not exist");

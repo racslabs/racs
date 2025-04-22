@@ -33,9 +33,8 @@ void auxts_cache_put(auxts_cache* cache, const uint64_t* key, uint8_t* value) {
         return;
     }
 
-    if (cache->size >= cache->capacity) {
+    if (cache->size >= cache->capacity)
         auxts_cache_evict(cache);
-    }
 
     auxts_cache_node* node = cache_node_create(key, value);
 
@@ -67,11 +66,11 @@ void auxts_cache_destroy(auxts_cache* cache) {
 
     auxts_cache_node* node = cache->head;
 
-    while (node) {
-        auxts_cache_node* next = (auxts_cache_node*) node->next;
-        cache_node_destroy(node);
-        node = next;
-    }
+//    while (node) {
+//        auxts_cache_node* next = (auxts_cache_node*) node->next;
+//        cache_node_destroy(node);
+//        node = next;
+//    }
 
     auxts_kvstore_destroy(cache->kv);
 

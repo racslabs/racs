@@ -1,28 +1,27 @@
 #include "extract.h"
 
-int auxts_extract_pcm(auxts_cache* cache, auxts_pcm* pcm, const char* stream_id, auxts_time from, auxts_time to) {
+int auxts_extract_pcm(auxts_context* ctx, auxts_pcm* pcm, const char* stream_id, auxts_time from, auxts_time to) {
     char* path = auxts_time_range_to_path(from, to);
     auxts_filelist* list = get_sorted_filelist(path);
 
-    auxts_metadata metadata;
-    int rc = auxts_metadata_get(&metadata, stream_id);
-    if (rc == AUXTS_METADATA_STATUS_NOT_FOUND) {
-        return AUXTS_EXTRACT_STATUS_NOT_FOUND;
-    }
+    auxts_streaminfo streaminfo;
+    int rc = auxts_streaminfo_get(ctx->mcache, &streaminfo, auxts_hash(stream_id));
+    if (rc == 0) return AUXTS_EXTRACT_STATUS_NOT_FOUND;
 
-    auxts_pcm_set_bit_depth(pcm, metadata.bit_depth);
-    auxts_pcm_set_channels(pcm, metadata.channels);
-    auxts_pcm_set_sample_rate(pcm, metadata.sample_rate);
+    auxts_pcm_set_bit_depth(pcm, streaminfo.bit_depth);
+    auxts_pcm_set_channels(pcm, streaminfo.channels);
+    auxts_pcm_set_sample_rate(pcm, streaminfo.sample_rate);
+
     auxts_pcm_init(pcm);
 
-    auxts_uint64 hash = auxts_hash_stream_id(stream_id);
+    auxts_uint64 hash = auxts_hash(stream_id);
 
     for (int i = 0; i < list->num_files; ++i) {
         char* file_path = list->files[i];
 
         auxts_time time = auxts_time_from_path(file_path);
         if (time >= from && time <= to) {
-            auxts_uint8* data = auxts_extract_from_cache_or_sstable(cache, hash, time, file_path);
+            auxts_uint8* data = auxts_extract_from_cache_or_sstable(ctx->scache, hash, time, file_path);
             auxts_extract_process_sstable(pcm, data, hash, from, to);
         }
     }

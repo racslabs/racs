@@ -36,13 +36,12 @@ SCM auxts_scm_extract(SCM stream_id, SCM from, SCM to) {
     return scm_take_s32vector(data, size);
 }
 
-SCM auxts_scm_create(SCM stream_id, SCM sample_rate, SCM channels, SCM bit_depth) {
+SCM auxts_scm_stream(SCM stream_id, SCM sample_rate, SCM channels) {
     char* cmd = NULL;
-    asprintf(&cmd, "CREATE '%s' %d %d %d",
+    asprintf(&cmd, "STREAM '%s' %d %d",
              scm_to_locale_string(stream_id),
              scm_to_uint32(sample_rate),
-             scm_to_uint32(channels),
-             scm_to_uint32(bit_depth));
+             scm_to_uint32(channels));
 
     auxts_db* db = auxts_db_instance();
     auxts_result res = auxts_db_exec(db, cmd);
@@ -54,7 +53,7 @@ SCM auxts_scm_create(SCM stream_id, SCM sample_rate, SCM channels, SCM bit_depth
 
     if (msgpack_unpack_next(&msg, (char*)res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
         free(res.data);
-        scm_misc_error("create", "Deserialization error", SCM_EOL);
+        scm_misc_error("stream", "Deserialization error", SCM_EOL);
     }
 
     char* type = auxts_deserialize_str(&msg.data, 0);
@@ -65,9 +64,9 @@ SCM auxts_scm_create(SCM stream_id, SCM sample_rate, SCM channels, SCM bit_depth
     return SCM_EOL;
 }
 
-SCM auxts_scm_metadata(SCM stream_id, SCM attr) {
+SCM auxts_scm_streaminfo(SCM stream_id, SCM attr) {
     char* cmd = NULL;
-    asprintf(&cmd, "METADATA '%s' '%s'",
+    asprintf(&cmd, "STREAMINFO '%s' '%s'",
              scm_to_locale_string(stream_id),
              scm_to_locale_string(attr));
 
@@ -81,7 +80,7 @@ SCM auxts_scm_metadata(SCM stream_id, SCM attr) {
 
     if (msgpack_unpack_next(&msg, (char*)res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
         free(res.data);
-        scm_misc_error("metadata", "Deserialization error", SCM_EOL);
+        scm_misc_error("streaminfo", "Deserialization error", SCM_EOL);
     }
 
     char* type = auxts_deserialize_str(&msg.data, 0);
@@ -100,6 +99,6 @@ SCM auxts_scm_metadata(SCM stream_id, SCM attr) {
 
 void auxts_scm_init_bindings() {
     scm_c_define_gsubr("extract", 3, 0, 0, auxts_scm_extract);
-    scm_c_define_gsubr("create", 4, 0, 0, auxts_scm_create);
-    scm_c_define_gsubr("metadata", 2, 0, 0, auxts_scm_metadata);
+    scm_c_define_gsubr("stream", 4, 0, 0, auxts_scm_stream);
+    scm_c_define_gsubr("streaminfo", 2, 0, 0, auxts_scm_streaminfo);
 }

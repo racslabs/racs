@@ -80,8 +80,6 @@ add_executable(auxts main.c
         test/exec_test.c
         test/ping_test.h
         test/ping_test.c
-        src/metadata.h
-        src/metadata.c
         test/metadata_test.h
         test/metadata_test.c
         src/create.h
@@ -125,6 +123,8 @@ add_executable(auxts main.c
         src/ogg.c
         src/streaminfo.h
         src/streaminfo.c
+        src/stream.h
+        src/stream.c
 )
 
 target_link_libraries(auxts msgpack-c ${GUILE_LIBRARIES} ${LAME_LIBRARIES} ${OPUS_LIBRARIES} ${OPUSENC_LIBRARIES})
@@ -132,7 +132,6 @@ target_link_libraries(auxts msgpack-c ${GUILE_LIBRARIES} ${LAME_LIBRARIES} ${OPU
 enable_testing()
 
 # Unit test
-add_test(test_metadata auxts "--test" "test_metadata")
 add_test(test_metadata_attr auxts "--test" "test_metadata_attr")
 add_test(test_lru_cache auxts "--test" "test_lru_cache")
 add_test(test_multi_memtable auxts "--test" "test_multi_memtable")

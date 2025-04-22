@@ -31,9 +31,6 @@ auxts_uint64 auxts_streaminfo_attr(auxts_cache* mcache, auxts_uint64 stream_id, 
     if (strcmp(attr, "bitdepth") == 0)
         return streaminfo.bit_depth;
 
-    if (strcmp(attr, "size") == 0)
-        return streaminfo.size;
-
     return 0;
 }
 
@@ -41,16 +38,36 @@ int auxts_streaminfo_get(auxts_cache* mcache, auxts_streaminfo* streaminfo, auxt
     auxts_uint64 key[2] = {stream_id, 0};
 
     auxts_uint8* data = auxts_cache_get(mcache, key);
-    if (!data) return 0;
+    if (!data) {
+        char path[55];
+        auxts_streaminfo_path(path, stream_id);
+        if (!auxts_streaminfo_exits(stream_id)) return 0;
 
-    off_t bytes = auxts_streaminfo_read(streaminfo, data);
-    if (bytes != sizeof(auxts_streaminfo)) return 0;
+        int fd = open(path, O_RDONLY);
+        if (fd == -1) {
+            perror("Failed to open auxts_streaminfo file");
+            return 0;
+        }
 
+        auxts_uint8 buf[24];
+        if (read(fd, buf, 24) != 24) {
+            close(fd);
+            return 0;
+        }
+
+        if (auxts_streaminfo_read(streaminfo, buf) != 24) return 0;
+        auxts_streaminfo_put(mcache, streaminfo, stream_id);
+
+        close(fd);
+        return 1;
+    }
+
+    if (auxts_streaminfo_read(streaminfo, data) != 24) return 0;
     return 1;
 }
 
 int auxts_streaminfo_put(auxts_cache* mcache, auxts_streaminfo* streaminfo, auxts_uint64 stream_id) {
-    auxts_uint8* data = malloc(sizeof(auxts_streaminfo));
+    auxts_uint8* data = malloc(24);
     if (!data) return 0;
 
     auxts_uint64 key[2] = {stream_id, 0};
@@ -65,10 +82,7 @@ void auxts_mcache_destroy(void* key, void* value) {
     auxts_cache_entry* entry = (auxts_cache_entry*)value;
     auxts_uint64 stream_id = entry->key[0];
 
-    auxts_streaminfo streaminfo;
-    auxts_streaminfo_read(&streaminfo, entry->value);
-    auxts_streaminfo_flush(&streaminfo, stream_id);
-
+    auxts_streaminfo_flush(entry->value, stream_id);
     free(entry->value);
 }
 
@@ -88,11 +102,17 @@ off_t auxts_streaminfo_read(auxts_streaminfo* streaminfo, auxts_uint8* buf) {
     offset = auxts_read_uint16(&streaminfo->bit_depth, buf, offset);
     offset = auxts_read_uint32(&streaminfo->sample_rate, buf, offset);
     offset = auxts_read_uint64(&streaminfo->size, buf, offset);
-    offset = auxts_read_uint64((auxts_uint64*)&streaminfo->ref, buf, offset);
+    offset = auxts_read_uint64(&streaminfo->ref, buf, offset);
     return offset;
 }
 
-void auxts_streaminfo_flush(auxts_streaminfo* streaminfo, auxts_uint64 stream_id) {
+auxts_uint64 auxts_hash(const char* stream_id) {
+    uint64_t hash[2];
+    murmur3_x64_128((void*)stream_id, strlen(stream_id), 0, hash);
+    return hash[0];
+}
+
+void auxts_streaminfo_flush(auxts_uint8* data, auxts_uint64 stream_id) {
     char path[55];
     auxts_streaminfo_path(path, stream_id);
 
@@ -111,14 +131,7 @@ void auxts_streaminfo_flush(auxts_streaminfo* streaminfo, auxts_uint64 stream_id
         return;
     }
 
-    uint8_t buf[24];
-    if (auxts_streaminfo_write(buf, streaminfo) != 24) {
-        perror("Failed to write auxts_streaminfo");
-        close(fd);
-        return;
-    }
-
-    write(fd, buf, 24);
+    write(fd, data, 24);
     flock(fd, LOCK_UN);
     close(fd);
 }
