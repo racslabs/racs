@@ -42,6 +42,50 @@ auxts_create_command(stream) {
     return auxts_serialize_error(&pk, "Failed to create stream");
 }
 
+auxts_create_command(streamopen) {
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
+
+    msgpack_unpacked msg;
+    msgpack_unpacked_init(&msg);
+
+    auxts_parse_buf(in_buf, &pk, &msg, "Error parsing args")
+
+    auxts_validate_num_args(&pk, msg, 1)
+    auxts_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
+
+    char* stream_id = auxts_deserialize_str(&msg.data, 0);
+    int rc = auxts_streamopen(ctx->kv, auxts_hash(stream_id));
+    free(stream_id);
+
+    if (rc == 1)
+        return auxts_serialize_null_with_status_ok(&pk);
+
+    return auxts_serialize_error(&pk, "Stream is already open");
+}
+
+auxts_create_command(streamclose) {
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
+
+    msgpack_unpacked msg;
+    msgpack_unpacked_init(&msg);
+
+    auxts_parse_buf(in_buf, &pk, &msg, "Error parsing args")
+
+    auxts_validate_num_args(&pk, msg, 1)
+    auxts_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
+
+    char* stream_id = auxts_deserialize_str(&msg.data, 0);
+    int rc = auxts_streamclose(ctx->kv, auxts_hash(stream_id));
+    free(stream_id);
+
+    if (rc == 1)
+        return auxts_serialize_null_with_status_ok(&pk);
+
+    return auxts_serialize_error(&pk, "Stream is not open");
+}
+
 auxts_create_command(streaminfo) {
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);

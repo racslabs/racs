@@ -125,6 +125,8 @@ add_executable(auxts main.c
         src/streaminfo.c
         src/stream.h
         src/stream.c
+        test/stream_test.h
+        test/stream_test.c
 )
 
 target_link_libraries(auxts msgpack-c ${GUILE_LIBRARIES} ${LAME_LIBRARIES} ${OPUS_LIBRARIES} ${OPUSENC_LIBRARIES})
@@ -157,3 +159,4 @@ add_test(test_scm_metadata auxts "--test" "test_scm_metadata")
 add_test(test_simd_interleave auxts "--test" "test_simd_interleave")
 add_test(test_write_wav auxts "--test" "test_write_wav")
 add_test(test_format_wav auxts "--test" "test_format_wav")
+add_test(test_streamopen auxts "--test" "test_streamopen")

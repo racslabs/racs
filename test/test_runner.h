@@ -18,6 +18,7 @@
 #include "scm_test.h"
 #include "wav_test.h"
 #include "format_test.h"
+#include "stream_test.h"
 
 typedef void (*test)();
 
@@ -61,6 +62,7 @@ AUXTS_FORCE_INLINE void auxts_run_tests(int argc, char* argv[]) {
     auxts_add_test(test_simd_interleave, "test_simd_interleave", argc, argv);
     auxts_add_test(test_write_wav, "test_write_wav", argc, argv);
     auxts_add_test(test_format_wav, "test_format_wav", argc, argv);
+    auxts_add_test(test_streamopen, "test_streamopen", argc, argv);
 }
 
 #endif //AUXTS_TEST_RUNNER_H

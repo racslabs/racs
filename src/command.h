@@ -36,6 +36,8 @@ auxts_create_command(extract);
 auxts_create_command(eval);
 auxts_create_command(stream);
 auxts_create_command(streaminfo);
+auxts_create_command(streamopen);
+auxts_create_command(streamclose);
 auxts_create_command(ping);
 auxts_create_command(format);
 

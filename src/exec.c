@@ -237,6 +237,8 @@ void auxts_exec_init(auxts_exec* exec) {
     auxts_kvstore_put(exec->kv, strdup("PING"), auxts_command_ping);
     auxts_kvstore_put(exec->kv, strdup("STREAM"), auxts_command_stream);
     auxts_kvstore_put(exec->kv, strdup("STREAMINFO"), auxts_command_streaminfo);
+    auxts_kvstore_put(exec->kv, strdup("STREAMOPEN"), auxts_command_streamopen);
+    auxts_kvstore_put(exec->kv, strdup("STREAMCLOSE"), auxts_command_streamclose);
     auxts_kvstore_put(exec->kv, strdup("EXTRACT"), auxts_command_extract);
     auxts_kvstore_put(exec->kv, strdup("EVAL"), auxts_command_eval);
     auxts_kvstore_put(exec->kv, strdup("FORMAT"), auxts_command_format);

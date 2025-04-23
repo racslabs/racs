@@ -11,6 +11,31 @@ int auxts_stream(auxts_cache* mcache, auxts_uint64 stream_id, auxts_uint32 sampl
     return auxts_streaminfo_put(mcache, &streaminfo, stream_id);
 }
 
+int auxts_streamopen(auxts_streamkv* kv, auxts_uint64 stream_id) {
+    char* mac_addr = auxts_streamkv_get(kv, stream_id);
+    if (mac_addr) {
+        perror("Stream is already open");
+        return 0;
+    }
+
+    char _mac_addr[6];
+    memset(_mac_addr, 0, 6);
+
+    auxts_streamkv_put(kv, stream_id, _mac_addr);
+    return 1;
+}
+
+int auxts_streamclose(auxts_streamkv* kv, auxts_uint64 stream_id) {
+    char* mac_addr = auxts_streamkv_get(kv, stream_id);
+    if (!mac_addr) {
+        perror("Stream is not open");
+        return 0;
+    }
+
+    auxts_streamkv_delete(kv, stream_id);
+    return 1;
+}
+
 auxts_streamkv* auxts_streamkv_create(int capacity) {
     auxts_streamkv* kv = malloc(sizeof(auxts_streamkv));
     if (!kv) {
@@ -50,9 +75,20 @@ void auxts_streamkv_put(auxts_streamkv* kv, auxts_uint64 stream_id, char mac_add
     pthread_rwlock_unlock(&kv->rwlock);
 }
 
+void auxts_streamkv_delete(auxts_streamkv* kv, auxts_uint64 stream_id) {
+    pthread_rwlock_wrlock(&kv->rwlock);
+
+    auxts_uint64 key[2] = {stream_id, 0};
+    auxts_kvstore_delete(kv->kv, key);
+
+    pthread_rwlock_unlock(&kv->rwlock);
+}
+
 void auxts_streamkv_destroy(auxts_streamkv* kv) {
-    pthread_rwlock_destroy(&kv->rwlock);
+    pthread_rwlock_wrlock(&kv->rwlock);
     auxts_kvstore_destroy(kv->kv);
+    pthread_rwlock_unlock(&kv->rwlock);
+    pthread_rwlock_destroy(&kv->rwlock);
 }
 
 uint64_t auxts_streamkv_hash(void* key) {
@@ -70,4 +106,3 @@ int auxts_streamkv_cmp(void* a, void* b) {
 void auxts_streamkv_destroy_entry(void* key, void* value) {
     free(value);
 }
-
