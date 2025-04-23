@@ -26,6 +26,6 @@ typedef struct {
 
 int auxts_atsp_frame_read(uint8_t* buf, auxts_atsp_frame* frame);
 void auxts_atsp_header_parse(uint8_t* buf, auxts_atsp_header* header);
-int auxts_atsp_validate_chunk_id(const char* id);
+int auxts_is_atsp(const char* id);
 
 #endif //AUXTS_ATSP_H

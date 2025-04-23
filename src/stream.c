@@ -2,13 +2,40 @@
 
 int auxts_stream(auxts_cache* mcache, auxts_uint64 stream_id, auxts_uint32 sample_rate, auxts_uint16 channels) {
     auxts_streaminfo streaminfo;
+    memset(&streaminfo, 0, sizeof(auxts_streaminfo));
+
     streaminfo.sample_rate = sample_rate;
     streaminfo.channels = channels;
     streaminfo.bit_depth = 16;
-    streaminfo.ref = 0;
-    streaminfo.size = 0;
 
     return auxts_streaminfo_put(mcache, &streaminfo, stream_id);
+}
+
+int auxts_streamappend(auxts_cache* mcache, auxts_multi_memtable* mmt, auxts_streamkv* kv, uint8_t* data) {
+    auxts_atsp_frame frame;
+    if (!auxts_atsp_frame_read(data, &frame)) return 0;
+
+    char* mac_addr = auxts_streamkv_get(kv, frame.header.stream_id);
+    if (!mac_addr) return 0;
+    if (!auxts_mac_addr_cmp(mac_addr, frame.header.mac_addr)) return 0;
+
+    auxts_streaminfo streaminfo;
+    auxts_streaminfo_get(mcache, &streaminfo, frame.header.stream_id);
+
+    if (frame.header.sample_rate != streaminfo.sample_rate) return 0;
+    if (frame.header.channels != streaminfo.channels) return 0;
+    if (frame.header.bit_depth != 16) return 0;
+
+    if (streaminfo.ref == 0 && streaminfo.size == 0) streaminfo.ref = auxts_time_now();
+
+    auxts_time offset = auxts_streaminfo_offset(&streaminfo);
+    auxts_uint64 key[2] = {frame.header.stream_id, offset};
+    auxts_multi_memtable_append(mmt, key, frame.pcm_block, frame.header.block_size);
+
+    streaminfo.size += frame.header.block_size;
+    auxts_streaminfo_put(mcache, &streaminfo, frame.header.stream_id);
+
+    return 1;
 }
 
 int auxts_streamopen(auxts_streamkv* kv, auxts_uint64 stream_id) {
@@ -105,4 +132,13 @@ int auxts_streamkv_cmp(void* a, void* b) {
 
 void auxts_streamkv_destroy_entry(void* key, void* value) {
     free(value);
+}
+
+int auxts_mac_addr_cmp(const char* a, const char* b) {
+    return a[0] == b[0] ||
+            a[1] == b[1] ||
+            a[2] == b[2] ||
+            a[3] == b[3] ||
+            a[4] == b[4] ||
+            a[5] == b[5];
 }

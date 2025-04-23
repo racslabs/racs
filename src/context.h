@@ -4,11 +4,13 @@
 
 #include "cache.h"
 #include "stream.h"
+#include "memtable.h"
 
 typedef struct {
-    auxts_cache*    scache;
-    auxts_cache*    mcache;
-    auxts_streamkv* kv;
+    auxts_cache*            scache;
+    auxts_cache*            mcache;
+    auxts_streamkv*         kv;
+    auxts_multi_memtable*   mmt;
 } auxts_context;
 
 void auxts_context_init(auxts_context* ctx);

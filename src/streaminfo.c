@@ -106,6 +106,11 @@ off_t auxts_streaminfo_read(auxts_streaminfo* streaminfo, auxts_uint8* buf) {
     return offset;
 }
 
+auxts_time auxts_streaminfo_offset(auxts_streaminfo* streaminfo) {
+    double seconds = (streaminfo->size / (double)(streaminfo->channels * streaminfo->sample_rate * 2));
+    return (auxts_time)(seconds * 1000) + streaminfo->ref;
+}
+
 auxts_uint64 auxts_hash(const char* stream_id) {
     uint64_t hash[2];
     murmur3_x64_128((void*)stream_id, strlen(stream_id), 0, hash);

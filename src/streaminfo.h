@@ -25,6 +25,7 @@ off_t auxts_streaminfo_read(auxts_streaminfo* streaminfo, auxts_uint8* buf);
 void auxts_streaminfo_flush(auxts_uint8* data, auxts_uint64 stream_id);
 void auxts_streaminfo_path(char* path, auxts_uint64 stream_id);
 int  auxts_streaminfo_exits(auxts_uint64 stream_id);
+auxts_time auxts_streaminfo_offset(auxts_streaminfo* streaminfo);
 void auxts_mcache_destroy(void* key, void* value);
 auxts_cache* auxts_mcache_create(size_t capacity);
 auxts_uint64 auxts_hash(const char* stream_id);
