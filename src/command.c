@@ -33,7 +33,7 @@ auxts_create_command(stream) {
     uint16_t channels = auxts_deserialize_uint16(&msg.data, 2);
     uint64_t hash = auxts_hash(stream_id);
 
-    int rc = auxts_stream(ctx->mcache, hash, sample_rate, channels);
+    int rc = auxts_streamcreate(ctx->mcache, hash, sample_rate, channels);
     free(stream_id);
 
     if (rc == 1)
@@ -223,4 +223,18 @@ auxts_create_command(format) {
 
     msgpack_sbuffer_clear(out_buf);
     return auxts_serialize_error(&pk, "Unsupported format");
+}
+
+int auxts_stream(msgpack_sbuffer* out_buf, auxts_context* ctx, auxts_uint8* data) {
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
+
+    msgpack_unpacked msg;
+    msgpack_unpacked_init(&msg);
+
+    int rc = auxts_streamappend(ctx->mcache, ctx->mmt, ctx->kv, data);
+    if (rc == AUXTS_STREAM_OK)
+        return auxts_serialize_null_with_status_ok(&pk);
+
+    return auxts_serialize_error(&pk, auxts_stream_status_string[rc]);
 }

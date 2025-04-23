@@ -41,4 +41,6 @@ auxts_create_command(streamclose);
 auxts_create_command(ping);
 auxts_create_command(format);
 
+int auxts_stream(msgpack_sbuffer* out_buf, auxts_context* ctx, auxts_uint8* data);
+
 #endif //AUXTS_COMMAND_H

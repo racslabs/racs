@@ -1,6 +1,15 @@
 #include "stream.h"
 
-int auxts_stream(auxts_cache* mcache, auxts_uint64 stream_id, auxts_uint32 sample_rate, auxts_uint16 channels) {
+const char* const auxts_stream_status_string[] = {
+        "",
+        "Malformed stream.",
+        "Conflict. Stream is closed or currently in use.",
+        "Invalid sample rate.",
+        "Invalid channels.",
+        "Invalid bit depth."
+};
+
+int auxts_streamcreate(auxts_cache* mcache, auxts_uint64 stream_id, auxts_uint32 sample_rate, auxts_uint16 channels) {
     auxts_streaminfo streaminfo;
     memset(&streaminfo, 0, sizeof(auxts_streaminfo));
 
@@ -13,18 +22,27 @@ int auxts_stream(auxts_cache* mcache, auxts_uint64 stream_id, auxts_uint32 sampl
 
 int auxts_streamappend(auxts_cache* mcache, auxts_multi_memtable* mmt, auxts_streamkv* kv, uint8_t* data) {
     auxts_atsp_frame frame;
-    if (!auxts_atsp_frame_read(data, &frame)) return 0;
+    if (!auxts_atsp_frame_read(data, &frame))
+        return AUXTS_STREAM_MALFORMED;
 
     char* mac_addr = auxts_streamkv_get(kv, frame.header.stream_id);
-    if (!mac_addr) return 0;
-    if (!auxts_mac_addr_cmp(mac_addr, frame.header.mac_addr)) return 0;
+
+    if (!mac_addr)
+        return AUXTS_STREAM_CONFLICT;
+    if (!auxts_mac_addr_cmp(mac_addr, frame.header.mac_addr))
+        return AUXTS_STREAM_CONFLICT;
 
     auxts_streaminfo streaminfo;
     auxts_streaminfo_get(mcache, &streaminfo, frame.header.stream_id);
 
-    if (frame.header.sample_rate != streaminfo.sample_rate) return 0;
-    if (frame.header.channels != streaminfo.channels) return 0;
-    if (frame.header.bit_depth != 16) return 0;
+    if (frame.header.sample_rate != streaminfo.sample_rate)
+        return AUXTS_STREAM_INVALID_SAMPLE_RATE;
+
+    if (frame.header.channels != streaminfo.channels)
+        return AUXTS_STREAM_INVALID_CHANNELS;
+
+    if (frame.header.bit_depth != 16)
+        return AUXTS_STREAM_INVALID_BITDEPTH;
 
     if (streaminfo.ref == 0 && streaminfo.size == 0) streaminfo.ref = auxts_time_now();
 
@@ -35,7 +53,7 @@ int auxts_streamappend(auxts_cache* mcache, auxts_multi_memtable* mmt, auxts_str
     streaminfo.size += frame.header.block_size;
     auxts_streaminfo_put(mcache, &streaminfo, frame.header.stream_id);
 
-    return 1;
+    return AUXTS_STREAM_OK;
 }
 
 int auxts_streamopen(auxts_streamkv* kv, auxts_uint64 stream_id) {

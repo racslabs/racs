@@ -41,14 +41,18 @@ auxts_result auxts_exec_exec(auxts_exec* exec, auxts_context* ctx, const char* c
     msgpack_sbuffer_init(&in_buf);
     msgpack_sbuffer_init(&out_buf);
 
-    auxts_exec_plan plan;
-    exec_plan_init(&plan);
+    if (auxts_is_atsp(cmd)) {
+        auxts_stream(&out_buf, ctx, cmd);
+    } else {
+        auxts_exec_plan plan;
+        exec_plan_init(&plan);
 
-    int status = exec_plan_build(&plan, &out_buf, &parser);
-    if (status != AUXTS_EXEC_STATUS_ABORT)
-        exec_plan_exec(&plan, exec, ctx, &in_buf, &out_buf);
+        int status = exec_plan_build(&plan, &out_buf, &parser);
+        if (status != AUXTS_EXEC_STATUS_ABORT)
+            exec_plan_exec(&plan, exec, ctx, &in_buf, &out_buf);
 
-    exec_plan_destroy(&plan);
+        exec_plan_destroy(&plan);
+    } 
 
     auxts_result result;
     auxts_result_init(&result, out_buf.size);
