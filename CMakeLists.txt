@@ -127,6 +127,8 @@ add_executable(auxts main.c
         src/stream.c
         test/stream_test.h
         test/stream_test.c
+        src/conn.h
+        src/conn.c
 )
 
 target_link_libraries(auxts msgpack-c ${GUILE_LIBRARIES} ${LAME_LIBRARIES} ${OPUS_LIBRARIES} ${OPUSENC_LIBRARIES})
