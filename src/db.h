@@ -16,9 +16,6 @@ auxts_db* auxts_db_instance();
 void auxts_db_open(auxts_db* db);
 void auxts_db_close(auxts_db* db);
 auxts_result auxts_db_exec(auxts_db* db, const char* cmd);
-
-
-
-
+auxts_result auxts_db_stream(auxts_db* db, auxts_uint8* data);
 
 #endif //AUXTS_DB_H

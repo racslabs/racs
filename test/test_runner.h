@@ -63,6 +63,7 @@ AUXTS_FORCE_INLINE void auxts_run_tests(int argc, char* argv[]) {
     auxts_add_test(test_write_wav, "test_write_wav", argc, argv);
     auxts_add_test(test_format_wav, "test_format_wav", argc, argv);
     auxts_add_test(test_streamopen, "test_streamopen", argc, argv);
+    auxts_add_test(test_atsp, "test_astp", argc, argv);
 }
 
 #endif //AUXTS_TEST_RUNNER_H

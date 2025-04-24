@@ -51,6 +51,7 @@ void auxts_kvstore_put(auxts_kvstore* kv, void* key, void* value) {
         if (kv->ops.cmp(entry->key, key)) {
             kv->ops.destroy(entry->key, entry->value);
             entry->value = value;
+            entry->key = key;
             return;
         }
     }

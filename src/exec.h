@@ -64,5 +64,6 @@ typedef int (*auxts_command_func)(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_
 void auxts_exec_init(auxts_exec* exec);
 void auxts_exec_destroy(auxts_exec* exec);
 auxts_result auxts_exec_exec(auxts_exec* exec, auxts_context* ctx, const char* cmd);
+auxts_result auxts_exec_stream(auxts_context* ctx, auxts_uint8* data);
 
 #endif //AUXTS_EXEC_H

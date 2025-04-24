@@ -35,6 +35,6 @@ void auxts_streamkv_destroy(auxts_streamkv* kv);
 uint64_t auxts_streamkv_hash(void* key);
 int auxts_streamkv_cmp(void* a, void* b);
 void auxts_streamkv_destroy_entry(void* key, void* value);
-int auxts_mac_addr_cmp(const char* a, const char* b);
+int auxts_mac_addr_cmp(const char* src, const char* dest);
 
 #endif //AUXTS_STREAM_H

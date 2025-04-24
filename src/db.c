@@ -24,3 +24,7 @@ void auxts_db_close(auxts_db* db) {
 auxts_result auxts_db_exec(auxts_db* db, const char* cmd) {
     return auxts_exec_exec(&db->exec, &db->ctx, cmd);
 }
+
+auxts_result auxts_db_stream(auxts_db* db, auxts_uint8* data) {
+    return auxts_exec_stream(&db->ctx, data);
+}

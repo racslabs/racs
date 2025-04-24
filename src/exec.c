@@ -31,6 +31,20 @@ static void exec_plan_exec(auxts_exec_plan* plan, auxts_exec* exec, auxts_contex
 static int exec_plan_build(auxts_exec_plan* plan, msgpack_sbuffer* out_buf, auxts_parser* parser);
 static void to_uppercase(char *str);
 
+auxts_result auxts_exec_stream(auxts_context* ctx, auxts_uint8* data) {
+    msgpack_sbuffer out_buf;
+    msgpack_sbuffer_init(&out_buf);
+
+    auxts_stream(&out_buf, ctx, data);
+
+    auxts_result result;
+    auxts_result_init(&result, out_buf.size);
+    memcpy(result.data, out_buf.data, out_buf.size);
+
+    msgpack_sbuffer_destroy(&out_buf);
+    return result;
+}
+
 auxts_result auxts_exec_exec(auxts_exec* exec, auxts_context* ctx, const char* cmd) {
     auxts_parser parser;
     auxts_parser_init(&parser, cmd);
@@ -41,18 +55,14 @@ auxts_result auxts_exec_exec(auxts_exec* exec, auxts_context* ctx, const char* c
     msgpack_sbuffer_init(&in_buf);
     msgpack_sbuffer_init(&out_buf);
 
-    if (auxts_is_atsp(cmd)) {
-        auxts_stream(&out_buf, ctx, cmd);
-    } else {
-        auxts_exec_plan plan;
-        exec_plan_init(&plan);
+    auxts_exec_plan plan;
+    exec_plan_init(&plan);
 
-        int status = exec_plan_build(&plan, &out_buf, &parser);
-        if (status != AUXTS_EXEC_STATUS_ABORT)
-            exec_plan_exec(&plan, exec, ctx, &in_buf, &out_buf);
+    int status = exec_plan_build(&plan, &out_buf, &parser);
+    if (status != AUXTS_EXEC_STATUS_ABORT)
+        exec_plan_exec(&plan, exec, ctx, &in_buf, &out_buf);
 
-        exec_plan_destroy(&plan);
-    } 
+    exec_plan_destroy(&plan);
 
     auxts_result result;
     auxts_result_init(&result, out_buf.size);

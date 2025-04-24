@@ -9,23 +9,23 @@
 #include "crc32c.h"
 
 typedef struct {
-    char chunk_id[4];
-    char mac_addr[6];
+    char     chunk_id[4];
+    char     mac_addr[6];
     uint64_t stream_id;
     uint32_t checksum;
     uint16_t channels;
     uint32_t sample_rate;
     uint16_t bit_depth;
     uint16_t block_size;
-} auxts_atsp_header;
+} auxts_atsp;
 
 typedef struct {
-    auxts_atsp_header header;
+    auxts_atsp header;
     uint8_t* pcm_block;
 } auxts_atsp_frame;
 
-int auxts_atsp_frame_read(uint8_t* buf, auxts_atsp_frame* frame);
-void auxts_atsp_header_parse(uint8_t* buf, auxts_atsp_header* header);
+int auxts_atsp_parse(uint8_t* buf, auxts_atsp_frame* frame);
+void auxts_atsp_header_parse(uint8_t* buf, auxts_atsp* header);
 int auxts_is_atsp(const char* id);
 
 #endif //AUXTS_ATSP_H

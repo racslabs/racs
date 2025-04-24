@@ -2,8 +2,8 @@
 
 const char* const auxts_stream_status_string[] = {
         "",
-        "Malformed stream.",
-        "Conflict. Stream is closed or currently in use.",
+        "Malformed atsp frame.",
+        "Stream is closed or currently in use.",
         "Invalid sample rate.",
         "Invalid channels.",
         "Invalid bit depth."
@@ -22,17 +22,17 @@ int auxts_streamcreate(auxts_cache* mcache, auxts_uint64 stream_id, auxts_uint32
 
 int auxts_streamappend(auxts_cache* mcache, auxts_multi_memtable* mmt, auxts_streamkv* kv, uint8_t* data) {
     auxts_atsp_frame frame;
-    if (!auxts_atsp_frame_read(data, &frame))
+    if (!auxts_atsp_parse(data, &frame))
         return AUXTS_STREAM_MALFORMED;
 
     char* mac_addr = auxts_streamkv_get(kv, frame.header.stream_id);
+    if (!mac_addr || !auxts_mac_addr_cmp(frame.header.mac_addr, mac_addr))
+        return AUXTS_STREAM_CONFLICT;
 
-    if (!mac_addr)
-        return AUXTS_STREAM_CONFLICT;
-    if (!auxts_mac_addr_cmp(mac_addr, frame.header.mac_addr))
-        return AUXTS_STREAM_CONFLICT;
+    auxts_streamkv_put(kv, frame.header.stream_id, frame.header.mac_addr);
 
     auxts_streaminfo streaminfo;
+    memset(&streaminfo, 0, sizeof(auxts_streaminfo));
     auxts_streaminfo_get(mcache, &streaminfo, frame.header.stream_id);
 
     if (frame.header.sample_rate != streaminfo.sample_rate)
@@ -44,7 +44,8 @@ int auxts_streamappend(auxts_cache* mcache, auxts_multi_memtable* mmt, auxts_str
     if (frame.header.bit_depth != 16)
         return AUXTS_STREAM_INVALID_BITDEPTH;
 
-    if (streaminfo.ref == 0 && streaminfo.size == 0) streaminfo.ref = auxts_time_now();
+    if (streaminfo.ref == 0 && streaminfo.size == 0)
+        streaminfo.ref = auxts_time_now();
 
     auxts_time offset = auxts_streaminfo_offset(&streaminfo);
     auxts_uint64 key[2] = {frame.header.stream_id, offset};
@@ -108,13 +109,22 @@ char* auxts_streamkv_get(auxts_streamkv* kv, auxts_uint64 stream_id) {
 void auxts_streamkv_put(auxts_streamkv* kv, auxts_uint64 stream_id, char mac_addr[]) {
     pthread_rwlock_wrlock(&kv->rwlock);
 
-    auxts_uint64 key[2] = {stream_id, 0};
+    auxts_uint64* key = malloc(2 * sizeof(auxts_uint64));
+    if (!key) {
+        perror("Failed to allocate key.");
+        return;
+    }
+
+    key[0] = stream_id;
+    key[1] = 0;
 
     char* _mac_addr = malloc(6);
     if (!_mac_addr) {
         perror("Failed to allocate mac_addr buffer");
         return;
     }
+
+    memcpy(_mac_addr, mac_addr, 6);
 
     auxts_kvstore_put(kv->kv, key, _mac_addr);
     pthread_rwlock_unlock(&kv->rwlock);
@@ -149,14 +159,13 @@ int auxts_streamkv_cmp(void* a, void* b) {
 }
 
 void auxts_streamkv_destroy_entry(void* key, void* value) {
+    free(key);
     free(value);
 }
 
-int auxts_mac_addr_cmp(const char* a, const char* b) {
-    return a[0] == b[0] ||
-            a[1] == b[1] ||
-            a[2] == b[2] ||
-            a[3] == b[3] ||
-            a[4] == b[4] ||
-            a[5] == b[5];
+int auxts_mac_addr_cmp(const char* src, const char* dest) {
+    char _mac_addr[6] = {0};
+    if (memcmp(dest, _mac_addr, 6) == 0) return 1;
+    if (memcmp(src, dest, 6) == 0) return 1;
+    return 0;
 }

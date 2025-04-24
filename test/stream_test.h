@@ -6,5 +6,6 @@
 #include "test_utils.h"
 
 void test_streamopen();
+void test_atsp();
 
 #endif //AUXTS_STREAM_TEST_H

@@ -24,13 +24,10 @@ auxts_cache* auxts_scache_create(size_t capacity) {
 void auxts_cache_put(auxts_cache* cache, const uint64_t* key, uint8_t* value) {
     if (!cache) return;
 
-    pthread_rwlock_wrlock(&cache->rwlock);
-
     auxts_cache_entry* entry = auxts_kvstore_get(cache->kv, key);
-    if (entry) {
-        pthread_rwlock_unlock(&cache->rwlock);
-        return;
-    }
+    if (entry) return;
+
+    pthread_rwlock_wrlock(&cache->rwlock);
 
     if (cache->size >= cache->capacity)
         auxts_cache_evict(cache);

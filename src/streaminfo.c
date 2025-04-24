@@ -70,7 +70,15 @@ int auxts_streaminfo_put(auxts_cache* mcache, auxts_streaminfo* streaminfo, auxt
     auxts_uint8* data = malloc(24);
     if (!data) return 0;
 
-    auxts_uint64 key[2] = {stream_id, 0};
+    auxts_uint64* key = malloc(2 * sizeof(auxts_int64));
+    if (!key) {
+        perror("Failed to allocate key.");
+        free(data);
+        return 0;
+    }
+
+    key[0] = stream_id;
+    key[1] = 0;
 
     auxts_streaminfo_write(data, streaminfo);
     auxts_cache_put(mcache, key, data);
@@ -84,6 +92,7 @@ void auxts_mcache_destroy(void* key, void* value) {
 
     auxts_streaminfo_flush(entry->value, stream_id);
     free(entry->value);
+    free(key);
 }
 
 off_t auxts_streaminfo_write(uint8_t* buf, auxts_streaminfo* streaminfo) {
