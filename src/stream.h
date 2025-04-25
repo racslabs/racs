@@ -4,7 +4,7 @@
 
 #include "streaminfo.h"
 #include "memtable.h"
-#include "atsp.h"
+#include "sp.h"
 #include "result.h"
 
 typedef enum {

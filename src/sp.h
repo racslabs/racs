@@ -17,15 +17,15 @@ typedef struct {
     uint32_t sample_rate;
     uint16_t bit_depth;
     uint16_t block_size;
-} auxts_atsp;
+} rats_sp_header;
 
 typedef struct {
-    auxts_atsp header;
+    rats_sp_header header;
     uint8_t* pcm_block;
-} auxts_atsp_frame;
+} rats_sp;
 
-int auxts_atsp_parse(uint8_t* buf, auxts_atsp_frame* frame);
-void auxts_atsp_header_parse(uint8_t* buf, auxts_atsp* header);
-int auxts_is_atsp(const char* id);
+int rats_sp_parse(uint8_t* buf, rats_sp* frame);
+void rats_sp_header_parse(uint8_t* buf, rats_sp_header* header);
+int rats_is_sp(const char* id);
 
 #endif //AUXTS_ATSP_H

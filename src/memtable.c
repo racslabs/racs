@@ -168,9 +168,9 @@ auxts_memtable_entry* auxts_memtable_entry_read(uint8_t* buf, size_t offset) {
         return NULL;
     }
 
-    offset = auxts_read_uint16(&entry->block_size, buf, (off_t)offset);
-    offset = auxts_read_uint64(&entry->key[0], buf, (off_t)offset);
-    offset = auxts_read_uint64(&entry->key[1], buf, (off_t)offset);
+    offset = rats_read_uint16(&entry->block_size, buf, (off_t) offset);
+    offset = rats_read_uint64(&entry->key[0], buf, (off_t) offset);
+    offset = rats_read_uint64(&entry->key[1], buf, (off_t) offset);
 
     entry->block = malloc(entry->block_size);
     memcpy(entry->block, buf + offset , entry->block_size);
@@ -317,7 +317,7 @@ int sstable_open(const char* path, auxts_sstable* sst) {
 }
 
 void sstable_write(uint8_t* buf, auxts_sstable* sst, size_t offset) {
-    auxts_write_uint64(buf, offset, 0);
+    rats_write_uint64(buf, offset, 0);
     write(sst->fd, buf, offset);
 }
 
@@ -343,9 +343,9 @@ void sstable_read_index_entries_in_memory(auxts_sstable* sst, uint8_t* data) {
 
     for (int entry = 0; entry < sst->num_entries; ++entry) {
         auxts_sstable_index_entry* index_entry = &sst->index_entries[entry];
-        offset = auxts_read_uint64(&index_entry->key[0], data, offset);
-        offset = auxts_read_uint64(&index_entry->key[1], data, offset);
-        offset = auxts_read_uint64((uint64_t*)&index_entry->offset, data, offset);
+        offset = rats_read_uint64(&index_entry->key[0], data, offset);
+        offset = rats_read_uint64(&index_entry->key[1], data, offset);
+        offset = rats_read_uint64((uint64_t *) &index_entry->offset, data, offset);
     }
 }
 
@@ -353,9 +353,9 @@ void sstable_read_index_entries(auxts_sstable* sst) {
     for (int entry = 0; entry < sst->num_entries; ++entry) {
         auxts_sstable_index_entry* index_entry = &sst->index_entries[entry];
 
-        auxts_io_read_uint64(&index_entry->key[0], sst->fd);
-        auxts_io_read_uint64(&index_entry->key[1], sst->fd);
-        auxts_io_read_uint64((uint64_t*)&index_entry->offset, sst->fd);
+        rats_io_read_uint64(&index_entry->key[0], sst->fd);
+        rats_io_read_uint64(&index_entry->key[1], sst->fd);
+        rats_io_read_uint64((uint64_t *) &index_entry->offset, sst->fd);
     }
 }
 
@@ -376,7 +376,7 @@ off_t sstable_index_entries_write(uint8_t* buf, auxts_sstable* sst, off_t offset
     for (int entry = 0; entry < sst->num_entries; ++entry) {
         offset = write_index_entry(buf, &sst->index_entries[entry], offset);
     }
-    return auxts_write_uint16(buf, sst->num_entries, offset);
+    return rats_write_uint16(buf, sst->num_entries, offset);
 }
 
 void sstable_index_entry_update(auxts_sstable_index_entry* index_entry, auxts_memtable_entry* mt_entry, off_t offset) {
@@ -386,14 +386,14 @@ void sstable_index_entry_update(auxts_sstable_index_entry* index_entry, auxts_me
 }
 
 off_t memtable_entry_write(uint8_t* buf, const auxts_memtable_entry* mt_entry, off_t offset) {
-    offset = auxts_write_uint16(buf, mt_entry->block_size, offset);
-    offset = auxts_write_uint64(buf, mt_entry->key[0], offset);
-    offset = auxts_write_uint64(buf, mt_entry->key[1], offset);
-    return auxts_write_bin(buf, mt_entry->block, mt_entry->block_size, offset);
+    offset = rats_write_uint16(buf, mt_entry->block_size, offset);
+    offset = rats_write_uint64(buf, mt_entry->key[0], offset);
+    offset = rats_write_uint64(buf, mt_entry->key[1], offset);
+    return rats_write_bin(buf, mt_entry->block, mt_entry->block_size, offset);
 }
 
 off_t write_index_entry(uint8_t* buf, auxts_sstable_index_entry* index_entry, off_t offset) {
-    offset = auxts_write_uint64(buf, index_entry->key[0], offset);
-    offset = auxts_write_uint64(buf, index_entry->key[1], offset);
-    return auxts_write_uint64(buf, index_entry->offset, offset);
+    offset = rats_write_uint64(buf, index_entry->key[0], offset);
+    offset = rats_write_uint64(buf, index_entry->key[1], offset);
+    return rats_write_uint64(buf, index_entry->offset, offset);
 }

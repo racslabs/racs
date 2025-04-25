@@ -21,8 +21,8 @@ int auxts_streamcreate(auxts_cache* mcache, auxts_uint64 stream_id, auxts_uint32
 }
 
 int auxts_streamappend(auxts_cache* mcache, auxts_multi_memtable* mmt, auxts_streamkv* kv, uint8_t* data) {
-    auxts_atsp_frame frame;
-    if (!auxts_atsp_parse(data, &frame))
+    rats_sp frame;
+    if (!rats_sp_parse(data, &frame))
         return AUXTS_STREAM_MALFORMED;
 
     char* mac_addr = auxts_streamkv_get(kv, frame.header.stream_id);

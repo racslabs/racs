@@ -25,16 +25,16 @@ void test_atsp() {
     auxts_uint32 crc = crc32c(0, data1, size1);
 
     off_t offset = 0;
-    auxts_uint8* data = malloc(sizeof(auxts_atsp) + size1);
-    offset = auxts_write_bin(data, "atsp", 4, offset);
-    offset = auxts_write_bin(data, "123456", 6, offset);
-    offset = auxts_write_uint64(data, hash, offset);
-    offset = auxts_write_uint32(data, crc, offset);
-    offset = auxts_write_uint16(data, 1, offset);
-    offset = auxts_write_uint32(data, 44100, offset);
-    offset = auxts_write_uint16(data, 16, offset);
-    offset = auxts_write_uint16(data, size1, offset);
-    auxts_write_bin(data, data1, size1, offset);
+    auxts_uint8* data = malloc(sizeof(rats_sp_header) + size1);
+    offset = rats_write_bin(data, "atsp", 4, offset);
+    offset = rats_write_bin(data, "123456", 6, offset);
+    offset = rats_write_uint64(data, hash, offset);
+    offset = rats_write_uint32(data, crc, offset);
+    offset = rats_write_uint16(data, 1, offset);
+    offset = rats_write_uint32(data, 44100, offset);
+    offset = rats_write_uint16(data, 16, offset);
+    offset = rats_write_uint16(data, size1, offset);
+    rats_write_bin(data, data1, size1, offset);
 
     auxts_db* db = auxts_db_instance();
     auxts_db_open(db);

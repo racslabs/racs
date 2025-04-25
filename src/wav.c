@@ -41,9 +41,9 @@ void auxts_wav_encode_header(void* out, auxts_wav* wav, auxts_uint32 samples) {
     wav->header.chunk_size = (samples * wav->format.channels * wav->format.bit_depth/8) + 36;
     memcpy(wav->header.format, "WAVE", 4);
 
-    wav->pos = auxts_write_bin(out, wav->header.chunk_id, 4, wav->pos);
-    wav->pos = auxts_write_uint32(out, wav->header.chunk_size, wav->pos);
-    wav->pos = auxts_write_bin(out, wav->header.format, 4, wav->pos);
+    wav->pos = rats_write_bin(out, wav->header.chunk_id, 4, wav->pos);
+    wav->pos = rats_write_uint32(out, wav->header.chunk_size, wav->pos);
+    wav->pos = rats_write_bin(out, wav->header.format, 4, wav->pos);
 }
 
 void auxts_wav_encode_format(void* out, auxts_wav* wav) {
@@ -55,21 +55,21 @@ void auxts_wav_encode_format(void* out, auxts_wav* wav) {
 
     memcpy(wav->format.sub_chunk1_id, "fmt ", 4);
 
-    wav->pos = auxts_write_bin(out, &wav->format.sub_chunk1_id, 4, wav->pos);
-    wav->pos = auxts_write_uint32(out, wav->format.sub_chunk1_size, wav->pos);
-    wav->pos = auxts_write_uint16(out, wav->format.audio_format, wav->pos);
-    wav->pos = auxts_write_uint16(out, wav->format.channels, wav->pos);
-    wav->pos = auxts_write_uint32(out, wav->format.sample_rate, wav->pos);
-    wav->pos = auxts_write_uint32(out, wav->format.byte_rate, wav->pos);
-    wav->pos = auxts_write_uint16(out, wav->format.block_align, wav->pos);
-    wav->pos = auxts_write_uint16(out, wav->format.bit_depth, wav->pos);
+    wav->pos = rats_write_bin(out, &wav->format.sub_chunk1_id, 4, wav->pos);
+    wav->pos = rats_write_uint32(out, wav->format.sub_chunk1_size, wav->pos);
+    wav->pos = rats_write_uint16(out, wav->format.audio_format, wav->pos);
+    wav->pos = rats_write_uint16(out, wav->format.channels, wav->pos);
+    wav->pos = rats_write_uint32(out, wav->format.sample_rate, wav->pos);
+    wav->pos = rats_write_uint32(out, wav->format.byte_rate, wav->pos);
+    wav->pos = rats_write_uint16(out, wav->format.block_align, wav->pos);
+    wav->pos = rats_write_uint16(out, wav->format.bit_depth, wav->pos);
 }
 
 void auxts_wav_encode_data(void* out, auxts_wav* wav, const void* data, auxts_uint32 samples) {
     memcpy(wav->data.sub_chunk2_id, "data", 4);
     wav->data.sub_chunk2_size = samples * wav->format.channels * wav->format.bit_depth/8;
 
-    wav->pos = auxts_write_bin(out, wav->data.sub_chunk2_id, 4, wav->pos);
-    wav->pos = auxts_write_uint32(out, wav->data.sub_chunk2_size, wav->pos);
-    wav->pos = auxts_write_bin(out, data, wav->data.sub_chunk2_size, wav->pos);
+    wav->pos = rats_write_bin(out, wav->data.sub_chunk2_id, 4, wav->pos);
+    wav->pos = rats_write_uint32(out, wav->data.sub_chunk2_size, wav->pos);
+    wav->pos = rats_write_bin(out, data, wav->data.sub_chunk2_size, wav->pos);
 }

@@ -97,21 +97,21 @@ void auxts_mcache_destroy(void* key, void* value) {
 
 off_t auxts_streaminfo_write(uint8_t* buf, auxts_streaminfo* streaminfo) {
     off_t offset = 0;
-    offset = auxts_write_uint16(buf, streaminfo->channels, offset);
-    offset = auxts_write_uint16(buf, streaminfo->bit_depth, offset);
-    offset = auxts_write_uint32(buf, streaminfo->sample_rate, offset);
-    offset = auxts_write_uint64(buf, streaminfo->size, offset);
-    offset = auxts_write_uint64(buf, streaminfo->ref, offset);
+    offset = rats_write_uint16(buf, streaminfo->channels, offset);
+    offset = rats_write_uint16(buf, streaminfo->bit_depth, offset);
+    offset = rats_write_uint32(buf, streaminfo->sample_rate, offset);
+    offset = rats_write_uint64(buf, streaminfo->size, offset);
+    offset = rats_write_uint64(buf, streaminfo->ref, offset);
     return offset;
 }
 
 off_t auxts_streaminfo_read(auxts_streaminfo* streaminfo, auxts_uint8* buf) {
     off_t offset = 0;
-    offset = auxts_read_uint16(&streaminfo->channels, buf, offset);
-    offset = auxts_read_uint16(&streaminfo->bit_depth, buf, offset);
-    offset = auxts_read_uint32(&streaminfo->sample_rate, buf, offset);
-    offset = auxts_read_uint64(&streaminfo->size, buf, offset);
-    offset = auxts_read_uint64(&streaminfo->ref, buf, offset);
+    offset = rats_read_uint16(&streaminfo->channels, buf, offset);
+    offset = rats_read_uint16(&streaminfo->bit_depth, buf, offset);
+    offset = rats_read_uint32(&streaminfo->sample_rate, buf, offset);
+    offset = rats_read_uint64(&streaminfo->size, buf, offset);
+    offset = rats_read_uint64(&streaminfo->ref, buf, offset);
     return offset;
 }
 
