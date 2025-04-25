@@ -1,11 +1,11 @@
 
-#ifndef AUXTS_TEST_UTILS_H
-#define AUXTS_TEST_UTILS_H
+#ifndef RATS_TEST_UTILS_H
+#define RATS_TEST_UTILS_H
 
 #include <msgpack.h>
 #include "../src/export.h"
 
-AUXTS_FORCE_INLINE uint8_t* read_file(const char* path, int* size) {
+RATS_FORCE_INLINE uint8_t* read_file(const char* path, int* size) {
     FILE *file = fopen(path, "rb");
     if (!file) {
         perror("Error opening file");
@@ -42,11 +42,11 @@ AUXTS_FORCE_INLINE uint8_t* read_file(const char* path, int* size) {
     return buffer;
 }
 
-AUXTS_FORCE_INLINE void msgpack_str_assert(const char* expected, const msgpack_object_str* obj_str) {
+RATS_FORCE_INLINE void msgpack_str_assert(const char* expected, const msgpack_object_str* obj_str) {
     char buf[1024];
     strncpy(buf, obj_str->ptr, obj_str->size);
     buf[obj_str->size] = '\0';
     assert(strcmp(buf, expected) == 0);
 }
 
-#endif //AUXTS_TEST_UTILS_H
+#endif //RATS_TEST_UTILS_H

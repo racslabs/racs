@@ -20,7 +20,7 @@ void rats_simd_interleave_s16(const rats_int16* q0, const rats_int16* q1, rats_i
 }
 
 void rats_simd_planar_s16(const rats_int16* q0, rats_int16* q1, size_t n) {
-    AUXTS_UNROLL(8)
+    RATS_UNROLL(8)
     for (int i = 0; i < n / 2; ++i) {
         q1[i] = q0[i * 2];
         q1[i + n / 2] = q0[i * 2 + 1];

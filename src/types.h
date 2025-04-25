@@ -1,5 +1,5 @@
-#ifndef AUXTS_TYPES_H
-#define AUXTS_TYPES_H
+#ifndef RATS_TYPES_H
+#define RATS_TYPES_H
 
 #include <time.h>
 
@@ -29,4 +29,4 @@ typedef time_t               rats_time;
 typedef float complex rats_complex;
 #endif
 
-#endif // AUXTS_TYPES_H
+#endif // RATS_TYPES_H

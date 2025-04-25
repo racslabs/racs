@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_CACHE_H
-#define AUXTS_CACHE_H
+#ifndef RATS_CACHE_H
+#define RATS_CACHE_H
 
 #include "kvstore.h"
 #include "murmur3.h"
@@ -43,4 +43,4 @@ void rats_scache_destroy(void* key, void* value);
 }
 #endif
 
-#endif //AUXTS_CACHE_H
+#endif //RATS_CACHE_H

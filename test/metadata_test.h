@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_METADATA_TEST_H
-#define AUXTS_METADATA_TEST_H
+#ifndef RATS_METADATA_TEST_H
+#define RATS_METADATA_TEST_H
 
 #include <assert.h>
 #include "../src/db.h"
@@ -8,4 +8,4 @@
 
 void test_metadata_attr();
 
-#endif //AUXTS_METADATA_TEST_H
+#endif //RATS_METADATA_TEST_H

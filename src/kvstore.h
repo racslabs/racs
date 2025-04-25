@@ -1,5 +1,5 @@
-#ifndef AUXTS_KVSTORE_H
-#define AUXTS_KVSTORE_H
+#ifndef RATS_KVSTORE_H
+#define RATS_KVSTORE_H
 
 #include <stdlib.h>
 #include <string.h>
@@ -38,4 +38,4 @@ void* rats_kvstore_get(rats_kvstore* kv, void* key);
 void rats_kvstore_delete(rats_kvstore* kv, void* key);
 void rats_kvstore_destroy(rats_kvstore* kv);
 
-#endif //AUXTS_KVSTORE_H
+#endif //RATS_KVSTORE_H

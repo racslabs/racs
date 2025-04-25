@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_SCM_H
-#define AUXTS_SCM_H
+#ifndef RATS_SCM_H
+#define RATS_SCM_H
 
 #include "serialization.h"
 #include <libguile.h>
@@ -24,4 +24,4 @@ SCM rats_scm_eval_with_error_handling(char* expr, char** error);
 
 void rats_unescape_single_quotes(char* s);
 
-#endif //AUXTS_SCM_H
+#endif //RATS_SCM_H

@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_CREATE_TEST_H
-#define AUXTS_CREATE_TEST_H
+#ifndef RATS_CREATE_TEST_H
+#define RATS_CREATE_TEST_H
 
 #include "../src/create.h"
 #include "../src/db.h"
@@ -8,4 +8,4 @@
 
 void test_create();
 
-#endif //AUXTS_CREATE_TEST_H
+#endif //RATS_CREATE_TEST_H

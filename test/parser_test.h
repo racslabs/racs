@@ -1,9 +1,9 @@
 
-#ifndef AUXTS_PARSER_TEST_H
-#define AUXTS_PARSER_TEST_H
+#ifndef RATS_PARSER_TEST_H
+#define RATS_PARSER_TEST_H
 
 #include "../src/parser.h"
 
 void test_parser();
 
-#endif //AUXTS_PARSER_TEST_H
+#endif //RATS_PARSER_TEST_H

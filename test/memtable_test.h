@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_MEMTABLE_TEST_H
-#define AUXTS_MEMTABLE_TEST_H
+#ifndef RATS_MEMTABLE_TEST_H
+#define RATS_MEMTABLE_TEST_H
 
 #include <assert.h>
 #include "../src/db.h"
@@ -8,4 +8,4 @@
 
 void test_multi_memtable();
 
-#endif //AUXTS_MEMTABLE_TEST_H
+#endif //RATS_MEMTABLE_TEST_H

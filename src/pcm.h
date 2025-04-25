@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_PCM_H
-#define AUXTS_PCM_H
+#ifndef RATS_PCM_H
+#define RATS_PCM_H
 
 #include "memory.h"
 #include "simd/pcm_simd.h"
@@ -24,4 +24,4 @@ size_t rats_pcm_write(rats_pcm* pcm, const void* in, size_t samples);
 
 void rats_pcm_destroy(rats_pcm* pcm);
 
-#endif //AUXTS_PCM_H
+#endif //RATS_PCM_H

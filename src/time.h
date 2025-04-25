@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_TIME_H
-#define AUXTS_TIME_H
+#ifndef RATS_TIME_H
+#define RATS_TIME_H
 
 #include <time.h>
 #include <stdint.h>
@@ -28,4 +28,4 @@ void rats_time_create_dirs(rats_time time);
 }
 #endif
 
-#endif //AUXTS_TIME_H
+#endif //RATS_TIME_H

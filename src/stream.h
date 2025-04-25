@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_STREAM_H
-#define AUXTS_STREAM_H
+#ifndef RATS_STREAM_H
+#define RATS_STREAM_H
 
 #include "streaminfo.h"
 #include "memtable.h"
@@ -8,12 +8,12 @@
 #include "result.h"
 
 typedef enum {
-    AUXTS_STREAM_OK,
-    AUXTS_STREAM_MALFORMED,
-    AUXTS_STREAM_CONFLICT,
-    AUXTS_STREAM_INVALID_SAMPLE_RATE,
-    AUXTS_STREAM_INVALID_CHANNELS,
-    AUXTS_STREAM_INVALID_BITDEPTH
+    RATS_STREAM_OK,
+    RATS_STREAM_MALFORMED,
+    RATS_STREAM_CONFLICT,
+    RATS_STREAM_INVALID_SAMPLE_RATE,
+    RATS_STREAM_INVALID_CHANNELS,
+    RATS_STREAM_INVALID_BITDEPTH
 } rats_stream_status;
 
 typedef struct {
@@ -37,4 +37,4 @@ int rats_streamkv_cmp(void* a, void* b);
 void rats_streamkv_destroy_entry(void* key, void* value);
 int rats_mac_addr_cmp(const char* src, const char* dest);
 
-#endif //AUXTS_STREAM_H
+#endif //RATS_STREAM_H

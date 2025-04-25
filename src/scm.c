@@ -164,7 +164,7 @@ int rats_scm_serialize_list(msgpack_packer* pk, msgpack_sbuffer* buf, SCM x) {
     uint32_t n = scm_to_uint32(scm_length(x));
 
     msgpack_pack_array(pk, n + 1);
-    rats_serialize_type(pk, AUXTS_TYPE_LIST);
+    rats_serialize_type(pk, RATS_TYPE_LIST);
 
     while (scm_is_pair(x)) {
         SCM v = scm_car(x);

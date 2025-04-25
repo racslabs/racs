@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_ATSP_H
-#define AUXTS_ATSP_H
+#ifndef RATS_ATSP_H
+#define RATS_ATSP_H
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -28,4 +28,4 @@ int rats_sp_parse(uint8_t* buf, rats_sp* frame);
 void rats_sp_header_parse(uint8_t* buf, rats_sp_header* header);
 int rats_is_sp(const char* id);
 
-#endif //AUXTS_ATSP_H
+#endif //RATS_ATSP_H

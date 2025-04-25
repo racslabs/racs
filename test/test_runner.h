@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_TEST_RUNNER_H
-#define AUXTS_TEST_RUNNER_H
+#ifndef RATS_TEST_RUNNER_H
+#define RATS_TEST_RUNNER_H
 
 #include "../src/export.h"
 #include "cache_test.h"
@@ -22,7 +22,7 @@
 
 typedef void (*test)();
 
-AUXTS_FORCE_INLINE void rats_add_test(test test_case, char* test_name, int argc, char* argv[]) {
+RATS_FORCE_INLINE void rats_add_test(test test_case, char* test_name, int argc, char* argv[]) {
     if (argc != 3) {
         return;
     }
@@ -36,7 +36,7 @@ AUXTS_FORCE_INLINE void rats_add_test(test test_case, char* test_name, int argc,
     }
 }
 
-AUXTS_FORCE_INLINE void rats_run_tests(int argc, char* argv[]) {
+RATS_FORCE_INLINE void rats_run_tests(int argc, char* argv[]) {
     rats_add_test(test_lru_cache, "test_lru_cache", argc, argv);
     rats_add_test(test_extract, "test_extract", argc, argv);
     rats_add_test(test_extract_error, "test_extract_error", argc, argv);
@@ -66,4 +66,4 @@ AUXTS_FORCE_INLINE void rats_run_tests(int argc, char* argv[]) {
     rats_add_test(test_atsp, "test_astp", argc, argv);
 }
 
-#endif //AUXTS_TEST_RUNNER_H
+#endif //RATS_TEST_RUNNER_H

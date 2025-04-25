@@ -53,7 +53,7 @@ void rats_ogg_init(rats_ogg* ogg, void* out) {
 size_t rats_ogg_write(rats_ogg* ogg, const void* in, void* out, size_t samples, size_t size) {
     rats_ogg_init(ogg, out);
 
-    int samples_per_channel = (int)(AUXTS_OGG_FRAMESIZE_20MS * ogg->format.sample_rate);
+    int samples_per_channel = (int)(RATS_OGG_FRAMESIZE_20MS * ogg->format.sample_rate);
     off_t frame_size = samples_per_channel * ogg->format.channels;
 
     rats_int16* pcm = malloc(sizeof(rats_int16) * frame_size);

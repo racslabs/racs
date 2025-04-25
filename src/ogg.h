@@ -1,11 +1,11 @@
 
-#ifndef AUXTS_OGG_H
-#define AUXTS_OGG_H
+#ifndef RATS_OGG_H
+#define RATS_OGG_H
 
 #include <opus/opusenc.h>
 #include "memory.h"
 
-#define AUXTS_OGG_FRAMESIZE_20MS 0.02
+#define RATS_OGG_FRAMESIZE_20MS 0.02
 
 typedef struct {
     rats_uint16 channels;
@@ -35,4 +35,4 @@ size_t rats_ogg_write_s16(rats_ogg* ogg, const rats_int16* in, void* out, size_t
 
 void rats_ogg_destroy(rats_ogg* ogg);
 
-#endif //AUXTS_OGG_H
+#endif //RATS_OGG_H

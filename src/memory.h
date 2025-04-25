@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_MEMORY_H
-#define AUXTS_MEMORY_H
+#ifndef RATS_MEMORY_H
+#define RATS_MEMORY_H
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -8,8 +8,8 @@
 #include "types.h"
 
 typedef enum {
-    AUXTS_MEMSTREAM_CONTINUE,
-    AUXTS_MEMSTREAM_ABORT
+    RATS_MEMSTREAM_CONTINUE,
+    RATS_MEMSTREAM_ABORT
 } rats_memstream_status;
 
 typedef struct {
@@ -21,4 +21,4 @@ typedef struct {
 void rats_memstream_init(rats_memstream* stream);
 int rats_memstream_write(rats_memstream* stream, const void* data, size_t size);
 
-#endif //AUXTS_MEMORY_H
+#endif //RATS_MEMORY_H

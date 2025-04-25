@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_CONN_H
-#define AUXTS_CONN_H
+#ifndef RATS_CONN_H
+#define RATS_CONN_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,4 +33,4 @@ void rats_conn_bind(rats_conn* conn, int port);
 void rats_conn_listen(rats_conn* conn);
 void rats_conn_init_fds(rats_conn* conn);
 
-#endif //AUXTS_CONN_H
+#endif //RATS_CONN_H

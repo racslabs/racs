@@ -1,25 +1,25 @@
 
-#ifndef AUXTS_EXEC_H
-#define AUXTS_EXEC_H
+#ifndef RATS_EXEC_H
+#define RATS_EXEC_H
 
 #include "kvstore.h"
 #include "parser.h"
 #include "command.h"
 
 typedef enum {
-    AUXTS_COMMAND_ARG_TYPE_STR,
-    AUXTS_COMMAND_ARG_TYPE_INT,
-    AUXTS_COMMAND_ARG_TYPE_FLOAT
+    RATS_COMMAND_ARG_TYPE_STR,
+    RATS_COMMAND_ARG_TYPE_INT,
+    RATS_COMMAND_ARG_TYPE_FLOAT
 } rats_command_arg_type;
 
 typedef enum {
-    AUXTS_COMMAND_OP_PIPE,
-    AUXTS_COMMAND_OP_NONE
+    RATS_COMMAND_OP_PIPE,
+    RATS_COMMAND_OP_NONE
 } rats_command_op;
 
 typedef enum {
-    AUXTS_EXEC_STATUS_CONTINUE,
-    AUXTS_EXEC_STATUS_ABORT
+    RATS_EXEC_STATUS_CONTINUE,
+    RATS_EXEC_STATUS_ABORT
 } rats_exec_status;
 
 typedef struct {
@@ -66,4 +66,4 @@ void rats_exec_destroy(rats_exec* exec);
 rats_result rats_exec_exec(rats_exec* exec, rats_context* ctx, const char* cmd);
 rats_result rats_exec_stream(rats_context* ctx, rats_uint8* data);
 
-#endif //AUXTS_EXEC_H
+#endif //RATS_EXEC_H

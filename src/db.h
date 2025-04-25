@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_DB_H
-#define AUXTS_DB_H
+#ifndef RATS_DB_H
+#define RATS_DB_H
 
 #include "exec.h"
 #include "context.h"
@@ -18,4 +18,4 @@ void rats_db_close(rats_db* db);
 rats_result rats_db_exec(rats_db* db, const char* cmd);
 rats_result rats_db_stream(rats_db* db, rats_uint8* data);
 
-#endif //AUXTS_DB_H
+#endif //RATS_DB_H

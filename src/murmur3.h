@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_MURMUR3_H
-#define AUXTS_MURMUR3_H
+#ifndef RATS_MURMUR3_H
+#define RATS_MURMUR3_H
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -10,11 +10,11 @@
 extern "C" {
 #endif
 
-AUXTS_FORCE_INLINE uint64_t rotl64(uint64_t x, int8_t r) {
+RATS_FORCE_INLINE uint64_t rotl64(uint64_t x, int8_t r) {
     return (x << r) | (x >> (64 - r));
 }
 
-AUXTS_FORCE_INLINE uint64_t fmix64(uint64_t k) {
+RATS_FORCE_INLINE uint64_t fmix64(uint64_t k) {
     k ^= k >> 33;
     k *= 0xff51afd7ed558ccdull;
     k ^= k >> 33;
@@ -30,4 +30,4 @@ void murmur3_x64_128(const uint8_t* key, size_t len, uint32_t seed, uint64_t* ou
 }
 #endif
 
-#endif //AUXTS_MURMUR3_H
+#endif //RATS_MURMUR3_H

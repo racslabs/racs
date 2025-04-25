@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_WAV_H
-#define AUXTS_WAV_H
+#ifndef RATS_WAV_H
+#define RATS_WAV_H
 
 #include <stdlib.h>
 #include "bytes.h"
@@ -45,4 +45,4 @@ void rats_wav_encode_header(void* out, rats_wav* wav, rats_uint32 samples);
 void rats_wav_encode_format(void* out, rats_wav* wav);
 void rats_wav_encode_data(void* out, rats_wav* wav, const void* data, rats_uint32 samples);
 
-#endif //AUXTS_WAV_H
+#endif //RATS_WAV_H

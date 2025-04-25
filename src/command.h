@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_COMMAND_H
-#define AUXTS_COMMAND_H
+#ifndef RATS_COMMAND_H
+#define RATS_COMMAND_H
 
 #include <msgpack.h>
 #include "scm.h"
@@ -43,4 +43,4 @@ rats_create_command(format);
 
 int rats_stream(msgpack_sbuffer* out_buf, rats_context* ctx, rats_uint8* data);
 
-#endif //AUXTS_COMMAND_H
+#endif //RATS_COMMAND_H

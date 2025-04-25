@@ -6,7 +6,7 @@ int rats_extract_pcm(rats_context* ctx, rats_pcm* pcm, const char* stream_id, ra
 
     rats_streaminfo streaminfo;
     int rc = rats_streaminfo_get(ctx->mcache, &streaminfo, rats_hash(stream_id));
-    if (rc == 0) return AUXTS_EXTRACT_STATUS_NOT_FOUND;
+    if (rc == 0) return RATS_EXTRACT_STATUS_NOT_FOUND;
 
     rats_pcm_set_bit_depth(pcm, streaminfo.bit_depth);
     rats_pcm_set_channels(pcm, streaminfo.channels);
@@ -29,7 +29,7 @@ int rats_extract_pcm(rats_context* ctx, rats_pcm* pcm, const char* stream_id, ra
     free(path);
     rats_filelist_destroy(list);
 
-    return AUXTS_EXTRACT_STATUS_OK;
+    return RATS_EXTRACT_STATUS_OK;
 }
 
 uint8_t* rats_extract_from_cache_or_sstable(rats_cache* cache, uint64_t stream_id, rats_time time, const char* path) {

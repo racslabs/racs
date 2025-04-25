@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_EXTRACT_TEST_H
-#define AUXTS_EXTRACT_TEST_H
+#ifndef RATS_EXTRACT_TEST_H
+#define RATS_EXTRACT_TEST_H
 
 #include <assert.h>
 #include "test_utils.h"
@@ -12,4 +12,4 @@ void test_extract_error();
 void test_extract_invalid_num_args();
 void test_extract_invalid_arg_type();
 
-#endif //AUXTS_EXTRACT_TEST_H
+#endif //RATS_EXTRACT_TEST_H

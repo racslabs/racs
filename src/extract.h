@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_EXTRACT_H
-#define AUXTS_EXTRACT_H
+#ifndef RATS_EXTRACT_H
+#define RATS_EXTRACT_H
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -17,8 +17,8 @@
 #include "streaminfo.h"
 
 typedef enum {
-    AUXTS_EXTRACT_STATUS_OK,
-    AUXTS_EXTRACT_STATUS_NOT_FOUND
+    RATS_EXTRACT_STATUS_OK,
+    RATS_EXTRACT_STATUS_NOT_FOUND
 } rats_extract_status;
 
 int rats_extract_pcm(rats_context* ctx, rats_pcm* pcm, const char* stream_id, rats_time from, rats_time to);
@@ -26,4 +26,4 @@ uint8_t* rats_extract_from_cache_or_sstable(rats_cache* cache, uint64_t stream_i
 void rats_extract_process_sstable(rats_pcm* pcm, uint8_t* data, uint64_t stream_id, int64_t from, int64_t to);
 
 
-#endif //AUXTS_EXTRACT_H
+#endif //RATS_EXTRACT_H

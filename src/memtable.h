@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_MEMTABLE_H
-#define AUXTS_MEMTABLE_H
+#ifndef RATS_MEMTABLE_H
+#define RATS_MEMTABLE_H
 
 #include <stdint.h>
 #include <stddef.h>
@@ -21,17 +21,17 @@
 extern "C" {
 #endif
 
-#define AUXTS_BLOCK_ALIGN 4096
+#define RATS_BLOCK_ALIGN 4096
 
-#define AUXTS_MAX_BLOCK_SIZE 65536
+#define RATS_MAX_BLOCK_SIZE 65536
 
-#define AUXTS_INDEX_ENTRY_SIZE 24
+#define RATS_INDEX_ENTRY_SIZE 24
 
-#define AUXTS_HEADER_SIZE 8
+#define RATS_HEADER_SIZE 8
 
-#define AUXTS_MEMTABLE_ENTRY_METADATA_SIZE 18
+#define RATS_MEMTABLE_ENTRY_METADATA_SIZE 18
 
-#define AUXTS_TRAILER_SIZE 2
+#define RATS_TRAILER_SIZE 2
 
 typedef struct {
     uint64_t key[2];
@@ -79,4 +79,4 @@ rats_memtable_entry* rats_memtable_entry_read(uint8_t* buf, size_t offset);
 }
 #endif
 
-#endif //AUXTS_MEMTABLE_H
+#endif //RATS_MEMTABLE_H

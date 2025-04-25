@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_SCM_TEST_H
-#define AUXTS_SCM_TEST_H
+#ifndef RATS_SCM_TEST_H
+#define RATS_SCM_TEST_H
 
 #include "../src/db.h"
 #include "../src/scm_bindings.h"
@@ -13,4 +13,4 @@ void test_scm_list();
 void test_scm_metadata();
 
 
-#endif //AUXTS_SCM_TEST_H
+#endif //RATS_SCM_TEST_H

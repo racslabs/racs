@@ -59,7 +59,7 @@ rats_result rats_exec_exec(rats_exec* exec, rats_context* ctx, const char* cmd) 
     exec_plan_init(&plan);
 
     int status = exec_plan_build(&plan, &out_buf, &parser);
-    if (status != AUXTS_EXEC_STATUS_ABORT)
+    if (status != RATS_EXEC_STATUS_ABORT)
         exec_plan_exec(&plan, exec, ctx, &in_buf, &out_buf);
 
     exec_plan_destroy(&plan);
@@ -80,33 +80,33 @@ int exec_plan_build(rats_exec_plan* plan, msgpack_sbuffer* out_buf, rats_parser*
     rats_token curr = rats_parser_next_token(parser);
 
     rats_command* cmd = NULL;
-    int status = AUXTS_EXEC_STATUS_CONTINUE;
+    int status = RATS_EXEC_STATUS_CONTINUE;
 
-    while (curr.type != AUXTS_TOKEN_TYPE_EOF && status == AUXTS_EXEC_STATUS_CONTINUE) {
+    while (curr.type != RATS_TOKEN_TYPE_EOF && status == RATS_EXEC_STATUS_CONTINUE) {
         switch (curr.type) {
-            case AUXTS_TOKEN_TYPE_ID: {
+            case RATS_TOKEN_TYPE_ID: {
                 cmd = handle_id(&curr, &prev);
                 status = command_handle_id(cmd, out_buf);
                 break;
             }
-            case AUXTS_TOKEN_TYPE_STR:
+            case RATS_TOKEN_TYPE_STR:
                 status = command_handle_str(cmd, out_buf, &curr, &prev);
                 break;
-            case AUXTS_TOKEN_TYPE_PIPE:
+            case RATS_TOKEN_TYPE_PIPE:
                 exec_plan_add_command(plan, cmd);
                 break;
-            case AUXTS_TOKEN_TYPE_INT:
+            case RATS_TOKEN_TYPE_INT:
                 status = command_handle_int64(cmd, out_buf, &curr, &prev);
                 break;
-            case AUXTS_TOKEN_TYPE_TIME:
+            case RATS_TOKEN_TYPE_TIME:
                 status = command_handle_time(cmd, out_buf, &curr, &prev);
                 break;
-            case AUXTS_TOKEN_TYPE_FLOAT:
+            case RATS_TOKEN_TYPE_FLOAT:
                 status = command_handle_float64(cmd, out_buf, &curr, &prev);
                 break;
-            case AUXTS_TOKEN_TYPE_ERROR: {
+            case RATS_TOKEN_TYPE_ERROR: {
                 handle_error(curr.as.err.msg, out_buf);
-                status = AUXTS_EXEC_STATUS_ABORT;
+                status = RATS_EXEC_STATUS_ABORT;
             }
             default:
                 break;
@@ -116,7 +116,7 @@ int exec_plan_build(rats_exec_plan* plan, msgpack_sbuffer* out_buf, rats_parser*
         curr = rats_parser_next_token(parser);
     }
 
-    if (status != AUXTS_EXEC_STATUS_ABORT)
+    if (status != RATS_EXEC_STATUS_ABORT)
         exec_plan_add_command(plan, cmd);
 
     return status;
@@ -154,13 +154,13 @@ void command_serialize_args(rats_command* cmd, msgpack_packer* pk) {
         rats_command_arg* arg = cmd->args[i];
 
         switch (arg->type) {
-            case AUXTS_COMMAND_ARG_TYPE_STR:
+            case RATS_COMMAND_ARG_TYPE_STR:
                 command_arg_serialize_str(arg, pk);
                 break;
-            case AUXTS_COMMAND_ARG_TYPE_INT:
+            case RATS_COMMAND_ARG_TYPE_INT:
                 command_arg_serialize_int64(arg, pk);
                 break;
-            case AUXTS_COMMAND_ARG_TYPE_FLOAT:
+            case RATS_COMMAND_ARG_TYPE_FLOAT:
                 command_arg_serialize_float64(arg, pk);
                 break;
         }
@@ -180,11 +180,11 @@ void command_arg_serialize_float64(rats_command_arg* arg, msgpack_packer* pk) {
 }
 
 rats_command* handle_id(rats_token* curr, rats_token* prev) {
-    if (prev->type == AUXTS_TOKEN_TYPE_PIPE)
-        return command_create(curr->as.id.ptr, AUXTS_COMMAND_OP_PIPE, curr->as.id.size + 1);
+    if (prev->type == RATS_TOKEN_TYPE_PIPE)
+        return command_create(curr->as.id.ptr, RATS_COMMAND_OP_PIPE, curr->as.id.size + 1);
 
-    if (prev->type == AUXTS_TOKEN_TYPE_NONE)
-        return command_create(curr->as.id.ptr, AUXTS_COMMAND_OP_NONE, curr->as.id.size + 1);
+    if (prev->type == RATS_TOKEN_TYPE_NONE)
+        return command_create(curr->as.id.ptr, RATS_COMMAND_OP_NONE, curr->as.id.size + 1);
 
     return NULL;
 }
@@ -192,58 +192,58 @@ rats_command* handle_id(rats_token* curr, rats_token* prev) {
 int command_handle_id(rats_command* cmd, msgpack_sbuffer* out_buf) {
     if (!cmd) {
         handle_error("Token type 'id' is not a valid argument.", out_buf);
-        return AUXTS_EXEC_STATUS_ABORT;
+        return RATS_EXEC_STATUS_ABORT;
     }
 
-    return AUXTS_EXEC_STATUS_CONTINUE;
+    return RATS_EXEC_STATUS_CONTINUE;
 }
 
 int command_handle_str(rats_command* cmd, msgpack_sbuffer* out_buf, rats_token* curr, rats_token* prev) {
-    if (prev->type == AUXTS_TOKEN_TYPE_PIPE || prev->type == AUXTS_TOKEN_TYPE_NONE) {
+    if (prev->type == RATS_TOKEN_TYPE_PIPE || prev->type == RATS_TOKEN_TYPE_NONE) {
         handle_error("Token type 'string' is not a valid command.", out_buf);
-        return AUXTS_EXEC_STATUS_ABORT;
+        return RATS_EXEC_STATUS_ABORT;
     }
 
     rats_command_arg* arg = command_arg_create_str(curr->as.str.ptr, curr->as.str.size);
     command_add_arg(cmd, arg);
 
-    return AUXTS_EXEC_STATUS_CONTINUE;
+    return RATS_EXEC_STATUS_CONTINUE;
 }
 
 int command_handle_time(rats_command* cmd, msgpack_sbuffer* out_buf, rats_token* curr, rats_token* prev) {
-    if (prev->type == AUXTS_TOKEN_TYPE_PIPE || prev->type == AUXTS_TOKEN_TYPE_NONE) {
+    if (prev->type == RATS_TOKEN_TYPE_PIPE || prev->type == RATS_TOKEN_TYPE_NONE) {
         handle_error("Token type 'time' is not a valid command.", out_buf);
-        return AUXTS_EXEC_STATUS_ABORT;
+        return RATS_EXEC_STATUS_ABORT;
     }
 
     rats_command_arg* arg = command_arg_create_int64(curr->as.time);
     command_add_arg(cmd, arg);
 
-    return AUXTS_EXEC_STATUS_CONTINUE;
+    return RATS_EXEC_STATUS_CONTINUE;
 }
 
 int command_handle_int64(rats_command* cmd, msgpack_sbuffer* out_buf, rats_token* curr, rats_token* prev) {
-    if (prev->type == AUXTS_TOKEN_TYPE_PIPE || prev->type == AUXTS_TOKEN_TYPE_NONE) {
+    if (prev->type == RATS_TOKEN_TYPE_PIPE || prev->type == RATS_TOKEN_TYPE_NONE) {
         handle_error("Token type 'int' is not a valid command.", out_buf);
-        return AUXTS_EXEC_STATUS_ABORT;
+        return RATS_EXEC_STATUS_ABORT;
     }
 
     rats_command_arg* arg = command_arg_create_int64(curr->as.i64);
     command_add_arg(cmd, arg);
 
-    return AUXTS_EXEC_STATUS_CONTINUE;
+    return RATS_EXEC_STATUS_CONTINUE;
 }
 
 int command_handle_float64(rats_command* cmd, msgpack_sbuffer* out_buf, rats_token* curr, rats_token* prev) {
-    if (prev->type == AUXTS_TOKEN_TYPE_PIPE || prev->type == AUXTS_TOKEN_TYPE_NONE) {
+    if (prev->type == RATS_TOKEN_TYPE_PIPE || prev->type == RATS_TOKEN_TYPE_NONE) {
         handle_error("Token type 'float' is not a valid command.", out_buf);
-        return AUXTS_EXEC_STATUS_ABORT;
+        return RATS_EXEC_STATUS_ABORT;
     }
 
     rats_command_arg* arg = command_arg_create_float64(curr->as.f64);
     command_add_arg(cmd, arg);
 
-    return AUXTS_EXEC_STATUS_CONTINUE;
+    return RATS_EXEC_STATUS_CONTINUE;
 }
 
 void rats_exec_init(rats_exec* exec) {
@@ -326,7 +326,7 @@ rats_command_arg* command_arg_create_str(const char* ptr, size_t size) {
     rats_command_arg* arg = command_arg_create();
     if (!arg) return NULL;
 
-    arg->type = AUXTS_COMMAND_ARG_TYPE_STR;
+    arg->type = RATS_COMMAND_ARG_TYPE_STR;
     arg->as.str.ptr = ptr;
     arg->as.str.size = size;
 
@@ -337,7 +337,7 @@ rats_command_arg* command_arg_create_int64(int64_t d) {
     rats_command_arg* arg = command_arg_create();
     if (!arg) return NULL;
 
-    arg->type = AUXTS_COMMAND_ARG_TYPE_INT;
+    arg->type = RATS_COMMAND_ARG_TYPE_INT;
     arg->as.i64 = d;
 
     return arg;
@@ -347,7 +347,7 @@ rats_command_arg* command_arg_create_float64(double d) {
     rats_command_arg* arg = command_arg_create();
     if (!arg) return NULL;
 
-    arg->type = AUXTS_COMMAND_ARG_TYPE_FLOAT;
+    arg->type = RATS_COMMAND_ARG_TYPE_FLOAT;
     arg->as.f64 = d;
 
     return arg;

@@ -29,39 +29,39 @@ rats_token rats_parser_next_token(rats_parser* parser) {
     }
 
     if (isdigit(*parser->ptr)) {
-        if (match_token(parser->ptr, AUXTS_REGEX_TIME, &match)) {
+        if (match_token(parser->ptr, RATS_REGEX_TIME, &match)) {
             return parser_lex_token_time(parser, &match);
         }
 
-        if (match_token(parser->ptr, AUXTS_REGEX_FLOAT, &match)) {
+        if (match_token(parser->ptr, RATS_REGEX_FLOAT, &match)) {
             return parser_lex_token_float64(parser, &match);
         }
 
-        if (match_token(parser->ptr, AUXTS_REGEX_INT, &match)) {
+        if (match_token(parser->ptr, RATS_REGEX_INT, &match)) {
             return parser_lex_token_int64(parser, &match);
         }
     }
 
     if (*parser->ptr == '.') {
-        if (match_token(parser->ptr, AUXTS_REGEX_FLOAT, &match)) {
+        if (match_token(parser->ptr, RATS_REGEX_FLOAT, &match)) {
             return parser_lex_token_float64(parser, &match);
         }
     }
 
     if (isalpha(*parser->ptr) || *parser->ptr == '_') {
-        if (match_token(parser->ptr, AUXTS_REGEX_ID, &match)) {
+        if (match_token(parser->ptr, RATS_REGEX_ID, &match)) {
             return parser_lex_token_id(parser, &match);
         }
     }
 
     if (*parser->ptr == '\'') {
-        if (match_token(parser->ptr, AUXTS_REGEX_STR, &match)) {
+        if (match_token(parser->ptr, RATS_REGEX_STR, &match)) {
             return parser_lex_token_str(parser, &match);
         }
     }
 
     if (*parser->ptr == '|') {
-        if (match_token(parser->ptr, AUXTS_REGEX_PIPE, &match)) {
+        if (match_token(parser->ptr, RATS_REGEX_PIPE, &match)) {
             return parser_lex_token_pipe(parser, &match);
         }
     }
@@ -71,30 +71,30 @@ rats_token rats_parser_next_token(rats_parser* parser) {
 
 void rats_token_print(rats_token* token) {
     switch (token->type) {
-        case AUXTS_TOKEN_TYPE_ID:
+        case RATS_TOKEN_TYPE_ID:
             printf("[ID   ] ");
             print_n_chars(token->as.id.ptr, token->as.id.size);
             break;
-        case AUXTS_TOKEN_TYPE_STR:
+        case RATS_TOKEN_TYPE_STR:
             printf("[STR  ] ");
             print_n_chars(token->as.str.ptr, token->as.str.size);
             break;
-        case AUXTS_TOKEN_TYPE_PIPE:
+        case RATS_TOKEN_TYPE_PIPE:
             printf("[PIPE ] |>\n");
             break;
-        case AUXTS_TOKEN_TYPE_INT:
+        case RATS_TOKEN_TYPE_INT:
             printf("[INT  ] %lld\n", token->as.i64);
             break;
-        case AUXTS_TOKEN_TYPE_FLOAT:
+        case RATS_TOKEN_TYPE_FLOAT:
             printf("[FLOAT] %f\n", token->as.f64);
             break;
-        case AUXTS_TOKEN_TYPE_EOF:
+        case RATS_TOKEN_TYPE_EOF:
             printf("[EOF  ]\n");
             break;
-        case AUXTS_TOKEN_TYPE_TIME:
+        case RATS_TOKEN_TYPE_TIME:
             printf("[TIME ] %lld\n", token->as.time);
             break;
-        case AUXTS_TOKEN_TYPE_ERROR:
+        case RATS_TOKEN_TYPE_ERROR:
             printf("[ERR  ] %s\n", token->as.err.msg);
             break;
     }
@@ -130,7 +130,7 @@ rats_token parser_lex_token_time(rats_parser* parser, regmatch_t* match) {
     strlcpy(time_str, parser->ptr, size + 1);
 
     rats_token token;
-    token.type = AUXTS_TOKEN_TYPE_TIME;
+    token.type = RATS_TOKEN_TYPE_TIME;
     token.as.time = rats_time_from_rfc3339(time_str);
 
     parser_advance(parser, size);
@@ -145,7 +145,7 @@ rats_token parser_lex_token_str(rats_parser* parser, regmatch_t* match) {
     parser_advance(parser, 1);
 
     rats_token token;
-    token.type = AUXTS_TOKEN_TYPE_STR;
+    token.type = RATS_TOKEN_TYPE_STR;
     token.as.str.ptr = parser->ptr;
     token.as.str.size = size;
 
@@ -158,7 +158,7 @@ rats_token parser_lex_token_id(rats_parser* parser, regmatch_t* match) {
     regoff_t size = match->rm_eo - match->rm_so;
 
     rats_token token;
-    token.type = AUXTS_TOKEN_TYPE_ID;
+    token.type = RATS_TOKEN_TYPE_ID;
     token.as.id.ptr = parser->ptr;
     token.as.id.size = size;
 
@@ -174,7 +174,7 @@ rats_token parser_lex_token_int64(rats_parser* parser, regmatch_t* match) {
     strlcpy(int_str, parser->ptr, size + 1);
 
     rats_token token;
-    token.type = AUXTS_TOKEN_TYPE_INT;
+    token.type = RATS_TOKEN_TYPE_INT;
     token.as.i64 = strtoull(int_str, NULL, 10);
 
     parser_advance(parser, size);
@@ -190,7 +190,7 @@ rats_token parser_lex_token_float64(rats_parser* parser, regmatch_t* match) {
     strlcpy(float_str, parser->ptr, size + 1);
 
     rats_token token;
-    token.type = AUXTS_TOKEN_TYPE_FLOAT;
+    token.type = RATS_TOKEN_TYPE_FLOAT;
     token.as.f64 = atof(float_str);
 
     parser_advance(parser, size);
@@ -203,7 +203,7 @@ rats_token parser_lex_token_pipe(rats_parser* parser, regmatch_t* match) {
     regoff_t size = match->rm_eo - match->rm_so;
 
     rats_token token;
-    token.type = AUXTS_TOKEN_TYPE_PIPE;
+    token.type = RATS_TOKEN_TYPE_PIPE;
 
     parser_advance(parser, size);
 
@@ -212,7 +212,7 @@ rats_token parser_lex_token_pipe(rats_parser* parser, regmatch_t* match) {
 
 rats_token parser_lex_token_eof() {
     rats_token token;
-    token.type = AUXTS_TOKEN_TYPE_EOF;
+    token.type = RATS_TOKEN_TYPE_EOF;
     return token;
 }
 
@@ -221,7 +221,7 @@ rats_token parser_token_error(rats_parser* parser) {
     perror(parser->error);
 
     rats_token token;
-    token.type = AUXTS_TOKEN_TYPE_ERROR;
+    token.type = RATS_TOKEN_TYPE_ERROR;
     token.as.err.msg = parser->error;
 
     return token;

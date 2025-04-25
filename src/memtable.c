@@ -103,7 +103,7 @@ rats_sstable* rats_sstable_read(const char* filename) {
     }
 
     uint16_t entry_count;
-    if (pread(fd, &entry_count, sizeof(uint16_t), file_size - AUXTS_TRAILER_SIZE) != sizeof(uint16_t)) {
+    if (pread(fd, &entry_count, sizeof(uint16_t), file_size - RATS_TRAILER_SIZE) != sizeof(uint16_t)) {
         perror("Failed to read entry num_files");
         close(fd);
         return NULL;
@@ -142,8 +142,8 @@ rats_sstable* rats_sstable_read(const char* filename) {
 rats_sstable* rats_sstable_read_in_memory(uint8_t* data, size_t size) {
     uint16_t num_entries;
 
-    memcpy(&num_entries, data + (size - AUXTS_TRAILER_SIZE), sizeof(uint16_t));
-    size_t offset = size - (num_entries * AUXTS_INDEX_ENTRY_SIZE) - AUXTS_TRAILER_SIZE;
+    memcpy(&num_entries, data + (size - RATS_TRAILER_SIZE), sizeof(uint16_t));
+    size_t offset = size - (num_entries * RATS_INDEX_ENTRY_SIZE) - RATS_TRAILER_SIZE;
 
     rats_sstable* sst = sstable_create(num_entries);
     if (!sst) return NULL;
@@ -198,7 +198,7 @@ rats_memtable* memtable_create(int capacity) {
     pthread_mutex_init(&mt->mutex, NULL);
 
     for (int i = 0; i < mt->capacity; ++i) {
-        if (posix_memalign((void**)&mt->entries[i].block, AUXTS__ALIGN, AUXTS_MAX_BLOCK_SIZE) != 0) {
+        if (posix_memalign((void**)&mt->entries[i].block, RATS__ALIGN, RATS_MAX_BLOCK_SIZE) != 0) {
             perror("Failed to allocate block to mt");
             memtable_destroy(mt);
             return NULL;
@@ -262,9 +262,9 @@ void memtable_write(rats_memtable* mt) {
         return;
     }
 
-    size_t size = AUXTS_HEADER_SIZE +
-            (mt->num_entries * (AUXTS_MAX_BLOCK_SIZE + AUXTS_MEMTABLE_ENTRY_METADATA_SIZE + AUXTS_INDEX_ENTRY_SIZE)) +
-            AUXTS_TRAILER_SIZE;
+    size_t size = RATS_HEADER_SIZE +
+            (mt->num_entries * (RATS_MAX_BLOCK_SIZE + RATS_MEMTABLE_ENTRY_METADATA_SIZE + RATS_INDEX_ENTRY_SIZE)) +
+            RATS_TRAILER_SIZE;
 
     uint8_t* buf = allocate_buffer(size, sst);
     if (!buf) {
@@ -300,7 +300,7 @@ void get_sstable_path(int64_t timestamp, char* path) {
 
 uint8_t* allocate_buffer(size_t size, rats_sstable* sst) {
     uint8_t* buf;
-    if (posix_memalign((void*)&buf, AUXTS_BLOCK_ALIGN, size) != 0) {
+    if (posix_memalign((void*)&buf, RATS_BLOCK_ALIGN, size) != 0) {
         perror("Buffer allocation failed");
         return NULL;
     }
@@ -360,7 +360,7 @@ void sstable_read_index_entries(rats_sstable* sst) {
 }
 
 off_t memtable_to_sstable(uint8_t* buf, rats_sstable* sst, rats_memtable* mt) {
-    off_t offset = AUXTS_HEADER_SIZE;
+    off_t offset = RATS_HEADER_SIZE;
 
     for (int entry = 0; entry < sst->num_entries; ++entry) {
         rats_memtable_entry* mt_entry = &mt->entries[entry];

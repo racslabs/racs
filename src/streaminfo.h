@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_STREAMINFO_H
-#define AUXTS_STREAMINFO_H
+#ifndef RATS_STREAMINFO_H
+#define RATS_STREAMINFO_H
 
 #include <fcntl.h>
 #include <stdio.h>
@@ -30,4 +30,4 @@ void rats_mcache_destroy(void* key, void* value);
 rats_cache* rats_mcache_create(size_t capacity);
 rats_uint64 rats_hash(const char* stream_id);
 
-#endif //AUXTS_STREAMINFO_H
+#endif //RATS_STREAMINFO_H

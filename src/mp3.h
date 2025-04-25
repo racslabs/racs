@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_MP3_H
-#define AUXTS_MP3_H
+#ifndef RATS_MP3_H
+#define RATS_MP3_H
 
 #include <lame/lame.h>
 #include "types.h"
@@ -27,4 +27,4 @@ size_t rats_mp3_write_s16(rats_mp3* mp3, const rats_int16* in, void* out, size_t
 
 void rats_mp3_destroy(rats_mp3* mp3);
 
-#endif //AUXTS_MP3_H
+#endif //RATS_MP3_H

@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_SERIALIZATION_H
-#define AUXTS_SERIALIZATION_H
+#ifndef RATS_SERIALIZATION_H
+#define RATS_SERIALIZATION_H
 
 #include <msgpack.h>
 #include "extract.h"
@@ -8,21 +8,21 @@
 #include "types.h"
 
 typedef enum {
-    AUXTS_TYPE_STR,
-    AUXTS_TYPE_INT,
-    AUXTS_TYPE_FLOAT,
-    AUXTS_TYPE_LIST,
-    AUXTS_TYPE_NULL,
-    AUXTS_TYPE_ERROR,
-    AUXTS_TYPE_BOOL,
-    AUXTS_TYPE_U8VEC,
-    AUXTS_TYPE_I8VEC,
-    AUXTS_TYPE_U16VEC,
-    AUXTS_TYPE_I16VEC,
-    AUXTS_TYPE_U32VEC,
-    AUXTS_TYPE_I32VEC,
-    AUXTS_TYPE_F32VEC,
-    AUXTS_TYPE_C64VEC
+    RATS_TYPE_STR,
+    RATS_TYPE_INT,
+    RATS_TYPE_FLOAT,
+    RATS_TYPE_LIST,
+    RATS_TYPE_NULL,
+    RATS_TYPE_ERROR,
+    RATS_TYPE_BOOL,
+    RATS_TYPE_U8VEC,
+    RATS_TYPE_I8VEC,
+    RATS_TYPE_U16VEC,
+    RATS_TYPE_I16VEC,
+    RATS_TYPE_U32VEC,
+    RATS_TYPE_I32VEC,
+    RATS_TYPE_F32VEC,
+    RATS_TYPE_C64VEC
 } rats_type;
 
 #define rats_parse_buf(buf, pk, msg, message) \
@@ -64,4 +64,4 @@ size_t rats_deserialize_i16v_size(msgpack_object* obj, int n);
 size_t rats_deserialize_i32v_size(msgpack_object* obj, int n);
 int rats_is_object_type(msgpack_object* obj, msgpack_object_type type, int arg_num);
 
-#endif //AUXTS_SERIALIZATION_H
+#endif //RATS_SERIALIZATION_H

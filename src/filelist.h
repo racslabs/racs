@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_FILELIST_H
-#define AUXTS_FILELIST_H
+#ifndef RATS_FILELIST_H
+#define RATS_FILELIST_H
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -21,4 +21,4 @@ rats_filelist* rats_filelist_create();
 rats_filelist* get_sorted_filelist(const char* path);
 char* rats_resolve_shared_path(const char* path1, const char* path2);
 
-#endif //AUXTS_FILELIST_H
+#endif //RATS_FILELIST_H

@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_SIMD_H
-#define AUXTS_SIMD_H
+#ifndef RATS_SIMD_H
+#define RATS_SIMD_H
 
 #include <stddef.h>
 #include "../types.h"
@@ -16,8 +16,8 @@
 #endif
 
 #if defined(__GNUG__) || defined(__GNUC__)
-#define AUXTS_DO_PRAGMA(x) _Pragma(#x)
-#define AUXTS_UNROLL(N) AUXTS_DO_PRAGMA(GCC unroll N)
+#define RATS_DO_PRAGMA(x) _Pragma(#x)
+#define RATS_UNROLL(N) RATS_DO_PRAGMA(GCC unroll N)
 #endif
 
-#endif //AUXTS_SIMD_H
+#endif //RATS_SIMD_H

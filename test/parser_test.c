@@ -11,8 +11,8 @@ void test_parser() {
 
     rats_token token = rats_parser_next_token(&parser);
 
-    while (token.type != AUXTS_TOKEN_TYPE_EOF) {
-        if (token.type == AUXTS_TOKEN_TYPE_ERROR) {
+    while (token.type != RATS_TOKEN_TYPE_EOF) {
+        if (token.type == RATS_TOKEN_TYPE_ERROR) {
             break;
         }
         rats_token_print(&token);

@@ -26,54 +26,54 @@ void rats_serialize_type(msgpack_packer* pk, int type) {
 
 int rats_serialize_null_with_status_ok(msgpack_packer* pk) {
     msgpack_pack_array(pk, 1);
-    rats_serialize_type(pk, AUXTS_TYPE_NULL);
+    rats_serialize_type(pk, RATS_TYPE_NULL);
     return RATS_STATUS_OK;
 }
 
 int rats_serialize_null_with_status_not_found(msgpack_packer* pk) {
     msgpack_pack_array(pk, 1);
-    rats_serialize_type(pk, AUXTS_TYPE_NULL);
+    rats_serialize_type(pk, RATS_TYPE_NULL);
     return RATS_STATUS_NOT_FOUND;
 }
 
 int rats_serialize_error(msgpack_packer* pk, const char* message) {
     msgpack_pack_array(pk, 2);
-    rats_serialize_type(pk, AUXTS_TYPE_ERROR);
+    rats_serialize_type(pk, RATS_TYPE_ERROR);
     msgpack_pack_str_with_body(pk, message, strlen(message));
     return RATS_STATUS_ERROR;
 }
 
 int rats_serialize_str(msgpack_packer* pk, const char* str) {
     msgpack_pack_array(pk, 2);
-    rats_serialize_type(pk, AUXTS_TYPE_STR);
+    rats_serialize_type(pk, RATS_TYPE_STR);
     msgpack_pack_str_with_body(pk, str, strlen(str));
     return RATS_STATUS_OK;
 }
 
 int rats_serialize_int64(msgpack_packer* pk, int64_t d) {
     msgpack_pack_array(pk, 2);
-    rats_serialize_type(pk, AUXTS_TYPE_INT);
+    rats_serialize_type(pk, RATS_TYPE_INT);
     msgpack_pack_int64(pk, d);
     return RATS_STATUS_OK;
 }
 
 int rats_serialize_uint64(msgpack_packer* pk, uint64_t d) {
     msgpack_pack_array(pk, 2);
-    rats_serialize_type(pk, AUXTS_TYPE_INT);
+    rats_serialize_type(pk, RATS_TYPE_INT);
     msgpack_pack_uint64(pk, d);
     return RATS_STATUS_OK;
 }
 
 int rats_serialize_float64(msgpack_packer* pk, double d) {
     msgpack_pack_array(pk, 2);
-    rats_serialize_type(pk, AUXTS_TYPE_FLOAT);
+    rats_serialize_type(pk, RATS_TYPE_FLOAT);
     msgpack_pack_double(pk, d);
     return RATS_STATUS_OK;
 }
 
 int rats_serialize_bool(msgpack_packer* pk, bool d) {
     msgpack_pack_array(pk, 2);
-    rats_serialize_type(pk, AUXTS_TYPE_BOOL);
+    rats_serialize_type(pk, RATS_TYPE_BOOL);
     d ? msgpack_pack_true(pk) : msgpack_pack_false(pk);
     return RATS_STATUS_OK;
 }
@@ -81,7 +81,7 @@ int rats_serialize_bool(msgpack_packer* pk, bool d) {
 int rats_serialize_i8v(msgpack_packer* pk, int8_t* data, size_t n) {
     msgpack_pack_array(pk, 2);
 
-    rats_serialize_type(pk, AUXTS_TYPE_I8VEC);
+    rats_serialize_type(pk, RATS_TYPE_I8VEC);
     msgpack_pack_bin_with_body(pk, data, n * sizeof(int8_t));
 
     return RATS_STATUS_OK;
@@ -90,7 +90,7 @@ int rats_serialize_i8v(msgpack_packer* pk, int8_t* data, size_t n) {
 int rats_serialize_u8v(msgpack_packer* pk, uint8_t* data, size_t n) {
     msgpack_pack_array(pk, 2);
 
-    rats_serialize_type(pk, AUXTS_TYPE_U8VEC);
+    rats_serialize_type(pk, RATS_TYPE_U8VEC);
     msgpack_pack_bin_with_body(pk, data, n * sizeof(uint8_t));
 
     return RATS_STATUS_OK;
@@ -99,7 +99,7 @@ int rats_serialize_u8v(msgpack_packer* pk, uint8_t* data, size_t n) {
 int rats_serialize_i16v(msgpack_packer* pk, int16_t* data, size_t n) {
     msgpack_pack_array(pk, 2);
 
-    rats_serialize_type(pk, AUXTS_TYPE_I16VEC);
+    rats_serialize_type(pk, RATS_TYPE_I16VEC);
     msgpack_pack_bin_with_body(pk, data, n * sizeof(int16_t));
 
     return RATS_STATUS_OK;
@@ -108,7 +108,7 @@ int rats_serialize_i16v(msgpack_packer* pk, int16_t* data, size_t n) {
 int rats_serialize_u16v(msgpack_packer* pk, uint16_t* data, size_t n) {
     msgpack_pack_array(pk, 2);
 
-    rats_serialize_type(pk, AUXTS_TYPE_U16VEC);
+    rats_serialize_type(pk, RATS_TYPE_U16VEC);
     msgpack_pack_bin_with_body(pk, data, n * sizeof(uint16_t));
 
     return RATS_STATUS_OK;
@@ -117,7 +117,7 @@ int rats_serialize_u16v(msgpack_packer* pk, uint16_t* data, size_t n) {
 int rats_serialize_i32v(msgpack_packer* pk, int32_t* data, size_t n) {
     msgpack_pack_array(pk, 2);
 
-    rats_serialize_type(pk, AUXTS_TYPE_I32VEC);
+    rats_serialize_type(pk, RATS_TYPE_I32VEC);
     msgpack_pack_bin_with_body(pk, data, n * sizeof(int32_t));
 
     return RATS_STATUS_OK;
@@ -126,7 +126,7 @@ int rats_serialize_i32v(msgpack_packer* pk, int32_t* data, size_t n) {
 int rats_serialize_u32v(msgpack_packer* pk, uint32_t* data, size_t n) {
     msgpack_pack_array(pk, 2);
 
-    rats_serialize_type(pk, AUXTS_TYPE_U32VEC);
+    rats_serialize_type(pk, RATS_TYPE_U32VEC);
     msgpack_pack_bin_with_body(pk, data, n * sizeof(uint32_t));
 
     return RATS_STATUS_OK;
@@ -135,7 +135,7 @@ int rats_serialize_u32v(msgpack_packer* pk, uint32_t* data, size_t n) {
 int rats_serialize_f32v(msgpack_packer* pk, float* data, size_t n) {
     msgpack_pack_array(pk, 2);
 
-    rats_serialize_type(pk, AUXTS_TYPE_F32VEC);
+    rats_serialize_type(pk, RATS_TYPE_F32VEC);
     msgpack_pack_bin_with_body(pk, data, n * sizeof(float));
 
     return RATS_STATUS_OK;
@@ -144,7 +144,7 @@ int rats_serialize_f32v(msgpack_packer* pk, float* data, size_t n) {
 int rats_serialize_c64v(msgpack_packer* pk, rats_complex* data, size_t n) {
     msgpack_pack_array(pk, 2);
 
-    rats_serialize_type(pk, AUXTS_TYPE_C64VEC);
+    rats_serialize_type(pk, RATS_TYPE_C64VEC);
     msgpack_pack_bin_with_body(pk, data, n * sizeof(rats_complex));
 
     return RATS_STATUS_OK;

@@ -157,7 +157,7 @@ rats_create_command(extract) {
     rats_pcm pcm;
 
     int rc = rats_extract_pcm(ctx, &pcm, stream_id, from, to);
-    if (rc == AUXTS_EXTRACT_STATUS_NOT_FOUND) {
+    if (rc == RATS_EXTRACT_STATUS_NOT_FOUND) {
         rats_pcm_destroy(&pcm);
         return rats_serialize_error(&pk, "The stream-id does not exist");
     }
@@ -233,7 +233,7 @@ int rats_stream(msgpack_sbuffer* out_buf, rats_context* ctx, rats_uint8* data) {
     msgpack_unpacked_init(&msg);
 
     int rc = rats_streamappend(ctx->mcache, ctx->mmt, ctx->kv, data);
-    if (rc == AUXTS_STREAM_OK)
+    if (rc == RATS_STREAM_OK)
         return rats_serialize_null_with_status_ok(&pk);
 
     return rats_serialize_error(&pk, rats_stream_status_string[rc]);

@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_CONTEXT_H
-#define AUXTS_CONTEXT_H
+#ifndef RATS_CONTEXT_H
+#define RATS_CONTEXT_H
 
 #include "cache.h"
 #include "stream.h"
@@ -16,4 +16,4 @@ typedef struct {
 void rats_context_init(rats_context* ctx);
 void rats_context_destroy(rats_context* ctx);
 
-#endif //AUXTS_CONTEXT_H
+#endif //RATS_CONTEXT_H

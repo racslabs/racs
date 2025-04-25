@@ -23,11 +23,11 @@ int rats_streamcreate(rats_cache* mcache, rats_uint64 stream_id, rats_uint32 sam
 int rats_streamappend(rats_cache* mcache, rats_multi_memtable* mmt, rats_streamkv* kv, uint8_t* data) {
     rats_sp frame;
     if (!rats_sp_parse(data, &frame))
-        return AUXTS_STREAM_MALFORMED;
+        return RATS_STREAM_MALFORMED;
 
     char* mac_addr = rats_streamkv_get(kv, frame.header.stream_id);
     if (!mac_addr || !rats_mac_addr_cmp(frame.header.mac_addr, mac_addr))
-        return AUXTS_STREAM_CONFLICT;
+        return RATS_STREAM_CONFLICT;
 
     rats_streamkv_put(kv, frame.header.stream_id, frame.header.mac_addr);
 
@@ -36,13 +36,13 @@ int rats_streamappend(rats_cache* mcache, rats_multi_memtable* mmt, rats_streamk
     rats_streaminfo_get(mcache, &streaminfo, frame.header.stream_id);
 
     if (frame.header.sample_rate != streaminfo.sample_rate)
-        return AUXTS_STREAM_INVALID_SAMPLE_RATE;
+        return RATS_STREAM_INVALID_SAMPLE_RATE;
 
     if (frame.header.channels != streaminfo.channels)
-        return AUXTS_STREAM_INVALID_CHANNELS;
+        return RATS_STREAM_INVALID_CHANNELS;
 
     if (frame.header.bit_depth != 16)
-        return AUXTS_STREAM_INVALID_BITDEPTH;
+        return RATS_STREAM_INVALID_BITDEPTH;
 
     if (streaminfo.ref == 0 && streaminfo.size == 0)
         streaminfo.ref = rats_time_now();
@@ -54,7 +54,7 @@ int rats_streamappend(rats_cache* mcache, rats_multi_memtable* mmt, rats_streamk
     streaminfo.size += frame.header.block_size;
     rats_streaminfo_put(mcache, &streaminfo, frame.header.stream_id);
 
-    return AUXTS_STREAM_OK;
+    return RATS_STREAM_OK;
 }
 
 int rats_streamopen(rats_streamkv* kv, rats_uint64 stream_id) {

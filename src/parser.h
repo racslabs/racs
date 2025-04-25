@@ -1,6 +1,6 @@
 
-#ifndef AUXTS_PARSER_H
-#define AUXTS_PARSER_H
+#ifndef RATS_PARSER_H
+#define RATS_PARSER_H
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -15,23 +15,23 @@
 extern "C" {
 #endif
 
-#define AUXTS_REGEX_PIPE    "\\|>"
-#define AUXTS_REGEX_STR     "'([^'\\\\]*(\\\\'[^'\\\\]*)*)'"
-#define AUXTS_REGEX_ID      "^[a-zA-Z_][a-zA-Z0-9_]*"
-#define AUXTS_REGEX_INT     "^[0-9]+"
-#define AUXTS_REGEX_FLOAT   "^[0-9]+\\.[0-9]*"
-#define AUXTS_REGEX_TIME    "^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})(\\.[0-9]+)?(Z|([+-])([0-9]{2}):([0-9]{2}))"
+#define RATS_REGEX_PIPE    "\\|>"
+#define RATS_REGEX_STR     "'([^'\\\\]*(\\\\'[^'\\\\]*)*)'"
+#define RATS_REGEX_ID      "^[a-zA-Z_][a-zA-Z0-9_]*"
+#define RATS_REGEX_INT     "^[0-9]+"
+#define RATS_REGEX_FLOAT   "^[0-9]+\\.[0-9]*"
+#define RATS_REGEX_TIME    "^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})(\\.[0-9]+)?(Z|([+-])([0-9]{2}):([0-9]{2}))"
 
 typedef enum {
-    AUXTS_TOKEN_TYPE_NONE,
-    AUXTS_TOKEN_TYPE_ID,
-    AUXTS_TOKEN_TYPE_STR,
-    AUXTS_TOKEN_TYPE_PIPE,
-    AUXTS_TOKEN_TYPE_INT,
-    AUXTS_TOKEN_TYPE_FLOAT,
-    AUXTS_TOKEN_TYPE_TIME,
-    AUXTS_TOKEN_TYPE_EOF,
-    AUXTS_TOKEN_TYPE_ERROR
+    RATS_TOKEN_TYPE_NONE,
+    RATS_TOKEN_TYPE_ID,
+    RATS_TOKEN_TYPE_STR,
+    RATS_TOKEN_TYPE_PIPE,
+    RATS_TOKEN_TYPE_INT,
+    RATS_TOKEN_TYPE_FLOAT,
+    RATS_TOKEN_TYPE_TIME,
+    RATS_TOKEN_TYPE_EOF,
+    RATS_TOKEN_TYPE_ERROR
 } rats_token_type;
 
 typedef struct {
@@ -75,4 +75,4 @@ rats_token rats_parser_next_token(rats_parser* parser);
 }
 #endif
 
-#endif //AUXTS_PARSER_H
+#endif //RATS_PARSER_H
