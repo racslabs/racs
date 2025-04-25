@@ -32,7 +32,7 @@ elseif (AUXTS_NEON8_CMAKE_BUILD)
     endif()
 endif()
 
-add_executable(auxts main.c
+add_executable(auxts
         src/export.h
         src/time.h
         src/time.c
@@ -129,6 +129,8 @@ add_executable(auxts main.c
         test/stream_test.c
         src/conn.h
         src/conn.c
+        src/server.h
+        src/server.c
 )
 
 target_link_libraries(auxts msgpack-c ${GUILE_LIBRARIES} ${LAME_LIBRARIES} ${OPUS_LIBRARIES} ${OPUSENC_LIBRARIES})

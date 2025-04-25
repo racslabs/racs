@@ -17,7 +17,7 @@ typedef struct {
     int    len, rc, on;
     int    listen_sd, new_sd;
     int    desc_ready, end_server, compress_array;
-    int    close_conn;
+    int    close;
     char   buffer[80];
     struct sockaddr_in6   addr;
     int    timeout;
