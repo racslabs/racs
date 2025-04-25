@@ -2,7 +2,7 @@
 
 #ifdef __ARM_NEON__
 
-void auxts_simd_interleave_s16(const auxts_int16* q0, const auxts_int16* q1, auxts_int16* q2, size_t n) {
+void rats_simd_interleave_s16(const rats_int16* q0, const rats_int16* q1, rats_int16* q2, size_t n) {
     size_t i = 0;
     size_t m = n & ~3;
 
@@ -19,7 +19,7 @@ void auxts_simd_interleave_s16(const auxts_int16* q0, const auxts_int16* q1, aux
     }
 }
 
-void auxts_simd_planar_s16(const auxts_int16* q0, auxts_int16* q1, size_t n) {
+void rats_simd_planar_s16(const rats_int16* q0, rats_int16* q1, size_t n) {
     AUXTS_UNROLL(8)
     for (int i = 0; i < n / 2; ++i) {
         q1[i] = q0[i * 2];

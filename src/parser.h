@@ -32,44 +32,44 @@ typedef enum {
     AUXTS_TOKEN_TYPE_TIME,
     AUXTS_TOKEN_TYPE_EOF,
     AUXTS_TOKEN_TYPE_ERROR
-} auxts_token_type;
+} rats_token_type;
 
 typedef struct {
     size_t size;
     const char* ptr;
-} auxts_token_;
+} rats_token_;
 
-typedef auxts_token_ auxts_token_id;
-typedef auxts_token_ auxts_token_str;
+typedef rats_token_ rats_token_id;
+typedef rats_token_ rats_token_str;
 
 typedef struct {
     const char* msg;
-} auxts_token_error;
+} rats_token_error;
 
 typedef union {
     double              f64;
     int64_t             i64;
     int64_t             time;
     uint64_t            u64;
-    auxts_token_id      id;
-    auxts_token_str     str;
-    auxts_token_error   err;
-} auxts_token_union;
+    rats_token_id      id;
+    rats_token_str     str;
+    rats_token_error   err;
+} rats_token_union;
 
 typedef struct {
-    auxts_token_type  type;
-    auxts_token_union as;
-} auxts_token;
+    rats_token_type  type;
+    rats_token_union as;
+} rats_token;
 
 typedef struct {
     const char* ptr;
     char error[255];
     regoff_t curr;
-} auxts_parser;
+} rats_parser;
 
-void auxts_parser_init(auxts_parser* parser, const char* source);
-void auxts_token_print(auxts_token* token);
-auxts_token auxts_parser_next_token(auxts_parser* parser);
+void rats_parser_init(rats_parser* parser, const char* source);
+void rats_token_print(rats_token* token);
+rats_token rats_parser_next_token(rats_parser* parser);
 
 #ifdef __cplusplus
 }

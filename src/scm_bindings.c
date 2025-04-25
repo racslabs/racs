@@ -1,14 +1,14 @@
 #include "scm_bindings.h"
 
-SCM auxts_scm_extract(SCM stream_id, SCM from, SCM to) {
+SCM rats_scm_extract(SCM stream_id, SCM from, SCM to) {
     char* cmd = NULL;
     asprintf(&cmd, "EXTRACT '%s' %s %s",
              scm_to_locale_string(stream_id),
              scm_to_locale_string(from),
              scm_to_locale_string(to));
 
-    auxts_db* db = auxts_db_instance();
-    auxts_result res = auxts_db_exec(db, cmd);
+    rats_db* db = rats_db_instance();
+    rats_result res = rats_db_exec(db, cmd);
 
     free(cmd);
 
@@ -20,9 +20,9 @@ SCM auxts_scm_extract(SCM stream_id, SCM from, SCM to) {
         scm_misc_error("extract", "Deserialization error", SCM_EOL);
     }
 
-    char* type = auxts_deserialize_str(&msg.data, 0);
+    char* type = rats_deserialize_str(&msg.data, 0);
     if (strcmp(type, "error") == 0) {
-        auxts_scm_propagate_error(&msg.data, res.data);
+        rats_scm_propagate_error(&msg.data, res.data);
     }
 
     if (strcmp(type, "null") == 0) {
@@ -30,21 +30,21 @@ SCM auxts_scm_extract(SCM stream_id, SCM from, SCM to) {
         return SCM_EOL;
     }
 
-    size_t size = auxts_deserialize_i32v_size(&msg.data, 1);
-    int32_t* data = auxts_deserialize_i32v(&msg.data, 1);
+    size_t size = rats_deserialize_i32v_size(&msg.data, 1);
+    int32_t* data = rats_deserialize_i32v(&msg.data, 1);
 
     return scm_take_s32vector(data, size);
 }
 
-SCM auxts_scm_stream(SCM stream_id, SCM sample_rate, SCM channels) {
+SCM rats_scm_stream(SCM stream_id, SCM sample_rate, SCM channels) {
     char* cmd = NULL;
     asprintf(&cmd, "STREAM '%s' %d %d",
              scm_to_locale_string(stream_id),
              scm_to_uint32(sample_rate),
              scm_to_uint32(channels));
 
-    auxts_db* db = auxts_db_instance();
-    auxts_result res = auxts_db_exec(db, cmd);
+    rats_db* db = rats_db_instance();
+    rats_result res = rats_db_exec(db, cmd);
 
     free(cmd);
 
@@ -56,22 +56,22 @@ SCM auxts_scm_stream(SCM stream_id, SCM sample_rate, SCM channels) {
         scm_misc_error("stream", "Deserialization error", SCM_EOL);
     }
 
-    char* type = auxts_deserialize_str(&msg.data, 0);
+    char* type = rats_deserialize_str(&msg.data, 0);
     if (strcmp(type, "error") == 0) {
-        auxts_scm_propagate_error(&msg.data, res.data);
+        rats_scm_propagate_error(&msg.data, res.data);
     }
 
     return SCM_EOL;
 }
 
-SCM auxts_scm_streaminfo(SCM stream_id, SCM attr) {
+SCM rats_scm_streaminfo(SCM stream_id, SCM attr) {
     char* cmd = NULL;
     asprintf(&cmd, "STREAMINFO '%s' '%s'",
              scm_to_locale_string(stream_id),
              scm_to_locale_string(attr));
 
-    auxts_db* db = auxts_db_instance();
-    auxts_result res = auxts_db_exec(db, cmd);
+    rats_db* db = rats_db_instance();
+    rats_result res = rats_db_exec(db, cmd);
 
     free(cmd);
 
@@ -83,9 +83,9 @@ SCM auxts_scm_streaminfo(SCM stream_id, SCM attr) {
         scm_misc_error("streaminfo", "Deserialization error", SCM_EOL);
     }
 
-    char* type = auxts_deserialize_str(&msg.data, 0);
+    char* type = rats_deserialize_str(&msg.data, 0);
     if (strcmp(type, "error") == 0) {
-        auxts_scm_propagate_error(&msg.data, res.data);
+        rats_scm_propagate_error(&msg.data, res.data);
     }
 
     if (strcmp(type, "null") == 0) {
@@ -93,12 +93,12 @@ SCM auxts_scm_streaminfo(SCM stream_id, SCM attr) {
         return SCM_EOL;
     }
 
-    uint64_t value = auxts_deserialize_uint64(&msg.data, 1);
+    uint64_t value = rats_deserialize_uint64(&msg.data, 1);
     return scm_from_uint64(value);
 }
 
-void auxts_scm_init_bindings() {
-    scm_c_define_gsubr("extract", 3, 0, 0, auxts_scm_extract);
-    scm_c_define_gsubr("stream", 4, 0, 0, auxts_scm_stream);
-    scm_c_define_gsubr("streaminfo", 2, 0, 0, auxts_scm_streaminfo);
+void rats_scm_init_bindings() {
+    scm_c_define_gsubr("extract", 3, 0, 0, rats_scm_extract);
+    scm_c_define_gsubr("stream", 4, 0, 0, rats_scm_stream);
+    scm_c_define_gsubr("streaminfo", 2, 0, 0, rats_scm_streaminfo);
 }

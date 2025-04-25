@@ -9,10 +9,10 @@
 typedef struct {
     uint8_t* data;
     size_t size;
-} auxts_result;
+} rats_result;
 
-void auxts_result_init(auxts_result* result, size_t size);
-void auxts_result_destroy(auxts_result* result);
+void rats_result_init(rats_result* result, size_t size);
+void rats_result_destroy(rats_result* result);
 
 
 #endif //AUXTS_RESULT_H

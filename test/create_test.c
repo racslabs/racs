@@ -1,9 +1,9 @@
 #include "create_test.h"
 
 void test_create() {
-    auxts_db* db = auxts_db_instance();
-    auxts_db_open(db);
-    auxts_result res = auxts_db_exec(db, "STREAM 'test' 44100 1");
+    rats_db* db = rats_db_instance();
+    rats_db_open(db);
+    rats_result res = rats_db_exec(db, "STREAM 'test' 44100 1");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
@@ -14,6 +14,6 @@ void test_create() {
     msgpack_str_assert("null", &obj.via.array.ptr[0].via.str);
 
     msgpack_unpacked_destroy(&msg);
-    auxts_result_destroy(&res);
-    auxts_db_close(db);
+    rats_result_destroy(&res);
+    rats_db_close(db);
 }

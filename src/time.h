@@ -14,15 +14,15 @@
 extern "C" {
 #endif
 
-auxts_time auxts_time_now();
-void auxts_time_to_tm(auxts_time time, struct tm* info);
-auxts_time auxts_time_from_ts(struct timespec* ts);
-void auxts_time_to_rfc3339(auxts_time time, char* buf);
-auxts_time auxts_time_from_rfc3339(const char* buf);
-auxts_time auxts_time_from_path(const char* path);
-void auxts_time_to_path(auxts_time time, char* path);
-char* auxts_time_range_to_path(auxts_time from, auxts_time to);
-void auxts_time_create_dirs(auxts_time time);
+rats_time rats_time_now();
+void rats_time_to_tm(rats_time time, struct tm* info);
+rats_time rats_time_from_ts(struct timespec* ts);
+void rats_time_to_rfc3339(rats_time time, char* buf);
+rats_time rats_time_from_rfc3339(const char* buf);
+rats_time rats_time_from_path(const char* path);
+void rats_time_to_path(rats_time time, char* path);
+char* rats_time_range_to_path(rats_time from, rats_time to);
+void rats_time_create_dirs(rats_time time);
 
 #ifdef __cplusplus
 }

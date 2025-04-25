@@ -23,14 +23,14 @@ typedef struct {
     int    timeout;
     struct pollfd fds[200];
     int    nfds, current_size, i, j;
-} auxts_conn;
+} rats_conn;
 
-void auxts_conn_init(auxts_conn* conn, int port);
-void auxts_conn_init_socket(auxts_conn* conn);
-void auxts_conn_init_sockopt(auxts_conn* conn);
-void auxts_conn_init_ioctl(auxts_conn* conn);
-void auxts_conn_bind(auxts_conn* conn, int port);
-void auxts_conn_listen(auxts_conn* conn);
-void auxts_conn_init_fds(auxts_conn* conn);
+void rats_conn_init(rats_conn* conn, int port);
+void rats_conn_init_socket(rats_conn* conn);
+void rats_conn_init_sockopt(rats_conn* conn);
+void rats_conn_init_ioctl(rats_conn* conn);
+void rats_conn_bind(rats_conn* conn, int port);
+void rats_conn_listen(rats_conn* conn);
+void rats_conn_init_fds(rats_conn* conn);
 
 #endif //AUXTS_CONN_H

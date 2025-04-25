@@ -1,9 +1,9 @@
 #include "streaminfo.h"
 
-auxts_cache* auxts_mcache_create(size_t capacity) {
-    auxts_cache* cache = malloc(sizeof(auxts_cache));
+rats_cache* rats_mcache_create(size_t capacity) {
+    rats_cache* cache = malloc(sizeof(rats_cache));
     if (!cache) {
-        perror("Failed to allocate auxts_mcache");
+        perror("Failed to allocate rats_mcache");
         return NULL;
     }
 
@@ -13,14 +13,14 @@ auxts_cache* auxts_mcache_create(size_t capacity) {
     cache->capacity = capacity;
     cache->head = NULL;
     cache->tail = NULL;
-    cache->kv = auxts_kvstore_create(capacity, auxts_cache_hash, auxts_cache_cmp, auxts_mcache_destroy);
+    cache->kv = rats_kvstore_create(capacity, rats_cache_hash, rats_cache_cmp, rats_mcache_destroy);
 
     return cache;
 }
 
-auxts_uint64 auxts_streaminfo_attr(auxts_cache* mcache, auxts_uint64 stream_id, const char* attr) {
-    auxts_streaminfo streaminfo;
-    if (!auxts_streaminfo_get(mcache, &streaminfo, stream_id)) return 0;
+rats_uint64 rats_streaminfo_attr(rats_cache* mcache, rats_uint64 stream_id, const char* attr) {
+    rats_streaminfo streaminfo;
+    if (!rats_streaminfo_get(mcache, &streaminfo, stream_id)) return 0;
 
     if (strcmp(attr, "rate") == 0)
         return streaminfo.sample_rate;
@@ -34,43 +34,43 @@ auxts_uint64 auxts_streaminfo_attr(auxts_cache* mcache, auxts_uint64 stream_id, 
     return 0;
 }
 
-int auxts_streaminfo_get(auxts_cache* mcache, auxts_streaminfo* streaminfo, auxts_uint64 stream_id) {
-    auxts_uint64 key[2] = {stream_id, 0};
+int rats_streaminfo_get(rats_cache* mcache, rats_streaminfo* streaminfo, rats_uint64 stream_id) {
+    rats_uint64 key[2] = {stream_id, 0};
 
-    auxts_uint8* data = auxts_cache_get(mcache, key);
+    rats_uint8* data = rats_cache_get(mcache, key);
     if (!data) {
         char path[55];
-        auxts_streaminfo_path(path, stream_id);
-        if (!auxts_streaminfo_exits(stream_id)) return 0;
+        rats_streaminfo_path(path, stream_id);
+        if (!rats_streaminfo_exits(stream_id)) return 0;
 
         int fd = open(path, O_RDONLY);
         if (fd == -1) {
-            perror("Failed to open auxts_streaminfo file");
+            perror("Failed to open rats_streaminfo file");
             return 0;
         }
 
-        auxts_uint8 buf[24];
+        rats_uint8 buf[24];
         if (read(fd, buf, 24) != 24) {
             close(fd);
             return 0;
         }
 
-        if (auxts_streaminfo_read(streaminfo, buf) != 24) return 0;
-        auxts_streaminfo_put(mcache, streaminfo, stream_id);
+        if (rats_streaminfo_read(streaminfo, buf) != 24) return 0;
+        rats_streaminfo_put(mcache, streaminfo, stream_id);
 
         close(fd);
         return 1;
     }
 
-    if (auxts_streaminfo_read(streaminfo, data) != 24) return 0;
+    if (rats_streaminfo_read(streaminfo, data) != 24) return 0;
     return 1;
 }
 
-int auxts_streaminfo_put(auxts_cache* mcache, auxts_streaminfo* streaminfo, auxts_uint64 stream_id) {
-    auxts_uint8* data = malloc(24);
+int rats_streaminfo_put(rats_cache* mcache, rats_streaminfo* streaminfo, rats_uint64 stream_id) {
+    rats_uint8* data = malloc(24);
     if (!data) return 0;
 
-    auxts_uint64* key = malloc(2 * sizeof(auxts_int64));
+    rats_uint64* key = malloc(2 * sizeof(rats_int64));
     if (!key) {
         perror("Failed to allocate key.");
         free(data);
@@ -80,22 +80,22 @@ int auxts_streaminfo_put(auxts_cache* mcache, auxts_streaminfo* streaminfo, auxt
     key[0] = stream_id;
     key[1] = 0;
 
-    auxts_streaminfo_write(data, streaminfo);
-    auxts_cache_put(mcache, key, data);
+    rats_streaminfo_write(data, streaminfo);
+    rats_cache_put(mcache, key, data);
 
     return 1;
 }
 
-void auxts_mcache_destroy(void* key, void* value) {
-    auxts_cache_entry* entry = (auxts_cache_entry*)value;
-    auxts_uint64 stream_id = entry->key[0];
+void rats_mcache_destroy(void* key, void* value) {
+    rats_cache_entry* entry = (rats_cache_entry*)value;
+    rats_uint64 stream_id = entry->key[0];
 
-    auxts_streaminfo_flush(entry->value, stream_id);
+    rats_streaminfo_flush(entry->value, stream_id);
     free(entry->value);
     free(key);
 }
 
-off_t auxts_streaminfo_write(uint8_t* buf, auxts_streaminfo* streaminfo) {
+off_t rats_streaminfo_write(uint8_t* buf, rats_streaminfo* streaminfo) {
     off_t offset = 0;
     offset = rats_write_uint16(buf, streaminfo->channels, offset);
     offset = rats_write_uint16(buf, streaminfo->bit_depth, offset);
@@ -105,7 +105,7 @@ off_t auxts_streaminfo_write(uint8_t* buf, auxts_streaminfo* streaminfo) {
     return offset;
 }
 
-off_t auxts_streaminfo_read(auxts_streaminfo* streaminfo, auxts_uint8* buf) {
+off_t rats_streaminfo_read(rats_streaminfo* streaminfo, rats_uint8* buf) {
     off_t offset = 0;
     offset = rats_read_uint16(&streaminfo->channels, buf, offset);
     offset = rats_read_uint16(&streaminfo->bit_depth, buf, offset);
@@ -115,32 +115,32 @@ off_t auxts_streaminfo_read(auxts_streaminfo* streaminfo, auxts_uint8* buf) {
     return offset;
 }
 
-auxts_time auxts_streaminfo_offset(auxts_streaminfo* streaminfo) {
+rats_time rats_streaminfo_offset(rats_streaminfo* streaminfo) {
     double seconds = (streaminfo->size / (double)(streaminfo->channels * streaminfo->sample_rate * 2));
-    return (auxts_time)(seconds * 1000) + streaminfo->ref;
+    return (rats_time)(seconds * 1000) + streaminfo->ref;
 }
 
-auxts_uint64 auxts_hash(const char* stream_id) {
+rats_uint64 rats_hash(const char* stream_id) {
     uint64_t hash[2];
     murmur3_x64_128((void*)stream_id, strlen(stream_id), 0, hash);
     return hash[0];
 }
 
-void auxts_streaminfo_flush(auxts_uint8* data, auxts_uint64 stream_id) {
+void rats_streaminfo_flush(rats_uint8* data, rats_uint64 stream_id) {
     char path[55];
-    auxts_streaminfo_path(path, stream_id);
+    rats_streaminfo_path(path, stream_id);
 
     mkdir(".data", 0777);
     mkdir(".data/md", 0777);
 
     int fd = open(path, O_WRONLY | O_TRUNC | O_CREAT, 0644);
     if (fd == -1) {
-        perror("Failed to open auxts_streaminfo file");
+        perror("Failed to open rats_streaminfo file");
         return;
     }
 
     if (flock(fd, LOCK_EX) == -1) {
-        perror("Failed to lock auxts_streaminfo file");
+        perror("Failed to lock rats_streaminfo file");
         close(fd);
         return;
     }
@@ -150,14 +150,14 @@ void auxts_streaminfo_flush(auxts_uint8* data, auxts_uint64 stream_id) {
     close(fd);
 }
 
-int auxts_streaminfo_exits(auxts_uint64 stream_id) {
+int rats_streaminfo_exits(rats_uint64 stream_id) {
     char path[55];
-    auxts_streaminfo_path(path, stream_id);
+    rats_streaminfo_path(path, stream_id);
 
     struct stat buffer;
     return stat(path, &buffer) == 0;
 }
 
-void auxts_streaminfo_path(char* path, auxts_uint64 stream_id) {
+void rats_streaminfo_path(char* path, rats_uint64 stream_id) {
     sprintf(path, ".data/md/%llu", stream_id);
 }

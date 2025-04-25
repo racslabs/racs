@@ -6,16 +6,16 @@
 #include "context.h"
 
 typedef struct {
-    auxts_context ctx;
-    auxts_exec exec;
-} auxts_db;
+    rats_context ctx;
+    rats_exec exec;
+} rats_db;
 
-static auxts_db* _db = NULL;
+static rats_db* _db = NULL;
 
-auxts_db* auxts_db_instance();
-void auxts_db_open(auxts_db* db);
-void auxts_db_close(auxts_db* db);
-auxts_result auxts_db_exec(auxts_db* db, const char* cmd);
-auxts_result auxts_db_stream(auxts_db* db, auxts_uint8* data);
+rats_db* rats_db_instance();
+void rats_db_open(rats_db* db);
+void rats_db_close(rats_db* db);
+rats_result rats_db_exec(rats_db* db, const char* cmd);
+rats_result rats_db_stream(rats_db* db, rats_uint8* data);
 
 #endif //AUXTS_DB_H

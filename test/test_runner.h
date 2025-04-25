@@ -22,7 +22,7 @@
 
 typedef void (*test)();
 
-AUXTS_FORCE_INLINE void auxts_add_test(test test_case, char* test_name, int argc, char* argv[]) {
+AUXTS_FORCE_INLINE void rats_add_test(test test_case, char* test_name, int argc, char* argv[]) {
     if (argc != 3) {
         return;
     }
@@ -36,34 +36,34 @@ AUXTS_FORCE_INLINE void auxts_add_test(test test_case, char* test_name, int argc
     }
 }
 
-AUXTS_FORCE_INLINE void auxts_run_tests(int argc, char* argv[]) {
-    auxts_add_test(test_lru_cache, "test_lru_cache", argc, argv);
-    auxts_add_test(test_extract, "test_extract", argc, argv);
-    auxts_add_test(test_extract_error, "test_extract_error", argc, argv);
-    auxts_add_test(test_extract_no_data, "test_extract_no_data", argc, argv);
-    auxts_add_test(test_extract_invalid_num_args, "test_extract_invalid_num_args", argc, argv);
-    auxts_add_test(test_extract_invalid_arg_type, "test_extract_invalid_arg_type", argc, argv);
-    auxts_add_test(test_multi_memtable, "test_multi_memtable", argc, argv);
-    auxts_add_test(test_hashtable, "test_hashtable", argc, argv);
-    auxts_add_test(test_murmurhash3, "test_murmurhash3", argc, argv);
-    auxts_add_test(test_rfc3339, "test_rfc3339", argc, argv);
-    auxts_add_test(test_parser, "test_parser", argc, argv);
-    auxts_add_test(test_ping, "test_ping", argc, argv);
-    auxts_add_test(test_command_executor_unknown_command, "test_command_executor_unknown_command", argc, argv);
-    auxts_add_test(test_command_executor_parse_error1, "test_command_executor_parse_error1", argc, argv);
-    auxts_add_test(test_command_executor_is_not_command, "test_command_executor_is_not_command", argc, argv);
-    auxts_add_test(test_metadata_attr, "test_metadata_attr", argc, argv);
-    auxts_add_test(test_create, "test_create", argc, argv);
-    auxts_add_test(test_scm_extract, "test_scm_extract", argc, argv);
-    auxts_add_test(test_scm_create, "test_scm_create", argc, argv);
-    auxts_add_test(test_scm_int, "test_scm_int", argc, argv);
-    auxts_add_test(test_scm_list, "test_scm_list", argc, argv);
-    auxts_add_test(test_scm_metadata, "test_scm_metadata", argc, argv);
-    auxts_add_test(test_simd_interleave, "test_simd_interleave", argc, argv);
-    auxts_add_test(test_write_wav, "test_write_wav", argc, argv);
-    auxts_add_test(test_format_wav, "test_format_wav", argc, argv);
-    auxts_add_test(test_streamopen, "test_streamopen", argc, argv);
-    auxts_add_test(test_atsp, "test_astp", argc, argv);
+AUXTS_FORCE_INLINE void rats_run_tests(int argc, char* argv[]) {
+    rats_add_test(test_lru_cache, "test_lru_cache", argc, argv);
+    rats_add_test(test_extract, "test_extract", argc, argv);
+    rats_add_test(test_extract_error, "test_extract_error", argc, argv);
+    rats_add_test(test_extract_no_data, "test_extract_no_data", argc, argv);
+    rats_add_test(test_extract_invalid_num_args, "test_extract_invalid_num_args", argc, argv);
+    rats_add_test(test_extract_invalid_arg_type, "test_extract_invalid_arg_type", argc, argv);
+    rats_add_test(test_multi_memtable, "test_multi_memtable", argc, argv);
+    rats_add_test(test_hashtable, "test_hashtable", argc, argv);
+    rats_add_test(test_murmurhash3, "test_murmurhash3", argc, argv);
+    rats_add_test(test_rfc3339, "test_rfc3339", argc, argv);
+    rats_add_test(test_parser, "test_parser", argc, argv);
+    rats_add_test(test_ping, "test_ping", argc, argv);
+    rats_add_test(test_command_executor_unknown_command, "test_command_executor_unknown_command", argc, argv);
+    rats_add_test(test_command_executor_parse_error1, "test_command_executor_parse_error1", argc, argv);
+    rats_add_test(test_command_executor_is_not_command, "test_command_executor_is_not_command", argc, argv);
+    rats_add_test(test_metadata_attr, "test_metadata_attr", argc, argv);
+    rats_add_test(test_create, "test_create", argc, argv);
+    rats_add_test(test_scm_extract, "test_scm_extract", argc, argv);
+    rats_add_test(test_scm_create, "test_scm_create", argc, argv);
+    rats_add_test(test_scm_int, "test_scm_int", argc, argv);
+    rats_add_test(test_scm_list, "test_scm_list", argc, argv);
+    rats_add_test(test_scm_metadata, "test_scm_metadata", argc, argv);
+    rats_add_test(test_simd_interleave, "test_simd_interleave", argc, argv);
+    rats_add_test(test_write_wav, "test_write_wav", argc, argv);
+    rats_add_test(test_format_wav, "test_format_wav", argc, argv);
+    rats_add_test(test_streamopen, "test_streamopen", argc, argv);
+    rats_add_test(test_atsp, "test_astp", argc, argv);
 }
 
 #endif //AUXTS_TEST_RUNNER_H

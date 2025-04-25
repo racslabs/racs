@@ -8,41 +8,41 @@
 
 typedef struct {
     char         chunk_id[4];
-    auxts_uint32 chunk_size;
+    rats_uint32 chunk_size;
     char         format[4];
-} auxts_wav_header;
+} rats_wav_header;
 
 typedef struct {
     char         sub_chunk1_id[4];
-    auxts_uint32 sub_chunk1_size;
-    auxts_uint16 audio_format;
-    auxts_uint16 channels;
-    auxts_uint32 sample_rate;
-    auxts_uint32 byte_rate;
-    auxts_uint16 block_align;
-    auxts_uint16 bit_depth;
-} auxts_wav_format;
+    rats_uint32 sub_chunk1_size;
+    rats_uint16 audio_format;
+    rats_uint16 channels;
+    rats_uint32 sample_rate;
+    rats_uint32 byte_rate;
+    rats_uint16 block_align;
+    rats_uint16 bit_depth;
+} rats_wav_format;
 
 typedef struct {
     char         sub_chunk2_id[4];
-    auxts_uint32 sub_chunk2_size;
-} auxts_wav_data;
+    rats_uint32 sub_chunk2_size;
+} rats_wav_data;
 
 typedef struct {
-    auxts_wav_header    header;
-    auxts_wav_format    format;
-    auxts_wav_data      data;
+    rats_wav_header    header;
+    rats_wav_format    format;
+    rats_wav_data      data;
     off_t               pos;
-} auxts_wav;
+} rats_wav;
 
-void auxts_wav_set_channels(auxts_wav* wav, auxts_uint16 channels);
-void auxts_wav_set_sample_rate(auxts_wav* wav, auxts_uint32 sample_rate);
+void rats_wav_set_channels(rats_wav* wav, rats_uint16 channels);
+void rats_wav_set_sample_rate(rats_wav* wav, rats_uint32 sample_rate);
 
-size_t auxts_wav_write(auxts_wav* wav, const void* in, void* out, size_t samples, size_t size);
-size_t auxts_wav_write_s16(auxts_wav* wav, const auxts_int16* in, void* out, size_t samples, size_t size);
+size_t rats_wav_write(rats_wav* wav, const void* in, void* out, size_t samples, size_t size);
+size_t rats_wav_write_s16(rats_wav* wav, const rats_int16* in, void* out, size_t samples, size_t size);
 
-void auxts_wav_encode_header(void* out, auxts_wav* wav, auxts_uint32 samples);
-void auxts_wav_encode_format(void* out, auxts_wav* wav);
-void auxts_wav_encode_data(void* out, auxts_wav* wav, const void* data, auxts_uint32 samples);
+void rats_wav_encode_header(void* out, rats_wav* wav, rats_uint32 samples);
+void rats_wav_encode_format(void* out, rats_wav* wav);
+void rats_wav_encode_data(void* out, rats_wav* wav, const void* data, rats_uint32 samples);
 
 #endif //AUXTS_WAV_H

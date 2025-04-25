@@ -1,15 +1,15 @@
 #include "context.h"
 
-void auxts_context_init(auxts_context* ctx) {
-    ctx->scache = auxts_scache_create(2);
-    ctx->mcache = auxts_mcache_create(1);
-    ctx->kv = auxts_streamkv_create(2);
-    ctx->mmt = auxts_multi_memtable_create(2, 2);
+void rats_context_init(rats_context* ctx) {
+    ctx->scache = rats_scache_create(2);
+    ctx->mcache = rats_mcache_create(1);
+    ctx->kv = rats_streamkv_create(2);
+    ctx->mmt = rats_multi_memtable_create(2, 2);
 }
 
-void auxts_context_destroy(auxts_context* ctx) {
-    auxts_cache_destroy(ctx->scache);
-    auxts_cache_destroy(ctx->mcache);
-    auxts_streamkv_destroy(ctx->kv);
-    auxts_multi_memtable_destroy(ctx->mmt);
+void rats_context_destroy(rats_context* ctx) {
+    rats_cache_destroy(ctx->scache);
+    rats_cache_destroy(ctx->mcache);
+    rats_streamkv_destroy(ctx->kv);
+    rats_multi_memtable_destroy(ctx->mmt);
 }

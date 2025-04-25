@@ -1,9 +1,9 @@
 #include "ping_test.h"
 
 void test_ping() {
-    auxts_db* db = auxts_db_instance();
-    auxts_db_open(db);
-    auxts_result res = auxts_db_exec(db, "PING");
+    rats_db* db = rats_db_instance();
+    rats_db_open(db);
+    rats_result res = rats_db_exec(db, "PING");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
@@ -15,6 +15,6 @@ void test_ping() {
     msgpack_str_assert("PONG", &obj.via.array.ptr[1].via.str);
 
     msgpack_unpacked_destroy(&msg);
-    auxts_result_destroy(&res);
-    auxts_db_close(db);
+    rats_result_destroy(&res);
+    rats_db_close(db);
 }

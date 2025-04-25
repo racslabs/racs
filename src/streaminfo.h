@@ -10,24 +10,24 @@
 #include "cache.h"
 
 typedef struct {
-    auxts_uint16 channels;
-    auxts_uint16 bit_depth;
-    auxts_uint32 sample_rate;
-    auxts_uint64 size;
-    auxts_time   ref;
-} auxts_streaminfo;
+    rats_uint16 channels;
+    rats_uint16 bit_depth;
+    rats_uint32 sample_rate;
+    rats_uint64 size;
+    rats_time   ref;
+} rats_streaminfo;
 
-auxts_uint64 auxts_streaminfo_attr(auxts_cache* mcache, auxts_uint64 stream_id, const char* attr);
-int auxts_streaminfo_get(auxts_cache* mcache, auxts_streaminfo* streaminfo, auxts_uint64 stream_id);
-int auxts_streaminfo_put(auxts_cache* mcache, auxts_streaminfo* streaminfo, auxts_uint64 stream_id);
-off_t auxts_streaminfo_write(auxts_uint8* buf, auxts_streaminfo* streaminfo);
-off_t auxts_streaminfo_read(auxts_streaminfo* streaminfo, auxts_uint8* buf);
-void auxts_streaminfo_flush(auxts_uint8* data, auxts_uint64 stream_id);
-void auxts_streaminfo_path(char* path, auxts_uint64 stream_id);
-int  auxts_streaminfo_exits(auxts_uint64 stream_id);
-auxts_time auxts_streaminfo_offset(auxts_streaminfo* streaminfo);
-void auxts_mcache_destroy(void* key, void* value);
-auxts_cache* auxts_mcache_create(size_t capacity);
-auxts_uint64 auxts_hash(const char* stream_id);
+rats_uint64 rats_streaminfo_attr(rats_cache* mcache, rats_uint64 stream_id, const char* attr);
+int rats_streaminfo_get(rats_cache* mcache, rats_streaminfo* streaminfo, rats_uint64 stream_id);
+int rats_streaminfo_put(rats_cache* mcache, rats_streaminfo* streaminfo, rats_uint64 stream_id);
+off_t rats_streaminfo_write(rats_uint8* buf, rats_streaminfo* streaminfo);
+off_t rats_streaminfo_read(rats_streaminfo* streaminfo, rats_uint8* buf);
+void rats_streaminfo_flush(rats_uint8* data, rats_uint64 stream_id);
+void rats_streaminfo_path(char* path, rats_uint64 stream_id);
+int  rats_streaminfo_exits(rats_uint64 stream_id);
+rats_time rats_streaminfo_offset(rats_streaminfo* streaminfo);
+void rats_mcache_destroy(void* key, void* value);
+rats_cache* rats_mcache_create(size_t capacity);
+rats_uint64 rats_hash(const char* stream_id);
 
 #endif //AUXTS_STREAMINFO_H

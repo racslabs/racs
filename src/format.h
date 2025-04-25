@@ -7,10 +7,10 @@
 #include "ogg.h"
 
 typedef struct {
-    auxts_uint16 channels;
-    auxts_uint32 sample_rate;
-} auxts_format;
+    rats_uint16 channels;
+    rats_uint32 sample_rate;
+} rats_format;
 
-size_t auxts_format_pcm(auxts_format* fmt, const void* in, void* out, size_t samples, size_t size, const char* mime_type);
+size_t rats_format_pcm(rats_format* fmt, const void* in, void* out, size_t samples, size_t size, const char* mime_type);
 
 #endif //AUXTS_FORMAT_H

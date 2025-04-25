@@ -7,13 +7,13 @@
 #include "memtable.h"
 
 typedef struct {
-    auxts_cache*            scache;
-    auxts_cache*            mcache;
-    auxts_streamkv*         kv;
-    auxts_multi_memtable*   mmt;
-} auxts_context;
+    rats_cache*            scache;
+    rats_cache*            mcache;
+    rats_streamkv*         kv;
+    rats_multi_memtable*   mmt;
+} rats_context;
 
-void auxts_context_init(auxts_context* ctx);
-void auxts_context_destroy(auxts_context* ctx);
+void rats_context_init(rats_context* ctx);
+void rats_context_destroy(rats_context* ctx);
 
 #endif //AUXTS_CONTEXT_H

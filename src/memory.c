@@ -3,21 +3,21 @@
 #include <string.h>
 #include <stdio.h>
 
-#define auxts_max(a, b) ((a) > (b) ? (a) : (b))
+#define rats_max(a, b) ((a) > (b) ? (a) : (b))
 
-void auxts_memstream_init(auxts_memstream* stream) {
-    memset(stream, 0, sizeof(auxts_memstream));
+void rats_memstream_init(rats_memstream* stream) {
+    memset(stream, 0, sizeof(rats_memstream));
 }
 
-int auxts_memstream_write(auxts_memstream* stream, const void* data, size_t size) {
+int rats_memstream_write(rats_memstream* stream, const void* data, size_t size) {
     size_t pos = stream->current_pos + size;
 
     if (pos > stream->size) {
-        size_t _size = auxts_max(pos, stream->size * 2);
+        size_t _size = rats_max(pos, stream->size * 2);
 
-        auxts_uint8* _data = realloc(stream->data, _size);
+        rats_uint8* _data = realloc(stream->data, _size);
         if (!_data) {
-            perror("Failed to re-allocate auxts_memstream data");
+            perror("Failed to re-allocate rats_memstream data");
             return AUXTS_MEMSTREAM_ABORT;
         }
 

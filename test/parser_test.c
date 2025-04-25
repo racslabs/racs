@@ -6,17 +6,17 @@ void test_parser() {
                 "IIR 'cheby1' 'lowpass' 0.5 |> "
                 "FORMAT 'audio/wav'";
 
-    auxts_parser parser;
-    auxts_parser_init(&parser, str);
+    rats_parser parser;
+    rats_parser_init(&parser, str);
 
-    auxts_token token = auxts_parser_next_token(&parser);
+    rats_token token = rats_parser_next_token(&parser);
 
     while (token.type != AUXTS_TOKEN_TYPE_EOF) {
         if (token.type == AUXTS_TOKEN_TYPE_ERROR) {
             break;
         }
-        auxts_token_print(&token);
-        token = auxts_parser_next_token(&parser);
+        rats_token_print(&token);
+        token = rats_parser_next_token(&parser);
     }
 
 }

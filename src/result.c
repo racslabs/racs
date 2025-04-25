@@ -1,14 +1,14 @@
 #include "result.h"
 
-void auxts_result_init(auxts_result* result, size_t size) {
+void rats_result_init(rats_result* result, size_t size) {
     result->size = size;
     result->data = malloc(size);
     if (!result->data) {
-        perror("Failed to allocate data to auxts_result");
+        perror("Failed to allocate data to rats_result");
     }
 }
 
-void auxts_result_destroy(auxts_result* result) {
+void rats_result_destroy(rats_result* result) {
     free(result->data);
 }
 

@@ -1,13 +1,13 @@
 #include "filelist.h"
 
 static int path_cmp(const void* path1, const void* path2);
-static void list_files_recursive(auxts_filelist* list, const char* path);
+static void list_files_recursive(rats_filelist* list, const char* path);
 
-auxts_filelist* auxts_filelist_create() {
-    auxts_filelist* list = malloc(sizeof(auxts_filelist));
+rats_filelist* rats_filelist_create() {
+    rats_filelist* list = malloc(sizeof(rats_filelist));
     if (!list) {
-        perror("Failed to allocate auxts_filelist");
-        auxts_filelist_destroy(list);
+        perror("Failed to allocate rats_filelist");
+        rats_filelist_destroy(list);
         return NULL;
     }
 
@@ -16,21 +16,21 @@ auxts_filelist* auxts_filelist_create() {
 
     list->files = malloc(2 * sizeof(char*));
     if (!list->files) {
-        perror("Failed to allocate file paths to auxts_filelist");
-        auxts_filelist_destroy(list);
+        perror("Failed to allocate file paths to rats_filelist");
+        rats_filelist_destroy(list);
         return NULL;
     }
 
     return list;
 }
 
-void auxts_filelist_add(auxts_filelist* list, const char* file_path) {
+void rats_filelist_add(rats_filelist* list, const char* file_path) {
     if (list->num_files == list->max_num_files) {
         list->max_num_files *= 2;
 
         char** files = realloc(list->files, list->max_num_files * sizeof(char*));
         if (!files) {
-            perror("Error reallocating file paths to auxts_filelist");
+            perror("Error reallocating file paths to rats_filelist");
             return;
         }
 
@@ -41,7 +41,7 @@ void auxts_filelist_add(auxts_filelist* list, const char* file_path) {
     ++list->num_files;
 }
 
-void list_files_recursive(auxts_filelist* list, const char* path) {
+void list_files_recursive(rats_filelist* list, const char* path) {
     DIR* dir = opendir(path);
     if (!dir) {
         perror("Failed to open directory");
@@ -61,14 +61,14 @@ void list_files_recursive(auxts_filelist* list, const char* path) {
         if (entry->d_type == DT_DIR) {
             list_files_recursive(list, file_path);
         } else if (entry->d_type == DT_REG) {
-            auxts_filelist_add(list, file_path);
+            rats_filelist_add(list, file_path);
         }
     }
 
     closedir(dir);
 }
 
-void auxts_filelist_destroy(auxts_filelist* list) {
+void rats_filelist_destroy(rats_filelist* list) {
     for (int i = 0; i < list->num_files; ++i) {
         free(list->files[i]);
     }
@@ -77,15 +77,15 @@ void auxts_filelist_destroy(auxts_filelist* list) {
     free(list);
 }
 
-auxts_filelist* get_sorted_filelist(const char* path) {
-    auxts_filelist* list = auxts_filelist_create();
+rats_filelist* get_sorted_filelist(const char* path) {
+    rats_filelist* list = rats_filelist_create();
     list_files_recursive(list, path);
-    auxts_filelist_sort(list);
+    rats_filelist_sort(list);
 
     return list;
 }
 
-char* auxts_resolve_shared_path(const char* path1, const char* path2) {
+char* rats_resolve_shared_path(const char* path1, const char* path2) {
     if (!path1 || !path2) {
         perror("Paths cannot be null");
         return NULL;
@@ -112,7 +112,7 @@ char* auxts_resolve_shared_path(const char* path1, const char* path2) {
     return shared_path;
 }
 
-void auxts_filelist_sort(auxts_filelist* list) {
+void rats_filelist_sort(rats_filelist* list) {
     qsort(list->files, list->num_files, sizeof(char*), path_cmp);
 }
 

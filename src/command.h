@@ -11,36 +11,36 @@
 #include "format.h"
 
 typedef enum {
-    AUXTS_STATUS_OK,
-    AUXTS_STATUS_NOT_FOUND,
-    AUXTS_STATUS_ERROR
-} auxts_status;
+    RATS_STATUS_OK,
+    RATS_STATUS_NOT_FOUND,
+    RATS_STATUS_ERROR
+} rats_status;
 
-#define auxts_validate(pk, condition, error) \
+#define rats_validate(pk, condition, error) \
     if (!(condition)) {                      \
         msgpack_sbuffer_clear(out_buf);      \
-        return auxts_serialize_error(pk, error); \
+        return rats_serialize_error(pk, error); \
     }
 
-#define auxts_validate_type(pk, msg, arg_num, obj_type, error) \
-    auxts_validate(pk, obj_type == ((msg).data.via.array.ptr[arg_num].type), error)
+#define rats_validate_type(pk, msg, arg_num, obj_type, error) \
+    rats_validate(pk, obj_type == ((msg).data.via.array.ptr[arg_num].type), error)
 
-#define auxts_validate_num_args(pk, msg, num_args) \
+#define rats_validate_num_args(pk, msg, num_args) \
     if ((msg).data.type == MSGPACK_OBJECT_ARRAY && (msg).data.via.array.size != (num_args)) \
-        return auxts_serialize_invalid_num_args(pk, num_args, (msg).data.via.array.size);
+        return rats_serialize_invalid_num_args(pk, num_args, (msg).data.via.array.size);
 
-#define auxts_create_command(name) \
-    int auxts_command_##name(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, auxts_context* ctx)
+#define rats_create_command(name) \
+    int rats_command_##name(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, rats_context* ctx)
 
-auxts_create_command(extract);
-auxts_create_command(eval);
-auxts_create_command(stream);
-auxts_create_command(streaminfo);
-auxts_create_command(streamopen);
-auxts_create_command(streamclose);
-auxts_create_command(ping);
-auxts_create_command(format);
+rats_create_command(extract);
+rats_create_command(eval);
+rats_create_command(stream);
+rats_create_command(streaminfo);
+rats_create_command(streamopen);
+rats_create_command(streamclose);
+rats_create_command(ping);
+rats_create_command(format);
 
-int auxts_stream(msgpack_sbuffer* out_buf, auxts_context* ctx, auxts_uint8* data);
+int rats_stream(msgpack_sbuffer* out_buf, rats_context* ctx, rats_uint8* data);
 
 #endif //AUXTS_COMMAND_H

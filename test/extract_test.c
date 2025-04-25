@@ -1,9 +1,9 @@
 #include "extract_test.h"
 
 void test_extract() {
-    auxts_db* db = auxts_db_instance();
-    auxts_db_open(db);
-    auxts_result res = auxts_db_exec(db, "EXTRACT 'test' 2025-02-09T22:51:52.213Z 2025-02-09T22:51:52.215Z");
+    rats_db* db = rats_db_instance();
+    rats_db_open(db);
+    rats_result res = rats_db_exec(db, "EXTRACT 'test' 2025-02-09T22:51:52.213Z 2025-02-09T22:51:52.215Z");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
@@ -15,14 +15,14 @@ void test_extract() {
     assert(obj.via.array.ptr[1].via.bin.size == 44100*4);
 
     msgpack_unpacked_destroy(&msg);
-    auxts_result_destroy(&res);
-    auxts_db_close(db);
+    rats_result_destroy(&res);
+    rats_db_close(db);
 }
 
 void test_extract_no_data() {
-    auxts_db* db = auxts_db_instance();
-    auxts_db_open(db);
-    auxts_result res = auxts_db_exec(db, "EXTRACT 'test' 2025-02-09T22:51:52.213Z 2025-02-09T22:51:52.212Z");
+    rats_db* db = rats_db_instance();
+    rats_db_open(db);
+    rats_result res = rats_db_exec(db, "EXTRACT 'test' 2025-02-09T22:51:52.213Z 2025-02-09T22:51:52.212Z");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
@@ -34,14 +34,14 @@ void test_extract_no_data() {
     assert(obj.via.array.ptr[1].via.bin.size == 0);
 
     msgpack_unpacked_destroy(&msg);
-    auxts_result_destroy(&res);
-    auxts_db_close(db);
+    rats_result_destroy(&res);
+    rats_db_close(db);
 }
 
 void test_extract_error() {
-    auxts_db* db = auxts_db_instance();
-    auxts_db_open(db);
-    auxts_result res = auxts_db_exec(db, "EXTRACT 'test' 2025-02-09T22:5 2025-02-09T22:51:52.212Z");
+    rats_db* db = rats_db_instance();
+    rats_db_open(db);
+    rats_result res = rats_db_exec(db, "EXTRACT 'test' 2025-02-09T22:5 2025-02-09T22:51:52.212Z");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
@@ -52,14 +52,14 @@ void test_extract_error() {
     msgpack_str_assert("error", &obj.via.array.ptr[0].via.str);
 
     msgpack_unpacked_destroy(&msg);
-    auxts_result_destroy(&res);
-    auxts_db_close(db);
+    rats_result_destroy(&res);
+    rats_db_close(db);
 }
 
 void test_extract_invalid_num_args() {
-    auxts_db* db = auxts_db_instance();
-    auxts_db_open(db);
-    auxts_result res = auxts_db_exec(db, "EXTRACT 'tests' 2025-02-09T22:5");
+    rats_db* db = rats_db_instance();
+    rats_db_open(db);
+    rats_result res = rats_db_exec(db, "EXTRACT 'tests' 2025-02-09T22:5");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
@@ -70,14 +70,14 @@ void test_extract_invalid_num_args() {
     msgpack_str_assert("error", &obj.via.array.ptr[0].via.str);
 
     msgpack_unpacked_destroy(&msg);
-    auxts_result_destroy(&res);
-    auxts_db_close(db);
+    rats_result_destroy(&res);
+    rats_db_close(db);
 }
 
 void test_extract_invalid_arg_type() {
-    auxts_db* db = auxts_db_instance();
-    auxts_db_open(db);
-    auxts_result res = auxts_db_exec(db, "EXTRACT 'tests' 3.2 1739141512213");
+    rats_db* db = rats_db_instance();
+    rats_db_open(db);
+    rats_result res = rats_db_exec(db, "EXTRACT 'tests' 3.2 1739141512213");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
@@ -88,6 +88,6 @@ void test_extract_invalid_arg_type() {
     msgpack_str_assert("error", &obj.via.array.ptr[0].via.str);
 
     msgpack_unpacked_destroy(&msg);
-    auxts_result_destroy(&res);
-    auxts_db_close(db);
+    rats_result_destroy(&res);
+    rats_db_close(db);
 }

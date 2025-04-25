@@ -10,15 +10,15 @@
 typedef enum {
     AUXTS_MEMSTREAM_CONTINUE,
     AUXTS_MEMSTREAM_ABORT
-} auxts_memstream_status;
+} rats_memstream_status;
 
 typedef struct {
     size_t size;
     size_t current_pos;
-    auxts_uint8* data;
-} auxts_memstream;
+    rats_uint8* data;
+} rats_memstream;
 
-void auxts_memstream_init(auxts_memstream* stream);
-int auxts_memstream_write(auxts_memstream* stream, const void* data, size_t size);
+void rats_memstream_init(rats_memstream* stream);
+int rats_memstream_write(rats_memstream* stream, const void* data, size_t size);
 
 #endif //AUXTS_MEMORY_H

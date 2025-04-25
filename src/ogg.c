@@ -1,40 +1,40 @@
 #include "ogg.h"
 
-void auxts_ogg_set_channels(auxts_ogg* ogg, auxts_uint16 channels) {
+void rats_ogg_set_channels(rats_ogg* ogg, rats_uint16 channels) {
     ogg->format.channels = channels;
 }
 
-void auxts_ogg_set_sample_rate(auxts_ogg* ogg, auxts_uint32 sample_rate) {
+void rats_ogg_set_sample_rate(rats_ogg* ogg, rats_uint32 sample_rate) {
     ogg->format.sample_rate = sample_rate;
 }
 
-int auxts_ogg_write_callback(void *user_data, const auxts_uint8* ptr, auxts_int32 len) {
-    auxts_ogg* ogg = (auxts_ogg*) user_data;
+int rats_ogg_write_callback(void *user_data, const rats_uint8* ptr, rats_int32 len) {
+    rats_ogg* ogg = (rats_ogg*) user_data;
     if (!ogg) {
-        perror("auxts_ogg cannot be null");
+        perror("rats_ogg cannot be null");
         return 1;
     }
 
-    memcpy(((auxts_uint8*)ogg->ptr) + ogg->w_pos, ptr, len);
+    memcpy(((rats_uint8*)ogg->ptr) + ogg->w_pos, ptr, len);
     ogg->w_pos += len;
 
     return 0;
 }
 
-int auxts_ogg_read_callback(void *user_data) {
+int rats_ogg_read_callback(void *user_data) {
     (void)user_data;
     return 1;
 }
 
-void auxts_ogg_init(auxts_ogg* ogg, void* out) {
+void rats_ogg_init(rats_ogg* ogg, void* out) {
     ogg->err   = OPE_OK;
     ogg->r_pos = 0;
     ogg->w_pos = 0;
     ogg->ptr   = out;
 
     OpusEncCallbacks callbacks = {
-            .write = auxts_ogg_write_callback,
-            .close = auxts_ogg_read_callback
+            .write = rats_ogg_write_callback,
+            .close = rats_ogg_read_callback
     };
 
     ogg->comments = ope_comments_create();
@@ -50,13 +50,13 @@ void auxts_ogg_init(auxts_ogg* ogg, void* out) {
     }
 }
 
-size_t auxts_ogg_write(auxts_ogg* ogg, const void* in, void* out, size_t samples, size_t size) {
-    auxts_ogg_init(ogg, out);
+size_t rats_ogg_write(rats_ogg* ogg, const void* in, void* out, size_t samples, size_t size) {
+    rats_ogg_init(ogg, out);
 
     int samples_per_channel = (int)(AUXTS_OGG_FRAMESIZE_20MS * ogg->format.sample_rate);
     off_t frame_size = samples_per_channel * ogg->format.channels;
 
-    auxts_int16* pcm = malloc(sizeof(auxts_int16) * frame_size);
+    rats_int16* pcm = malloc(sizeof(rats_int16) * frame_size);
     if (!pcm) {
         perror("Failed to allocate pcm frame");
         return 0;
@@ -81,11 +81,11 @@ size_t auxts_ogg_write(auxts_ogg* ogg, const void* in, void* out, size_t samples
     return ogg->w_pos;
 }
 
-size_t auxts_ogg_write_s16(auxts_ogg* ogg, const auxts_int16* in, void* out, size_t samples, size_t size) {
-    return auxts_ogg_write(ogg, in, out, samples, size);
+size_t rats_ogg_write_s16(rats_ogg* ogg, const rats_int16* in, void* out, size_t samples, size_t size) {
+    return rats_ogg_write(ogg, in, out, samples, size);
 }
 
-void auxts_ogg_destroy(auxts_ogg* ogg) {
+void rats_ogg_destroy(rats_ogg* ogg) {
     ope_encoder_drain(ogg->enc);
     ope_encoder_destroy(ogg->enc);
     ope_comments_destroy(ogg->comments);

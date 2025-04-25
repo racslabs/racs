@@ -6,7 +6,7 @@
 #define FALSE            0
 
 int main (int argc, char *argv[]) {
-    auxts_run_tests(argc, argv);
+    rats_run_tests(argc, argv);
 //    int    len, rc, on = 1;
 //    int    listen_sd = -1, new_sd = -1;
 //    int    desc_ready, end_server = FALSE, compress_array = FALSE;
@@ -18,10 +18,10 @@ int main (int argc, char *argv[]) {
 //    int    nfds = 1, current_size = 0, i, j;
 //
 //    scm_init_guile();
-//    auxts_scm_init_bindings();
+//    rats_scm_init_bindings();
 //
-//    auxts_db* db = auxts_db_instance();
-//    auxts_db_open(db);
+//    rats_db* db = rats_db_instance();
+//    rats_db_open(db);
 //
 //    /*************************************************************/
 //    /* Create an AF_INET6 stream socket to receive incoming      */
@@ -222,8 +222,8 @@ int main (int argc, char *argv[]) {
 //                /* before we loop back and call poll again.            */
 //                /*******************************************************/
 //
-//                auxts_memstream in_stream;
-//                auxts_memstream_init(&in_stream);
+//                rats_memstream in_stream;
+//                rats_memstream_init(&in_stream);
 //
 //                do
 //                {
@@ -263,7 +263,7 @@ int main (int argc, char *argv[]) {
 //                    len = rc;
 //                    printf("  %d bytes received\n", len);
 //
-//                    auxts_memstream_write(&in_stream, buffer, len);
+//                    rats_memstream_write(&in_stream, buffer, len);
 //
 //                } while(TRUE);
 //
@@ -273,12 +273,12 @@ int main (int argc, char *argv[]) {
 //
 //
 //
-//                auxts_result res;
+//                rats_result res;
 //
 //                if (rats_is_sp((const char*)in_stream.data)) {
-//                    res = auxts_db_stream(db, in_stream.data);
+//                    res = rats_db_stream(db, in_stream.data);
 //                } else {;
-//                    res = auxts_db_exec(db, (const char*)in_stream.data);
+//                    res = rats_db_exec(db, (const char*)in_stream.data);
 //                }
 //
 //                free(in_stream.data);

@@ -13,31 +13,31 @@ extern "C" {
 typedef struct {
     uint64_t key[2];
     uint8_t* value;
-} auxts_cache_entry;
+} rats_cache_entry;
 
 typedef struct {
-    auxts_cache_entry entry;
-    struct auxts_cache_node* prev;
-    struct auxts_cache_node* next;
-} auxts_cache_node;
+    rats_cache_entry entry;
+    struct rats_cache_node* prev;
+    struct rats_cache_node* next;
+} rats_cache_node;
 
-typedef struct auxts_cache {
+typedef struct {
     size_t size;
     size_t capacity;
-    auxts_cache_node* head;
-    auxts_cache_node* tail;
-    auxts_kvstore* kv;
+    rats_cache_node* head;
+    rats_cache_node* tail;
+    rats_kvstore* kv;
     pthread_rwlock_t rwlock;
-} auxts_cache;
+} rats_cache;
 
-auxts_cache* auxts_scache_create(size_t capacity);
-uint8_t* auxts_cache_get(auxts_cache* cache, const uint64_t* key);
-void auxts_cache_put(auxts_cache* cache, const uint64_t* key, uint8_t* value);
-void auxts_cache_evict(auxts_cache* cache);
-void auxts_cache_destroy(auxts_cache* cache);
-uint64_t auxts_cache_hash(void* key);
-int auxts_cache_cmp(void* a, void* b);
-void auxts_scache_destroy(void* key, void* value);
+rats_cache* rats_scache_create(size_t capacity);
+uint8_t* rats_cache_get(rats_cache* cache, const uint64_t* key);
+void rats_cache_put(rats_cache* cache, const uint64_t* key, uint8_t* value);
+void rats_cache_evict(rats_cache* cache);
+void rats_cache_destroy(rats_cache* cache);
+uint64_t rats_cache_hash(void* key);
+int rats_cache_cmp(void* a, void* b);
+void rats_scache_destroy(void* key, void* value);
 
 #ifdef __cplusplus
 }

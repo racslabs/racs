@@ -37,43 +37,43 @@ typedef struct {
     uint64_t key[2];
     uint8_t* block;
     uint16_t block_size;
-} auxts_memtable_entry;
+} rats_memtable_entry;
 
 typedef struct {
-    auxts_memtable_entry* entries;
+    rats_memtable_entry* entries;
     uint16_t num_entries;
     uint16_t capacity;
     pthread_mutex_t mutex;
-} auxts_memtable;
+} rats_memtable;
 
 typedef struct {
     uint64_t key[2];
     size_t offset;
-} auxts_sstable_index_entry;
+} rats_sstable_index_entry;
 
 typedef struct {
     int fd;
     size_t size;
     uint8_t* data;
     uint16_t num_entries;
-    auxts_sstable_index_entry* index_entries;
-} auxts_sstable;
+    rats_sstable_index_entry* index_entries;
+} rats_sstable;
 
 typedef struct {
     int index;
     int num_tables;
-    auxts_memtable** tables;
+    rats_memtable** tables;
     pthread_mutex_t mutex;
-} auxts_multi_memtable;
+} rats_multi_memtable;
 
-auxts_multi_memtable* auxts_multi_memtable_create(int num_tables, int capacity);
-void auxts_multi_memtable_append(auxts_multi_memtable* mmt, uint64_t* key, uint8_t* block, uint16_t block_size);
-void auxts_multi_memtable_destroy(auxts_multi_memtable* mmt);
-void auxts_multi_memtable_flush(auxts_multi_memtable* mmt);
-auxts_sstable* auxts_sstable_read(const char* filename);
-auxts_sstable* auxts_sstable_read_in_memory(uint8_t* data, size_t size);
-void auxts_sstable_destroy_except_data(auxts_sstable* sst);
-auxts_memtable_entry* auxts_memtable_entry_read(uint8_t* buf, size_t offset);
+rats_multi_memtable* rats_multi_memtable_create(int num_tables, int capacity);
+void rats_multi_memtable_append(rats_multi_memtable* mmt, uint64_t* key, uint8_t* block, uint16_t block_size);
+void rats_multi_memtable_destroy(rats_multi_memtable* mmt);
+void rats_multi_memtable_flush(rats_multi_memtable* mmt);
+rats_sstable* rats_sstable_read(const char* filename);
+rats_sstable* rats_sstable_read_in_memory(uint8_t* data, size_t size);
+void rats_sstable_destroy_except_data(rats_sstable* sst);
+rats_memtable_entry* rats_memtable_entry_read(uint8_t* buf, size_t offset);
 
 #ifdef __cplusplus
 }
