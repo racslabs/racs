@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.27)
-project(auxts C)
+project(rats C)
 
 set(CMAKE_C_STANDARD 17)
 
@@ -18,21 +18,21 @@ include_directories(
         ${GUILE_INCLUDE_DIRS}
         ${msgpack-c_INCLUDE_DIRS})
 
-option(AUXTS_AVX2_CMAKE_BUILD "AVX2 CMake build" OFF)
-option(AUXTS_NEON8_CMAKE_BUILD "NEON8 CMake build" ON)
+option(RATS_AVX2_CMAKE_BUILD "AVX2 CMake build" OFF)
+option(RATS_NEON8_CMAKE_BUILD "NEON8 CMake build" ON)
 
-if (AUXTS_AVX2_CMAKE_BUILD)
+if (RATS_AVX2_CMAKE_BUILD)
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         add_compile_options(-march=native -O2)
     endif()
-elseif (AUXTS_NEON8_CMAKE_BUILD)
+elseif (RATS_NEON8_CMAKE_BUILD)
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         set(ARM_ALIASES armv6l armv7l aarch64)
         add_compile_options(-O2 -march=armv8-a+simd)
     endif()
 endif()
 
-add_executable(auxts
+add_executable(rats
         src/export.h
         src/time.h
         src/time.c
@@ -133,35 +133,35 @@ add_executable(auxts
         src/server.c
 )
 
-target_link_libraries(auxts msgpack-c ${GUILE_LIBRARIES} ${LAME_LIBRARIES} ${OPUS_LIBRARIES} ${OPUSENC_LIBRARIES})
+target_link_libraries(rats msgpack-c ${GUILE_LIBRARIES} ${LAME_LIBRARIES} ${OPUS_LIBRARIES} ${OPUSENC_LIBRARIES})
 
 enable_testing()
 
 # Unit test
-add_test(test_metadata_attr auxts "--test" "test_metadata_attr")
-add_test(test_lru_cache auxts "--test" "test_lru_cache")
-add_test(test_multi_memtable auxts "--test" "test_multi_memtable")
-add_test(test_extract auxts "--test" "test_extract")
-add_test(test_extract_no_data auxts "--test" "test_extract_no_data")
-add_test(test_extract_error auxts "--test" "test_extract_error")
-add_test(test_extract_invalid_arg_type auxts "--test" "test_extract_invalid_arg_type")
-add_test(test_extract_invalid_num_args auxts "--test" "test_extract_invalid_num_args")
-add_test(test_command_executor_unknown_command auxts "--test" "test_command_executor_unknown_command")
-add_test(test_command_executor_parse_error1 auxts "--test" "test_command_executor_parse_error1")
-add_test(test_command_executor_is_not_command auxts "--test" "test_command_executor_is_not_command")
-add_test(test_hashtable auxts "--test" "test_hashtable")
-add_test(test_ping auxts "--test" "test_ping")
-add_test(test_murmurhash3 auxts "--test" "test_murmurhash3")
-add_test(test_rfc3339 auxts "--test" "test_rfc3339")
-add_test(test_parser auxts "--test" "test_parser")
-add_test(test_create auxts "--test" "test_create")
-add_test(test_scm_extract auxts "--test" "test_scm_extract")
-add_test(test_scm_create auxts "--test" "test_scm_create")
-add_test(test_scm_int auxts "--test" "test_scm_int")
-add_test(test_scm_list auxts "--test" "test_scm_list")
-add_test(test_scm_metadata auxts "--test" "test_scm_metadata")
-add_test(test_simd_interleave auxts "--test" "test_simd_interleave")
-add_test(test_write_wav auxts "--test" "test_write_wav")
-add_test(test_format_wav auxts "--test" "test_format_wav")
-add_test(test_streamopen auxts "--test" "test_streamopen")
-add_test(test_astp auxts "--test" "test_astp")
+add_test(test_metadata_attr rats "--test" "test_metadata_attr")
+add_test(test_lru_cache rats "--test" "test_lru_cache")
+add_test(test_multi_memtable rats "--test" "test_multi_memtable")
+add_test(test_extract rats "--test" "test_extract")
+add_test(test_extract_no_data rats "--test" "test_extract_no_data")
+add_test(test_extract_error rats "--test" "test_extract_error")
+add_test(test_extract_invalid_arg_type rats "--test" "test_extract_invalid_arg_type")
+add_test(test_extract_invalid_num_args rats "--test" "test_extract_invalid_num_args")
+add_test(test_command_executor_unknown_command rats "--test" "test_command_executor_unknown_command")
+add_test(test_command_executor_parse_error1 rats "--test" "test_command_executor_parse_error1")
+add_test(test_command_executor_is_not_command rats "--test" "test_command_executor_is_not_command")
+add_test(test_hashtable rats "--test" "test_hashtable")
+add_test(test_ping rats "--test" "test_ping")
+add_test(test_murmurhash3 rats "--test" "test_murmurhash3")
+add_test(test_rfc3339 rats "--test" "test_rfc3339")
+add_test(test_parser rats "--test" "test_parser")
+add_test(test_create rats "--test" "test_create")
+add_test(test_scm_extract rats "--test" "test_scm_extract")
+add_test(test_scm_create rats "--test" "test_scm_create")
+add_test(test_scm_int rats "--test" "test_scm_int")
+add_test(test_scm_list rats "--test" "test_scm_list")
+add_test(test_scm_metadata rats "--test" "test_scm_metadata")
+add_test(test_simd_interleave rats "--test" "test_simd_interleave")
+add_test(test_write_wav rats "--test" "test_write_wav")
+add_test(test_format_wav rats "--test" "test_format_wav")
+add_test(test_streamopen rats "--test" "test_streamopen")
+add_test(test_astp rats "--test" "test_astp")
