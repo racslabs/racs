@@ -28,7 +28,6 @@ auxts_token auxts_parser_next_token(auxts_parser* parser) {
         return parser_lex_token_eof();
     }
 
-
     if (isdigit(*parser->ptr)) {
         if (match_token(parser->ptr, AUXTS_REGEX_TIME, &match)) {
             return parser_lex_token_time(parser, &match);

@@ -15,7 +15,12 @@ int main (int argc, char *argv[]) {
     int    timeout;
     struct pollfd fds[200];
     int    nfds = 1, current_size = 0, i, j;
+
+    scm_init_guile();
+    auxts_scm_init_bindings();
+
     auxts_db* db = auxts_db_instance();
+    auxts_db_open(db);
 
     /*************************************************************/
     /* Create an AF_INET6 stream socket to receive incoming      */
@@ -95,7 +100,7 @@ int main (int argc, char *argv[]) {
     /* activity after 3 minutes this program will end.           */
     /* timeout value is based on milliseconds.                   */
     /*************************************************************/
-    timeout = (3 * 60 * 1000);
+    timeout = -1;
 
     /*************************************************************/
     /* Loop waiting for incoming connects or for incoming data   */
@@ -265,13 +270,13 @@ int main (int argc, char *argv[]) {
                 /* Echo the data back to the client                  */
                 /*****************************************************/
 
-                printf("%s size ", in_stream.data);
+
 
                 auxts_result res;
 
                 if (auxts_is_atsp((const char*)in_stream.data)) {
                     res = auxts_db_stream(db, in_stream.data);
-                } else {
+                } else {;
                     res = auxts_db_exec(db, (const char*)in_stream.data);
                 }
 
