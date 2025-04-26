@@ -33,7 +33,9 @@ int rats_streamappend(rats_cache *mcache, rats_multi_memtable *mmt, rats_streamk
 
     rats_streaminfo streaminfo;
     memset(&streaminfo, 0, sizeof(rats_streaminfo));
-    rats_streaminfo_get(mcache, &streaminfo, frame.header.stream_id);
+
+    if (rats_streaminfo_get(mcache, &streaminfo, frame.header.stream_id))
+        rats_streaminfo_put(mcache, &streaminfo, frame.header.stream_id);
 
     if (frame.header.sample_rate != streaminfo.sample_rate)
         return RATS_STREAM_INVALID_SAMPLE_RATE;

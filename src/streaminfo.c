@@ -56,7 +56,6 @@ int rats_streaminfo_get(rats_cache *mcache, rats_streaminfo *streaminfo, rats_ui
         }
 
         if (rats_streaminfo_read(streaminfo, buf) != 24) return 0;
-        rats_streaminfo_put(mcache, streaminfo, stream_id);
 
         close(fd);
         return 1;
@@ -67,18 +66,23 @@ int rats_streaminfo_get(rats_cache *mcache, rats_streaminfo *streaminfo, rats_ui
 }
 
 int rats_streaminfo_put(rats_cache *mcache, rats_streaminfo *streaminfo, rats_uint64 stream_id) {
-    rats_uint8 *data = malloc(24);
-    if (!data) return 0;
-
     rats_uint64 *key = malloc(2 * sizeof(rats_int64));
     if (!key) {
         perror("Failed to allocate key.");
-        free(data);
         return 0;
     }
 
     key[0] = stream_id;
     key[1] = 0;
+
+    if (rats_streaminfo_get(mcache, streaminfo, stream_id)) {
+        perror("Stream already exist.");
+        free(key);
+        return 0;
+    }
+
+    rats_uint8 *data = malloc(24);
+    if (!data) return 0;
 
     rats_streaminfo_write(data, streaminfo);
     rats_cache_put(mcache, key, data);
