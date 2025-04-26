@@ -33,14 +33,21 @@ typedef enum {
     int rats_command_##name(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, rats_context* ctx)
 
 rats_create_command(extract);
+
 rats_create_command(eval);
+
 rats_create_command(stream);
+
 rats_create_command(streaminfo);
+
 rats_create_command(streamopen);
+
 rats_create_command(streamclose);
+
 rats_create_command(ping);
+
 rats_create_command(format);
 
-int rats_stream(msgpack_sbuffer* out_buf, rats_context* ctx, rats_uint8* data);
+int rats_stream(msgpack_sbuffer *out_buf, rats_context *ctx, rats_uint8 *data);
 
 #endif //RATS_COMMAND_H

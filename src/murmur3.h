@@ -25,7 +25,7 @@ RATS_FORCE_INLINE rats_uint64 fmix64(rats_uint64 k) {
     return k;
 }
 
-void murmur3_x64_128(const rats_uint8* key, size_t len, rats_uint32 seed, rats_uint64* out);
+void murmur3_x64_128(const rats_uint8 *key, size_t len, rats_uint32 seed, rats_uint64 *out);
 
 #ifdef __cplusplus
 }

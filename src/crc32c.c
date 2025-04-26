@@ -273,6 +273,7 @@ uint32_t crc32c(uint32_t crc, void const *buf, size_t len) {
 /* Construct table for software CRC-32C little-endian calculation. */
 static pthread_once_t crc32c_once_little = PTHREAD_ONCE_INIT;
 static uint32_t crc32c_table_little[8][256];
+
 static void crc32c_init_sw_little(void) {
     for (unsigned n = 0; n < 256; n++) {
         uint32_t crc = n;
@@ -302,14 +303,14 @@ uint32_t crc32c_sw_little(uint32_t crc, void const *buf, size_t len) {
 
     pthread_once(&crc32c_once_little, crc32c_init_sw_little);
     crc = ~crc;
-    while (len && ((uintptr_t)next & 7) != 0) {
+    while (len && ((uintptr_t) next & 7) != 0) {
         crc = crc32c_table_little[0][(crc ^ *next++) & 0xff] ^ (crc >> 8);
         len--;
     }
     if (len >= 8) {
         uint64_t crcw = crc;
         do {
-            crcw ^= *(uint64_t const *)next;
+            crcw ^= *(uint64_t const *) next;
             crcw = crc32c_table_little[7][crcw & 0xff] ^
                    crc32c_table_little[6][(crcw >> 8) & 0xff] ^
                    crc32c_table_little[5][(crcw >> 16) & 0xff] ^
@@ -346,6 +347,7 @@ static inline uint64_t swap(uint64_t x) {
 static pthread_once_t crc32c_once_big = PTHREAD_ONCE_INIT;
 static uint32_t crc32c_table_big_byte[256];
 static uint64_t crc32c_table_big[8][256];
+
 static void crc32c_init_sw_big(void) {
     for (unsigned n = 0; n < 256; n++) {
         uint32_t crc = n;
@@ -376,14 +378,14 @@ uint32_t crc32c_sw_big(uint32_t crc, void const *buf, size_t len) {
 
     pthread_once(&crc32c_once_big, crc32c_init_sw_big);
     crc = ~crc;
-    while (len && ((uintptr_t)next & 7) != 0) {
+    while (len && ((uintptr_t) next & 7) != 0) {
         crc = crc32c_table_big_byte[(crc ^ *next++) & 0xff] ^ (crc >> 8);
         len--;
     }
     if (len >= 8) {
         uint64_t crcw = swap(crc);
         do {
-            crcw ^= *(uint64_t const *)next;
+            crcw ^= *(uint64_t const *) next;
             crcw = crc32c_table_big[0][crcw & 0xff] ^
                    crc32c_table_big[1][(crcw >> 8) & 0xff] ^
                    crc32c_table_big[2][(crcw >> 16) & 0xff] ^
@@ -413,7 +415,7 @@ uint32_t crc32c_sw_big(uint32_t crc, void const *buf, size_t len) {
    processors that permit that -- go figure.) */
 uint32_t crc32c_sw(uint32_t crc, void const *buf, size_t len) {
     static int const little = 1;
-    if (*(char const *)&little)
+    if (*(char const *) &little)
         return crc32c_sw_little(crc, buf, len);
     else
         return crc32c_sw_big(crc, buf, len);

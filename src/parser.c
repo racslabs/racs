@@ -1,23 +1,33 @@
 #include "parser.h"
 
-static void parser_advance(rats_parser* parser, regoff_t step);
-static int match_token(const char* ptr, const char* pattern, regmatch_t* match);
-static rats_token parser_lex_token_str(rats_parser* parser, regmatch_t* match);
-static rats_token parser_lex_token_id(rats_parser* parser, regmatch_t* match);
-static rats_token parser_lex_token_int64(rats_parser* parser, regmatch_t* match);
-static rats_token parser_lex_token_float64(rats_parser* parser, regmatch_t* match);
-static rats_token parser_lex_token_time(rats_parser* parser, regmatch_t* match);
-static rats_token parser_lex_token_pipe(rats_parser* parser, regmatch_t* match);
-static rats_token parser_token_error(rats_parser* parser);
-static rats_token parser_lex_token_eof();
-static void print_n_chars(const char* str, size_t n);
+static void parser_advance(rats_parser *parser, regoff_t step);
 
-void rats_parser_init(rats_parser* parser, const char* source) {
+static int match_token(const char *ptr, const char *pattern, regmatch_t *match);
+
+static rats_token parser_lex_token_str(rats_parser *parser, regmatch_t *match);
+
+static rats_token parser_lex_token_id(rats_parser *parser, regmatch_t *match);
+
+static rats_token parser_lex_token_int64(rats_parser *parser, regmatch_t *match);
+
+static rats_token parser_lex_token_float64(rats_parser *parser, regmatch_t *match);
+
+static rats_token parser_lex_token_time(rats_parser *parser, regmatch_t *match);
+
+static rats_token parser_lex_token_pipe(rats_parser *parser, regmatch_t *match);
+
+static rats_token parser_token_error(rats_parser *parser);
+
+static rats_token parser_lex_token_eof();
+
+static void print_n_chars(const char *str, size_t n);
+
+void rats_parser_init(rats_parser *parser, const char *source) {
     parser->ptr = source;
     parser->curr = 0;
 }
 
-rats_token rats_parser_next_token(rats_parser* parser) {
+rats_token rats_parser_next_token(rats_parser *parser) {
     regmatch_t match;
 
     while (isspace(*parser->ptr)) {
@@ -69,7 +79,7 @@ rats_token rats_parser_next_token(rats_parser* parser) {
     return parser_token_error(parser);
 }
 
-void rats_token_print(rats_token* token) {
+void rats_token_print(rats_token *token) {
     switch (token->type) {
         case RATS_TOKEN_TYPE_ID:
             printf("[ID   ] ");
@@ -100,14 +110,14 @@ void rats_token_print(rats_token* token) {
     }
 }
 
-void print_n_chars(const char* str, size_t n) {
+void print_n_chars(const char *str, size_t n) {
     for (int i = 0; i < n && str[i] != '\0'; i++) {
         printf("%c", str[i]);
     }
     printf("\n");
 }
 
-int match_token(const char* ptr, const char* pattern, regmatch_t* match) {
+int match_token(const char *ptr, const char *pattern, regmatch_t *match) {
     regex_t regex;
 
     regcomp(&regex, pattern, REG_EXTENDED);
@@ -118,15 +128,15 @@ int match_token(const char* ptr, const char* pattern, regmatch_t* match) {
     return !ret;
 }
 
-void parser_advance(rats_parser* parser, regoff_t step) {
+void parser_advance(rats_parser *parser, regoff_t step) {
     parser->ptr += step;
     parser->curr += step;
 }
 
-rats_token parser_lex_token_time(rats_parser* parser, regmatch_t* match) {
+rats_token parser_lex_token_time(rats_parser *parser, regmatch_t *match) {
     regoff_t size = match->rm_eo - match->rm_so;
 
-    char* time_str = malloc(size + 1);
+    char *time_str = malloc(size + 1);
     strlcpy(time_str, parser->ptr, size + 1);
 
     rats_token token;
@@ -139,7 +149,7 @@ rats_token parser_lex_token_time(rats_parser* parser, regmatch_t* match) {
     return token;
 }
 
-rats_token parser_lex_token_str(rats_parser* parser, regmatch_t* match) {
+rats_token parser_lex_token_str(rats_parser *parser, regmatch_t *match) {
     regoff_t size = match->rm_eo - match->rm_so - 2;
 
     parser_advance(parser, 1);
@@ -154,7 +164,7 @@ rats_token parser_lex_token_str(rats_parser* parser, regmatch_t* match) {
     return token;
 }
 
-rats_token parser_lex_token_id(rats_parser* parser, regmatch_t* match) {
+rats_token parser_lex_token_id(rats_parser *parser, regmatch_t *match) {
     regoff_t size = match->rm_eo - match->rm_so;
 
     rats_token token;
@@ -167,10 +177,10 @@ rats_token parser_lex_token_id(rats_parser* parser, regmatch_t* match) {
     return token;
 }
 
-rats_token parser_lex_token_int64(rats_parser* parser, regmatch_t* match) {
+rats_token parser_lex_token_int64(rats_parser *parser, regmatch_t *match) {
     regoff_t size = match->rm_eo - match->rm_so;
 
-    char* int_str = malloc(size + 1);
+    char *int_str = malloc(size + 1);
     strlcpy(int_str, parser->ptr, size + 1);
 
     rats_token token;
@@ -183,10 +193,10 @@ rats_token parser_lex_token_int64(rats_parser* parser, regmatch_t* match) {
     return token;
 }
 
-rats_token parser_lex_token_float64(rats_parser* parser, regmatch_t* match) {
+rats_token parser_lex_token_float64(rats_parser *parser, regmatch_t *match) {
     regoff_t size = match->rm_eo - match->rm_so;
 
-    char* float_str = malloc(size + 1);
+    char *float_str = malloc(size + 1);
     strlcpy(float_str, parser->ptr, size + 1);
 
     rats_token token;
@@ -199,7 +209,7 @@ rats_token parser_lex_token_float64(rats_parser* parser, regmatch_t* match) {
     return token;
 }
 
-rats_token parser_lex_token_pipe(rats_parser* parser, regmatch_t* match) {
+rats_token parser_lex_token_pipe(rats_parser *parser, regmatch_t *match) {
     regoff_t size = match->rm_eo - match->rm_so;
 
     rats_token token;
@@ -216,7 +226,7 @@ rats_token parser_lex_token_eof() {
     return token;
 }
 
-rats_token parser_token_error(rats_parser* parser) {
+rats_token parser_token_error(rats_parser *parser) {
     sprintf(parser->error, "Invalid token at %lld", parser->curr);
     perror(parser->error);
 

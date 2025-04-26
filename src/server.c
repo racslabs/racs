@@ -5,7 +5,7 @@
 #define TRUE             1
 #define FALSE            0
 
-int main (int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
     rats_run_tests(argc, argv);
 //    int    len, rc, on = 1;
 //    int    listen_sd = -1, new_sd = -1;

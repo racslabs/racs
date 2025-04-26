@@ -1,7 +1,7 @@
 #include "streaminfo.h"
 
-rats_cache* rats_mcache_create(size_t capacity) {
-    rats_cache* cache = malloc(sizeof(rats_cache));
+rats_cache *rats_mcache_create(size_t capacity) {
+    rats_cache *cache = malloc(sizeof(rats_cache));
     if (!cache) {
         perror("Failed to allocate rats_mcache");
         return NULL;
@@ -18,7 +18,7 @@ rats_cache* rats_mcache_create(size_t capacity) {
     return cache;
 }
 
-rats_uint64 rats_streaminfo_attr(rats_cache* mcache, rats_uint64 stream_id, const char* attr) {
+rats_uint64 rats_streaminfo_attr(rats_cache *mcache, rats_uint64 stream_id, const char *attr) {
     rats_streaminfo streaminfo;
     if (!rats_streaminfo_get(mcache, &streaminfo, stream_id)) return 0;
 
@@ -34,10 +34,10 @@ rats_uint64 rats_streaminfo_attr(rats_cache* mcache, rats_uint64 stream_id, cons
     return 0;
 }
 
-int rats_streaminfo_get(rats_cache* mcache, rats_streaminfo* streaminfo, rats_uint64 stream_id) {
+int rats_streaminfo_get(rats_cache *mcache, rats_streaminfo *streaminfo, rats_uint64 stream_id) {
     rats_uint64 key[2] = {stream_id, 0};
 
-    rats_uint8* data = rats_cache_get(mcache, key);
+    rats_uint8 *data = rats_cache_get(mcache, key);
     if (!data) {
         char path[55];
         rats_streaminfo_path(path, stream_id);
@@ -66,11 +66,11 @@ int rats_streaminfo_get(rats_cache* mcache, rats_streaminfo* streaminfo, rats_ui
     return 1;
 }
 
-int rats_streaminfo_put(rats_cache* mcache, rats_streaminfo* streaminfo, rats_uint64 stream_id) {
-    rats_uint8* data = malloc(24);
+int rats_streaminfo_put(rats_cache *mcache, rats_streaminfo *streaminfo, rats_uint64 stream_id) {
+    rats_uint8 *data = malloc(24);
     if (!data) return 0;
 
-    rats_uint64* key = malloc(2 * sizeof(rats_int64));
+    rats_uint64 *key = malloc(2 * sizeof(rats_int64));
     if (!key) {
         perror("Failed to allocate key.");
         free(data);
@@ -86,8 +86,8 @@ int rats_streaminfo_put(rats_cache* mcache, rats_streaminfo* streaminfo, rats_ui
     return 1;
 }
 
-void rats_mcache_destroy(void* key, void* value) {
-    rats_cache_entry* entry = (rats_cache_entry*)value;
+void rats_mcache_destroy(void *key, void *value) {
+    rats_cache_entry *entry = (rats_cache_entry *) value;
     rats_uint64 stream_id = entry->key[0];
 
     rats_streaminfo_flush(entry->value, stream_id);
@@ -95,7 +95,7 @@ void rats_mcache_destroy(void* key, void* value) {
     free(key);
 }
 
-off_t rats_streaminfo_write(rats_uint8* buf, rats_streaminfo* streaminfo) {
+off_t rats_streaminfo_write(rats_uint8 *buf, rats_streaminfo *streaminfo) {
     off_t offset = 0;
     offset = rats_write_uint16(buf, streaminfo->channels, offset);
     offset = rats_write_uint16(buf, streaminfo->bit_depth, offset);
@@ -105,7 +105,7 @@ off_t rats_streaminfo_write(rats_uint8* buf, rats_streaminfo* streaminfo) {
     return offset;
 }
 
-off_t rats_streaminfo_read(rats_streaminfo* streaminfo, rats_uint8* buf) {
+off_t rats_streaminfo_read(rats_streaminfo *streaminfo, rats_uint8 *buf) {
     off_t offset = 0;
     offset = rats_read_uint16(&streaminfo->channels, buf, offset);
     offset = rats_read_uint16(&streaminfo->bit_depth, buf, offset);
@@ -115,18 +115,18 @@ off_t rats_streaminfo_read(rats_streaminfo* streaminfo, rats_uint8* buf) {
     return offset;
 }
 
-rats_time rats_streaminfo_offset(rats_streaminfo* streaminfo) {
-    double seconds = (streaminfo->size / (double)(streaminfo->channels * streaminfo->sample_rate * 2));
-    return (rats_time)(seconds * 1000) + streaminfo->ref;
+rats_time rats_streaminfo_offset(rats_streaminfo *streaminfo) {
+    double seconds = (streaminfo->size / (double) (streaminfo->channels * streaminfo->sample_rate * 2));
+    return (rats_time) (seconds * 1000) + streaminfo->ref;
 }
 
-rats_uint64 rats_hash(const char* stream_id) {
+rats_uint64 rats_hash(const char *stream_id) {
     rats_uint64 hash[2];
-    murmur3_x64_128((void*)stream_id, strlen(stream_id), 0, hash);
+    murmur3_x64_128((void *) stream_id, strlen(stream_id), 0, hash);
     return hash[0];
 }
 
-void rats_streaminfo_flush(rats_uint8* data, rats_uint64 stream_id) {
+void rats_streaminfo_flush(rats_uint8 *data, rats_uint64 stream_id) {
     char path[55];
     rats_streaminfo_path(path, stream_id);
 
@@ -158,6 +158,6 @@ int rats_streaminfo_exits(rats_uint64 stream_id) {
     return stat(path, &buffer) == 0;
 }
 
-void rats_streaminfo_path(char* path, rats_uint64 stream_id) {
+void rats_streaminfo_path(char *path, rats_uint64 stream_id) {
     sprintf(path, ".data/md/%llu", stream_id);
 }

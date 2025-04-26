@@ -1,10 +1,11 @@
 #include "cache.h"
 
-static rats_cache_node* cache_node_create(const rats_uint64* key, rats_uint8* value);
-static void cache_insert_at_head(rats_cache* cache, rats_cache_node* node);
+static rats_cache_node *cache_node_create(const rats_uint64 *key, rats_uint8 *value);
 
-rats_cache* rats_scache_create(size_t capacity) {
-    rats_cache* cache = malloc(sizeof(rats_cache));
+static void cache_insert_at_head(rats_cache *cache, rats_cache_node *node);
+
+rats_cache *rats_scache_create(size_t capacity) {
+    rats_cache *cache = malloc(sizeof(rats_cache));
     if (!cache) {
         perror("Failed to allocate rats_cache");
         return NULL;
@@ -21,10 +22,10 @@ rats_cache* rats_scache_create(size_t capacity) {
     return cache;
 }
 
-void rats_cache_put(rats_cache* cache, const rats_uint64* key, rats_uint8* value) {
+void rats_cache_put(rats_cache *cache, const rats_uint64 *key, rats_uint8 *value) {
     if (!cache) return;
 
-    rats_cache_entry* entry = rats_kvstore_get(cache->kv, key);
+    rats_cache_entry *entry = rats_kvstore_get(cache->kv, key);
     if (entry) return;
 
     pthread_rwlock_wrlock(&cache->rwlock);
@@ -32,7 +33,7 @@ void rats_cache_put(rats_cache* cache, const rats_uint64* key, rats_uint8* value
     if (cache->size >= cache->capacity)
         rats_cache_evict(cache);
 
-    rats_cache_node* node = cache_node_create(key, value);
+    rats_cache_node *node = cache_node_create(key, value);
 
     cache_insert_at_head(cache, node);
     rats_kvstore_put(cache->kv, key, &node->entry);
@@ -42,12 +43,12 @@ void rats_cache_put(rats_cache* cache, const rats_uint64* key, rats_uint8* value
     pthread_rwlock_unlock(&cache->rwlock);
 }
 
-rats_uint8* rats_cache_get(rats_cache* cache, const rats_uint64* key) {
+rats_uint8 *rats_cache_get(rats_cache *cache, const rats_uint64 *key) {
     if (!cache) return NULL;
 
     pthread_rwlock_rdlock(&cache->rwlock);
 
-    rats_cache_entry* entry = rats_kvstore_get(cache->kv, key);
+    rats_cache_entry *entry = rats_kvstore_get(cache->kv, key);
     pthread_rwlock_unlock(&cache->rwlock);
 
     if (entry) return entry->value;
@@ -55,15 +56,15 @@ rats_uint8* rats_cache_get(rats_cache* cache, const rats_uint64* key) {
     return NULL;
 }
 
-void rats_cache_destroy(rats_cache* cache) {
+void rats_cache_destroy(rats_cache *cache) {
     if (!cache) return;
 
     pthread_rwlock_wrlock(&cache->rwlock);
     rats_kvstore_destroy(cache->kv);
 
-    rats_cache_node* node = cache->head;
+    rats_cache_node *node = cache->head;
     while (node) {
-        rats_cache_node* next = (rats_cache_node*) node->next;
+        rats_cache_node *next = (rats_cache_node *) node->next;
         free(node);
         node = next;
     }
@@ -74,22 +75,22 @@ void rats_cache_destroy(rats_cache* cache) {
     free(cache);
 }
 
-void rats_cache_evict(rats_cache* cache) {
+void rats_cache_evict(rats_cache *cache) {
     if (!cache) return;
 
-    rats_cache_node* tail = cache->tail;
-    rats_cache_entry* entry = &tail->entry;
+    rats_cache_node *tail = cache->tail;
+    rats_cache_entry *entry = &tail->entry;
 
     rats_kvstore_delete(cache->kv, entry->key);
 
-    cache->tail = (rats_cache_node*) tail->prev;
+    cache->tail = (rats_cache_node *) tail->prev;
     cache->tail->next = NULL;
 
     --cache->size;
 }
 
-rats_cache_node* cache_node_create(const rats_uint64* key, rats_uint8* value) {
-    rats_cache_node* node = malloc(sizeof(rats_cache_node));
+rats_cache_node *cache_node_create(const rats_uint64 *key, rats_uint8 *value) {
+    rats_cache_node *node = malloc(sizeof(rats_cache_node));
     if (!node) {
         perror("Failed to allocate rats_cache_node");
         return NULL;
@@ -104,14 +105,14 @@ rats_cache_node* cache_node_create(const rats_uint64* key, rats_uint8* value) {
     return node;
 }
 
-void cache_insert_at_head(rats_cache* cache, rats_cache_node* node) {
+void cache_insert_at_head(rats_cache *cache, rats_cache_node *node) {
     if (!cache || !node) return;
 
     node->prev = NULL;
-    node->next = (struct rats_cache_node*)cache->head;
+    node->next = (struct rats_cache_node *) cache->head;
 
     if (cache->head) {
-        cache->head->prev = (struct rats_cache_node*)node;
+        cache->head->prev = (struct rats_cache_node *) node;
     } else {
         cache->tail = node;
     }
@@ -119,19 +120,19 @@ void cache_insert_at_head(rats_cache* cache, rats_cache_node* node) {
     cache->head = node;
 }
 
-rats_uint64 rats_cache_hash(void* key) {
+rats_uint64 rats_cache_hash(void *key) {
     rats_uint64 hash[2];
     murmur3_x64_128(key, 2 * sizeof(rats_uint64), 0, hash);
     return hash[0];
 }
 
-int rats_cache_cmp(void* a, void* b) {
-    rats_uint64* x = (rats_uint64*)a;
-    rats_uint64* y = (rats_uint64*)b;
+int rats_cache_cmp(void *a, void *b) {
+    rats_uint64 *x = (rats_uint64 *) a;
+    rats_uint64 *y = (rats_uint64 *) b;
     return x[0] == y[0] && x[1] == y[1];
 }
 
-void rats_scache_destroy(void* key, void* value) {
-    rats_cache_entry* entry = (rats_cache_entry*)value;
+void rats_scache_destroy(void *key, void *value) {
+    rats_cache_entry *entry = (rats_cache_entry *) value;
     free(entry->value);
 }

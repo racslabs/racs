@@ -1,6 +1,7 @@
 #include "format.h"
 
-size_t rats_format_pcm(rats_format* fmt, const void* in, void* out, size_t samples, size_t size, const char* mime_type) {
+size_t
+rats_format_pcm(rats_format *fmt, const void *in, void *out, size_t samples, size_t size, const char *mime_type) {
     if (strcmp(mime_type, "audio/wav") == 0) {
         rats_wav wav;
 

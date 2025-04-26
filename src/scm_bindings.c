@@ -1,13 +1,13 @@
 #include "scm_bindings.h"
 
 SCM rats_scm_extract(SCM stream_id, SCM from, SCM to) {
-    char* cmd = NULL;
+    char *cmd = NULL;
     asprintf(&cmd, "EXTRACT '%s' %s %s",
              scm_to_locale_string(stream_id),
              scm_to_locale_string(from),
              scm_to_locale_string(to));
 
-    rats_db* db = rats_db_instance();
+    rats_db *db = rats_db_instance();
     rats_result res = rats_db_exec(db, cmd);
 
     free(cmd);
@@ -15,12 +15,12 @@ SCM rats_scm_extract(SCM stream_id, SCM from, SCM to) {
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
 
-    if (msgpack_unpack_next(&msg, (char*)res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
+    if (msgpack_unpack_next(&msg, (char *) res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
         free(res.data);
         scm_misc_error("extract", "Deserialization error", SCM_EOL);
     }
 
-    char* type = rats_deserialize_str(&msg.data, 0);
+    char *type = rats_deserialize_str(&msg.data, 0);
     if (strcmp(type, "error") == 0) {
         rats_scm_propagate_error(&msg.data, res.data);
     }
@@ -31,19 +31,19 @@ SCM rats_scm_extract(SCM stream_id, SCM from, SCM to) {
     }
 
     size_t size = rats_deserialize_s32v_size(&msg.data, 1);
-    rats_int32* data = rats_deserialize_s32v(&msg.data, 1);
+    rats_int32 *data = rats_deserialize_s32v(&msg.data, 1);
 
     return scm_take_s32vector(data, size);
 }
 
 SCM rats_scm_stream(SCM stream_id, SCM sample_rate, SCM channels) {
-    char* cmd = NULL;
+    char *cmd = NULL;
     asprintf(&cmd, "STREAM '%s' %d %d",
              scm_to_locale_string(stream_id),
              scm_to_uint32(sample_rate),
              scm_to_uint32(channels));
 
-    rats_db* db = rats_db_instance();
+    rats_db *db = rats_db_instance();
     rats_result res = rats_db_exec(db, cmd);
 
     free(cmd);
@@ -51,12 +51,12 @@ SCM rats_scm_stream(SCM stream_id, SCM sample_rate, SCM channels) {
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
 
-    if (msgpack_unpack_next(&msg, (char*)res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
+    if (msgpack_unpack_next(&msg, (char *) res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
         free(res.data);
         scm_misc_error("stream", "Deserialization error", SCM_EOL);
     }
 
-    char* type = rats_deserialize_str(&msg.data, 0);
+    char *type = rats_deserialize_str(&msg.data, 0);
     if (strcmp(type, "error") == 0) {
         rats_scm_propagate_error(&msg.data, res.data);
     }
@@ -65,12 +65,12 @@ SCM rats_scm_stream(SCM stream_id, SCM sample_rate, SCM channels) {
 }
 
 SCM rats_scm_streaminfo(SCM stream_id, SCM attr) {
-    char* cmd = NULL;
+    char *cmd = NULL;
     asprintf(&cmd, "STREAMINFO '%s' '%s'",
              scm_to_locale_string(stream_id),
              scm_to_locale_string(attr));
 
-    rats_db* db = rats_db_instance();
+    rats_db *db = rats_db_instance();
     rats_result res = rats_db_exec(db, cmd);
 
     free(cmd);
@@ -78,12 +78,12 @@ SCM rats_scm_streaminfo(SCM stream_id, SCM attr) {
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
 
-    if (msgpack_unpack_next(&msg, (char*)res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
+    if (msgpack_unpack_next(&msg, (char *) res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
         free(res.data);
         scm_misc_error("streaminfo", "Deserialization error", SCM_EOL);
     }
 
-    char* type = rats_deserialize_str(&msg.data, 0);
+    char *type = rats_deserialize_str(&msg.data, 0);
     if (strcmp(type, "error") == 0) {
         rats_scm_propagate_error(&msg.data, res.data);
     }

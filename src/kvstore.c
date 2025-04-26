@@ -1,11 +1,14 @@
 #include "kvstore.h"
 
-static void kvstore_bin_init(rats_kvstore_bin* bin);
-static void kvstore_bin_append(rats_kvstore_bin* bin, void* key, void* value);
-static rats_kvstore_bin* kvstore_get_bin(rats_kvstore* kv, void* key);
+static void kvstore_bin_init(rats_kvstore_bin *bin);
 
-rats_kvstore* rats_kvstore_create(size_t capacity, rats_kvstore_hash_callback hash, rats_kvstore_cmp_callback cmp, rats_kvstore_destroy_callback destroy) {
-    rats_kvstore* kv = malloc(sizeof(rats_kvstore));
+static void kvstore_bin_append(rats_kvstore_bin *bin, void *key, void *value);
+
+static rats_kvstore_bin *kvstore_get_bin(rats_kvstore *kv, void *key);
+
+rats_kvstore *rats_kvstore_create(size_t capacity, rats_kvstore_hash_callback hash, rats_kvstore_cmp_callback cmp,
+                                  rats_kvstore_destroy_callback destroy) {
+    rats_kvstore *kv = malloc(sizeof(rats_kvstore));
     if (!kv) {
         perror("Error allocating rats_kvstore");
         return NULL;
@@ -30,7 +33,7 @@ rats_kvstore* rats_kvstore_create(size_t capacity, rats_kvstore_hash_callback ha
     return kv;
 }
 
-void kvstore_bin_init(rats_kvstore_bin* bin) {
+void kvstore_bin_init(rats_kvstore_bin *bin) {
     bin->count = 0;
     bin->capacity = 2;
 
@@ -40,13 +43,13 @@ void kvstore_bin_init(rats_kvstore_bin* bin) {
     }
 }
 
-void rats_kvstore_put(rats_kvstore* kv, void* key, void* value) {
+void rats_kvstore_put(rats_kvstore *kv, void *key, void *value) {
     if (!kv) return;
 
-    rats_kvstore_bin* bin = kvstore_get_bin(kv, key);
+    rats_kvstore_bin *bin = kvstore_get_bin(kv, key);
 
     for (int i = 0; i < bin->count; ++i) {
-        rats_kvstore_entry* entry = &bin->entries[i];
+        rats_kvstore_entry *entry = &bin->entries[i];
 
         if (kv->ops.cmp(entry->key, key)) {
             kv->ops.destroy(entry->key, entry->value);
@@ -59,13 +62,13 @@ void rats_kvstore_put(rats_kvstore* kv, void* key, void* value) {
     kvstore_bin_append(bin, key, value);
 }
 
-void* rats_kvstore_get(rats_kvstore* kv, void* key) {
+void *rats_kvstore_get(rats_kvstore *kv, void *key) {
     if (!kv) return NULL;
 
-    rats_kvstore_bin* bin = kvstore_get_bin(kv, key);
+    rats_kvstore_bin *bin = kvstore_get_bin(kv, key);
 
     for (int i = 0; i < bin->count; ++i) {
-        rats_kvstore_entry* entry = &bin->entries[i];
+        rats_kvstore_entry *entry = &bin->entries[i];
 
         if (kv->ops.cmp(entry->key, key)) {
             return entry->value;
@@ -75,13 +78,13 @@ void* rats_kvstore_get(rats_kvstore* kv, void* key) {
     return NULL;
 }
 
-void rats_kvstore_delete(rats_kvstore* kv, void* key) {
+void rats_kvstore_delete(rats_kvstore *kv, void *key) {
     if (!kv) return;
 
-    rats_kvstore_bin* bin = kvstore_get_bin(kv, key);
+    rats_kvstore_bin *bin = kvstore_get_bin(kv, key);
 
     for (int i = 0; i < bin->count; ++i) {
-        rats_kvstore_entry* entry = &bin->entries[i];
+        rats_kvstore_entry *entry = &bin->entries[i];
 
         if (kv->ops.cmp(entry->key, key)) {
             kv->ops.destroy(entry->key, entry->value);
@@ -95,17 +98,17 @@ void rats_kvstore_delete(rats_kvstore* kv, void* key) {
     }
 }
 
-rats_kvstore_bin* kvstore_get_bin(rats_kvstore* kv, void* key) {
+rats_kvstore_bin *kvstore_get_bin(rats_kvstore *kv, void *key) {
     rats_uint64 hash = kv->ops.hash(key) % kv->capacity;
     return &kv->bins[hash];
 }
 
-void rats_kvstore_destroy(rats_kvstore* kv) {
+void rats_kvstore_destroy(rats_kvstore *kv) {
     for (int i = 0; i < kv->capacity; ++i) {
-        rats_kvstore_bin* bin = &kv->bins[i];
+        rats_kvstore_bin *bin = &kv->bins[i];
 
         for (int j = 0; j < bin->count; ++j) {
-            rats_kvstore_entry* entry = &bin->entries[j];
+            rats_kvstore_entry *entry = &bin->entries[j];
             kv->ops.destroy(entry->key, entry->value);
         }
 
@@ -115,13 +118,13 @@ void rats_kvstore_destroy(rats_kvstore* kv) {
     free(kv->bins);
 }
 
-void kvstore_bin_append(rats_kvstore_bin* bin, void* key, void* value) {
+void kvstore_bin_append(rats_kvstore_bin *bin, void *key, void *value) {
     if (!bin) return;
 
     if (bin->count == bin->capacity) {
         bin->capacity *= bin->capacity;
 
-        rats_kvstore_entry* entries = realloc(bin->entries, bin->capacity * sizeof(rats_kvstore_entry));
+        rats_kvstore_entry *entries = realloc(bin->entries, bin->capacity * sizeof(rats_kvstore_entry));
         if (!entries) {
             perror("Error reallocating entries");
             return;

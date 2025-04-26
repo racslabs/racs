@@ -1,6 +1,6 @@
 #include "exec.h"
 
-rats_result rats_exec_stream(rats_context* ctx, rats_uint8* data) {
+rats_result rats_exec_stream(rats_context *ctx, rats_uint8 *data) {
     msgpack_sbuffer out_buf;
     msgpack_sbuffer_init(&out_buf);
 
@@ -14,7 +14,7 @@ rats_result rats_exec_stream(rats_context* ctx, rats_uint8* data) {
     return result;
 }
 
-rats_result rats_exec_exec(rats_exec* exec, rats_context* ctx, const char* cmd) {
+rats_result rats_exec_exec(rats_exec *exec, rats_context *ctx, const char *cmd) {
     rats_parser parser;
     rats_parser_init(&parser, cmd);
 
@@ -43,12 +43,12 @@ rats_result rats_exec_exec(rats_exec* exec, rats_context* ctx, const char* cmd) 
     return result;
 }
 
-int exec_plan_build(rats_exec_plan* plan, msgpack_sbuffer* out_buf, rats_parser* parser) {
+int exec_plan_build(rats_exec_plan *plan, msgpack_sbuffer *out_buf, rats_parser *parser) {
     rats_token prev;
     memset(&prev, 0, sizeof(rats_token));
     rats_token curr = rats_parser_next_token(parser);
 
-    rats_command* cmd = NULL;
+    rats_command *cmd = NULL;
     int status = RATS_EXEC_STATUS_CONTINUE;
 
     while (curr.type != RATS_TOKEN_TYPE_EOF && status == RATS_EXEC_STATUS_CONTINUE) {
@@ -91,13 +91,14 @@ int exec_plan_build(rats_exec_plan* plan, msgpack_sbuffer* out_buf, rats_parser*
     return status;
 }
 
-void exec_plan_exec(rats_exec_plan* plan, rats_exec* exec, rats_context* ctx, msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf) {
+void exec_plan_exec(rats_exec_plan *plan, rats_exec *exec, rats_context *ctx, msgpack_sbuffer *in_buf,
+                    msgpack_sbuffer *out_buf) {
     msgpack_packer pk;
 
     for (int i = 0; i < plan->num_cmd; ++i) {
         msgpack_packer_init(&pk, in_buf, msgpack_sbuffer_write);
 
-        rats_command* cmd = plan->cmd[i];
+        rats_command *cmd = plan->cmd[i];
         rats_command_func func = exec_get(exec, cmd->name);
         if (!func) {
             handle_unknown_command(cmd, out_buf);
@@ -112,15 +113,15 @@ void exec_plan_exec(rats_exec_plan* plan, rats_exec* exec, rats_context* ctx, ms
     }
 }
 
-rats_command_func exec_get(rats_exec* exec, const char* cmd_name) {
-    return rats_kvstore_get(exec->kv, (void*)cmd_name);
+rats_command_func exec_get(rats_exec *exec, const char *cmd_name) {
+    return rats_kvstore_get(exec->kv, (void *) cmd_name);
 }
 
-void command_serialize_args(rats_command* cmd, msgpack_packer* pk) {
+void command_serialize_args(rats_command *cmd, msgpack_packer *pk) {
     msgpack_pack_array(pk, cmd->num_args);
 
     for (int i = 0; i < cmd->num_args; ++i) {
-        rats_command_arg* arg = cmd->args[i];
+        rats_command_arg *arg = cmd->args[i];
 
         switch (arg->type) {
             case RATS_COMMAND_ARG_TYPE_STR:
@@ -136,19 +137,19 @@ void command_serialize_args(rats_command* cmd, msgpack_packer* pk) {
     }
 }
 
-void command_arg_serialize_str(rats_command_arg* arg, msgpack_packer* pk) {
+void command_arg_serialize_str(rats_command_arg *arg, msgpack_packer *pk) {
     msgpack_pack_str_with_body(pk, arg->as.str.ptr, arg->as.str.size);
 }
 
-void command_arg_serialize_int64(rats_command_arg* arg, msgpack_packer* pk) {
+void command_arg_serialize_int64(rats_command_arg *arg, msgpack_packer *pk) {
     msgpack_pack_int64(pk, arg->as.i64);
 }
 
-void command_arg_serialize_float64(rats_command_arg* arg, msgpack_packer* pk) {
+void command_arg_serialize_float64(rats_command_arg *arg, msgpack_packer *pk) {
     msgpack_pack_double(pk, arg->as.f64);
 }
 
-rats_command* handle_id(rats_token* curr, rats_token* prev) {
+rats_command *handle_id(rats_token *curr, rats_token *prev) {
     if (prev->type == RATS_TOKEN_TYPE_PIPE)
         return command_create(curr->as.id.ptr, RATS_COMMAND_OP_PIPE, curr->as.id.size + 1);
 
@@ -158,7 +159,7 @@ rats_command* handle_id(rats_token* curr, rats_token* prev) {
     return NULL;
 }
 
-int command_handle_id(rats_command* cmd, msgpack_sbuffer* out_buf) {
+int command_handle_id(rats_command *cmd, msgpack_sbuffer *out_buf) {
     if (!cmd) {
         handle_error("Token type 'id' is not a valid argument.", out_buf);
         return RATS_EXEC_STATUS_ABORT;
@@ -167,55 +168,55 @@ int command_handle_id(rats_command* cmd, msgpack_sbuffer* out_buf) {
     return RATS_EXEC_STATUS_CONTINUE;
 }
 
-int command_handle_str(rats_command* cmd, msgpack_sbuffer* out_buf, rats_token* curr, rats_token* prev) {
+int command_handle_str(rats_command *cmd, msgpack_sbuffer *out_buf, rats_token *curr, rats_token *prev) {
     if (prev->type == RATS_TOKEN_TYPE_PIPE || prev->type == RATS_TOKEN_TYPE_NONE) {
         handle_error("Token type 'string' is not a valid command.", out_buf);
         return RATS_EXEC_STATUS_ABORT;
     }
 
-    rats_command_arg* arg = command_arg_create_str(curr->as.str.ptr, curr->as.str.size);
+    rats_command_arg *arg = command_arg_create_str(curr->as.str.ptr, curr->as.str.size);
     command_add_arg(cmd, arg);
 
     return RATS_EXEC_STATUS_CONTINUE;
 }
 
-int command_handle_time(rats_command* cmd, msgpack_sbuffer* out_buf, rats_token* curr, rats_token* prev) {
+int command_handle_time(rats_command *cmd, msgpack_sbuffer *out_buf, rats_token *curr, rats_token *prev) {
     if (prev->type == RATS_TOKEN_TYPE_PIPE || prev->type == RATS_TOKEN_TYPE_NONE) {
         handle_error("Token type 'time' is not a valid command.", out_buf);
         return RATS_EXEC_STATUS_ABORT;
     }
 
-    rats_command_arg* arg = command_arg_create_int64(curr->as.time);
+    rats_command_arg *arg = command_arg_create_int64(curr->as.time);
     command_add_arg(cmd, arg);
 
     return RATS_EXEC_STATUS_CONTINUE;
 }
 
-int command_handle_int64(rats_command* cmd, msgpack_sbuffer* out_buf, rats_token* curr, rats_token* prev) {
+int command_handle_int64(rats_command *cmd, msgpack_sbuffer *out_buf, rats_token *curr, rats_token *prev) {
     if (prev->type == RATS_TOKEN_TYPE_PIPE || prev->type == RATS_TOKEN_TYPE_NONE) {
         handle_error("Token type 'int' is not a valid command.", out_buf);
         return RATS_EXEC_STATUS_ABORT;
     }
 
-    rats_command_arg* arg = command_arg_create_int64(curr->as.i64);
+    rats_command_arg *arg = command_arg_create_int64(curr->as.i64);
     command_add_arg(cmd, arg);
 
     return RATS_EXEC_STATUS_CONTINUE;
 }
 
-int command_handle_float64(rats_command* cmd, msgpack_sbuffer* out_buf, rats_token* curr, rats_token* prev) {
+int command_handle_float64(rats_command *cmd, msgpack_sbuffer *out_buf, rats_token *curr, rats_token *prev) {
     if (prev->type == RATS_TOKEN_TYPE_PIPE || prev->type == RATS_TOKEN_TYPE_NONE) {
         handle_error("Token type 'float' is not a valid command.", out_buf);
         return RATS_EXEC_STATUS_ABORT;
     }
 
-    rats_command_arg* arg = command_arg_create_float64(curr->as.f64);
+    rats_command_arg *arg = command_arg_create_float64(curr->as.f64);
     command_add_arg(cmd, arg);
 
     return RATS_EXEC_STATUS_CONTINUE;
 }
 
-void rats_exec_init(rats_exec* exec) {
+void rats_exec_init(rats_exec *exec) {
     exec->kv = rats_kvstore_create(10, exec_hash, exec_cmp, exec_destroy);
     rats_kvstore_put(exec->kv, strdup("PING"), rats_command_ping);
     rats_kvstore_put(exec->kv, strdup("STREAM"), rats_command_stream);
@@ -227,29 +228,29 @@ void rats_exec_init(rats_exec* exec) {
     rats_kvstore_put(exec->kv, strdup("FORMAT"), rats_command_format);
 }
 
-void rats_exec_destroy(rats_exec* exec) {
+void rats_exec_destroy(rats_exec *exec) {
     rats_kvstore_destroy(exec->kv);
 }
 
-void handle_error(const char* message, msgpack_sbuffer* out_buf) {
+void handle_error(const char *message, msgpack_sbuffer *out_buf) {
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
     rats_serialize_error(&pk, message);
 }
 
-void handle_unknown_command(rats_command* cmd, msgpack_sbuffer* out_buf) {
+void handle_unknown_command(rats_command *cmd, msgpack_sbuffer *out_buf) {
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
 
-    char* message = NULL;
+    char *message = NULL;
     asprintf(&message, "Unknown command: %s", cmd->name);
     rats_serialize_error(&pk, message);
 
     free(message);
 }
 
-rats_command* command_create(const char* name, rats_command_op op, size_t size) {
-    rats_command* cmd = malloc(sizeof(rats_command));
+rats_command *command_create(const char *name, rats_command_op op, size_t size) {
+    rats_command *cmd = malloc(sizeof(rats_command));
     if (!cmd) {
         perror("Failed to allocate rats_command");
         return NULL;
@@ -262,7 +263,7 @@ rats_command* command_create(const char* name, rats_command_op op, size_t size) 
     strlcpy(cmd->name, name, size);
     to_uppercase(cmd->name);
 
-    cmd->args = malloc(cmd->max_num_args * sizeof(rats_command_arg*));
+    cmd->args = malloc(cmd->max_num_args * sizeof(rats_command_arg *));
     if (!cmd->args) {
         perror("Failed to allocate args to rats_command");
         free(cmd);
@@ -272,7 +273,7 @@ rats_command* command_create(const char* name, rats_command_op op, size_t size) 
     return cmd;
 }
 
-void command_destroy(rats_command* cmd) {
+void command_destroy(rats_command *cmd) {
     for (int i = 0; i < cmd->num_args; ++i) {
         command_arg_destroy(cmd->args[i]);
     }
@@ -281,8 +282,8 @@ void command_destroy(rats_command* cmd) {
     free(cmd);
 }
 
-rats_command_arg* command_arg_create() {
-    rats_command_arg* arg = malloc(sizeof(rats_command_arg));
+rats_command_arg *command_arg_create() {
+    rats_command_arg *arg = malloc(sizeof(rats_command_arg));
     if (!arg) {
         perror("Error allocating rats_command_arg");
         return NULL;
@@ -291,8 +292,8 @@ rats_command_arg* command_arg_create() {
     return arg;
 }
 
-rats_command_arg* command_arg_create_str(const char* ptr, size_t size) {
-    rats_command_arg* arg = command_arg_create();
+rats_command_arg *command_arg_create_str(const char *ptr, size_t size) {
+    rats_command_arg *arg = command_arg_create();
     if (!arg) return NULL;
 
     arg->type = RATS_COMMAND_ARG_TYPE_STR;
@@ -302,8 +303,8 @@ rats_command_arg* command_arg_create_str(const char* ptr, size_t size) {
     return arg;
 }
 
-rats_command_arg* command_arg_create_int64(rats_int64 d) {
-    rats_command_arg* arg = command_arg_create();
+rats_command_arg *command_arg_create_int64(rats_int64 d) {
+    rats_command_arg *arg = command_arg_create();
     if (!arg) return NULL;
 
     arg->type = RATS_COMMAND_ARG_TYPE_INT;
@@ -312,8 +313,8 @@ rats_command_arg* command_arg_create_int64(rats_int64 d) {
     return arg;
 }
 
-rats_command_arg* command_arg_create_float64(double d) {
-    rats_command_arg* arg = command_arg_create();
+rats_command_arg *command_arg_create_float64(double d) {
+    rats_command_arg *arg = command_arg_create();
     if (!arg) return NULL;
 
     arg->type = RATS_COMMAND_ARG_TYPE_FLOAT;
@@ -322,17 +323,17 @@ rats_command_arg* command_arg_create_float64(double d) {
     return arg;
 }
 
-void command_arg_destroy(rats_command_arg* arg) {
+void command_arg_destroy(rats_command_arg *arg) {
     free(arg);
 }
 
-void command_add_arg(rats_command* cmd, rats_command_arg* arg) {
+void command_add_arg(rats_command *cmd, rats_command_arg *arg) {
     if (!cmd || !arg) return;
 
     if (cmd->num_args >= cmd->max_num_args) {
         cmd->max_num_args *= 2;
 
-        rats_command_arg** args = realloc(cmd->args, cmd->max_num_args * sizeof(rats_command_arg*));
+        rats_command_arg **args = realloc(cmd->args, cmd->max_num_args * sizeof(rats_command_arg *));
         if (!args) {
             perror("Failed to reallocate args to rats_command");
             return;
@@ -345,31 +346,31 @@ void command_add_arg(rats_command* cmd, rats_command_arg* arg) {
     ++cmd->num_args;
 }
 
-void exec_plan_init(rats_exec_plan* plan) {
+void exec_plan_init(rats_exec_plan *plan) {
     plan->num_cmd = 0;
     plan->max_num_cmd = 4;
 
-    plan->cmd = malloc(plan->max_num_cmd * sizeof(rats_command*));
+    plan->cmd = malloc(plan->max_num_cmd * sizeof(rats_command *));
     if (!plan->cmd) {
         perror("Failed to allocate commands to rats_exec_plan");
         return;
     }
 }
 
-void exec_plan_destroy(rats_exec_plan* plan) {
+void exec_plan_destroy(rats_exec_plan *plan) {
     for (int i = 0; i < plan->num_cmd; ++i) {
         command_destroy(plan->cmd[i]);
     }
     free(plan->cmd);
 }
 
-void exec_plan_add_command(rats_exec_plan* plan, rats_command* cmd) {
+void exec_plan_add_command(rats_exec_plan *plan, rats_command *cmd) {
     if (!plan || !cmd) return;
 
     if (plan->num_cmd >= plan->max_num_cmd) {
         plan->max_num_cmd *= 2;
 
-        rats_command** _cmd = realloc(plan->cmd, plan->max_num_cmd * sizeof(rats_command*));
+        rats_command **_cmd = realloc(plan->cmd, plan->max_num_cmd * sizeof(rats_command *));
         if (!_cmd) {
             perror("Error reallocating commands to rats_exec_plan");
             return;
@@ -382,25 +383,25 @@ void exec_plan_add_command(rats_exec_plan* plan, rats_command* cmd) {
     ++plan->num_cmd;
 }
 
-rats_uint64 exec_hash(void* key) {
+rats_uint64 exec_hash(void *key) {
     rats_uint64 hash[2];
-    murmur3_x64_128(key, strlen((char*)key), 0, hash);
+    murmur3_x64_128(key, strlen((char *) key), 0, hash);
     return hash[0];
 }
 
-int exec_cmp(void* a, void* b) {
-    rats_uint64* x = (rats_uint64*)a;
-    rats_uint64* y = (rats_uint64*)b;
+int exec_cmp(void *a, void *b) {
+    rats_uint64 *x = (rats_uint64 *) a;
+    rats_uint64 *y = (rats_uint64 *) b;
     return x[0] == y[0];
 }
 
-void exec_destroy(void* key, void* value) {
+void exec_destroy(void *key, void *value) {
     free(key);
 }
 
 void to_uppercase(char *str) {
     while (*str) {
-        *str = (char)toupper(*str);
+        *str = (char) toupper(*str);
         str++;
     }
 }

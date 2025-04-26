@@ -36,40 +36,42 @@ typedef enum {
 
 typedef struct {
     size_t size;
-    const char* ptr;
+    const char *ptr;
 } rats_token_;
 
 typedef rats_token_ rats_token_id;
 typedef rats_token_ rats_token_str;
 
 typedef struct {
-    const char* msg;
+    const char *msg;
 } rats_token_error;
 
 typedef union {
-    double              f64;
-    rats_int64             i64;
-    rats_int64             time;
-    rats_uint64            u64;
-    rats_token_id      id;
-    rats_token_str     str;
-    rats_token_error   err;
+    double f64;
+    rats_int64 i64;
+    rats_int64 time;
+    rats_uint64 u64;
+    rats_token_id id;
+    rats_token_str str;
+    rats_token_error err;
 } rats_token_union;
 
 typedef struct {
-    rats_token_type  type;
+    rats_token_type type;
     rats_token_union as;
 } rats_token;
 
 typedef struct {
-    const char* ptr;
+    const char *ptr;
     char error[255];
     regoff_t curr;
 } rats_parser;
 
-void rats_parser_init(rats_parser* parser, const char* source);
-void rats_token_print(rats_token* token);
-rats_token rats_parser_next_token(rats_parser* parser);
+void rats_parser_init(rats_parser *parser, const char *source);
+
+void rats_token_print(rats_token *token);
+
+rats_token rats_parser_next_token(rats_parser *parser);
 
 #ifdef __cplusplus
 }

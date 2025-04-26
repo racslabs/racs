@@ -8,12 +8,13 @@
 #include "types.h"
 
 typedef struct {
-    rats_uint8* data;
+    rats_uint8 *data;
     size_t size;
 } rats_result;
 
-void rats_result_init(rats_result* result, size_t size);
-void rats_result_destroy(rats_result* result);
+void rats_result_init(rats_result *result, size_t size);
+
+void rats_result_destroy(rats_result *result);
 
 
 #endif //RATS_RESULT_H

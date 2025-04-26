@@ -7,16 +7,16 @@ rats_time rats_time_now() {
     return rats_time_from_ts(&ts);
 }
 
-rats_time rats_time_from_ts(struct timespec* ts) {
+rats_time rats_time_from_ts(struct timespec *ts) {
     return (ts->tv_sec * 1000000000 + ts->tv_nsec) / 1000000;
 }
 
-void rats_time_to_tm(rats_time time, struct tm* info) {
+void rats_time_to_tm(rats_time time, struct tm *info) {
     rats_time sec = time / 1000;
     gmtime_r(&sec, info);
 }
 
-void rats_time_to_rfc3339(rats_time time, char* buf) {
+void rats_time_to_rfc3339(rats_time time, char *buf) {
     struct tm info;
     rats_time_to_tm(time, &info);
     long rem = time % 1000;
@@ -26,7 +26,7 @@ void rats_time_to_rfc3339(rats_time time, char* buf) {
             info.tm_hour, info.tm_min, info.tm_sec, rem);
 }
 
-rats_time rats_time_from_rfc3339(const char* buf) {
+rats_time rats_time_from_rfc3339(const char *buf) {
     struct tm info = {0};
     int mill = 0;
 
@@ -44,7 +44,7 @@ rats_time rats_time_from_rfc3339(const char* buf) {
     return (time == -1) ? -1 : time * 1000 + mill;
 }
 
-rats_time rats_time_from_path(const char* path) {
+rats_time rats_time_from_path(const char *path) {
     struct tm info = {0};
     long mill = 0;
 
@@ -67,7 +67,7 @@ rats_time rats_time_from_path(const char* path) {
     return (time == -1) ? -1 : (time * 1000) + mill;
 }
 
-char* rats_time_range_to_path(rats_time from, rats_time to) {
+char *rats_time_range_to_path(rats_time from, rats_time to) {
     char path1[255], path2[255];
 
     rats_time_to_path(from, path1);
@@ -76,7 +76,7 @@ char* rats_time_range_to_path(rats_time from, rats_time to) {
     return rats_resolve_shared_path(path1, path2);
 }
 
-void rats_time_to_path(rats_time time, char* path) {
+void rats_time_to_path(rats_time time, char *path) {
     struct tm info;
     rats_time_to_tm(time, &info);
 
@@ -93,7 +93,7 @@ void rats_time_create_dirs(rats_time time) {
     char dir[128];
     rats_time_to_path(time, dir);
 
-    char* p = dir;
+    char *p = dir;
     while ((p = strchr(p + 1, '/')) != NULL) {
         *p = '\0';
         mkdir(dir, 0777);

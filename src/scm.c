@@ -1,7 +1,7 @@
 #include "scm.h"
 
-void rats_scm_propagate_error(msgpack_object* obj, rats_uint8* data) {
-    char* message = rats_deserialize_str(obj, 1);
+void rats_scm_propagate_error(msgpack_object *obj, rats_uint8 *data) {
+    char *message = rats_deserialize_str(obj, 1);
     SCM error = scm_from_utf8_string(message);
 
     free(data);
@@ -10,95 +10,95 @@ void rats_scm_propagate_error(msgpack_object* obj, rats_uint8* data) {
     scm_misc_error("extract", "~A", scm_list_1(error));
 }
 
-int rats_scm_serialize_s8vector(msgpack_packer* pk, SCM v) {
+int rats_scm_serialize_s8vector(msgpack_packer *pk, SCM v) {
     scm_t_array_handle handle;
     size_t n;
 
-    const rats_int8* data = scm_s8vector_elements(v, &handle, &n, NULL);
+    const rats_int8 *data = scm_s8vector_elements(v, &handle, &n, NULL);
     rats_serialize_s8v(pk, (rats_int8 *) data, n);
-    scm_array_handle_release (&handle);
+    scm_array_handle_release(&handle);
 
     return RATS_STATUS_OK;
 }
 
-int rats_scm_serialize_u8vector(msgpack_packer* pk, SCM v) {
+int rats_scm_serialize_u8vector(msgpack_packer *pk, SCM v) {
     scm_t_array_handle handle;
     size_t n;
 
-    const rats_uint8* data = scm_u8vector_elements(v, &handle, &n, NULL);
-    rats_serialize_u8v(pk, (rats_uint8*)data, n);
-    scm_array_handle_release (&handle);
+    const rats_uint8 *data = scm_u8vector_elements(v, &handle, &n, NULL);
+    rats_serialize_u8v(pk, (rats_uint8 *) data, n);
+    scm_array_handle_release(&handle);
 
     return RATS_STATUS_OK;
 }
 
-int rats_scm_serialize_s16vector(msgpack_packer* pk, SCM v) {
+int rats_scm_serialize_s16vector(msgpack_packer *pk, SCM v) {
     scm_t_array_handle handle;
     size_t n;
 
-    const rats_int16* data = scm_s16vector_elements(v, &handle, &n, NULL);
+    const rats_int16 *data = scm_s16vector_elements(v, &handle, &n, NULL);
     rats_serialize_s16v(pk, (rats_int16 *) data, n);
-    scm_array_handle_release (&handle);
+    scm_array_handle_release(&handle);
 
     return RATS_STATUS_OK;
 }
 
-int rats_scm_serialize_u16vector(msgpack_packer* pk, SCM v) {
+int rats_scm_serialize_u16vector(msgpack_packer *pk, SCM v) {
     scm_t_array_handle handle;
     size_t n;
 
-    const rats_uint16* data = scm_u16vector_elements(v, &handle, &n, NULL);
-    rats_serialize_u16v(pk, (rats_uint16*)data, n);
-    scm_array_handle_release (&handle);
+    const rats_uint16 *data = scm_u16vector_elements(v, &handle, &n, NULL);
+    rats_serialize_u16v(pk, (rats_uint16 *) data, n);
+    scm_array_handle_release(&handle);
 
     return RATS_STATUS_OK;
 }
 
-int rats_scm_serialize_s32vector(msgpack_packer* pk, SCM v) {
+int rats_scm_serialize_s32vector(msgpack_packer *pk, SCM v) {
     scm_t_array_handle handle;
     size_t n;
 
-    const rats_int32* data = scm_s32vector_elements(v, &handle, &n, NULL);
+    const rats_int32 *data = scm_s32vector_elements(v, &handle, &n, NULL);
     rats_serialize_s32v(pk, (rats_int32 *) data, n);
-    scm_array_handle_release (&handle);
+    scm_array_handle_release(&handle);
 
     return RATS_STATUS_OK;
 }
 
-int rats_scm_serialize_u32vector(msgpack_packer* pk, SCM v) {
+int rats_scm_serialize_u32vector(msgpack_packer *pk, SCM v) {
     scm_t_array_handle handle;
     size_t n;
 
-    const rats_uint32* data = scm_u32vector_elements(v, &handle, &n, NULL);
-    rats_serialize_u32v(pk, (rats_uint32*)data, n);
-    scm_array_handle_release (&handle);
+    const rats_uint32 *data = scm_u32vector_elements(v, &handle, &n, NULL);
+    rats_serialize_u32v(pk, (rats_uint32 *) data, n);
+    scm_array_handle_release(&handle);
 
     return RATS_STATUS_OK;
 }
 
-int rats_scm_serialize_f32vector(msgpack_packer* pk, SCM v) {
+int rats_scm_serialize_f32vector(msgpack_packer *pk, SCM v) {
     scm_t_array_handle handle;
     size_t n;
 
-    const float* data = scm_f32vector_elements(v, &handle, &n, NULL);
-    rats_serialize_f32v(pk, (float*)data, n);
-    scm_array_handle_release (&handle);
+    const float *data = scm_f32vector_elements(v, &handle, &n, NULL);
+    rats_serialize_f32v(pk, (float *) data, n);
+    scm_array_handle_release(&handle);
 
     return RATS_STATUS_OK;
 }
 
-int rats_scm_serialize_c32vector(msgpack_packer* pk, SCM v) {
+int rats_scm_serialize_c32vector(msgpack_packer *pk, SCM v) {
     scm_t_array_handle handle;
     size_t n;
 
-    const float* data = scm_c32vector_elements(v, &handle, &n, NULL);
-    rats_serialize_c64v(pk, (rats_complex*)data, n);
-    scm_array_handle_release (&handle);
+    const float *data = scm_c32vector_elements(v, &handle, &n, NULL);
+    rats_serialize_c64v(pk, (rats_complex *) data, n);
+    scm_array_handle_release(&handle);
 
     return RATS_STATUS_OK;
 }
 
-int rats_scm_serialize(msgpack_packer* pk, msgpack_sbuffer* buf, SCM x) {
+int rats_scm_serialize(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x) {
     if (scm_is_integer(x))
         return rats_serialize_int64(pk, scm_to_int64(x));
     if (scm_is_number(x))
@@ -132,9 +132,9 @@ int rats_scm_serialize(msgpack_packer* pk, msgpack_sbuffer* buf, SCM x) {
     return rats_serialize_error(pk, "Unsupported SCM type");
 }
 
-int rats_scm_serialize_element(msgpack_packer* pk, msgpack_sbuffer* buf, SCM v) {
+int rats_scm_serialize_element(msgpack_packer *pk, msgpack_sbuffer *buf, SCM v) {
     if (scm_is_string(v)) {
-        char* str = scm_to_locale_string(v);
+        char *str = scm_to_locale_string(v);
         msgpack_pack_str_with_body(pk, str, strlen(str));
         return true;
     }
@@ -160,7 +160,7 @@ int rats_scm_serialize_element(msgpack_packer* pk, msgpack_sbuffer* buf, SCM v) 
     return false;
 }
 
-int rats_scm_serialize_list(msgpack_packer* pk, msgpack_sbuffer* buf, SCM x) {
+int rats_scm_serialize_list(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x) {
     rats_uint32 n = scm_to_uint32(scm_length(x));
 
     msgpack_pack_array(pk, n + 1);
@@ -178,16 +178,16 @@ int rats_scm_serialize_list(msgpack_packer* pk, msgpack_sbuffer* buf, SCM x) {
     return RATS_STATUS_OK;
 }
 
-SCM rats_scm_eval_wrapper(void* data) {
-    return scm_c_eval_string((const char*)data);
+SCM rats_scm_eval_wrapper(void *data) {
+    return scm_c_eval_string((const char *) data);
 }
 
-SCM rats_scm_error_handler(void* data, SCM key, SCM args) {
+SCM rats_scm_error_handler(void *data, SCM key, SCM args) {
     scm_display(args, data);
     return SCM_BOOL_F;
 }
 
-SCM rats_scm_eval_with_error_handling(char* expr, char** error) {
+SCM rats_scm_eval_with_error_handling(char *expr, char **error) {
     SCM original_error_port = scm_current_error_port();
     SCM error_port = scm_open_output_string();
 
@@ -196,7 +196,7 @@ SCM rats_scm_eval_with_error_handling(char* expr, char** error) {
 
     SCM result = scm_c_catch(SCM_BOOL_T,
                              rats_scm_eval_wrapper,
-                             (void*)expr,
+                             (void *) expr,
                              rats_scm_error_handler,
                              error_port,
                              NULL,
@@ -213,7 +213,7 @@ SCM rats_scm_eval_with_error_handling(char* expr, char** error) {
     return result;
 }
 
-void rats_unescape_single_quotes(char* s) {
+void rats_unescape_single_quotes(char *s) {
     size_t n = strlen(s);
 
     for (int i = 0; i < n - 1; ++i) {

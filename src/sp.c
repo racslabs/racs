@@ -1,6 +1,6 @@
 #include "sp.h"
 
-int rats_sp_parse(rats_uint8* buf, rats_sp* frame) {
+int rats_sp_parse(rats_uint8 *buf, rats_sp *frame) {
     rats_sp_header_parse(buf, &frame->header);
 
     frame->pcm_block = buf + sizeof(rats_sp_header);
@@ -10,7 +10,7 @@ int rats_sp_parse(rats_uint8* buf, rats_sp* frame) {
 //    return checksum == frame->header.checksum;
 }
 
-void rats_sp_header_parse(rats_uint8* buf, rats_sp_header* header) {
+void rats_sp_header_parse(rats_uint8 *buf, rats_sp_header *header) {
     memcpy(&header->chunk_id, buf, 4);
     memcpy(&header->mac_addr, buf + 4, 6);
     rats_read_uint64(&header->stream_id, buf, 10);
@@ -21,6 +21,6 @@ void rats_sp_header_parse(rats_uint8* buf, rats_sp_header* header) {
     rats_read_uint16(&header->block_size, buf, 30);
 }
 
-int rats_is_sp(const char* id) {
+int rats_is_sp(const char *id) {
     return (memcmp(id, "atsp", 4) == 0);
 }

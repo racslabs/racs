@@ -1,6 +1,6 @@
 #include "result.h"
 
-void rats_result_init(rats_result* result, size_t size) {
+void rats_result_init(rats_result *result, size_t size) {
     result->size = size;
     result->data = malloc(size);
     if (!result->data) {
@@ -8,7 +8,7 @@ void rats_result_init(rats_result* result, size_t size) {
     }
 }
 
-void rats_result_destroy(rats_result* result) {
+void rats_result_destroy(rats_result *result) {
     free(result->data);
 }
 
