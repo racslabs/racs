@@ -1,9 +1,5 @@
 #include "cache.h"
 
-static rats_cache_node *cache_node_create(const rats_uint64 *key, rats_uint8 *value);
-
-static void cache_insert_at_head(rats_cache *cache, rats_cache_node *node);
-
 rats_cache *rats_scache_create(size_t capacity) {
     rats_cache *cache = malloc(sizeof(rats_cache));
     if (!cache) {
@@ -33,9 +29,9 @@ void rats_cache_put(rats_cache *cache, const rats_uint64 *key, rats_uint8 *value
     if (cache->size >= cache->capacity)
         rats_cache_evict(cache);
 
-    rats_cache_node *node = cache_node_create(key, value);
+    rats_cache_node *node = rats_cache_node_create(key, value);
 
-    cache_insert_at_head(cache, node);
+    rats_cache_insert_at_head(cache, node);
     rats_kvstore_put(cache->kv, key, &node->entry);
 
     ++cache->size;
@@ -89,7 +85,7 @@ void rats_cache_evict(rats_cache *cache) {
     --cache->size;
 }
 
-rats_cache_node *cache_node_create(const rats_uint64 *key, rats_uint8 *value) {
+rats_cache_node *rats_cache_node_create(const rats_uint64 *key, rats_uint8 *value) {
     rats_cache_node *node = malloc(sizeof(rats_cache_node));
     if (!node) {
         perror("Failed to allocate rats_cache_node");
@@ -105,7 +101,7 @@ rats_cache_node *cache_node_create(const rats_uint64 *key, rats_uint8 *value) {
     return node;
 }
 
-void cache_insert_at_head(rats_cache *cache, rats_cache_node *node) {
+void rats_cache_insert_at_head(rats_cache *cache, rats_cache_node *node) {
     if (!cache || !node) return;
 
     node->prev = NULL;

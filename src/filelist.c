@@ -98,9 +98,7 @@ char *rats_resolve_shared_path(const char *path1, const char *path2) {
 
     size_t i = 0;
     for (; i < len; i++) {
-        if (path1[i] != path2[i]) {
-            break;
-        }
+        if (path1[i] != path2[i]) break;
     }
 
     while (i > 1 && path1[i - 1] != '/') --i;

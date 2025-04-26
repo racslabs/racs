@@ -47,6 +47,10 @@ int rats_cache_cmp(void *a, void *b);
 
 void rats_scache_destroy(void *key, void *value);
 
+rats_cache_node *rats_cache_node_create(const rats_uint64 *key, rats_uint8 *value);
+
+void rats_cache_insert_at_head(rats_cache *cache, rats_cache_node *node);
+
 #ifdef __cplusplus
 }
 #endif
