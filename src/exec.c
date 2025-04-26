@@ -1,36 +1,5 @@
 #include "exec.h"
 
-static rats_uint64 exec_hash(void* key);
-static int exec_cmp(void* a, void* b);
-static void exec_destroy(void* key, void* value);
-static rats_command_func exec_get(rats_exec* exec, const char* cmd_name);
-static rats_command* command_create(const char* name, rats_command_op op, size_t size);
-static void command_destroy(rats_command* cmd);
-static rats_command_arg* command_arg_create();
-static rats_command_arg* command_arg_create_str(const char* ptr, size_t size);
-static rats_command_arg* command_arg_create_int64(rats_int64 d);
-static rats_command_arg* command_arg_create_float64(double d);
-static void command_arg_destroy(rats_command_arg* arg);
-static rats_command* handle_id(rats_token* curr, rats_token* prev);
-static void handle_error(const char* message, msgpack_sbuffer* out_buf);
-static void handle_unknown_command(rats_command* cmd, msgpack_sbuffer* out_buf);
-static int command_handle_id(rats_command* cmd, msgpack_sbuffer* out_buf);
-static int command_handle_str(rats_command* cmd, msgpack_sbuffer* out_buf, rats_token* curr, rats_token* prev);
-static int command_handle_int64(rats_command* cmd, msgpack_sbuffer* out_buf, rats_token* curr, rats_token* prev);
-static int command_handle_float64(rats_command* cmd, msgpack_sbuffer* out_buf, rats_token* curr, rats_token* prev);
-static int command_handle_time(rats_command* cmd, msgpack_sbuffer* out_buf, rats_token* curr, rats_token* prev);
-static void command_add_arg(rats_command* cmd, rats_command_arg* arg);
-static void command_serialize_args(rats_command* cmd, msgpack_packer* pk);
-static void command_arg_serialize_str(rats_command_arg* arg, msgpack_packer* pk);
-static void command_arg_serialize_int64(rats_command_arg* arg, msgpack_packer* pk);
-static void command_arg_serialize_float64(rats_command_arg* arg, msgpack_packer* pk);
-static void exec_plan_init(rats_exec_plan* plan);
-static void exec_plan_destroy(rats_exec_plan* plan);
-static void exec_plan_add_command(rats_exec_plan* plan, rats_command* cmd);
-static void exec_plan_exec(rats_exec_plan* plan, rats_exec* exec, rats_context* ctx, msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf);
-static int exec_plan_build(rats_exec_plan* plan, msgpack_sbuffer* out_buf, rats_parser* parser);
-static void to_uppercase(char *str);
-
 rats_result rats_exec_stream(rats_context* ctx, rats_uint8* data) {
     msgpack_sbuffer out_buf;
     msgpack_sbuffer_init(&out_buf);

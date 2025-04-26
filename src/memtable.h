@@ -92,7 +92,6 @@ off_t rats_write_index_entry(rats_uint8* buf, rats_sstable_index_entry* index_en
 rats_uint8* rats_allocate_buffer(size_t size, rats_sstable* sst);
 int rats_sstable_open(const char* path, rats_sstable* sst);
 
-
 #ifdef __cplusplus
 }
 #endif
