@@ -57,7 +57,7 @@ int rats_serialize_int64(msgpack_packer* pk, int64_t d) {
     return RATS_STATUS_OK;
 }
 
-int rats_serialize_uint64(msgpack_packer* pk, uint64_t d) {
+int rats_serialize_uint64(msgpack_packer* pk, rats_uint64 d) {
     msgpack_pack_array(pk, 2);
     rats_serialize_type(pk, RATS_TYPE_INT);
     msgpack_pack_uint64(pk, d);
@@ -209,6 +209,6 @@ int64_t rats_deserialize_int64(msgpack_object* obj, int n) {
     return obj->via.array.ptr[n].via.i64;
 }
 
-uint64_t rats_deserialize_uint64(msgpack_object* obj, int n) {
+rats_uint64 rats_deserialize_uint64(msgpack_object* obj, int n) {
     return obj->via.array.ptr[n].via.u64;
 }

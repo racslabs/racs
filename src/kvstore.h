@@ -4,8 +4,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include "types.h"
 
-typedef uint64_t (*rats_kvstore_hash_callback)(void* key);
+typedef rats_uint64 (*rats_kvstore_hash_callback)(void* key);
 typedef int (*rats_kvstore_cmp_callback)(void* a, void* b);
 typedef void (*rats_kvstore_destroy_callback)(void* key, void* value);
 

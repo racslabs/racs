@@ -32,7 +32,7 @@ void rats_streamkv_delete(rats_streamkv* kv, rats_uint64 stream_id);
 void rats_streamkv_put(rats_streamkv* kv, rats_uint64 stream_id, char mac_addr[]);
 rats_streamkv* rats_streamkv_create(int capacity);
 void rats_streamkv_destroy(rats_streamkv* kv);
-uint64_t rats_streamkv_hash(void* key);
+rats_uint64 rats_streamkv_hash(void* key);
 int rats_streamkv_cmp(void* a, void* b);
 void rats_streamkv_destroy_entry(void* key, void* value);
 int rats_mac_addr_cmp(const char* src, const char* dest);

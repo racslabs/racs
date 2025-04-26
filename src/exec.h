@@ -36,7 +36,7 @@ typedef rats_command_arg_ rats_command_arg_str;
 typedef union {
     double                f64;
     int64_t               i64;
-    uint64_t              u64;
+    rats_uint64              u64;
     rats_command_arg_str str;
 } rats_command_arg_union;
 

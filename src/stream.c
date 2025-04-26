@@ -146,15 +146,15 @@ void rats_streamkv_destroy(rats_streamkv* kv) {
     pthread_rwlock_destroy(&kv->rwlock);
 }
 
-uint64_t rats_streamkv_hash(void* key) {
-    uint64_t hash[2];
-    murmur3_x64_128(key, 2 * sizeof(uint64_t), 0, hash);
+rats_uint64 rats_streamkv_hash(void* key) {
+    rats_uint64 hash[2];
+    murmur3_x64_128(key, 2 * sizeof(rats_uint64), 0, hash);
     return hash[0];
 }
 
 int rats_streamkv_cmp(void* a, void* b) {
-    uint64_t* x = (uint64_t*)a;
-    uint64_t* y = (uint64_t*)b;
+    rats_uint64* x = (rats_uint64*)a;
+    rats_uint64* y = (rats_uint64*)b;
     return x[0] == y[0] && x[1] == y[1];
 }
 

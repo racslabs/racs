@@ -11,11 +11,11 @@
 extern "C" {
 #endif
 
-RATS_FORCE_INLINE uint64_t rotl64(uint64_t x, int8_t r) {
+RATS_FORCE_INLINE rats_uint64 rotl64(rats_uint64 x, int8_t r) {
     return (x << r) | (x >> (64 - r));
 }
 
-RATS_FORCE_INLINE uint64_t fmix64(uint64_t k) {
+RATS_FORCE_INLINE rats_uint64 fmix64(rats_uint64 k) {
     k ^= k >> 33;
     k *= 0xff51afd7ed558ccdull;
     k ^= k >> 33;
@@ -25,7 +25,7 @@ RATS_FORCE_INLINE uint64_t fmix64(uint64_t k) {
     return k;
 }
 
-void murmur3_x64_128(const rats_uint8* key, size_t len, rats_uint32 seed, uint64_t* out);
+void murmur3_x64_128(const rats_uint8* key, size_t len, rats_uint32 seed, rats_uint64* out);
 
 #ifdef __cplusplus
 }

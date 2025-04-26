@@ -32,8 +32,8 @@ int rats_extract_pcm(rats_context* ctx, rats_pcm* pcm, const char* stream_id, ra
     return RATS_EXTRACT_STATUS_OK;
 }
 
-rats_uint8* rats_extract_from_cache_or_sstable(rats_cache* cache, uint64_t stream_id, rats_time time, const char* path) {
-    uint64_t key[2] = {stream_id, time};
+rats_uint8* rats_extract_from_cache_or_sstable(rats_cache* cache, rats_uint64 stream_id, rats_time time, const char* path) {
+    rats_uint64 key[2] = {stream_id, time};
     rats_uint8* data = rats_cache_get(cache, key);
 
     if (!data) {
@@ -48,7 +48,7 @@ rats_uint8* rats_extract_from_cache_or_sstable(rats_cache* cache, uint64_t strea
     return data;
 }
 
-void rats_extract_process_sstable(rats_pcm* pcm, rats_uint8* data, uint64_t stream_id, int64_t from, int64_t to) {
+void rats_extract_process_sstable(rats_pcm* pcm, rats_uint8* data, rats_uint64 stream_id, int64_t from, int64_t to) {
     size_t size;
     memcpy(&size, data, sizeof(size_t));
 

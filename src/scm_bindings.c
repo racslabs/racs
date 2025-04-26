@@ -93,7 +93,7 @@ SCM rats_scm_streaminfo(SCM stream_id, SCM attr) {
         return SCM_EOL;
     }
 
-    uint64_t value = rats_deserialize_uint64(&msg.data, 1);
+    rats_uint64 value = rats_deserialize_uint64(&msg.data, 1);
     return scm_from_uint64(value);
 }
 

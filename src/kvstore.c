@@ -96,7 +96,7 @@ void rats_kvstore_delete(rats_kvstore* kv, void* key) {
 }
 
 rats_kvstore_bin* kvstore_get_bin(rats_kvstore* kv, void* key) {
-    uint64_t hash = kv->ops.hash(key) % kv->capacity;
+    rats_uint64 hash = kv->ops.hash(key) % kv->capacity;
     return &kv->bins[hash];
 }
 

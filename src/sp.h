@@ -11,7 +11,7 @@
 typedef struct {
     char     chunk_id[4];
     char     mac_addr[6];
-    uint64_t stream_id;
+    rats_uint64 stream_id;
     rats_uint32 checksum;
     rats_uint16 channels;
     rats_uint32 sample_rate;

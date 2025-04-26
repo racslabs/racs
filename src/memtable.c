@@ -1,6 +1,6 @@
 #include "memtable.h"
 
-static void memtable_append(rats_memtable* mt, uint64_t* key, rats_uint8* block, rats_uint16 block_size);
+static void memtable_append(rats_memtable* mt, rats_uint64* key, rats_uint8* block, rats_uint16 block_size);
 static void memtable_flush(rats_memtable* mt);
 static void memtable_destroy(rats_memtable* mt);
 static void sstable_read_index_entries(rats_sstable* sst);
@@ -43,7 +43,7 @@ rats_multi_memtable* rats_multi_memtable_create(int num_tables, int capacity) {
     return mmt;
 }
 
-void rats_multi_memtable_append(rats_multi_memtable* mmt, uint64_t* key, rats_uint8* block, rats_uint16 block_size) {
+void rats_multi_memtable_append(rats_multi_memtable* mmt, rats_uint64* key, rats_uint8* block, rats_uint16 block_size) {
     if (!mmt) return;
 
     rats_memtable* mt = mmt->tables[mmt->index];
@@ -208,7 +208,7 @@ rats_memtable* memtable_create(int capacity) {
     return mt;
 }
 
-void memtable_append(rats_memtable* mt, uint64_t* key, rats_uint8* block, rats_uint16 block_size) {
+void memtable_append(rats_memtable* mt, rats_uint64* key, rats_uint8* block, rats_uint16 block_size) {
     if (!mt) return;
 
     pthread_mutex_lock(&mt->mutex);
@@ -217,7 +217,7 @@ void memtable_append(rats_memtable* mt, uint64_t* key, rats_uint8* block, rats_u
         memtable_flush(mt);
     }
 
-    memcpy(mt->entries[mt->num_entries].key, key, sizeof(uint64_t) * 2);
+    memcpy(mt->entries[mt->num_entries].key, key, sizeof(rats_uint64) * 2);
     memcpy(mt->entries[mt->num_entries].block, block, block_size);
 
     mt->entries[mt->num_entries].block_size = block_size;
@@ -273,7 +273,7 @@ void memtable_write(rats_memtable* mt) {
     }
 
     char path[64];
-    uint64_t timestamp = mt->entries[0].key[1];
+    rats_uint64 timestamp = mt->entries[0].key[1];
     get_sstable_path((int64_t)timestamp, path);
 
     sst->num_entries = mt->num_entries;
@@ -345,7 +345,7 @@ void sstable_read_index_entries_in_memory(rats_sstable* sst, rats_uint8* data) {
         rats_sstable_index_entry* index_entry = &sst->index_entries[entry];
         offset = rats_read_uint64(&index_entry->key[0], data, offset);
         offset = rats_read_uint64(&index_entry->key[1], data, offset);
-        offset = rats_read_uint64((uint64_t *) &index_entry->offset, data, offset);
+        offset = rats_read_uint64((rats_uint64 *) &index_entry->offset, data, offset);
     }
 }
 
@@ -355,7 +355,7 @@ void sstable_read_index_entries(rats_sstable* sst) {
 
         rats_io_read_uint64(&index_entry->key[0], sst->fd);
         rats_io_read_uint64(&index_entry->key[1], sst->fd);
-        rats_io_read_uint64((uint64_t *) &index_entry->offset, sst->fd);
+        rats_io_read_uint64((rats_uint64 *) &index_entry->offset, sst->fd);
     }
 }
 

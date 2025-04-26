@@ -121,7 +121,7 @@ rats_time rats_streaminfo_offset(rats_streaminfo* streaminfo) {
 }
 
 rats_uint64 rats_hash(const char* stream_id) {
-    uint64_t hash[2];
+    rats_uint64 hash[2];
     murmur3_x64_128((void*)stream_id, strlen(stream_id), 0, hash);
     return hash[0];
 }

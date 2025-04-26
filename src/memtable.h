@@ -34,7 +34,7 @@ extern "C" {
 #define RATS_TRAILER_SIZE 2
 
 typedef struct {
-    uint64_t key[2];
+    rats_uint64 key[2];
     rats_uint8* block;
     rats_uint16 block_size;
 } rats_memtable_entry;
@@ -47,7 +47,7 @@ typedef struct {
 } rats_memtable;
 
 typedef struct {
-    uint64_t key[2];
+    rats_uint64 key[2];
     size_t offset;
 } rats_sstable_index_entry;
 
@@ -67,7 +67,7 @@ typedef struct {
 } rats_multi_memtable;
 
 rats_multi_memtable* rats_multi_memtable_create(int num_tables, int capacity);
-void rats_multi_memtable_append(rats_multi_memtable* mmt, uint64_t* key, rats_uint8* block, rats_uint16 block_size);
+void rats_multi_memtable_append(rats_multi_memtable* mmt, rats_uint64* key, rats_uint8* block, rats_uint16 block_size);
 void rats_multi_memtable_destroy(rats_multi_memtable* mmt);
 void rats_multi_memtable_flush(rats_multi_memtable* mmt);
 rats_sstable* rats_sstable_read(const char* filename);

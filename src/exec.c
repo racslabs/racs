@@ -1,6 +1,6 @@
 #include "exec.h"
 
-static uint64_t exec_hash(void* key);
+static rats_uint64 exec_hash(void* key);
 static int exec_cmp(void* a, void* b);
 static void exec_destroy(void* key, void* value);
 static rats_command_func exec_get(rats_exec* exec, const char* cmd_name);
@@ -413,15 +413,15 @@ void exec_plan_add_command(rats_exec_plan* plan, rats_command* cmd) {
     ++plan->num_cmd;
 }
 
-uint64_t exec_hash(void* key) {
-    uint64_t hash[2];
+rats_uint64 exec_hash(void* key) {
+    rats_uint64 hash[2];
     murmur3_x64_128(key, strlen((char*)key), 0, hash);
     return hash[0];
 }
 
 int exec_cmp(void* a, void* b) {
-    uint64_t* x = (uint64_t*)a;
-    uint64_t* y = (uint64_t*)b;
+    rats_uint64* x = (rats_uint64*)a;
+    rats_uint64* y = (rats_uint64*)b;
     return x[0] == y[0];
 }
 
