@@ -78,7 +78,7 @@ int rats_serialize_bool(msgpack_packer* pk, bool d) {
     return RATS_STATUS_OK;
 }
 
-int rats_serialize_i8v(msgpack_packer* pk, rats_int8* data, size_t n) {
+int rats_serialize_s8v(msgpack_packer* pk, rats_int8* data, size_t n) {
     msgpack_pack_array(pk, 2);
 
     rats_serialize_type(pk, RATS_TYPE_I8VEC);
@@ -96,7 +96,7 @@ int rats_serialize_u8v(msgpack_packer* pk, rats_uint8* data, size_t n) {
     return RATS_STATUS_OK;
 }
 
-int rats_serialize_i16v(msgpack_packer* pk, rats_int16* data, size_t n) {
+int rats_serialize_s16v(msgpack_packer* pk, rats_int16* data, size_t n) {
     msgpack_pack_array(pk, 2);
 
     rats_serialize_type(pk, RATS_TYPE_I16VEC);
@@ -114,7 +114,7 @@ int rats_serialize_u16v(msgpack_packer* pk, rats_uint16* data, size_t n) {
     return RATS_STATUS_OK;
 }
 
-int rats_serialize_i32v(msgpack_packer* pk, rats_int32* data, size_t n) {
+int rats_serialize_s32v(msgpack_packer* pk, rats_int32* data, size_t n) {
     msgpack_pack_array(pk, 2);
 
     rats_serialize_type(pk, RATS_TYPE_I32VEC);
@@ -173,11 +173,11 @@ rats_uint8* rats_deserialize_u8v(msgpack_object* obj, int n) {
     return (rats_uint8*)obj->via.array.ptr[n].via.bin.ptr;
 }
 
-rats_int16* rats_deserialize_i16v(msgpack_object* obj, int n) {
+rats_int16* rats_deserialize_s16v(msgpack_object* obj, int n) {
     return (rats_int16*)obj->via.array.ptr[n].via.bin.ptr;
 }
 
-rats_int32* rats_deserialize_i32v(msgpack_object* obj, int n) {
+rats_int32* rats_deserialize_s32v(msgpack_object* obj, int n) {
     return (rats_int32*)obj->via.array.ptr[n].via.bin.ptr;
 }
 
@@ -185,11 +185,11 @@ size_t rats_deserialize_u8v_size(msgpack_object* obj, int n) {
     return obj->via.array.ptr[n].via.bin.size;
 }
 
-size_t rats_deserialize_i16v_size(msgpack_object* obj, int n) {
+size_t rats_deserialize_s16v_size(msgpack_object* obj, int n) {
     return obj->via.array.ptr[n].via.bin.size / sizeof(rats_int16);
 }
 
-size_t rats_deserialize_i32v_size(msgpack_object* obj, int n) {
+size_t rats_deserialize_s32v_size(msgpack_object* obj, int n) {
     return obj->via.array.ptr[n].via.bin.size / sizeof(rats_int32);
 }
 

@@ -30,8 +30,8 @@ SCM rats_scm_extract(SCM stream_id, SCM from, SCM to) {
         return SCM_EOL;
     }
 
-    size_t size = rats_deserialize_i32v_size(&msg.data, 1);
-    rats_int32* data = rats_deserialize_i32v(&msg.data, 1);
+    size_t size = rats_deserialize_s32v_size(&msg.data, 1);
+    rats_int32* data = rats_deserialize_s32v(&msg.data, 1);
 
     return scm_take_s32vector(data, size);
 }

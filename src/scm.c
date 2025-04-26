@@ -15,7 +15,7 @@ int rats_scm_serialize_s8vector(msgpack_packer* pk, SCM v) {
     size_t n;
 
     const rats_int8* data = scm_s8vector_elements(v, &handle, &n, NULL);
-    rats_serialize_i8v(pk, (rats_int8*)data, n);
+    rats_serialize_s8v(pk, (rats_int8 *) data, n);
     scm_array_handle_release (&handle);
 
     return RATS_STATUS_OK;
@@ -37,7 +37,7 @@ int rats_scm_serialize_s16vector(msgpack_packer* pk, SCM v) {
     size_t n;
 
     const rats_int16* data = scm_s16vector_elements(v, &handle, &n, NULL);
-    rats_serialize_i16v(pk, (rats_int16*)data, n);
+    rats_serialize_s16v(pk, (rats_int16 *) data, n);
     scm_array_handle_release (&handle);
 
     return RATS_STATUS_OK;
@@ -59,7 +59,7 @@ int rats_scm_serialize_s32vector(msgpack_packer* pk, SCM v) {
     size_t n;
 
     const rats_int32* data = scm_s32vector_elements(v, &handle, &n, NULL);
-    rats_serialize_i32v(pk, (rats_int32*)data, n);
+    rats_serialize_s32v(pk, (rats_int32 *) data, n);
     scm_array_handle_release (&handle);
 
     return RATS_STATUS_OK;

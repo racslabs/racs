@@ -162,7 +162,7 @@ rats_create_command(extract) {
         return rats_serialize_error(&pk, "The stream-id does not exist");
     }
 
-    rc = rats_serialize_i16v(&pk, (rats_int16*)pcm.out_stream.data, pcm.samples * pcm.channels);
+    rc = rats_serialize_s16v(&pk, (rats_int16 *) pcm.out_stream.data, pcm.samples * pcm.channels);
     rats_pcm_destroy(&pcm);
     return rc;
 }
@@ -191,8 +191,8 @@ rats_create_command(format) {
         return rats_serialize_error(&pk, "Invalid input type. Expected: int16 array");
     }
 
-    int16_t* in = rats_deserialize_i16v(&msg2.data, 1);
-    size_t size = rats_deserialize_i16v_size(&msg2.data, 1);
+    int16_t* in = rats_deserialize_s16v(&msg2.data, 1);
+    size_t size = rats_deserialize_s16v_size(&msg2.data, 1);
 
     char* mime_type = rats_deserialize_str(&msg1.data, 0);
     rats_uint16 channels = rats_deserialize_uint16(&msg1.data, 1);
