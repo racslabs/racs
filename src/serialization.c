@@ -50,7 +50,7 @@ int rats_serialize_str(msgpack_packer* pk, const char* str) {
     return RATS_STATUS_OK;
 }
 
-int rats_serialize_int64(msgpack_packer* pk, int64_t d) {
+int rats_serialize_int64(msgpack_packer* pk, rats_int64 d) {
     msgpack_pack_array(pk, 2);
     rats_serialize_type(pk, RATS_TYPE_INT);
     msgpack_pack_int64(pk, d);
@@ -78,11 +78,11 @@ int rats_serialize_bool(msgpack_packer* pk, bool d) {
     return RATS_STATUS_OK;
 }
 
-int rats_serialize_i8v(msgpack_packer* pk, int8_t* data, size_t n) {
+int rats_serialize_i8v(msgpack_packer* pk, rats_int8* data, size_t n) {
     msgpack_pack_array(pk, 2);
 
     rats_serialize_type(pk, RATS_TYPE_I8VEC);
-    msgpack_pack_bin_with_body(pk, data, n * sizeof(int8_t));
+    msgpack_pack_bin_with_body(pk, data, n * sizeof(rats_int8));
 
     return RATS_STATUS_OK;
 }
@@ -96,11 +96,11 @@ int rats_serialize_u8v(msgpack_packer* pk, rats_uint8* data, size_t n) {
     return RATS_STATUS_OK;
 }
 
-int rats_serialize_i16v(msgpack_packer* pk, int16_t* data, size_t n) {
+int rats_serialize_i16v(msgpack_packer* pk, rats_int16* data, size_t n) {
     msgpack_pack_array(pk, 2);
 
     rats_serialize_type(pk, RATS_TYPE_I16VEC);
-    msgpack_pack_bin_with_body(pk, data, n * sizeof(int16_t));
+    msgpack_pack_bin_with_body(pk, data, n * sizeof(rats_int16));
 
     return RATS_STATUS_OK;
 }
@@ -114,11 +114,11 @@ int rats_serialize_u16v(msgpack_packer* pk, rats_uint16* data, size_t n) {
     return RATS_STATUS_OK;
 }
 
-int rats_serialize_i32v(msgpack_packer* pk, int32_t* data, size_t n) {
+int rats_serialize_i32v(msgpack_packer* pk, rats_int32* data, size_t n) {
     msgpack_pack_array(pk, 2);
 
     rats_serialize_type(pk, RATS_TYPE_I32VEC);
-    msgpack_pack_bin_with_body(pk, data, n * sizeof(int32_t));
+    msgpack_pack_bin_with_body(pk, data, n * sizeof(rats_int32));
 
     return RATS_STATUS_OK;
 }
@@ -173,12 +173,12 @@ rats_uint8* rats_deserialize_u8v(msgpack_object* obj, int n) {
     return (rats_uint8*)obj->via.array.ptr[n].via.bin.ptr;
 }
 
-int16_t* rats_deserialize_i16v(msgpack_object* obj, int n) {
-    return (int16_t*)obj->via.array.ptr[n].via.bin.ptr;
+rats_int16* rats_deserialize_i16v(msgpack_object* obj, int n) {
+    return (rats_int16*)obj->via.array.ptr[n].via.bin.ptr;
 }
 
-int32_t* rats_deserialize_i32v(msgpack_object* obj, int n) {
-    return (int32_t*)obj->via.array.ptr[n].via.bin.ptr;
+rats_int32* rats_deserialize_i32v(msgpack_object* obj, int n) {
+    return (rats_int32*)obj->via.array.ptr[n].via.bin.ptr;
 }
 
 size_t rats_deserialize_u8v_size(msgpack_object* obj, int n) {
@@ -186,26 +186,26 @@ size_t rats_deserialize_u8v_size(msgpack_object* obj, int n) {
 }
 
 size_t rats_deserialize_i16v_size(msgpack_object* obj, int n) {
-    return obj->via.array.ptr[n].via.bin.size / sizeof(int16_t);
+    return obj->via.array.ptr[n].via.bin.size / sizeof(rats_int16);
 }
 
 size_t rats_deserialize_i32v_size(msgpack_object* obj, int n) {
-    return obj->via.array.ptr[n].via.bin.size / sizeof(int32_t);
+    return obj->via.array.ptr[n].via.bin.size / sizeof(rats_int32);
 }
 
 rats_uint16 rats_deserialize_uint16(msgpack_object* obj, int n) {
     return (rats_uint16)obj->via.array.ptr[n].via.u64;
 }
 
-int32_t rats_deserialize_int32(msgpack_object* obj, int n) {
-    return (int32_t)obj->via.array.ptr[n].via.i64;
+rats_int32 rats_deserialize_int32(msgpack_object* obj, int n) {
+    return (rats_int32)obj->via.array.ptr[n].via.i64;
 }
 
 rats_uint32 rats_deserialize_uint32(msgpack_object* obj, int n) {
     return (rats_uint32)obj->via.array.ptr[n].via.u64;
 }
 
-int64_t rats_deserialize_int64(msgpack_object* obj, int n) {
+rats_int64 rats_deserialize_int64(msgpack_object* obj, int n) {
     return obj->via.array.ptr[n].via.i64;
 }
 

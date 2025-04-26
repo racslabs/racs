@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-RATS_FORCE_INLINE rats_uint64 rotl64(rats_uint64 x, int8_t r) {
+RATS_FORCE_INLINE rats_uint64 rotl64(rats_uint64 x, rats_int8 r) {
     return (x << r) | (x >> (64 - r));
 }
 

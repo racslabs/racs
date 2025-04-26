@@ -8,7 +8,7 @@ static void memtable_write(rats_memtable* mt);
 static void sstable_read_index_entries_in_memory(rats_sstable* sst, rats_uint8* data);
 static void sstable_write(rats_uint8* buf, rats_sstable* sst, size_t offset);
 static void sstable_index_entry_update(rats_sstable_index_entry* index_entry, rats_memtable_entry* mt_entry, off_t offset);
-static void get_sstable_path(int64_t timestamp, char* path);
+static void get_sstable_path(rats_int64 timestamp, char* path);
 static rats_sstable* sstable_create(int num_entries);
 static rats_memtable* memtable_create(int capacity);
 static off_t memtable_to_sstable(rats_uint8* buf, rats_sstable* sst, rats_memtable* mt);
@@ -274,7 +274,7 @@ void memtable_write(rats_memtable* mt) {
 
     char path[64];
     rats_uint64 timestamp = mt->entries[0].key[1];
-    get_sstable_path((int64_t)timestamp, path);
+    get_sstable_path((rats_int64)timestamp, path);
 
     sst->num_entries = mt->num_entries;
     if (sstable_open(path, sst) == -1) {
@@ -293,7 +293,7 @@ void memtable_write(rats_memtable* mt) {
     rats_sstable_destroy_except_data(sst);
 }
 
-void get_sstable_path(int64_t timestamp, char* path) {
+void get_sstable_path(rats_int64 timestamp, char* path) {
     rats_time_create_dirs(timestamp);
     rats_time_to_path(timestamp, path);
 }

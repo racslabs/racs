@@ -8,7 +8,7 @@ static rats_command* command_create(const char* name, rats_command_op op, size_t
 static void command_destroy(rats_command* cmd);
 static rats_command_arg* command_arg_create();
 static rats_command_arg* command_arg_create_str(const char* ptr, size_t size);
-static rats_command_arg* command_arg_create_int64(int64_t d);
+static rats_command_arg* command_arg_create_int64(rats_int64 d);
 static rats_command_arg* command_arg_create_float64(double d);
 static void command_arg_destroy(rats_command_arg* arg);
 static rats_command* handle_id(rats_token* curr, rats_token* prev);
@@ -333,7 +333,7 @@ rats_command_arg* command_arg_create_str(const char* ptr, size_t size) {
     return arg;
 }
 
-rats_command_arg* command_arg_create_int64(int64_t d) {
+rats_command_arg* command_arg_create_int64(rats_int64 d) {
     rats_command_arg* arg = command_arg_create();
     if (!arg) return NULL;
 

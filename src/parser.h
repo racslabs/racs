@@ -48,8 +48,8 @@ typedef struct {
 
 typedef union {
     double              f64;
-    int64_t             i64;
-    int64_t             time;
+    rats_int64             i64;
+    rats_int64             time;
     rats_uint64            u64;
     rats_token_id      id;
     rats_token_str     str;

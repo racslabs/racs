@@ -23,7 +23,7 @@ typedef enum {
 
 int rats_extract_pcm(rats_context* ctx, rats_pcm* pcm, const char* stream_id, rats_time from, rats_time to);
 rats_uint8* rats_extract_from_cache_or_sstable(rats_cache* cache, rats_uint64 stream_id, rats_time time, const char* path);
-void rats_extract_process_sstable(rats_pcm* pcm, rats_uint8* data, rats_uint64 stream_id, int64_t from, int64_t to);
+void rats_extract_process_sstable(rats_pcm* pcm, rats_uint8* data, rats_uint64 stream_id, rats_int64 from, rats_int64 to);
 
 
 #endif //RATS_EXTRACT_H

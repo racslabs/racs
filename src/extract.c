@@ -48,7 +48,7 @@ rats_uint8* rats_extract_from_cache_or_sstable(rats_cache* cache, rats_uint64 st
     return data;
 }
 
-void rats_extract_process_sstable(rats_pcm* pcm, rats_uint8* data, rats_uint64 stream_id, int64_t from, int64_t to) {
+void rats_extract_process_sstable(rats_pcm* pcm, rats_uint8* data, rats_uint64 stream_id, rats_int64 from, rats_int64 to) {
     size_t size;
     memcpy(&size, data, sizeof(size_t));
 
