@@ -95,7 +95,7 @@ void rats_mcache_destroy(void* key, void* value) {
     free(key);
 }
 
-off_t rats_streaminfo_write(uint8_t* buf, rats_streaminfo* streaminfo) {
+off_t rats_streaminfo_write(rats_uint8* buf, rats_streaminfo* streaminfo) {
     off_t offset = 0;
     offset = rats_write_uint16(buf, streaminfo->channels, offset);
     offset = rats_write_uint16(buf, streaminfo->bit_depth, offset);

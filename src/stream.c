@@ -20,7 +20,7 @@ int rats_streamcreate(rats_cache* mcache, rats_uint64 stream_id, rats_uint32 sam
     return rats_streaminfo_put(mcache, &streaminfo, stream_id);
 }
 
-int rats_streamappend(rats_cache* mcache, rats_multi_memtable* mmt, rats_streamkv* kv, uint8_t* data) {
+int rats_streamappend(rats_cache* mcache, rats_multi_memtable* mmt, rats_streamkv* kv, rats_uint8* data) {
     rats_sp frame;
     if (!rats_sp_parse(data, &frame))
         return RATS_STREAM_MALFORMED;

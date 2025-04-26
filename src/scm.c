@@ -1,6 +1,6 @@
 #include "scm.h"
 
-void rats_scm_propagate_error(msgpack_object* obj, uint8_t* data) {
+void rats_scm_propagate_error(msgpack_object* obj, rats_uint8* data) {
     char* message = rats_deserialize_str(obj, 1);
     SCM error = scm_from_utf8_string(message);
 
@@ -25,8 +25,8 @@ int rats_scm_serialize_u8vector(msgpack_packer* pk, SCM v) {
     scm_t_array_handle handle;
     size_t n;
 
-    const uint8_t* data = scm_u8vector_elements(v, &handle, &n, NULL);
-    rats_serialize_u8v(pk, (uint8_t*)data, n);
+    const rats_uint8* data = scm_u8vector_elements(v, &handle, &n, NULL);
+    rats_serialize_u8v(pk, (rats_uint8*)data, n);
     scm_array_handle_release (&handle);
 
     return RATS_STATUS_OK;
@@ -47,8 +47,8 @@ int rats_scm_serialize_u16vector(msgpack_packer* pk, SCM v) {
     scm_t_array_handle handle;
     size_t n;
 
-    const uint16_t* data = scm_u16vector_elements(v, &handle, &n, NULL);
-    rats_serialize_u16v(pk, (uint16_t*)data, n);
+    const rats_uint16* data = scm_u16vector_elements(v, &handle, &n, NULL);
+    rats_serialize_u16v(pk, (rats_uint16*)data, n);
     scm_array_handle_release (&handle);
 
     return RATS_STATUS_OK;
@@ -69,8 +69,8 @@ int rats_scm_serialize_u32vector(msgpack_packer* pk, SCM v) {
     scm_t_array_handle handle;
     size_t n;
 
-    const uint32_t* data = scm_u32vector_elements(v, &handle, &n, NULL);
-    rats_serialize_u32v(pk, (uint32_t*)data, n);
+    const rats_uint32* data = scm_u32vector_elements(v, &handle, &n, NULL);
+    rats_serialize_u32v(pk, (rats_uint32*)data, n);
     scm_array_handle_release (&handle);
 
     return RATS_STATUS_OK;
@@ -161,7 +161,7 @@ int rats_scm_serialize_element(msgpack_packer* pk, msgpack_sbuffer* buf, SCM v) 
 }
 
 int rats_scm_serialize_list(msgpack_packer* pk, msgpack_sbuffer* buf, SCM x) {
-    uint32_t n = scm_to_uint32(scm_length(x));
+    rats_uint32 n = scm_to_uint32(scm_length(x));
 
     msgpack_pack_array(pk, n + 1);
     rats_serialize_type(pk, RATS_TYPE_LIST);

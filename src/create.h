@@ -5,6 +5,6 @@
 #include "streaminfo.h"
 #include "time.h"
 
-int rats_create(rats_cache* mcache, uint64_t stream_id, uint32_t sample_rate, uint16_t channels);
+int rats_create(rats_cache* mcache, uint64_t stream_id, rats_uint32 sample_rate, rats_uint16 channels);
 
 #endif //RATS_CREATE_H

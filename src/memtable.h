@@ -35,14 +35,14 @@ extern "C" {
 
 typedef struct {
     uint64_t key[2];
-    uint8_t* block;
-    uint16_t block_size;
+    rats_uint8* block;
+    rats_uint16 block_size;
 } rats_memtable_entry;
 
 typedef struct {
     rats_memtable_entry* entries;
-    uint16_t num_entries;
-    uint16_t capacity;
+    rats_uint16 num_entries;
+    rats_uint16 capacity;
     pthread_mutex_t mutex;
 } rats_memtable;
 
@@ -54,8 +54,8 @@ typedef struct {
 typedef struct {
     int fd;
     size_t size;
-    uint8_t* data;
-    uint16_t num_entries;
+    rats_uint8* data;
+    rats_uint16 num_entries;
     rats_sstable_index_entry* index_entries;
 } rats_sstable;
 
@@ -67,13 +67,13 @@ typedef struct {
 } rats_multi_memtable;
 
 rats_multi_memtable* rats_multi_memtable_create(int num_tables, int capacity);
-void rats_multi_memtable_append(rats_multi_memtable* mmt, uint64_t* key, uint8_t* block, uint16_t block_size);
+void rats_multi_memtable_append(rats_multi_memtable* mmt, uint64_t* key, rats_uint8* block, rats_uint16 block_size);
 void rats_multi_memtable_destroy(rats_multi_memtable* mmt);
 void rats_multi_memtable_flush(rats_multi_memtable* mmt);
 rats_sstable* rats_sstable_read(const char* filename);
-rats_sstable* rats_sstable_read_in_memory(uint8_t* data, size_t size);
+rats_sstable* rats_sstable_read_in_memory(rats_uint8* data, size_t size);
 void rats_sstable_destroy_except_data(rats_sstable* sst);
-rats_memtable_entry* rats_memtable_entry_read(uint8_t* buf, size_t offset);
+rats_memtable_entry* rats_memtable_entry_read(rats_uint8* buf, size_t offset);
 
 #ifdef __cplusplus
 }

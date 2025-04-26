@@ -1,16 +1,16 @@
 #include "sp.h"
 
-int rats_sp_parse(uint8_t* buf, rats_sp* frame) {
+int rats_sp_parse(rats_uint8* buf, rats_sp* frame) {
     rats_sp_header_parse(buf, &frame->header);
 
     frame->pcm_block = buf + sizeof(rats_sp_header);
     return 1;
-//    uint32_t checksum = crc32c(0, frame->pcm_block, frame->header.block_size);
+//    rats_uint32 checksum = crc32c(0, frame->pcm_block, frame->header.block_size);
 //
 //    return checksum == frame->header.checksum;
 }
 
-void rats_sp_header_parse(uint8_t* buf, rats_sp_header* header) {
+void rats_sp_header_parse(rats_uint8* buf, rats_sp_header* header) {
     memcpy(&header->chunk_id, buf, 4);
     memcpy(&header->mac_addr, buf + 4, 6);
     rats_read_uint64(&header->stream_id, buf, 10);

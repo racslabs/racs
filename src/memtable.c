@@ -1,21 +1,21 @@
 #include "memtable.h"
 
-static void memtable_append(rats_memtable* mt, uint64_t* key, uint8_t* block, uint16_t block_size);
+static void memtable_append(rats_memtable* mt, uint64_t* key, rats_uint8* block, rats_uint16 block_size);
 static void memtable_flush(rats_memtable* mt);
 static void memtable_destroy(rats_memtable* mt);
 static void sstable_read_index_entries(rats_sstable* sst);
 static void memtable_write(rats_memtable* mt);
-static void sstable_read_index_entries_in_memory(rats_sstable* sst, uint8_t* data);
-static void sstable_write(uint8_t* buf, rats_sstable* sst, size_t offset);
+static void sstable_read_index_entries_in_memory(rats_sstable* sst, rats_uint8* data);
+static void sstable_write(rats_uint8* buf, rats_sstable* sst, size_t offset);
 static void sstable_index_entry_update(rats_sstable_index_entry* index_entry, rats_memtable_entry* mt_entry, off_t offset);
 static void get_sstable_path(int64_t timestamp, char* path);
 static rats_sstable* sstable_create(int num_entries);
 static rats_memtable* memtable_create(int capacity);
-static off_t memtable_to_sstable(uint8_t* buf, rats_sstable* sst, rats_memtable* mt);
-static off_t memtable_entry_write(uint8_t* buf, const rats_memtable_entry* mt_entry, off_t offset);
-static off_t sstable_index_entries_write(uint8_t* buf, rats_sstable* sst, off_t offset);
-static off_t write_index_entry(uint8_t* buf, rats_sstable_index_entry* index_entry, off_t offset);
-static uint8_t* allocate_buffer(size_t size, rats_sstable* sst);
+static off_t memtable_to_sstable(rats_uint8* buf, rats_sstable* sst, rats_memtable* mt);
+static off_t memtable_entry_write(rats_uint8* buf, const rats_memtable_entry* mt_entry, off_t offset);
+static off_t sstable_index_entries_write(rats_uint8* buf, rats_sstable* sst, off_t offset);
+static off_t write_index_entry(rats_uint8* buf, rats_sstable_index_entry* index_entry, off_t offset);
+static rats_uint8* allocate_buffer(size_t size, rats_sstable* sst);
 static int sstable_open(const char* path, rats_sstable* sst);
 
 rats_multi_memtable* rats_multi_memtable_create(int num_tables, int capacity) {
@@ -43,7 +43,7 @@ rats_multi_memtable* rats_multi_memtable_create(int num_tables, int capacity) {
     return mmt;
 }
 
-void rats_multi_memtable_append(rats_multi_memtable* mmt, uint64_t* key, uint8_t* block, uint16_t block_size) {
+void rats_multi_memtable_append(rats_multi_memtable* mmt, uint64_t* key, rats_uint8* block, rats_uint16 block_size) {
     if (!mmt) return;
 
     rats_memtable* mt = mmt->tables[mmt->index];
@@ -102,8 +102,8 @@ rats_sstable* rats_sstable_read(const char* filename) {
         return NULL;
     }
 
-    uint16_t entry_count;
-    if (pread(fd, &entry_count, sizeof(uint16_t), file_size - RATS_TRAILER_SIZE) != sizeof(uint16_t)) {
+    rats_uint16 entry_count;
+    if (pread(fd, &entry_count, sizeof(rats_uint16), file_size - RATS_TRAILER_SIZE) != sizeof(rats_uint16)) {
         perror("Failed to read entry num_files");
         close(fd);
         return NULL;
@@ -139,10 +139,10 @@ rats_sstable* rats_sstable_read(const char* filename) {
     return sstable;
 }
 
-rats_sstable* rats_sstable_read_in_memory(uint8_t* data, size_t size) {
-    uint16_t num_entries;
+rats_sstable* rats_sstable_read_in_memory(rats_uint8* data, size_t size) {
+    rats_uint16 num_entries;
 
-    memcpy(&num_entries, data + (size - RATS_TRAILER_SIZE), sizeof(uint16_t));
+    memcpy(&num_entries, data + (size - RATS_TRAILER_SIZE), sizeof(rats_uint16));
     size_t offset = size - (num_entries * RATS_INDEX_ENTRY_SIZE) - RATS_TRAILER_SIZE;
 
     rats_sstable* sst = sstable_create(num_entries);
@@ -161,7 +161,7 @@ void rats_sstable_destroy_except_data(rats_sstable* sst) {
     free(sst);
 }
 
-rats_memtable_entry* rats_memtable_entry_read(uint8_t* buf, size_t offset) {
+rats_memtable_entry* rats_memtable_entry_read(rats_uint8* buf, size_t offset) {
     rats_memtable_entry* entry = malloc(sizeof(rats_memtable_entry));
     if (!entry) {
         perror("Failed to allocate rats_memtable_entry");
@@ -208,7 +208,7 @@ rats_memtable* memtable_create(int capacity) {
     return mt;
 }
 
-void memtable_append(rats_memtable* mt, uint64_t* key, uint8_t* block, uint16_t block_size) {
+void memtable_append(rats_memtable* mt, uint64_t* key, rats_uint8* block, rats_uint16 block_size) {
     if (!mt) return;
 
     pthread_mutex_lock(&mt->mutex);
@@ -266,7 +266,7 @@ void memtable_write(rats_memtable* mt) {
             (mt->num_entries * (RATS_MAX_BLOCK_SIZE + RATS_MEMTABLE_ENTRY_METADATA_SIZE + RATS_INDEX_ENTRY_SIZE)) +
             RATS_TRAILER_SIZE;
 
-    uint8_t* buf = allocate_buffer(size, sst);
+    rats_uint8* buf = allocate_buffer(size, sst);
     if (!buf) {
         rats_sstable_destroy_except_data(sst);
         return;
@@ -298,8 +298,8 @@ void get_sstable_path(int64_t timestamp, char* path) {
     rats_time_to_path(timestamp, path);
 }
 
-uint8_t* allocate_buffer(size_t size, rats_sstable* sst) {
-    uint8_t* buf;
+rats_uint8* allocate_buffer(size_t size, rats_sstable* sst) {
+    rats_uint8* buf;
     if (posix_memalign((void*)&buf, RATS_BLOCK_ALIGN, size) != 0) {
         perror("Buffer allocation failed");
         return NULL;
@@ -316,7 +316,7 @@ int sstable_open(const char* path, rats_sstable* sst) {
     return 0;
 }
 
-void sstable_write(uint8_t* buf, rats_sstable* sst, size_t offset) {
+void sstable_write(rats_uint8* buf, rats_sstable* sst, size_t offset) {
     rats_write_uint64(buf, offset, 0);
     write(sst->fd, buf, offset);
 }
@@ -338,7 +338,7 @@ rats_sstable* sstable_create(int num_entries) {
     return sst;
 }
 
-void sstable_read_index_entries_in_memory(rats_sstable* sst, uint8_t* data) {
+void sstable_read_index_entries_in_memory(rats_sstable* sst, rats_uint8* data) {
     off_t offset = 0;
 
     for (int entry = 0; entry < sst->num_entries; ++entry) {
@@ -359,7 +359,7 @@ void sstable_read_index_entries(rats_sstable* sst) {
     }
 }
 
-off_t memtable_to_sstable(uint8_t* buf, rats_sstable* sst, rats_memtable* mt) {
+off_t memtable_to_sstable(rats_uint8* buf, rats_sstable* sst, rats_memtable* mt) {
     off_t offset = RATS_HEADER_SIZE;
 
     for (int entry = 0; entry < sst->num_entries; ++entry) {
@@ -372,7 +372,7 @@ off_t memtable_to_sstable(uint8_t* buf, rats_sstable* sst, rats_memtable* mt) {
     return offset;
 }
 
-off_t sstable_index_entries_write(uint8_t* buf, rats_sstable* sst, off_t offset) {
+off_t sstable_index_entries_write(rats_uint8* buf, rats_sstable* sst, off_t offset) {
     for (int entry = 0; entry < sst->num_entries; ++entry) {
         offset = write_index_entry(buf, &sst->index_entries[entry], offset);
     }
@@ -385,14 +385,14 @@ void sstable_index_entry_update(rats_sstable_index_entry* index_entry, rats_memt
     index_entry->key[1] = mt_entry->key[1];
 }
 
-off_t memtable_entry_write(uint8_t* buf, const rats_memtable_entry* mt_entry, off_t offset) {
+off_t memtable_entry_write(rats_uint8* buf, const rats_memtable_entry* mt_entry, off_t offset) {
     offset = rats_write_uint16(buf, mt_entry->block_size, offset);
     offset = rats_write_uint64(buf, mt_entry->key[0], offset);
     offset = rats_write_uint64(buf, mt_entry->key[1], offset);
     return rats_write_bin(buf, mt_entry->block, mt_entry->block_size, offset);
 }
 
-off_t write_index_entry(uint8_t* buf, rats_sstable_index_entry* index_entry, off_t offset) {
+off_t write_index_entry(rats_uint8* buf, rats_sstable_index_entry* index_entry, off_t offset) {
     offset = rats_write_uint64(buf, index_entry->key[0], offset);
     offset = rats_write_uint64(buf, index_entry->key[1], offset);
     return rats_write_uint64(buf, index_entry->offset, offset);

@@ -5,9 +5,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "types.h"
 
 typedef struct {
-    uint8_t* data;
+    rats_uint8* data;
     size_t size;
 } rats_result;
 

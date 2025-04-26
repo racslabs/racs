@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "export.h"
+#include "types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,7 +25,7 @@ RATS_FORCE_INLINE uint64_t fmix64(uint64_t k) {
     return k;
 }
 
-void murmur3_x64_128(const uint8_t* key, size_t len, uint32_t seed, uint64_t* out);
+void murmur3_x64_128(const rats_uint8* key, size_t len, rats_uint32 seed, uint64_t* out);
 
 #ifdef __cplusplus
 }

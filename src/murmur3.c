@@ -1,6 +1,6 @@
 #include "murmur3.h"
 
-void murmur3_x64_128(const uint8_t* key, size_t len, uint32_t seed, uint64_t* out) {
+void murmur3_x64_128(const rats_uint8* key, size_t len, rats_uint32 seed, uint64_t* out) {
     uint64_t h1 = seed;
     uint64_t h2 = seed;
 

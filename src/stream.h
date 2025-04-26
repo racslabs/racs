@@ -24,7 +24,7 @@ typedef struct {
 extern const char* const rats_stream_status_string[];
 
 int rats_streamcreate(rats_cache* mcache, rats_uint64 stream_id, rats_uint32 sample_rate, rats_uint16 channels);
-int rats_streamappend(rats_cache* mcache, rats_multi_memtable* mmt, rats_streamkv* kv, uint8_t* data);
+int rats_streamappend(rats_cache* mcache, rats_multi_memtable* mmt, rats_streamkv* kv, rats_uint8* data);
 int rats_streamopen(rats_streamkv* kv, rats_uint64 stream_id);
 int rats_streamclose(rats_streamkv* kv, rats_uint64 stream_id);
 char* rats_streamkv_get(rats_streamkv* kv, rats_uint64 stream_id);
