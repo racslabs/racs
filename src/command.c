@@ -29,9 +29,9 @@ rats_create_command(stream) {
 
     char* stream_id = rats_deserialize_str(&msg.data, 0);
 
-    uint32_t sample_rate = rats_deserialize_uint32(&msg.data, 1);
-    uint16_t channels = rats_deserialize_uint16(&msg.data, 2);
-    uint64_t hash = rats_hash(stream_id);
+    rats_uint32 sample_rate = rats_deserialize_uint32(&msg.data, 1);
+    rats_uint16 channels = rats_deserialize_uint16(&msg.data, 2);
+    rats_uint64 hash = rats_hash(stream_id);
 
     int rc = rats_streamcreate(ctx->mcache, hash, sample_rate, channels);
     free(stream_id);
@@ -195,8 +195,8 @@ rats_create_command(format) {
     size_t size = rats_deserialize_i16v_size(&msg2.data, 1);
 
     char* mime_type = rats_deserialize_str(&msg1.data, 0);
-    uint16_t channels = rats_deserialize_uint16(&msg1.data, 1);
-    uint32_t sample_rate = rats_deserialize_uint32(&msg1.data, 2);
+    rats_uint16 channels = rats_deserialize_uint16(&msg1.data, 1);
+    rats_uint32 sample_rate = rats_deserialize_uint32(&msg1.data, 2);
 
     void* out = malloc(size * 2 + 44);
 

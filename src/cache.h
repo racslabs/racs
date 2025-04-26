@@ -4,6 +4,7 @@
 
 #include "kvstore.h"
 #include "murmur3.h"
+#include "types.h"
 #include <pthread.h>
 
 #ifdef __cplusplus
@@ -11,8 +12,8 @@ extern "C" {
 #endif
 
 typedef struct {
-    uint64_t key[2];
-    uint8_t* value;
+    rats_uint64 key[2];
+    rats_uint8* value;
 } rats_cache_entry;
 
 typedef struct {
@@ -31,11 +32,11 @@ typedef struct {
 } rats_cache;
 
 rats_cache* rats_scache_create(size_t capacity);
-uint8_t* rats_cache_get(rats_cache* cache, const uint64_t* key);
-void rats_cache_put(rats_cache* cache, const uint64_t* key, uint8_t* value);
+rats_uint8* rats_cache_get(rats_cache* cache, const rats_uint64* key);
+void rats_cache_put(rats_cache* cache, const rats_uint64* key, rats_uint8* value);
 void rats_cache_evict(rats_cache* cache);
 void rats_cache_destroy(rats_cache* cache);
-uint64_t rats_cache_hash(void* key);
+rats_uint64 rats_cache_hash(void* key);
 int rats_cache_cmp(void* a, void* b);
 void rats_scache_destroy(void* key, void* value);
 

@@ -1,6 +1,6 @@
 #include "cache.h"
 
-static rats_cache_node* cache_node_create(const uint64_t* key, uint8_t* value);
+static rats_cache_node* cache_node_create(const rats_uint64* key, rats_uint8* value);
 static void cache_insert_at_head(rats_cache* cache, rats_cache_node* node);
 
 rats_cache* rats_scache_create(size_t capacity) {
@@ -21,7 +21,7 @@ rats_cache* rats_scache_create(size_t capacity) {
     return cache;
 }
 
-void rats_cache_put(rats_cache* cache, const uint64_t* key, uint8_t* value) {
+void rats_cache_put(rats_cache* cache, const rats_uint64* key, rats_uint8* value) {
     if (!cache) return;
 
     rats_cache_entry* entry = rats_kvstore_get(cache->kv, key);
@@ -42,7 +42,7 @@ void rats_cache_put(rats_cache* cache, const uint64_t* key, uint8_t* value) {
     pthread_rwlock_unlock(&cache->rwlock);
 }
 
-uint8_t* rats_cache_get(rats_cache* cache, const uint64_t* key) {
+rats_uint8* rats_cache_get(rats_cache* cache, const rats_uint64* key) {
     if (!cache) return NULL;
 
     pthread_rwlock_rdlock(&cache->rwlock);
@@ -88,7 +88,7 @@ void rats_cache_evict(rats_cache* cache) {
     --cache->size;
 }
 
-rats_cache_node* cache_node_create(const uint64_t* key, uint8_t* value) {
+rats_cache_node* cache_node_create(const rats_uint64* key, rats_uint8* value) {
     rats_cache_node* node = malloc(sizeof(rats_cache_node));
     if (!node) {
         perror("Failed to allocate rats_cache_node");
@@ -119,15 +119,15 @@ void cache_insert_at_head(rats_cache* cache, rats_cache_node* node) {
     cache->head = node;
 }
 
-uint64_t rats_cache_hash(void* key) {
-    uint64_t hash[2];
-    murmur3_x64_128(key, 2 * sizeof(uint64_t), 0, hash);
+rats_uint64 rats_cache_hash(void* key) {
+    rats_uint64 hash[2];
+    murmur3_x64_128(key, 2 * sizeof(rats_uint64), 0, hash);
     return hash[0];
 }
 
 int rats_cache_cmp(void* a, void* b) {
-    uint64_t* x = (uint64_t*)a;
-    uint64_t* y = (uint64_t*)b;
+    rats_uint64* x = (rats_uint64*)a;
+    rats_uint64* y = (rats_uint64*)b;
     return x[0] == y[0] && x[1] == y[1];
 }
 
