@@ -96,15 +96,19 @@ void rats_exec_plan_exec(rats_exec_plan *plan, rats_exec *exec, rats_context *ct
     msgpack_packer pk;
 
     for (int i = 0; i < plan->num_cmd; ++i) {
-        msgpack_packer_init(&pk, in_buf, msgpack_sbuffer_write);
-
         rats_command *cmd = plan->cmd[i];
         rats_command_func func = rats_exec_get(exec, cmd->name);
         if (!func) {
             rats_handle_unknown_command(cmd, out_buf);
-            break;
+            return;
         }
+    }
 
+    for (int i = 0; i < plan->num_cmd; ++i) {
+        rats_command *cmd = plan->cmd[i];
+        rats_command_func func = rats_exec_get(exec, cmd->name);
+
+        msgpack_packer_init(&pk, in_buf, msgpack_sbuffer_write);
         rats_command_serialize_args(cmd, &pk);
         rats_status status = func(in_buf, out_buf, ctx);
         msgpack_sbuffer_clear(in_buf);
@@ -226,6 +230,7 @@ void rats_exec_init(rats_exec *exec) {
     rats_kvstore_put(exec->kv, strdup("EXTRACT"), rats_command_extract);
     rats_kvstore_put(exec->kv, strdup("EVAL"), rats_command_eval);
     rats_kvstore_put(exec->kv, strdup("FORMAT"), rats_command_format);
+    rats_kvstore_put(exec->kv, strdup("SHUTDOWN"), rats_command_shutdown);
 }
 
 void rats_exec_destroy(rats_exec *exec) {

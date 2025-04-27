@@ -48,6 +48,8 @@ rats_create_command(ping);
 
 rats_create_command(format);
 
+rats_create_command(shutdown);
+
 int rats_stream(msgpack_sbuffer *out_buf, rats_context *ctx, rats_uint8 *data);
 
 #endif //RATS_COMMAND_H

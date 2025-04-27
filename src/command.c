@@ -167,6 +167,11 @@ rats_create_command(extract) {
     return rc;
 }
 
+rats_create_command(shutdown) {
+    rats_context_destroy(ctx);
+    exit(1);
+}
+
 rats_create_command(format) {
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
