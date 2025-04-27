@@ -99,6 +99,6 @@ SCM rats_scm_streaminfo(SCM stream_id, SCM attr) {
 
 void rats_scm_init_bindings() {
     scm_c_define_gsubr("extract", 3, 0, 0, rats_scm_extract);
-    scm_c_define_gsubr("stream", 4, 0, 0, rats_scm_streamcreate);
+    scm_c_define_gsubr("streamcreate", 4, 0, 0, rats_scm_streamcreate);
     scm_c_define_gsubr("streaminfo", 2, 0, 0, rats_scm_streaminfo);
 }
