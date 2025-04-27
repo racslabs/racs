@@ -8,6 +8,7 @@
 #include "types.h"
 #include "bytes.h"
 #include "cache.h"
+#include "filelist.h"
 
 typedef struct {
     rats_uint16 channels;
@@ -22,6 +23,8 @@ rats_uint64 rats_streaminfo_attr(rats_cache *mcache, rats_uint64 stream_id, cons
 int rats_streaminfo_get(rats_cache *mcache, rats_streaminfo *streaminfo, rats_uint64 stream_id);
 
 int rats_streaminfo_put(rats_cache *mcache, rats_streaminfo *streaminfo, rats_uint64 stream_id);
+
+void rats_streaminfo_load(rats_cache *mcache);
 
 off_t rats_streaminfo_write(rats_uint8 *buf, rats_streaminfo *streaminfo);
 

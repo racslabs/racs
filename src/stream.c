@@ -17,6 +17,8 @@ int rats_streamcreate(rats_cache *mcache, rats_uint64 stream_id, rats_uint32 sam
     streaminfo.channels = channels;
     streaminfo.bit_depth = 16;
 
+    if (rats_streaminfo_get(mcache, &streaminfo, stream_id)) return 0;
+
     return rats_streaminfo_put(mcache, &streaminfo, stream_id);
 }
 
