@@ -94,7 +94,7 @@ void rats_streaminfo_load(rats_cache *mcache) {
     mkdir(".data", 0777);
     mkdir(".data/md", 0777);
 
-    rats_filelist* list = get_sorted_filelist(".data/md");
+    rats_filelist *list = get_sorted_filelist(".data/md");
 
     for (int i = 0; i < list->num_files; ++i) {
         int fd = open(list->files[i], O_RDONLY);
@@ -113,7 +113,7 @@ void rats_streaminfo_load(rats_cache *mcache) {
         key[0] = stream_id;
         key[1] = 0;
 
-        rats_uint8* data = malloc(24);
+        rats_uint8 *data = malloc(24);
         if (!data) {
             close(fd);
             free(key);

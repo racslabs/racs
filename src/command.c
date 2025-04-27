@@ -13,7 +13,7 @@ rats_create_command(ping) {
     return rats_serialize_str(&pk, "PONG");
 }
 
-rats_create_command(stream) {
+rats_create_command(streamcreate) {
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
 

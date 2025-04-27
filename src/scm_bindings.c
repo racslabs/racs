@@ -36,9 +36,9 @@ SCM rats_scm_extract(SCM stream_id, SCM from, SCM to) {
     return scm_take_s32vector(data, size);
 }
 
-SCM rats_scm_stream(SCM stream_id, SCM sample_rate, SCM channels) {
+SCM rats_scm_streamcreate(SCM stream_id, SCM sample_rate, SCM channels) {
     char *cmd = NULL;
-    asprintf(&cmd, "STREAM '%s' %d %d",
+    asprintf(&cmd, "STREAMCREATE '%s' %d %d",
              scm_to_locale_string(stream_id),
              scm_to_uint32(sample_rate),
              scm_to_uint32(channels));
@@ -53,7 +53,7 @@ SCM rats_scm_stream(SCM stream_id, SCM sample_rate, SCM channels) {
 
     if (msgpack_unpack_next(&msg, (char *) res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
         free(res.data);
-        scm_misc_error("stream", "Deserialization error", SCM_EOL);
+        scm_misc_error("streamcreate", "Deserialization error", SCM_EOL);
     }
 
     char *type = rats_deserialize_str(&msg.data, 0);
@@ -99,6 +99,6 @@ SCM rats_scm_streaminfo(SCM stream_id, SCM attr) {
 
 void rats_scm_init_bindings() {
     scm_c_define_gsubr("extract", 3, 0, 0, rats_scm_extract);
-    scm_c_define_gsubr("stream", 4, 0, 0, rats_scm_stream);
+    scm_c_define_gsubr("stream", 4, 0, 0, rats_scm_streamcreate);
     scm_c_define_gsubr("streaminfo", 2, 0, 0, rats_scm_streaminfo);
 }

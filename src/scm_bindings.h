@@ -7,7 +7,7 @@
 
 SCM rats_scm_extract(SCM stream_id, SCM from, SCM to);
 
-SCM rats_scm_stream(SCM stream_id, SCM sample_rate, SCM channels);
+SCM rats_scm_streamcreate(SCM stream_id, SCM sample_rate, SCM channels);
 
 SCM rats_scm_streaminfo(SCM stream_id, SCM attr);
 

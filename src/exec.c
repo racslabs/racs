@@ -223,7 +223,7 @@ int rats_command_handle_float64(rats_command *cmd, msgpack_sbuffer *out_buf, rat
 void rats_exec_init(rats_exec *exec) {
     exec->kv = rats_kvstore_create(10, rats_exec_hash, rats_exec_cmp, exec_destroy);
     rats_kvstore_put(exec->kv, strdup("PING"), rats_command_ping);
-    rats_kvstore_put(exec->kv, strdup("STREAM"), rats_command_stream);
+    rats_kvstore_put(exec->kv, strdup("STREAMCREATE"), rats_command_streamcreate);
     rats_kvstore_put(exec->kv, strdup("STREAMINFO"), rats_command_streaminfo);
     rats_kvstore_put(exec->kv, strdup("STREAMOPEN"), rats_command_streamopen);
     rats_kvstore_put(exec->kv, strdup("STREAMCLOSE"), rats_command_streamclose);

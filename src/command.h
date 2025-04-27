@@ -36,7 +36,7 @@ rats_create_command(extract);
 
 rats_create_command(eval);
 
-rats_create_command(stream);
+rats_create_command(streamcreate);
 
 rats_create_command(streaminfo);
 
