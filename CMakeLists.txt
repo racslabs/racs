@@ -98,8 +98,8 @@ add_executable(rats
         src/scm_bindings.c
         src/crc32c.h
         src/crc32c.c
-        src/sp.h
-        src/sp.c
+        src/frame.h
+        src/frame.c
         src/pcm.h
         src/types.h
         src/memory.h

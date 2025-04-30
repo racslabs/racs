@@ -10,19 +10,22 @@
 #include "cache.h"
 #include "filelist.h"
 
+
 typedef struct {
     rats_uint16 channels;
     rats_uint16 bit_depth;
     rats_uint32 sample_rate;
     rats_uint64 size;
-    rats_time ref;
+    rats_time   ref;
+    rats_uint32 id_size;
+    char*       id;
 } rats_streaminfo;
 
-rats_uint64 rats_streaminfo_attr(rats_cache *mcache, rats_uint64 stream_id, const char *attr);
+rats_uint64 rats_streaminfo_attr(rats_cache *mcache, const char* stream_id, const char *attr);
 
-int rats_streaminfo_get(rats_cache *mcache, rats_streaminfo *streaminfo, rats_uint64 stream_id);
+int rats_streaminfo_get(rats_cache *mcache, rats_streaminfo *streaminfo, const char* stream_id);
 
-int rats_streaminfo_put(rats_cache *mcache, rats_streaminfo *streaminfo, rats_uint64 stream_id);
+int rats_streaminfo_put(rats_cache *mcache, rats_streaminfo *streaminfo, const char* stream_id);
 
 void rats_streaminfo_load(rats_cache *mcache);
 
@@ -30,7 +33,7 @@ off_t rats_streaminfo_write(rats_uint8 *buf, rats_streaminfo *streaminfo);
 
 off_t rats_streaminfo_read(rats_streaminfo *streaminfo, rats_uint8 *buf);
 
-void rats_streaminfo_flush(rats_uint8 *data, rats_uint64 stream_id);
+void rats_streaminfo_flush(rats_uint8 *data, rats_uint32 len, rats_uint64 stream_id);
 
 void rats_streaminfo_path(char *path, rats_uint64 stream_id);
 

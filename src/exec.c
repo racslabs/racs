@@ -27,8 +27,8 @@ rats_result rats_exec_exec(rats_exec *exec, rats_context *ctx, const char *cmd) 
     rats_exec_plan plan;
     rats_exec_plan_init(&plan);
 
-    int status = rats_exec_plan_build(&plan, &out_buf, &parser);
-    if (status != RATS_EXEC_STATUS_ABORT)
+    int rc = rats_exec_plan_build(&plan, &out_buf, &parser);
+    if (rc != RATS_EXEC_STATUS_ABORT)
         rats_exec_plan_exec(&plan, exec, ctx, &in_buf, &out_buf);
 
     rats_exec_plan_destroy(&plan);
@@ -49,33 +49,33 @@ int rats_exec_plan_build(rats_exec_plan *plan, msgpack_sbuffer *out_buf, rats_pa
     rats_token curr = rats_parser_next_token(parser);
 
     rats_command *cmd = NULL;
-    int status = RATS_EXEC_STATUS_CONTINUE;
+    int rc = RATS_EXEC_STATUS_CONTINUE;
 
-    while (curr.type != RATS_TOKEN_TYPE_EOF && status == RATS_EXEC_STATUS_CONTINUE) {
+    while (curr.type != RATS_TOKEN_TYPE_EOF && rc == RATS_EXEC_STATUS_CONTINUE) {
         switch (curr.type) {
             case RATS_TOKEN_TYPE_ID: {
                 cmd = rats_handle_id(&curr, &prev);
-                status = rats_command_handle_id(cmd, out_buf);
+                rc = rats_command_handle_id(cmd, out_buf);
                 break;
             }
             case RATS_TOKEN_TYPE_STR:
-                status = rats_command_handle_str(cmd, out_buf, &curr, &prev);
+                rc = rats_command_handle_str(cmd, out_buf, &curr, &prev);
                 break;
             case RATS_TOKEN_TYPE_PIPE:
                 rats_exec_plan_add_command(plan, cmd);
                 break;
             case RATS_TOKEN_TYPE_INT:
-                status = rats_command_handle_int64(cmd, out_buf, &curr, &prev);
+                rc = rats_command_handle_int64(cmd, out_buf, &curr, &prev);
                 break;
             case RATS_TOKEN_TYPE_TIME:
-                status = rats_command_handle_time(cmd, out_buf, &curr, &prev);
+                rc = rats_command_handle_time(cmd, out_buf, &curr, &prev);
                 break;
             case RATS_TOKEN_TYPE_FLOAT:
-                status = rats_command_handle_float64(cmd, out_buf, &curr, &prev);
+                rc = rats_command_handle_float64(cmd, out_buf, &curr, &prev);
                 break;
             case RATS_TOKEN_TYPE_ERROR: {
                 rats_handle_error(curr.as.err.msg, out_buf);
-                status = RATS_EXEC_STATUS_ABORT;
+                rc = RATS_EXEC_STATUS_ABORT;
             }
             default:
                 break;
@@ -85,10 +85,10 @@ int rats_exec_plan_build(rats_exec_plan *plan, msgpack_sbuffer *out_buf, rats_pa
         curr = rats_parser_next_token(parser);
     }
 
-    if (status != RATS_EXEC_STATUS_ABORT)
+    if (rc != RATS_EXEC_STATUS_ABORT)
         rats_exec_plan_add_command(plan, cmd);
 
-    return status;
+    return rc;
 }
 
 void rats_exec_plan_exec(rats_exec_plan *plan, rats_exec *exec, rats_context *ctx, msgpack_sbuffer *in_buf,
@@ -110,10 +110,10 @@ void rats_exec_plan_exec(rats_exec_plan *plan, rats_exec *exec, rats_context *ct
 
         msgpack_packer_init(&pk, in_buf, msgpack_sbuffer_write);
         rats_command_serialize_args(cmd, &pk);
-        rats_status status = func(in_buf, out_buf, ctx);
+        int rc = func(in_buf, out_buf, ctx);
         msgpack_sbuffer_clear(in_buf);
 
-        if (status != RATS_STATUS_OK) break;
+        if (rc != RATS_STATUS_OK) break;
     }
 }
 

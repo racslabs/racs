@@ -18,9 +18,9 @@ rats_cache *rats_mcache_create(size_t capacity) {
     return cache;
 }
 
-rats_uint64 rats_streaminfo_attr(rats_cache *mcache, rats_uint64 stream_id, const char *attr) {
+rats_uint64 rats_streaminfo_attr(rats_cache *mcache, const char* stream_id, const char *attr) {
     rats_streaminfo streaminfo;
-    if (!rats_streaminfo_get(mcache, &streaminfo, stream_id)) return 0;
+    if (rats_streaminfo_get(mcache, &streaminfo, stream_id) == 0) return 0;
 
     if (strcmp(attr, "rate") == 0)
         return streaminfo.sample_rate;
@@ -34,14 +34,17 @@ rats_uint64 rats_streaminfo_attr(rats_cache *mcache, rats_uint64 stream_id, cons
     return 0;
 }
 
-int rats_streaminfo_get(rats_cache *mcache, rats_streaminfo *streaminfo, rats_uint64 stream_id) {
-    rats_uint64 key[2] = {stream_id, 0};
+int rats_streaminfo_get(rats_cache *mcache, rats_streaminfo *streaminfo, const char* stream_id) {
+    rats_uint64 hash = rats_hash(stream_id);
+    rats_uint64 key[2] = {hash, 0};
+    size_t len = 28 + strlen(stream_id) + 1;
 
     rats_uint8 *data = rats_cache_get(mcache, key);
     if (!data) {
         char path[55];
-        rats_streaminfo_path(path, stream_id);
-        if (!rats_streaminfo_exits(stream_id)) return 0;
+
+        rats_streaminfo_path(path, hash);
+        if (!rats_streaminfo_exits(hash)) return 0;
 
         int fd = open(path, O_RDONLY);
         if (fd == -1) {
@@ -49,39 +52,48 @@ int rats_streaminfo_get(rats_cache *mcache, rats_streaminfo *streaminfo, rats_ui
             return 0;
         }
 
-        rats_uint8 buf[24];
-        if (read(fd, buf, 24) != 24) {
+        data = malloc(len);
+        if (read(fd, data, len) != len) {
             close(fd);
+            free(data);
             return 0;
         }
 
-        if (rats_streaminfo_read(streaminfo, buf) != 24) return 0;
+        if (rats_streaminfo_read(streaminfo, data) != len) {
+            close(fd);
+            free(data);
+            return 0;
+        }
 
         close(fd);
-        return 1;
+        free(data);
+        return -1;
     }
 
-    if (rats_streaminfo_read(streaminfo, data) != 24) return 0;
+    if (rats_streaminfo_read(streaminfo, data) != len) return 0;
     return 1;
 }
 
-int rats_streaminfo_put(rats_cache *mcache, rats_streaminfo *streaminfo, rats_uint64 stream_id) {
+int rats_streaminfo_put(rats_cache *mcache, rats_streaminfo *streaminfo, const char* stream_id) {
+    size_t len = 28 + strlen(stream_id) + 1;
+    rats_uint64 hash = rats_hash(stream_id);
     rats_uint64 *key = malloc(2 * sizeof(rats_int64));
     if (!key) {
         perror("Failed to allocate key.");
         return 0;
     }
 
-    key[0] = stream_id;
+    key[0] = hash;
     key[1] = 0;
 
-    if (rats_streaminfo_get(mcache, streaminfo, stream_id)) {
+    int rc = rats_streaminfo_get(mcache, streaminfo, stream_id);
+    if (rc == -1 || rc == 1) {
         perror("Stream already exist.");
         free(key);
         return 0;
     }
 
-    rats_uint8 *data = malloc(24);
+    rats_uint8 *data = malloc(len);
     if (!data) return 0;
 
     rats_streaminfo_write(data, streaminfo);
@@ -97,9 +109,15 @@ void rats_streaminfo_load(rats_cache *mcache) {
     rats_filelist *list = get_sorted_filelist(".data/md");
 
     for (int i = 0; i < list->num_files; ++i) {
+        struct stat s;
+        if (stat(list->files[i], &s) == -1) {
+            perror("Failed to get rats_streaminfo file size.");
+            continue;
+        }
+
         int fd = open(list->files[i], O_RDONLY);
         if (fd == -1) {
-            perror("Failed to open rats_streaminfo file");
+            perror("Failed to open rats_streaminfo file.");
             continue;
         }
 
@@ -113,7 +131,7 @@ void rats_streaminfo_load(rats_cache *mcache) {
         key[0] = stream_id;
         key[1] = 0;
 
-        rats_uint8 *data = malloc(24);
+        rats_uint8 *data = malloc(s.st_size);
         if (!data) {
             close(fd);
             free(key);
@@ -121,7 +139,7 @@ void rats_streaminfo_load(rats_cache *mcache) {
             continue;
         }
 
-        if (read(fd, data, 24) != 24) {
+        if (read(fd, data, s.st_size) != s.st_size) {
             close(fd);
             free(key);
             free(data);
@@ -139,7 +157,11 @@ void rats_mcache_destroy(void *key, void *value) {
     rats_cache_entry *entry = (rats_cache_entry *) value;
     rats_uint64 stream_id = entry->key[0];
 
-    rats_streaminfo_flush(entry->value, stream_id);
+    rats_streaminfo streaminfo;
+
+    off_t size = rats_streaminfo_read(&streaminfo, entry->value);
+    rats_streaminfo_flush(entry->value, size, stream_id);
+
     free(entry->value);
     free(key);
 }
@@ -151,6 +173,8 @@ off_t rats_streaminfo_write(rats_uint8 *buf, rats_streaminfo *streaminfo) {
     offset = rats_write_uint32(buf, streaminfo->sample_rate, offset);
     offset = rats_write_uint64(buf, streaminfo->size, offset);
     offset = rats_write_uint64(buf, streaminfo->ref, offset);
+    offset = rats_write_uint32(buf, streaminfo->id_size, offset);
+    offset = rats_write_bin(buf, streaminfo->id, streaminfo->id_size, offset);
     return offset;
 }
 
@@ -161,7 +185,10 @@ off_t rats_streaminfo_read(rats_streaminfo *streaminfo, rats_uint8 *buf) {
     offset = rats_read_uint32(&streaminfo->sample_rate, buf, offset);
     offset = rats_read_uint64(&streaminfo->size, buf, offset);
     offset = rats_read_uint64(&streaminfo->ref, buf, offset);
-    return offset;
+    offset = rats_read_uint32(&streaminfo->id_size, buf, offset);
+
+    streaminfo->id = (char*)buf + offset;
+    return offset + streaminfo->id_size;
 }
 
 rats_time rats_streaminfo_offset(rats_streaminfo *streaminfo) {
@@ -175,7 +202,7 @@ rats_uint64 rats_hash(const char *stream_id) {
     return hash[0];
 }
 
-void rats_streaminfo_flush(rats_uint8 *data, rats_uint64 stream_id) {
+void rats_streaminfo_flush(rats_uint8 *data, rats_uint32 len, rats_uint64 stream_id) {
     char path[55];
     rats_streaminfo_path(path, stream_id);
 
@@ -194,7 +221,7 @@ void rats_streaminfo_flush(rats_uint8 *data, rats_uint64 stream_id) {
         return;
     }
 
-    write(fd, data, 24);
+    write(fd, data, len);
     flock(fd, LOCK_UN);
     close(fd);
 }

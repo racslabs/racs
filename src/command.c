@@ -1,6 +1,8 @@
 #include "command.h"
 
 rats_create_command(ping) {
+    msgpack_sbuffer_clear(out_buf);
+
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
 
@@ -14,6 +16,8 @@ rats_create_command(ping) {
 }
 
 rats_create_command(streamcreate) {
+    msgpack_sbuffer_clear(out_buf);
+
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
 
@@ -31,9 +35,8 @@ rats_create_command(streamcreate) {
 
     rats_uint32 sample_rate = rats_deserialize_uint32(&msg.data, 1);
     rats_uint16 channels = rats_deserialize_uint16(&msg.data, 2);
-    rats_uint64 hash = rats_hash(stream_id);
 
-    int rc = rats_streamcreate(ctx->mcache, hash, sample_rate, channels);
+    int rc = rats_streamcreate(ctx->mcache, stream_id, sample_rate, channels);
     free(stream_id);
 
     if (rc == 1)
@@ -43,6 +46,8 @@ rats_create_command(streamcreate) {
 }
 
 rats_create_command(streamopen) {
+    msgpack_sbuffer_clear(out_buf);
+
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
 
@@ -65,6 +70,8 @@ rats_create_command(streamopen) {
 }
 
 rats_create_command(streamclose) {
+    msgpack_sbuffer_clear(out_buf);
+
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
 
@@ -87,6 +94,8 @@ rats_create_command(streamclose) {
 }
 
 rats_create_command(streaminfo) {
+    msgpack_sbuffer_clear(out_buf);
+
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
 
@@ -102,19 +111,18 @@ rats_create_command(streaminfo) {
     char *stream_id = rats_deserialize_str(&msg.data, 0);
     char *attr = rats_deserialize_str(&msg.data, 1);
 
-    rats_uint64 hash = rats_hash(stream_id);
-    rats_uint64 value = rats_streaminfo_attr(ctx->mcache, hash, attr);
+    rats_uint64 value = rats_streaminfo_attr(ctx->mcache, stream_id, attr);
 
     free(stream_id);
     free(attr);
 
-    if (value != 0)
-        return rats_serialize_uint64(&pk, value);
-
+    if (value != 0) return rats_serialize_uint64(&pk, value);
     return rats_serialize_error(&pk, "Failure reading metadata");
 }
 
 rats_create_command(eval) {
+    msgpack_sbuffer_clear(out_buf);
+
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
 
@@ -137,6 +145,8 @@ rats_create_command(eval) {
 }
 
 rats_create_command(extract) {
+    msgpack_sbuffer_clear(out_buf);
+
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
 

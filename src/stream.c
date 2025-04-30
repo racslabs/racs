@@ -9,13 +9,15 @@ const char *const rats_stream_status_string[] = {
         "Invalid bit depth."
 };
 
-int rats_streamcreate(rats_cache *mcache, rats_uint64 stream_id, rats_uint32 sample_rate, rats_uint16 channels) {
+int rats_streamcreate(rats_cache *mcache, const char* stream_id, rats_uint32 sample_rate, rats_uint16 channels) {
     rats_streaminfo streaminfo;
     memset(&streaminfo, 0, sizeof(rats_streaminfo));
 
     streaminfo.sample_rate = sample_rate;
     streaminfo.channels = channels;
     streaminfo.bit_depth = 16;
+    streaminfo.id_size = strlen(stream_id) + 1;
+    streaminfo.id = (char*)stream_id;
 
     if (rats_streaminfo_get(mcache, &streaminfo, stream_id)) return 0;
 
@@ -23,20 +25,22 @@ int rats_streamcreate(rats_cache *mcache, rats_uint64 stream_id, rats_uint32 sam
 }
 
 int rats_streamappend(rats_cache *mcache, rats_multi_memtable *mmt, rats_streamkv *kv, rats_uint8 *data) {
-    rats_sp frame;
-    if (!rats_sp_parse(data, &frame))
+    rats_frame frame;
+    if (!rats_frame_parse(data, &frame))
         return RATS_STREAM_MALFORMED;
 
-    char *mac_addr = rats_streamkv_get(kv, frame.header.stream_id);
+    rats_uint64 hash = rats_hash(frame.header.stream_id);
+    char *mac_addr = rats_streamkv_get(kv, hash);
     if (!mac_addr || !rats_mac_addr_cmp(frame.header.mac_addr, mac_addr))
         return RATS_STREAM_CONFLICT;
 
-    rats_streamkv_put(kv, frame.header.stream_id, frame.header.mac_addr);
+    rats_streamkv_put(kv, hash, frame.header.mac_addr);
 
     rats_streaminfo streaminfo;
     memset(&streaminfo, 0, sizeof(rats_streaminfo));
 
-    if (rats_streaminfo_get(mcache, &streaminfo, frame.header.stream_id))
+    int rc = rats_streaminfo_get(mcache, &streaminfo, frame.header.stream_id);
+    if (rc == -1 || rc == 1)
         rats_streaminfo_put(mcache, &streaminfo, frame.header.stream_id);
 
     if (frame.header.sample_rate != streaminfo.sample_rate)
@@ -52,7 +56,7 @@ int rats_streamappend(rats_cache *mcache, rats_multi_memtable *mmt, rats_streamk
         streaminfo.ref = rats_time_now();
 
     rats_time offset = rats_streaminfo_offset(&streaminfo);
-    rats_uint64 key[2] = {frame.header.stream_id, offset};
+    rats_uint64 key[2] = {hash, offset};
     rats_multi_memtable_append(mmt, key, frame.pcm_block, frame.header.block_size);
 
     streaminfo.size += frame.header.block_size;

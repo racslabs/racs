@@ -4,7 +4,7 @@
 
 #include "streaminfo.h"
 #include "memtable.h"
-#include "sp.h"
+#include "frame.h"
 #include "result.h"
 
 typedef enum {
@@ -23,7 +23,7 @@ typedef struct {
 
 extern const char *const rats_stream_status_string[];
 
-int rats_streamcreate(rats_cache *mcache, rats_uint64 stream_id, rats_uint32 sample_rate, rats_uint16 channels);
+int rats_streamcreate(rats_cache *mcache, const char* stream_id, rats_uint32 sample_rate, rats_uint16 channels);
 
 int rats_streamappend(rats_cache *mcache, rats_multi_memtable *mmt, rats_streamkv *kv, rats_uint8 *data);
 

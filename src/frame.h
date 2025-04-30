@@ -11,23 +11,24 @@
 typedef struct {
     char chunk_id[4];
     char mac_addr[6];
-    rats_uint64 stream_id;
     rats_uint32 checksum;
     rats_uint16 channels;
     rats_uint32 sample_rate;
     rats_uint16 bit_depth;
     rats_uint16 block_size;
-} rats_sp_header;
+    rats_uint32 stream_id_size;
+    char*       stream_id;
+} rats_frame_header;
 
 typedef struct {
-    rats_sp_header header;
+    rats_frame_header header;
     rats_uint8 *pcm_block;
-} rats_sp;
+} rats_frame;
 
-int rats_sp_parse(rats_uint8 *buf, rats_sp *frame);
+int rats_frame_parse(rats_uint8 *buf, rats_frame *frame);
 
-void rats_sp_header_parse(rats_uint8 *buf, rats_sp_header *header);
+off_t rats_frame_header_parse(rats_uint8 *buf, rats_frame_header *header);
 
-int rats_is_sp(const char *id);
+int rats_is_frame(const char *id);
 
 #endif //RATS_ATSP_H
