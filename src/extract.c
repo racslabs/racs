@@ -7,8 +7,8 @@ int rats_extract_pcm(rats_context *ctx, rats_pcm *pcm, const char *stream_id, ra
     rats_streaminfo streaminfo;
     rats_uint64 hash = rats_hash(stream_id);
 
-    int rc = rats_streaminfo_get(ctx->mcache, &streaminfo, stream_id);
-    if (rc == -1) rats_streaminfo_put(ctx->mcache, &streaminfo, stream_id);
+    int rc = rats_streaminfo_get(ctx->mcache, &streaminfo, hash);
+    if (rc == -1) rats_streaminfo_put(ctx->mcache, &streaminfo, hash);
     if (rc == 0) return RATS_EXTRACT_STATUS_NOT_FOUND;
 
     rats_pcm_set_bit_depth(pcm, streaminfo.bit_depth);

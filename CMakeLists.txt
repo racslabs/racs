@@ -82,8 +82,6 @@ add_executable(rats
         test/ping_test.c
         test/metadata_test.h
         test/metadata_test.c
-        src/create.h
-        src/create.c
         test/create_test.h
         test/create_test.c
         src/db.h

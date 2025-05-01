@@ -10,7 +10,6 @@
 #include "cache.h"
 #include "filelist.h"
 
-
 typedef struct {
     rats_uint16 channels;
     rats_uint16 bit_depth;
@@ -21,17 +20,31 @@ typedef struct {
     char*       id;
 } rats_streaminfo;
 
-rats_uint64 rats_streaminfo_attr(rats_cache *mcache, const char* stream_id, const char *attr);
+typedef struct {
+    char **streams;
+    size_t num_streams;
+    size_t max_streams;
+} rats_streams;
 
-int rats_streaminfo_get(rats_cache *mcache, rats_streaminfo *streaminfo, const char* stream_id);
+rats_uint64 rats_streaminfo_attr(rats_cache *mcache, rats_uint64 stream_id, const char *attr);
 
-int rats_streaminfo_put(rats_cache *mcache, rats_streaminfo *streaminfo, const char* stream_id);
+int rats_streaminfo_get(rats_cache *mcache, rats_streaminfo *streaminfo, rats_uint64 stream_id);
+
+int rats_streaminfo_put(rats_cache *mcache, rats_streaminfo *streaminfo, rats_uint64 stream_id);
 
 void rats_streaminfo_load(rats_cache *mcache);
+
+void rats_streaminfo_list(rats_cache *mcache, rats_streams *streams);
+
+void rats_streams_add(rats_streams *streams, const char *stream);
+
+size_t rats_streaminfo_size(rats_streaminfo* streaminfo);
 
 off_t rats_streaminfo_write(rats_uint8 *buf, rats_streaminfo *streaminfo);
 
 off_t rats_streaminfo_read(rats_streaminfo *streaminfo, rats_uint8 *buf);
+
+size_t rats_streaminfo_filesize(const char *path);
 
 void rats_streaminfo_flush(rats_uint8 *data, rats_uint32 len, rats_uint64 stream_id);
 

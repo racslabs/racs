@@ -111,7 +111,8 @@ rats_create_command(streaminfo) {
     char *stream_id = rats_deserialize_str(&msg.data, 0);
     char *attr = rats_deserialize_str(&msg.data, 1);
 
-    rats_uint64 value = rats_streaminfo_attr(ctx->mcache, stream_id, attr);
+    rats_uint64 hash = rats_hash(stream_id);
+    rats_uint64 value = rats_streaminfo_attr(ctx->mcache, hash, attr);
 
     free(stream_id);
     free(attr);

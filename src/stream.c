@@ -19,9 +19,10 @@ int rats_streamcreate(rats_cache *mcache, const char* stream_id, rats_uint32 sam
     streaminfo.id_size = strlen(stream_id) + 1;
     streaminfo.id = (char*)stream_id;
 
-    if (rats_streaminfo_get(mcache, &streaminfo, stream_id)) return 0;
+    rats_uint64 hash = rats_hash(stream_id);
 
-    return rats_streaminfo_put(mcache, &streaminfo, stream_id);
+    if (rats_streaminfo_get(mcache, &streaminfo, hash)) return 0;
+    return rats_streaminfo_put(mcache, &streaminfo, hash);
 }
 
 int rats_streamappend(rats_cache *mcache, rats_multi_memtable *mmt, rats_streamkv *kv, rats_uint8 *data) {
@@ -29,12 +30,11 @@ int rats_streamappend(rats_cache *mcache, rats_multi_memtable *mmt, rats_streamk
     if (!rats_frame_parse(data, &frame))
         return RATS_STREAM_MALFORMED;
 
-    rats_uint64 hash = rats_hash(frame.header.stream_id);
-    char *mac_addr = rats_streamkv_get(kv, hash);
+    char *mac_addr = rats_streamkv_get(kv, frame.header.stream_id);
     if (!mac_addr || !rats_mac_addr_cmp(frame.header.mac_addr, mac_addr))
         return RATS_STREAM_CONFLICT;
 
-    rats_streamkv_put(kv, hash, frame.header.mac_addr);
+    rats_streamkv_put(kv, frame.header.stream_id, frame.header.mac_addr);
 
     rats_streaminfo streaminfo;
     memset(&streaminfo, 0, sizeof(rats_streaminfo));
@@ -56,7 +56,7 @@ int rats_streamappend(rats_cache *mcache, rats_multi_memtable *mmt, rats_streamk
         streaminfo.ref = rats_time_now();
 
     rats_time offset = rats_streaminfo_offset(&streaminfo);
-    rats_uint64 key[2] = {hash, offset};
+    rats_uint64 key[2] = {frame.header.stream_id, offset};
     rats_multi_memtable_append(mmt, key, frame.pcm_block, frame.header.block_size);
 
     streaminfo.size += frame.header.block_size;

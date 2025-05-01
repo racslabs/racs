@@ -4,4 +4,4 @@
 
 # RATS DB
 
-**RATS DB (Remote Audio Timeseries Database)** is an append-only in memory and persistent timeseries audio storage server.
+**RATS DB (Real-time Audio Timeseries Database)** is an append-only in memory and persistent timeseries audio storage server.

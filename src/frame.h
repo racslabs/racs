@@ -11,13 +11,12 @@
 typedef struct {
     char chunk_id[4];
     char mac_addr[6];
+    rats_uint64 stream_id;
     rats_uint32 checksum;
     rats_uint16 channels;
     rats_uint32 sample_rate;
     rats_uint16 bit_depth;
     rats_uint16 block_size;
-    rats_uint32 stream_id_size;
-    char*       stream_id;
 } rats_frame_header;
 
 typedef struct {
