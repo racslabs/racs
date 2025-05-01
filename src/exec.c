@@ -227,6 +227,7 @@ void rats_exec_init(rats_exec *exec) {
     rats_kvstore_put(exec->kv, strdup("STREAMINFO"), rats_command_streaminfo);
     rats_kvstore_put(exec->kv, strdup("STREAMOPEN"), rats_command_streamopen);
     rats_kvstore_put(exec->kv, strdup("STREAMCLOSE"), rats_command_streamclose);
+    rats_kvstore_put(exec->kv, strdup("STREAMLIST"), rats_command_streamlist);
     rats_kvstore_put(exec->kv, strdup("EXTRACT"), rats_command_extract);
     rats_kvstore_put(exec->kv, strdup("EVAL"), rats_command_eval);
     rats_kvstore_put(exec->kv, strdup("FORMAT"), rats_command_format);

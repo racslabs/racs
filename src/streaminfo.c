@@ -245,17 +245,38 @@ void rats_streaminfo_path(char *path, rats_uint64 stream_id) {
     sprintf(path, ".data/md/%llu", stream_id);
 }
 
-void rats_streaminfo_list(rats_cache *mcache, rats_streams *streams) {
+void rats_streaminfo_list(rats_cache *mcache, rats_streams *streams, const char* pattern) {
     rats_filelist *list = rats_filelist_create();
     rats_filelist_add(list, ".data/md");
 
     for (int i = 0; i < list->num_files; ++i) {
         rats_uint64 stream_id = strtoull(list->files[i], NULL, 10);
-        rats_uint64 key[2] = {stream_id, 0};
 
-
+        rats_streaminfo streaminfo;
+        int rc = rats_streaminfo_get(mcache, &streaminfo, stream_id);
+        if (rc == -1 || rc == 1) {
+            rc = fnmatch(pattern, streaminfo.id, FNM_IGNORECASE);
+            if (rc == 0) rats_streams_add(streams, streaminfo.id);
+        }
     }
 
+    rats_filelist_destroy(list);
+
+    pthread_rwlock_rdlock(&mcache->rwlock);
+
+    rats_cache_node *node = mcache->head;
+    while (node) {
+        rats_cache_node *next = (rats_cache_node *) node->next;
+
+        rats_streaminfo streaminfo;
+        rats_streaminfo_read(&streaminfo, node->entry.value);
+        int rc = fnmatch(pattern, streaminfo.id, FNM_IGNORECASE);
+        if (rc == 0) rats_streams_add(streams, streaminfo.id);
+
+        node = next;
+    }
+
+    pthread_rwlock_unlock(&mcache->rwlock);
 }
 
 void rats_streams_add(rats_streams *streams, const char *stream) {
@@ -273,4 +294,21 @@ void rats_streams_add(rats_streams *streams, const char *stream) {
 
     streams->streams[streams->num_streams] = strdup(stream);
     ++streams->num_streams;
+}
+
+void rats_streams_init(rats_streams *streams) {
+    streams->num_streams = 0;
+    streams->max_streams = 2;
+    streams->streams = malloc(2 * sizeof(char *));
+    if (!streams->streams) {
+        perror("Failed to allocate rats_streams");
+        return;
+    }
+}
+
+void rats_streams_destroy(rats_streams *streams) {
+    for (int i = 0; i < streams->num_streams; ++i) {
+        free(streams->streams[i]);
+    }
+    free(streams->streams);
 }

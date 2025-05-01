@@ -6,6 +6,7 @@
 #include "extract.h"
 #include "exec.h"
 #include "types.h"
+#include "stream.h"
 
 typedef enum {
     RATS_TYPE_STR,
@@ -67,6 +68,8 @@ int rats_serialize_c64v(msgpack_packer *pk, rats_complex *data, size_t n);
 void rats_serialize_type(msgpack_packer *pk, int type);
 
 int rats_serialize_invalid_num_args(msgpack_packer *pk, int expected, int actual);
+
+int rats_serialize_streams(msgpack_packer *pk, rats_streams *streams);
 
 char *rats_deserialize_str(msgpack_object *obj, int n);
 

@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#include <fnmatch.h>
 #include "types.h"
 #include "bytes.h"
 #include "cache.h"
@@ -34,9 +35,7 @@ int rats_streaminfo_put(rats_cache *mcache, rats_streaminfo *streaminfo, rats_ui
 
 void rats_streaminfo_load(rats_cache *mcache);
 
-void rats_streaminfo_list(rats_cache *mcache, rats_streams *streams);
-
-void rats_streams_add(rats_streams *streams, const char *stream);
+void rats_streaminfo_list(rats_cache *mcache, rats_streams *streams, const char* pattern);
 
 size_t rats_streaminfo_size(rats_streaminfo* streaminfo);
 
@@ -53,6 +52,12 @@ void rats_streaminfo_path(char *path, rats_uint64 stream_id);
 int rats_streaminfo_exits(rats_uint64 stream_id);
 
 rats_time rats_streaminfo_offset(rats_streaminfo *streaminfo);
+
+void rats_streams_add(rats_streams *streams, const char *stream);
+
+void rats_streams_init(rats_streams *streams);
+
+void rats_streams_destroy(rats_streams *streams);
 
 void rats_mcache_destroy(void *key, void *value);
 

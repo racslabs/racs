@@ -45,6 +45,32 @@ rats_create_command(streamcreate) {
     return rats_serialize_error(&pk, "Failed to create stream");
 }
 
+rats_create_command(streamlist) {
+    msgpack_sbuffer_clear(out_buf);
+
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
+
+    msgpack_unpacked msg;
+    msgpack_unpacked_init(&msg);
+
+    rats_parse_buf(in_buf, &pk, &msg, "Error parsing args")
+    rats_validate_num_args(&pk, msg, 1)
+    rats_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
+
+    char *pattern = rats_deserialize_str(&msg.data, 0);
+
+    rats_streams streams;
+    rats_streams_init(&streams);
+    rats_streaminfo_list(ctx->mcache, &streams, pattern);
+
+    int rc = rats_serialize_streams(&pk, &streams);
+    rats_streams_destroy(&streams);
+    free(pattern);
+
+    return rc;
+}
+
 rats_create_command(streamopen) {
     msgpack_sbuffer_clear(out_buf);
 

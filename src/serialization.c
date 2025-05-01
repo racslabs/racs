@@ -169,6 +169,17 @@ char *rats_deserialize_str(msgpack_object *obj, int n) {
     return str;
 }
 
+int rats_serialize_streams(msgpack_packer *pk, rats_streams *streams) {
+    msgpack_pack_array(pk, streams->num_streams + 1);
+    msgpack_pack_str_with_body(pk, "list", strlen("list"));
+
+    for (int i = 0; i < streams->num_streams; ++i) {
+        msgpack_pack_str_with_body(pk, streams->streams[i], strlen(streams->streams[i]));
+    }
+
+    return RATS_STATUS_OK;
+}
+
 rats_uint8 *rats_deserialize_u8v(msgpack_object *obj, int n) {
     return (rats_uint8 *) obj->via.array.ptr[n].via.bin.ptr;
 }
