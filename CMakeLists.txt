@@ -10,12 +10,14 @@ find_package(msgpack-c REQUIRED)
 find_package(Lame)
 find_package(Opus)
 find_package(OpusEnc)
+find_package(Yaml)
 
 include_directories(
         ${OPUS_INCLUDE_DIRS}
         ${OPUSENC_INCLUDE_DIRS}
         ${LAME_INCLUDE_DIRS}
         ${GUILE_INCLUDE_DIRS}
+        ${YAML_INCLUDE_DIRS}
         ${msgpack-c_INCLUDE_DIRS})
 
 option(RATS_AVX2_CMAKE_BUILD "AVX2 CMake build" OFF)
@@ -129,9 +131,16 @@ add_executable(rats
         src/conn.c
         src/server.h
         src/server.c
+        src/config.h
+        src/config.c
 )
 
-target_link_libraries(rats msgpack-c ${GUILE_LIBRARIES} ${LAME_LIBRARIES} ${OPUS_LIBRARIES} ${OPUSENC_LIBRARIES})
+target_link_libraries(rats msgpack-c
+        ${GUILE_LIBRARIES}
+        ${LAME_LIBRARIES}
+        ${OPUS_LIBRARIES}
+        ${OPUSENC_LIBRARIES}
+        ${YAML_LIBRARIES})
 
 enable_testing()
 

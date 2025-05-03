@@ -81,7 +81,7 @@ int rats_serialize_bool(msgpack_packer *pk, bool d) {
 int rats_serialize_s8v(msgpack_packer *pk, rats_int8 *data, size_t n) {
     msgpack_pack_array(pk, 2);
 
-    rats_serialize_type(pk, RATS_TYPE_I8VEC);
+    rats_serialize_type(pk, RATS_TYPE_S8VEC);
     msgpack_pack_bin_with_body(pk, data, n * sizeof(rats_int8));
 
     return RATS_STATUS_OK;
@@ -99,7 +99,7 @@ int rats_serialize_u8v(msgpack_packer *pk, rats_uint8 *data, size_t n) {
 int rats_serialize_s16v(msgpack_packer *pk, rats_int16 *data, size_t n) {
     msgpack_pack_array(pk, 2);
 
-    rats_serialize_type(pk, RATS_TYPE_I16VEC);
+    rats_serialize_type(pk, RATS_TYPE_S16VEC);
     msgpack_pack_bin_with_body(pk, data, n * sizeof(rats_int16));
 
     return RATS_STATUS_OK;
@@ -117,7 +117,7 @@ int rats_serialize_u16v(msgpack_packer *pk, rats_uint16 *data, size_t n) {
 int rats_serialize_s32v(msgpack_packer *pk, rats_int32 *data, size_t n) {
     msgpack_pack_array(pk, 2);
 
-    rats_serialize_type(pk, RATS_TYPE_I32VEC);
+    rats_serialize_type(pk, RATS_TYPE_S32VEC);
     msgpack_pack_bin_with_body(pk, data, n * sizeof(rats_int32));
 
     return RATS_STATUS_OK;
