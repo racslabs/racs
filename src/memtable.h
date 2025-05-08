@@ -99,7 +99,7 @@ void rats_sstable_write(rats_uint8 *buf, rats_sstable *sst, size_t offset);
 void
 rats_sstable_index_entry_update(rats_sstable_index_entry *index_entry, rats_memtable_entry *mt_entry, off_t offset);
 
-void rats_sstable_path(rats_int64 timestamp, char *path);
+void rats_sstable_path(rats_int64 timestamp, char **path);
 
 rats_sstable *rats_sstable_create(int num_entries);
 

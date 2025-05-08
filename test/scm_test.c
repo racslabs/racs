@@ -5,7 +5,7 @@ void test_scm_extract() {
     rats_scm_init_bindings();
 
     rats_db* db = rats_db_instance();
-    rats_db_open(db);
+    rats_db_open(db, "config.yaml");
 
     rats_result res = rats_db_exec(db, "EVAL '(extract \"test\" \"2025-02-09T22:51:52.213Z\" \"2025-02-09T22:51:52.215Z\")'");
 
@@ -28,7 +28,7 @@ void test_scm_create() {
     rats_scm_init_bindings();
 
     rats_db* db = rats_db_instance();
-    rats_db_open(db);
+    rats_db_open(db, "config.yaml");
 
     rats_result res = rats_db_exec(db, "EVAL '(create \"test\" 44100 1)'");
 
@@ -50,7 +50,7 @@ void test_scm_int() {
     rats_scm_init_bindings();
 
     rats_db* db = rats_db_instance();
-    rats_db_open(db);
+    rats_db_open(db, "config.yaml");
 
     rats_result res = rats_db_exec(db, "EVAL '(+ 1 2)'");
 
@@ -72,7 +72,7 @@ void test_scm_list() {
     rats_scm_init_bindings();
 
     rats_db* db = rats_db_instance();
-    rats_db_open(db);
+    rats_db_open(db, "config.yaml");
 
     rats_result res = rats_db_exec(db,"EVAL '(extract \"test\" \"2025-02-09T22:51:52.213Z\" \"2025-02-09T22:51:52.215Z\")'");
 
@@ -94,7 +94,7 @@ void test_scm_metadata() {
     rats_scm_init_bindings();
 
     rats_db* db = rats_db_instance();
-    rats_db_open(db);
+    rats_db_open(db, "config.yaml");
 
     rats_result res = rats_db_exec(db, "EVAL '(streaminfo \"test\" \"rate\")'");
 

@@ -27,6 +27,8 @@ typedef struct {
     size_t max_streams;
 } rats_streams;
 
+extern const char* rats_streaminfo_dir;
+
 rats_uint64 rats_streaminfo_attr(rats_cache *mcache, rats_uint64 stream_id, const char *attr);
 
 int rats_streaminfo_get(rats_cache *mcache, rats_streaminfo *streaminfo, rats_uint64 stream_id);
@@ -47,7 +49,7 @@ size_t rats_streaminfo_filesize(const char *path);
 
 void rats_streaminfo_flush(rats_uint8 *data, rats_uint32 len, rats_uint64 stream_id);
 
-void rats_streaminfo_path(char *path, rats_uint64 stream_id);
+void rats_streaminfo_path(char **path, rats_uint64 stream_id);
 
 int rats_streaminfo_exits(rats_uint64 stream_id);
 

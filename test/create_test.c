@@ -2,7 +2,7 @@
 
 void test_create() {
     rats_db* db = rats_db_instance();
-    rats_db_open(db);
+    rats_db_open(db, "config.yaml");
     rats_result res = rats_db_exec(db, "STREAMCREATE 'test' 44100 1");
 
     msgpack_unpacked msg;

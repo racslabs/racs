@@ -2,7 +2,7 @@
 
 void test_streamopen() {
     rats_db* db = rats_db_instance();
-    rats_db_open(db);
+    rats_db_open(db, "config.yaml");
     rats_result res = rats_db_exec(db, "STREAMOPEN 'test'");
 
     msgpack_unpacked msg;

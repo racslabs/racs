@@ -2,7 +2,7 @@
 
 void test_metadata_attr() {
     rats_db* db = rats_db_instance();
-    rats_db_open(db);
+    rats_db_open(db, "config.yaml");
     rats_result res = rats_db_exec(db, "STREAMINFO 'test' 'rate'");
 
     msgpack_unpacked msg;

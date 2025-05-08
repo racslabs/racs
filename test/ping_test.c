@@ -2,7 +2,7 @@
 
 void test_ping() {
     rats_db* db = rats_db_instance();
-    rats_db_open(db);
+    rats_db_open(db, "config.yaml");
     rats_result res = rats_db_exec(db, "PING");
 
     msgpack_unpacked msg;

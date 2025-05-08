@@ -255,14 +255,15 @@ void rats_memtable_write(rats_memtable *mt) {
         return;
     }
 
-    char path[64];
+    char *path = NULL;
     rats_uint64 timestamp = mt->entries[0].key[1];
-    rats_sstable_path((rats_int64) timestamp, path);
+    rats_sstable_path((rats_int64) timestamp, &path);
 
     sst->num_entries = mt->num_entries;
     if (rats_sstable_open(path, sst) == -1) {
         rats_sstable_destroy_except_data(sst);
         free(buf);
+        free(path);
         return;
     }
 
@@ -273,10 +274,11 @@ void rats_memtable_write(rats_memtable *mt) {
     rats_sstable_write(buf, sst, offset);
 
     free(buf);
+    free(path);
     rats_sstable_destroy_except_data(sst);
 }
 
-void rats_sstable_path(rats_int64 timestamp, char *path) {
+void rats_sstable_path(rats_int64 timestamp, char **path) {
     rats_time_create_dirs(timestamp);
     rats_time_to_path(timestamp, path);
 }

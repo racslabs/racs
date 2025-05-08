@@ -2,7 +2,7 @@
 
 void test_format_wav() {
     rats_db* db = rats_db_instance();
-    rats_db_open(db);
+    rats_db_open(db, "config.yaml");
     rats_result res = rats_db_exec(db, "EXTRACT 'test' 2025-02-09T22:51:52.213Z 2025-02-09T22:51:52.214Z "
                                          "|> FORMAT 'audio/wav' 1 41100");
     msgpack_unpacked msg;

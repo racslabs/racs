@@ -132,7 +132,6 @@ add_executable(rats
         src/server.h
         src/server.c
         src/config.h
-        src/config.c
 )
 
 target_link_libraries(rats msgpack-c

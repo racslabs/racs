@@ -52,18 +52,19 @@ void list_files_recursive(rats_filelist *list, const char *path) {
 
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL) {
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
             continue;
-        }
 
-        char file_path[255];
-        snprintf(file_path, 255, "%s/%s", path, entry->d_name);
+        char *file_path;
+        asprintf(&file_path, "%s/%s", path, entry->d_name);
 
         if (entry->d_type == DT_DIR) {
             list_files_recursive(list, file_path);
         } else if (entry->d_type == DT_REG) {
             rats_filelist_add(list, file_path);
         }
+
+        free(file_path);
     }
 
     closedir(dir);
@@ -97,9 +98,8 @@ char *rats_resolve_shared_path(const char *path1, const char *path2) {
     size_t len = len1 < len2 ? len1 : len2;
 
     size_t i = 0;
-    for (; i < len; i++) {
+    for (; i < len; i++)
         if (path1[i] != path2[i]) break;
-    }
 
     while (i > 1 && path1[i - 1] != '/') --i;
     --i;

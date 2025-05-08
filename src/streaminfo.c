@@ -53,14 +53,18 @@ int rats_streaminfo_get(rats_cache *mcache, rats_streaminfo *streaminfo, rats_ui
 
     rats_uint8 *data = rats_cache_get(mcache, key);
     if (!data) {
-        char path[55];
+        char *path = NULL;
 
-        rats_streaminfo_path(path, stream_id);
-        if (!rats_streaminfo_exits(stream_id)) return 0;
+        rats_streaminfo_path(&path, stream_id);
+        if (!rats_streaminfo_exits(stream_id)) {
+            free(path);
+            return 0;
+        }
 
         int fd = open(path, O_RDONLY);
         if (fd == -1) {
             perror("Failed to open rats_streaminfo file");
+            free(path);
             return 0;
         }
 
@@ -69,17 +73,20 @@ int rats_streaminfo_get(rats_cache *mcache, rats_streaminfo *streaminfo, rats_ui
         if (read(fd, data, len) != len) {
             close(fd);
             free(data);
+            free(path);
             return 0;
         }
 
         if (rats_streaminfo_read(streaminfo, data) == 0) {
             close(fd);
             free(data);
+            free(path);
             return 0;
         }
 
         close(fd);
         free(data);
+        free(path);
         return -1;
     }
 
@@ -115,10 +122,18 @@ int rats_streaminfo_put(rats_cache *mcache, rats_streaminfo *streaminfo, rats_ui
 }
 
 void rats_streaminfo_load(rats_cache *mcache) {
-    mkdir(".data", 0777);
-    mkdir(".data/md", 0777);
+    char* dir1;
+    char* dir2;
 
-    rats_filelist *list = get_sorted_filelist(".data/md");
+    asprintf(&dir1, "%s/.data", rats_streaminfo_dir);
+    asprintf(&dir2, "%s/.data/md", rats_streaminfo_dir);
+
+    mkdir(dir1, 0777);
+    mkdir(dir2, 0777);
+
+    rats_filelist *list = get_sorted_filelist(dir2);
+    free(dir1);
+    free(dir2);
 
     for (int i = 0; i < list->num_files; ++i) {
         int fd = open(list->files[i], O_RDONLY);
@@ -210,44 +225,63 @@ rats_uint64 rats_hash(const char *stream_id) {
 }
 
 void rats_streaminfo_flush(rats_uint8 *data, rats_uint32 len, rats_uint64 stream_id) {
-    char path[55];
-    rats_streaminfo_path(path, stream_id);
+    char* dir1;
+    char* dir2;
 
-    mkdir(".data", 0777);
-    mkdir(".data/md", 0777);
+    asprintf(&dir1, "%s/.data", rats_streaminfo_dir);
+    asprintf(&dir2, "%s/.data/md", rats_streaminfo_dir);
+
+    char *path = NULL;
+    rats_streaminfo_path(&path, stream_id);
+
+    mkdir(dir1, 0777);
+    mkdir(dir2, 0777);
+
+    free(dir1);
+    free(dir2);
 
     int fd = open(path, O_WRONLY | O_TRUNC | O_CREAT, 0644);
     if (fd == -1) {
         perror("Failed to open rats_streaminfo file");
+        free(path);
         return;
     }
 
     if (flock(fd, LOCK_EX) == -1) {
         perror("Failed to lock rats_streaminfo file");
         close(fd);
+        free(path);
         return;
     }
 
     write(fd, data, len);
     flock(fd, LOCK_UN);
     close(fd);
+    free(path);
 }
 
 int rats_streaminfo_exits(rats_uint64 stream_id) {
-    char path[55];
-    rats_streaminfo_path(path, stream_id);
+    char* path = NULL;
+    rats_streaminfo_path(&path, stream_id);
 
     struct stat buffer;
-    return stat(path, &buffer) == 0;
+
+    int rc = (stat(path, &buffer) == 0);
+    free(path);
+
+    return rc;
 }
 
-void rats_streaminfo_path(char *path, rats_uint64 stream_id) {
-    sprintf(path, ".data/md/%llu", stream_id);
+void rats_streaminfo_path(char **path, rats_uint64 stream_id) {
+    asprintf(path, "%s/.data/md/%llu", rats_streaminfo_dir, stream_id);
 }
 
 void rats_streaminfo_list(rats_cache *mcache, rats_streams *streams, const char* pattern) {
+    char *path = NULL;
+    asprintf(&path, "%s/.data/md", rats_streaminfo_dir);
+
     rats_filelist *list = rats_filelist_create();
-    rats_filelist_add(list, ".data/md");
+    rats_filelist_add(list, path);
 
     for (int i = 0; i < list->num_files; ++i) {
         rats_uint64 stream_id = strtoull(list->files[i], NULL, 10);
@@ -261,6 +295,7 @@ void rats_streaminfo_list(rats_cache *mcache, rats_streams *streams, const char*
     }
 
     rats_filelist_destroy(list);
+    free(path);
 
     pthread_rwlock_rdlock(&mcache->rwlock);
 

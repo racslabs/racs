@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
     rats_scm_init_bindings();
 
     rats_db *db = rats_db_instance();
-    rats_db_open(db);
+    rats_db_open(db, argv[1]);
 
     /*************************************************************/
     /* Create an AF_INET6 stream socket to receive incoming      */
@@ -62,9 +62,8 @@ int main(int argc, char *argv[]) {
     memset(&addr, 0, sizeof(addr));
     addr.sin6_family = AF_INET6;
     memcpy(&addr.sin6_addr, &in6addr_any, sizeof(in6addr_any));
-    addr.sin6_port = htons(SERVER_PORT);
-    rc = bind(listen_sd,
-              (struct sockaddr *) &addr, sizeof(addr));
+    addr.sin6_port = htons(db->ctx.config->port);
+    rc = bind(listen_sd, (struct sockaddr *) &addr, sizeof(addr));
     if (rc < 0) {
         perror("bind() failed");
         close(listen_sd);

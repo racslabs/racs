@@ -11,8 +11,8 @@ rats_db *rats_db_instance() {
     return _db;
 }
 
-void rats_db_open(rats_db *db) {
-    rats_context_init(&db->ctx);
+void rats_db_open(rats_db *db, const char *path) {
+    rats_context_init(&db->ctx, path);
     rats_exec_init(&db->exec);
 }
 

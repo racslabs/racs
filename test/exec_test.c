@@ -2,7 +2,7 @@
 
 void test_command_executor_unknown_command() {
     rats_context ctx;
-    rats_context_init(&ctx);
+    rats_context_init(&ctx, "config.yaml");
 
     rats_exec exec;
     rats_exec_init(&exec);
@@ -25,7 +25,7 @@ void test_command_executor_unknown_command() {
 
 void test_command_executor_is_not_command() {
     rats_context ctx;
-    rats_context_init(&ctx);
+    rats_context_init(&ctx, "config.yaml");
 
     rats_exec exec;
     rats_exec_init(&exec);
@@ -48,7 +48,7 @@ void test_command_executor_is_not_command() {
 
 void test_command_executor_parse_error1() {
     rats_context ctx;
-    rats_context_init(&ctx);
+    rats_context_init(&ctx, "config.yaml");
 
     rats_exec exec;
     rats_exec_init(&exec);

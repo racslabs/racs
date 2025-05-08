@@ -49,9 +49,9 @@ static const cyaml_schema_value_t rats_schema = {
         CYAML_VALUE_MAPPING(CYAML_FLAG_POINTER, rats_config, rats_schema_fields)
 };
 
-const cyaml_config_t yaml_config = {
-        .log_fn = cyaml_log, // or NULL
-        .mem_fn = cyaml_mem, // or NULL
+static const cyaml_config_t yaml_config = {
+        .log_fn = cyaml_log,
+        .mem_fn = cyaml_mem,
         .flags = CYAML_CFG_DEFAULT,
         .log_level = CYAML_LOG_WARNING,
 };
@@ -60,13 +60,12 @@ RATS_FORCE_INLINE void rats_config_load(rats_config** config, const char* path) 
     cyaml_err_t err = cyaml_load_file(path, &yaml_config, &rats_schema, (void **)config, NULL);
     if (err != CYAML_OK) {
         fprintf(stderr, "CYAML error: %s\n", cyaml_strerror(err));
-        exit(EXIT_FAILURE);
+        exit(1);
     }
 }
 
 RATS_FORCE_INLINE void rats_config_destroy(rats_config* config) {
     cyaml_free(&yaml_config, &rats_schema, config, 0);
 }
-
 
 #endif //RATS_CONFIG_H

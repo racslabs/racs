@@ -14,6 +14,8 @@
 extern "C" {
 #endif
 
+extern const char *rats_time_dir;
+
 rats_time rats_time_now();
 
 void rats_time_to_tm(rats_time time, struct tm *info);
@@ -26,7 +28,7 @@ rats_time rats_time_from_rfc3339(const char *buf);
 
 rats_time rats_time_from_path(const char *path);
 
-void rats_time_to_path(rats_time time, char *path);
+void rats_time_to_path(rats_time time, char **path);
 
 char *rats_time_range_to_path(rats_time from, rats_time to);
 

@@ -14,7 +14,7 @@ static rats_db *_db = NULL;
 
 rats_db *rats_db_instance();
 
-void rats_db_open(rats_db *db);
+void rats_db_open(rats_db *db, const char *path);
 
 void rats_db_close(rats_db *db);
 

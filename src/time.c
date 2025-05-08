@@ -48,7 +48,9 @@ rats_time rats_time_from_path(const char *path) {
     struct tm info = {0};
     long mill = 0;
 
-    if (sscanf(path, ".data/seg/%4d/%2d/%2d/%2d/%2d/%2d/%3ld",
+    const char *match = strstr(path, ".data/seg");
+
+    if (sscanf(match, ".data/seg/%4d/%2d/%2d/%2d/%2d/%2d/%3ld",
                &info.tm_year, &info.tm_mon, &info.tm_mday,
                &info.tm_hour, &info.tm_min, &info.tm_sec, &mill) != 7) {
         fprintf(stderr, "Invalid path format\n");
@@ -68,21 +70,27 @@ rats_time rats_time_from_path(const char *path) {
 }
 
 char *rats_time_range_to_path(rats_time from, rats_time to) {
-    char path1[255], path2[255];
+    char *path1 = NULL;
+    char *path2 = NULL;
 
-    rats_time_to_path(from, path1);
-    rats_time_to_path(to, path2);
+    rats_time_to_path(from, &path1);
+    rats_time_to_path(to, &path2);
 
-    return rats_resolve_shared_path(path1, path2);
+    char* shared_path = rats_resolve_shared_path(path1, path2);
+    free(path1);
+    free(path2);
+
+    return shared_path;
 }
 
-void rats_time_to_path(rats_time time, char *path) {
+void rats_time_to_path(rats_time time, char **path) {
     struct tm info;
     rats_time_to_tm(time, &info);
 
     long rem = time % 1000;
 
-    sprintf(path, ".data/seg/%d/%02d/%02d/%02d/%02d/%02d/%03ld",
+    asprintf(path, "%s/.data/seg/%d/%02d/%02d/%02d/%02d/%02d/%03ld",
+            rats_time_dir,
             info.tm_year + 1900, info.tm_mon + 1,
             info.tm_mday, info.tm_hour,
             info.tm_min, info.tm_sec,
@@ -90,8 +98,8 @@ void rats_time_to_path(rats_time time, char *path) {
 }
 
 void rats_time_create_dirs(rats_time time) {
-    char dir[128];
-    rats_time_to_path(time, dir);
+    char *dir = NULL;
+    rats_time_to_path(time, &dir);
 
     char *p = dir;
     while ((p = strchr(p + 1, '/')) != NULL) {
@@ -99,4 +107,6 @@ void rats_time_create_dirs(rats_time time) {
         mkdir(dir, 0777);
         *p = '/';
     }
+
+    free(dir);
 }
