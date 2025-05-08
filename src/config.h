@@ -19,7 +19,6 @@ typedef struct {
 
 typedef struct {
     int                     port;
-    char*                   host;
     char*                   data_dir;
     rats_memtable_config    memtables;
     rats_cache_config       cache;
@@ -37,7 +36,6 @@ static const cyaml_schema_field_t rats_cache_schema_fields[] = {
 };
 
 static const cyaml_schema_field_t rats_schema_fields[] = {
-        CYAML_FIELD_STRING_PTR("host", CYAML_FLAG_POINTER, rats_config , host, 0, CYAML_UNLIMITED),
         CYAML_FIELD_UINT("port", CYAML_FLAG_DEFAULT, rats_config , port),
         CYAML_FIELD_STRING_PTR("data_dir", CYAML_FLAG_POINTER, rats_config, data_dir, 0, CYAML_UNLIMITED),
         CYAML_FIELD_MAPPING("memtables", CYAML_FLAG_DEFAULT, rats_config, memtables, rats_memtables_schema_fields),

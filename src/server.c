@@ -17,11 +17,14 @@ int main(int argc, char *argv[]) {
     struct pollfd fds[200];
     int nfds = 1, current_size = 0, i, j;
 
+    if (strcmp(argv[1], "--config") == 0)
+        exit(1);
+
     scm_init_guile();
     rats_scm_init_bindings();
 
     rats_db *db = rats_db_instance();
-    rats_db_open(db, argv[1]);
+    rats_db_open(db, argv[2]);
 
     /*************************************************************/
     /* Create an AF_INET6 stream socket to receive incoming      */
