@@ -79,7 +79,7 @@ rats_sstable *rats_sstable_read(const char *filename) {
 
     off_t file_size = lseek(fd, 0, SEEK_END);
     if (file_size == -1) {
-        perror("Failed to determine file capacity");
+        perror("Failed to determine file entries");
         close(fd);
         return NULL;
     }

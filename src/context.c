@@ -10,8 +10,8 @@ void rats_context_init(rats_context *ctx, const char *path) {
     ctx->scache = rats_scache_create(ctx->config->cache.entries);
     ctx->mcache = rats_mcache_create(ctx->config->cache.entries);
     ctx->kv = rats_streamkv_create(ctx->config->cache.entries);
-    ctx->mmt = rats_multi_memtable_create(ctx->config->memtables.count,
-                                          ctx->config->memtables.capacity);
+    ctx->mmt = rats_multi_memtable_create(ctx->config->memtable.tables,
+                                          ctx->config->memtable.entries);
     rats_streaminfo_dir = ctx->config->data_dir;
     rats_time_dir = ctx->config->data_dir;
 

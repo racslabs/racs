@@ -17,7 +17,7 @@ RATS_FORCE_INLINE uint8_t* read_file(const char* path, int* size) {
     rewind(file);
 
     if (size <= 0) {
-        fprintf(stderr, "Invalid file capacity\n");
+        fprintf(stderr, "Invalid file entries\n");
         fclose(file);
         return NULL;
     }

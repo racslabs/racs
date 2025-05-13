@@ -9,8 +9,8 @@
 #include "export.h"
 
 typedef struct {
-    int count;
-    int capacity;
+    int tables;
+    int entries;
 } rats_memtable_config;
 
 typedef struct {
@@ -20,13 +20,13 @@ typedef struct {
 typedef struct {
     int                     port;
     char*                   data_dir;
-    rats_memtable_config    memtables;
+    rats_memtable_config    memtable;
     rats_cache_config       cache;
 } rats_config;
 
 static const cyaml_schema_field_t rats_memtables_schema_fields[] = {
-        CYAML_FIELD_UINT("count", CYAML_FLAG_DEFAULT, rats_memtable_config , count),
-        CYAML_FIELD_UINT("capacity", CYAML_FLAG_DEFAULT, rats_memtable_config , capacity),
+        CYAML_FIELD_UINT("tables", CYAML_FLAG_DEFAULT, rats_memtable_config , tables),
+        CYAML_FIELD_UINT("entries", CYAML_FLAG_DEFAULT, rats_memtable_config , entries),
         CYAML_FIELD_END
 };
 
@@ -38,7 +38,7 @@ static const cyaml_schema_field_t rats_cache_schema_fields[] = {
 static const cyaml_schema_field_t rats_schema_fields[] = {
         CYAML_FIELD_UINT("port", CYAML_FLAG_DEFAULT, rats_config , port),
         CYAML_FIELD_STRING_PTR("data_dir", CYAML_FLAG_POINTER, rats_config, data_dir, 0, CYAML_UNLIMITED),
-        CYAML_FIELD_MAPPING("memtables", CYAML_FLAG_DEFAULT, rats_config, memtables, rats_memtables_schema_fields),
+        CYAML_FIELD_MAPPING("memtable", CYAML_FLAG_DEFAULT, rats_config, memtable, rats_memtables_schema_fields),
         CYAML_FIELD_MAPPING("cache", CYAML_FLAG_DEFAULT, rats_config , cache, rats_cache_schema_fields),
         CYAML_FIELD_END
 };

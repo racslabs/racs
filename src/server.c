@@ -1,7 +1,5 @@
 #include "server.h"
 
-#define SERVER_PORT  12345
-
 #define TRUE             1
 #define FALSE            0
 
@@ -17,7 +15,7 @@ int main(int argc, char *argv[]) {
     struct pollfd fds[200];
     int nfds = 1, current_size = 0, i, j;
 
-    if (strcmp(argv[1], "--config") == 0)
+    if (strcmp(argv[1], "--config") != 0)
         exit(1);
 
     scm_init_guile();
@@ -43,6 +41,17 @@ int main(int argc, char *argv[]) {
                     (char *) &on, sizeof(on));
     if (rc < 0) {
         perror("setsockopt() failed");
+        close(listen_sd);
+        exit(-1);
+    }
+
+    /*************************************************************/
+    /* Disable IPV6 only.                   */
+    /*************************************************************/
+    int off = 0;
+    rc = setsockopt(listen_sd, IPPROTO_IPV6, IPV6_V6ONLY, &off, sizeof(off));
+    if (rc < 0) {
+        perror("setsockopt(IPV6_V6ONLY) failed");
         close(listen_sd);
         exit(-1);
     }
@@ -142,6 +151,19 @@ int main(int argc, char *argv[]) {
             if (fds[i].revents == 0)
                 continue;
 
+            if (fds[i].revents & POLLHUP) {
+                close(fds[i].fd);
+                fds[i].fd = -1;
+                continue;
+            }
+
+
+            if (fds[i].revents & POLLERR) {
+                close(fds[i].fd);
+                fds[i].fd = -1;
+                continue;
+            }
+
             /*********************************************************/
             /* If revents is not POLLIN, it's an unexpected result,  */
             /* log and end the server.                               */
@@ -150,8 +172,8 @@ int main(int argc, char *argv[]) {
                 printf("  Error! revents = %d\n", fds[i].revents);
                 end_server = TRUE;
                 break;
-
             }
+
             if (fds[i].fd == listen_sd) {
                 /*******************************************************/
                 /* Listening descriptor is readable.                   */
