@@ -1,10 +1,10 @@
 
-#ifndef RATS_TIMESTAMP_TEST_H
-#define RATS_TIMESTAMP_TEST_H
+#ifndef RACS_TIMESTAMP_TEST_H
+#define RACS_TIMESTAMP_TEST_H
 
 #include <assert.h>
 #include "../src/time.h"
 
 void test_rfc3339();
 
-#endif //RATS_TIMESTAMP_TEST_H
+#endif //RACS_TIMESTAMP_TEST_H

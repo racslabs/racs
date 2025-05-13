@@ -4,7 +4,7 @@
 #define FALSE            0
 
 int main(int argc, char *argv[]) {
-//    rats_run_tests(argc, argv);
+//    racs_run_tests(argc, argv);
     int len, rc, on = 1;
     int listen_sd = -1, new_sd = -1;
     int desc_ready, end_server = FALSE, compress_array = FALSE;
@@ -19,10 +19,10 @@ int main(int argc, char *argv[]) {
         exit(1);
 
     scm_init_guile();
-    rats_scm_init_bindings();
+    racs_scm_init_bindings();
 
-    rats_db *db = rats_db_instance();
-    rats_db_open(db, argv[2]);
+    racs_db *db = racs_db_instance();
+    racs_db_open(db, argv[2]);
 
     /*************************************************************/
     /* Create an AF_INET6 stream socket to receive incoming      */
@@ -231,8 +231,8 @@ int main(int argc, char *argv[]) {
                 /* before we loop back and call poll again.            */
                 /*******************************************************/
 
-                rats_memstream in_stream;
-                rats_memstream_init(&in_stream);
+                racs_memstream in_stream;
+                racs_memstream_init(&in_stream);
 
                 do {
                     /*****************************************************/
@@ -268,7 +268,7 @@ int main(int argc, char *argv[]) {
                     len = rc;
                     printf("  %d bytes received\n", len);
 
-                    rats_memstream_write(&in_stream, buffer, len);
+                    racs_memstream_write(&in_stream, buffer, len);
 
                 } while (TRUE);
 
@@ -278,12 +278,12 @@ int main(int argc, char *argv[]) {
 
 
 
-                rats_result res;
+                racs_result res;
 
-                if (rats_is_frame((const char *) in_stream.data)) {
-                    res = rats_db_stream(db, in_stream.data);
+                if (racs_is_frame((const char *) in_stream.data)) {
+                    res = racs_db_stream(db, in_stream.data);
                 } else {
-                    res = rats_db_exec(db, (const char *) in_stream.data);
+                    res = racs_db_exec(db, (const char *) in_stream.data);
                 }
 
                 free(in_stream.data);

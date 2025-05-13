@@ -1,6 +1,6 @@
 #include "stream.h"
 
-const char *const rats_stream_status_string[] = {
+const char *const racs_stream_status_string[] = {
         "",
         "Malformed atsp frame.",
         "Stream is closed or currently in use.",
@@ -9,9 +9,9 @@ const char *const rats_stream_status_string[] = {
         "Invalid bit depth."
 };
 
-int rats_streamcreate(rats_cache *mcache, const char* stream_id, rats_uint32 sample_rate, rats_uint16 channels) {
-    rats_streaminfo streaminfo;
-    memset(&streaminfo, 0, sizeof(rats_streaminfo));
+int racs_streamcreate(racs_cache *mcache, const char* stream_id, racs_uint32 sample_rate, racs_uint16 channels) {
+    racs_streaminfo streaminfo;
+    memset(&streaminfo, 0, sizeof(racs_streaminfo));
 
     streaminfo.sample_rate = sample_rate;
     streaminfo.channels = channels;
@@ -19,54 +19,54 @@ int rats_streamcreate(rats_cache *mcache, const char* stream_id, rats_uint32 sam
     streaminfo.id_size = strlen(stream_id) + 1;
     streaminfo.id = (char*)stream_id;
 
-    rats_uint64 hash = rats_hash(stream_id);
+    racs_uint64 hash = racs_hash(stream_id);
 
-    if (rats_streaminfo_get(mcache, &streaminfo, hash)) return 0;
-    return rats_streaminfo_put(mcache, &streaminfo, hash);
+    if (racs_streaminfo_get(mcache, &streaminfo, hash)) return 0;
+    return racs_streaminfo_put(mcache, &streaminfo, hash);
 }
 
-int rats_streamappend(rats_cache *mcache, rats_multi_memtable *mmt, rats_streamkv *kv, rats_uint8 *data) {
-    rats_frame frame;
-    if (!rats_frame_parse(data, &frame))
-        return RATS_STREAM_MALFORMED;
+int racs_streamappend(racs_cache *mcache, racs_multi_memtable *mmt, racs_streamkv *kv, racs_uint8 *data) {
+    racs_frame frame;
+    if (!racs_frame_parse(data, &frame))
+        return RACS_STREAM_MALFORMED;
 
-    char *mac_addr = rats_streamkv_get(kv, frame.header.stream_id);
-    if (!mac_addr || !rats_mac_addr_cmp(frame.header.mac_addr, mac_addr))
-        return RATS_STREAM_CONFLICT;
+    char *mac_addr = racs_streamkv_get(kv, frame.header.stream_id);
+    if (!mac_addr || !racs_mac_addr_cmp(frame.header.mac_addr, mac_addr))
+        return RACS_STREAM_CONFLICT;
 
-    rats_streamkv_put(kv, frame.header.stream_id, frame.header.mac_addr);
+    racs_streamkv_put(kv, frame.header.stream_id, frame.header.mac_addr);
 
-    rats_streaminfo streaminfo;
-    memset(&streaminfo, 0, sizeof(rats_streaminfo));
+    racs_streaminfo streaminfo;
+    memset(&streaminfo, 0, sizeof(racs_streaminfo));
 
-    int rc = rats_streaminfo_get(mcache, &streaminfo, frame.header.stream_id);
+    int rc = racs_streaminfo_get(mcache, &streaminfo, frame.header.stream_id);
     if (rc == -1 || rc == 1)
-        rats_streaminfo_put(mcache, &streaminfo, frame.header.stream_id);
+        racs_streaminfo_put(mcache, &streaminfo, frame.header.stream_id);
 
     if (frame.header.sample_rate != streaminfo.sample_rate)
-        return RATS_STREAM_INVALID_SAMPLE_RATE;
+        return RACS_STREAM_INVALID_SAMPLE_RATE;
 
     if (frame.header.channels != streaminfo.channels)
-        return RATS_STREAM_INVALID_CHANNELS;
+        return RACS_STREAM_INVALID_CHANNELS;
 
     if (frame.header.bit_depth != 16)
-        return RATS_STREAM_INVALID_BITDEPTH;
+        return RACS_STREAM_INVALID_BITDEPTH;
 
     if (streaminfo.ref == 0 && streaminfo.size == 0)
-        streaminfo.ref = rats_time_now();
+        streaminfo.ref = racs_time_now();
 
-    rats_time offset = rats_streaminfo_offset(&streaminfo);
-    rats_uint64 key[2] = {frame.header.stream_id, offset};
-    rats_multi_memtable_append(mmt, key, frame.pcm_block, frame.header.block_size);
+    racs_time offset = racs_streaminfo_offset(&streaminfo);
+    racs_uint64 key[2] = {frame.header.stream_id, offset};
+    racs_multi_memtable_append(mmt, key, frame.pcm_block, frame.header.block_size);
 
     streaminfo.size += frame.header.block_size;
-    rats_streaminfo_put(mcache, &streaminfo, frame.header.stream_id);
+    racs_streaminfo_put(mcache, &streaminfo, frame.header.stream_id);
 
-    return RATS_STREAM_OK;
+    return RACS_STREAM_OK;
 }
 
-int rats_streamopen(rats_streamkv *kv, rats_uint64 stream_id) {
-    char *mac_addr = rats_streamkv_get(kv, stream_id);
+int racs_streamopen(racs_streamkv *kv, racs_uint64 stream_id) {
+    char *mac_addr = racs_streamkv_get(kv, stream_id);
     if (mac_addr) {
         perror("Stream is already open");
         return 0;
@@ -75,49 +75,49 @@ int rats_streamopen(rats_streamkv *kv, rats_uint64 stream_id) {
     char _mac_addr[6];
     memset(_mac_addr, 0, 6);
 
-    rats_streamkv_put(kv, stream_id, _mac_addr);
+    racs_streamkv_put(kv, stream_id, _mac_addr);
     return 1;
 }
 
-int rats_streamclose(rats_streamkv *kv, rats_uint64 stream_id) {
-    char *mac_addr = rats_streamkv_get(kv, stream_id);
+int racs_streamclose(racs_streamkv *kv, racs_uint64 stream_id) {
+    char *mac_addr = racs_streamkv_get(kv, stream_id);
     if (!mac_addr) {
         perror("Stream is not open");
         return 0;
     }
 
-    rats_streamkv_delete(kv, stream_id);
+    racs_streamkv_delete(kv, stream_id);
     return 1;
 }
 
-rats_streamkv *rats_streamkv_create(int capacity) {
-    rats_streamkv *kv = malloc(sizeof(rats_streamkv));
+racs_streamkv *racs_streamkv_create(int capacity) {
+    racs_streamkv *kv = malloc(sizeof(racs_streamkv));
     if (!kv) {
-        perror("Failed to allocate rats_streamkv");
+        perror("Failed to allocate racs_streamkv");
         return NULL;
     }
 
-    kv->kv = rats_kvstore_create(capacity, rats_streamkv_hash, rats_streamkv_cmp, rats_streamkv_destroy_entry);
+    kv->kv = racs_kvstore_create(capacity, racs_streamkv_hash, racs_streamkv_cmp, racs_streamkv_destroy_entry);
     pthread_rwlock_init(&kv->rwlock, NULL);
 
     return kv;
 }
 
-char *rats_streamkv_get(rats_streamkv *kv, rats_uint64 stream_id) {
+char *racs_streamkv_get(racs_streamkv *kv, racs_uint64 stream_id) {
     pthread_rwlock_rdlock(&kv->rwlock);
 
-    rats_uint64 key[2] = {stream_id, 0};
-    char *mac_addr = rats_kvstore_get(kv->kv, key);
+    racs_uint64 key[2] = {stream_id, 0};
+    char *mac_addr = racs_kvstore_get(kv->kv, key);
 
     pthread_rwlock_unlock(&kv->rwlock);
 
     return mac_addr;
 }
 
-void rats_streamkv_put(rats_streamkv *kv, rats_uint64 stream_id, char mac_addr[]) {
+void racs_streamkv_put(racs_streamkv *kv, racs_uint64 stream_id, char mac_addr[]) {
     pthread_rwlock_wrlock(&kv->rwlock);
 
-    rats_uint64 *key = malloc(2 * sizeof(rats_uint64));
+    racs_uint64 *key = malloc(2 * sizeof(racs_uint64));
     if (!key) {
         perror("Failed to allocate key.");
         return;
@@ -134,44 +134,44 @@ void rats_streamkv_put(rats_streamkv *kv, rats_uint64 stream_id, char mac_addr[]
 
     memcpy(_mac_addr, mac_addr, 6);
 
-    rats_kvstore_put(kv->kv, key, _mac_addr);
+    racs_kvstore_put(kv->kv, key, _mac_addr);
     pthread_rwlock_unlock(&kv->rwlock);
 }
 
-void rats_streamkv_delete(rats_streamkv *kv, rats_uint64 stream_id) {
+void racs_streamkv_delete(racs_streamkv *kv, racs_uint64 stream_id) {
     pthread_rwlock_wrlock(&kv->rwlock);
 
-    rats_uint64 key[2] = {stream_id, 0};
-    rats_kvstore_delete(kv->kv, key);
+    racs_uint64 key[2] = {stream_id, 0};
+    racs_kvstore_delete(kv->kv, key);
 
     pthread_rwlock_unlock(&kv->rwlock);
 }
 
-void rats_streamkv_destroy(rats_streamkv *kv) {
+void racs_streamkv_destroy(racs_streamkv *kv) {
     pthread_rwlock_wrlock(&kv->rwlock);
-    rats_kvstore_destroy(kv->kv);
+    racs_kvstore_destroy(kv->kv);
     pthread_rwlock_unlock(&kv->rwlock);
     pthread_rwlock_destroy(&kv->rwlock);
 }
 
-rats_uint64 rats_streamkv_hash(void *key) {
-    rats_uint64 hash[2];
-    murmur3_x64_128(key, 2 * sizeof(rats_uint64), 0, hash);
+racs_uint64 racs_streamkv_hash(void *key) {
+    racs_uint64 hash[2];
+    murmur3_x64_128(key, 2 * sizeof(racs_uint64), 0, hash);
     return hash[0];
 }
 
-int rats_streamkv_cmp(void *a, void *b) {
-    rats_uint64 *x = (rats_uint64 *) a;
-    rats_uint64 *y = (rats_uint64 *) b;
+int racs_streamkv_cmp(void *a, void *b) {
+    racs_uint64 *x = (racs_uint64 *) a;
+    racs_uint64 *y = (racs_uint64 *) b;
     return x[0] == y[0] && x[1] == y[1];
 }
 
-void rats_streamkv_destroy_entry(void *key, void *value) {
+void racs_streamkv_destroy_entry(void *key, void *value) {
     free(key);
     free(value);
 }
 
-int rats_mac_addr_cmp(const char *src, const char *dest) {
+int racs_mac_addr_cmp(const char *src, const char *dest) {
     char _mac_addr[6] = {0};
     if (memcmp(dest, _mac_addr, 6) == 0) return 1;
     if (memcmp(src, dest, 6) == 0) return 1;

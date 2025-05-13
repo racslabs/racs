@@ -1,6 +1,6 @@
 
-#ifndef RATS_STREAMINFO_H
-#define RATS_STREAMINFO_H
+#ifndef RACS_STREAMINFO_H
+#define RACS_STREAMINFO_H
 
 #include <fcntl.h>
 #include <stdio.h>
@@ -12,59 +12,59 @@
 #include "filelist.h"
 
 typedef struct {
-    rats_uint16 channels;
-    rats_uint16 bit_depth;
-    rats_uint32 sample_rate;
-    rats_uint64 size;
-    rats_time   ref;
-    rats_uint32 id_size;
+    racs_uint16 channels;
+    racs_uint16 bit_depth;
+    racs_uint32 sample_rate;
+    racs_uint64 size;
+    racs_time   ref;
+    racs_uint32 id_size;
     char*       id;
-} rats_streaminfo;
+} racs_streaminfo;
 
 typedef struct {
     char **streams;
     size_t num_streams;
     size_t max_streams;
-} rats_streams;
+} racs_streams;
 
-extern const char* rats_streaminfo_dir;
+extern const char* racs_streaminfo_dir;
 
-rats_uint64 rats_streaminfo_attr(rats_cache *mcache, rats_uint64 stream_id, const char *attr);
+racs_uint64 racs_streaminfo_attr(racs_cache *mcache, racs_uint64 stream_id, const char *attr);
 
-int rats_streaminfo_get(rats_cache *mcache, rats_streaminfo *streaminfo, rats_uint64 stream_id);
+int racs_streaminfo_get(racs_cache *mcache, racs_streaminfo *streaminfo, racs_uint64 stream_id);
 
-int rats_streaminfo_put(rats_cache *mcache, rats_streaminfo *streaminfo, rats_uint64 stream_id);
+int racs_streaminfo_put(racs_cache *mcache, racs_streaminfo *streaminfo, racs_uint64 stream_id);
 
-void rats_streaminfo_load(rats_cache *mcache);
+void racs_streaminfo_load(racs_cache *mcache);
 
-void rats_streaminfo_list(rats_cache *mcache, rats_streams *streams, const char* pattern);
+void racs_streaminfo_list(racs_cache *mcache, racs_streams *streams, const char* pattern);
 
-size_t rats_streaminfo_size(rats_streaminfo* streaminfo);
+size_t racs_streaminfo_size(racs_streaminfo* streaminfo);
 
-off_t rats_streaminfo_write(rats_uint8 *buf, rats_streaminfo *streaminfo);
+off_t racs_streaminfo_write(racs_uint8 *buf, racs_streaminfo *streaminfo);
 
-off_t rats_streaminfo_read(rats_streaminfo *streaminfo, rats_uint8 *buf);
+off_t racs_streaminfo_read(racs_streaminfo *streaminfo, racs_uint8 *buf);
 
-size_t rats_streaminfo_filesize(const char *path);
+size_t racs_streaminfo_filesize(const char *path);
 
-void rats_streaminfo_flush(rats_uint8 *data, rats_uint32 len, rats_uint64 stream_id);
+void racs_streaminfo_flush(racs_uint8 *data, racs_uint32 len, racs_uint64 stream_id);
 
-void rats_streaminfo_path(char **path, rats_uint64 stream_id);
+void racs_streaminfo_path(char **path, racs_uint64 stream_id);
 
-int rats_streaminfo_exits(rats_uint64 stream_id);
+int racs_streaminfo_exits(racs_uint64 stream_id);
 
-rats_time rats_streaminfo_offset(rats_streaminfo *streaminfo);
+racs_time racs_streaminfo_offset(racs_streaminfo *streaminfo);
 
-void rats_streams_add(rats_streams *streams, const char *stream);
+void racs_streams_add(racs_streams *streams, const char *stream);
 
-void rats_streams_init(rats_streams *streams);
+void racs_streams_init(racs_streams *streams);
 
-void rats_streams_destroy(rats_streams *streams);
+void racs_streams_destroy(racs_streams *streams);
 
-void rats_mcache_destroy(void *key, void *value);
+void racs_mcache_destroy(void *key, void *value);
 
-rats_cache *rats_mcache_create(size_t capacity);
+racs_cache *racs_mcache_create(size_t capacity);
 
-rats_uint64 rats_hash(const char *stream_id);
+racs_uint64 racs_hash(const char *stream_id);
 
-#endif //RATS_STREAMINFO_H
+#endif //RACS_STREAMINFO_H

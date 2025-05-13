@@ -1,6 +1,6 @@
 
-#ifndef RATS_SIMD_H
-#define RATS_SIMD_H
+#ifndef RACS_SIMD_H
+#define RACS_SIMD_H
 
 #include <stddef.h>
 #include "../types.h"
@@ -18,8 +18,8 @@
 #endif
 
 #if defined(__GNUG__) || defined(__GNUC__)
-#define RATS_DO_PRAGMA(x) _Pragma(#x)
-#define RATS_UNROLL(N) RATS_DO_PRAGMA(GCC unroll N)
+#define RACS_DO_PRAGMA(x) _Pragma(#x)
+#define RACS_UNROLL(N) RACS_DO_PRAGMA(GCC unroll N)
 #endif
 
-#endif //RATS_SIMD_H
+#endif //RACS_SIMD_H

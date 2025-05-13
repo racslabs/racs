@@ -1,6 +1,6 @@
 
-#ifndef RATS_FILELIST_H
-#define RATS_FILELIST_H
+#ifndef RACS_FILELIST_H
+#define RACS_FILELIST_H
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -12,18 +12,18 @@ typedef struct {
     char **files;
     size_t num_files;
     size_t max_num_files;
-} rats_filelist;
+} racs_filelist;
 
-void rats_filelist_add(rats_filelist *list, const char *file_path);
+void racs_filelist_add(racs_filelist *list, const char *file_path);
 
-void rats_filelist_sort(rats_filelist *list);
+void racs_filelist_sort(racs_filelist *list);
 
-void rats_filelist_destroy(rats_filelist *list);
+void racs_filelist_destroy(racs_filelist *list);
 
-rats_filelist *rats_filelist_create();
+racs_filelist *racs_filelist_create();
 
-rats_filelist *get_sorted_filelist(const char *path);
+racs_filelist *get_sorted_filelist(const char *path);
 
-char *rats_resolve_shared_path(const char *path1, const char *path2);
+char *racs_resolve_shared_path(const char *path1, const char *path2);
 
-#endif //RATS_FILELIST_H
+#endif //RACS_FILELIST_H

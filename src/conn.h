@@ -1,6 +1,6 @@
 
-#ifndef RATS_CONN_H
-#define RATS_CONN_H
+#ifndef RACS_CONN_H
+#define RACS_CONN_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,20 +23,20 @@ typedef struct {
     int timeout;
     struct pollfd fds[200];
     int nfds, current_size, i, j;
-} rats_conn;
+} racs_conn;
 
-void rats_conn_init(rats_conn *conn, int port);
+void racs_conn_init(racs_conn *conn, int port);
 
-void rats_conn_init_socket(rats_conn *conn);
+void racs_conn_init_socket(racs_conn *conn);
 
-void rats_conn_init_sockopt(rats_conn *conn);
+void racs_conn_init_sockopt(racs_conn *conn);
 
-void rats_conn_init_ioctl(rats_conn *conn);
+void racs_conn_init_ioctl(racs_conn *conn);
 
-void rats_conn_bind(rats_conn *conn, int port);
+void racs_conn_bind(racs_conn *conn, int port);
 
-void rats_conn_listen(rats_conn *conn);
+void racs_conn_listen(racs_conn *conn);
 
-void rats_conn_init_fds(rats_conn *conn);
+void racs_conn_init_fds(racs_conn *conn);
 
-#endif //RATS_CONN_H
+#endif //RACS_CONN_H

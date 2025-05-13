@@ -1,27 +1,27 @@
 #include "context.h"
 
-const char* rats_streaminfo_dir = NULL;
-const char* rats_time_dir = NULL;
+const char* racs_streaminfo_dir = NULL;
+const char* racs_time_dir = NULL;
 
-void rats_context_init(rats_context *ctx, const char *path) {
+void racs_context_init(racs_context *ctx, const char *path) {
     ctx->config = NULL;
-    rats_config_load(&ctx->config, path);
+    racs_config_load(&ctx->config, path);
 
-    ctx->scache = rats_scache_create(ctx->config->cache.entries);
-    ctx->mcache = rats_mcache_create(ctx->config->cache.entries);
-    ctx->kv = rats_streamkv_create(ctx->config->cache.entries);
-    ctx->mmt = rats_multi_memtable_create(ctx->config->memtable.tables,
+    ctx->scache = racs_scache_create(ctx->config->cache.entries);
+    ctx->mcache = racs_mcache_create(ctx->config->cache.entries);
+    ctx->kv = racs_streamkv_create(ctx->config->cache.entries);
+    ctx->mmt = racs_multi_memtable_create(ctx->config->memtable.tables,
                                           ctx->config->memtable.entries);
-    rats_streaminfo_dir = ctx->config->data_dir;
-    rats_time_dir = ctx->config->data_dir;
+    racs_streaminfo_dir = ctx->config->data_dir;
+    racs_time_dir = ctx->config->data_dir;
 
-    rats_streaminfo_load(ctx->mcache);
+    racs_streaminfo_load(ctx->mcache);
 }
 
-void rats_context_destroy(rats_context *ctx) {
-    rats_config_destroy(ctx->config);
-    rats_cache_destroy(ctx->scache);
-    rats_cache_destroy(ctx->mcache);
-    rats_streamkv_destroy(ctx->kv);
-    rats_multi_memtable_destroy(ctx->mmt);
+void racs_context_destroy(racs_context *ctx) {
+    racs_config_destroy(ctx->config);
+    racs_cache_destroy(ctx->scache);
+    racs_cache_destroy(ctx->mcache);
+    racs_streamkv_destroy(ctx->kv);
+    racs_multi_memtable_destroy(ctx->mmt);
 }

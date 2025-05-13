@@ -1,7 +1,4 @@
-<p align="center">
-  <img src="icon.svg" width="1000" height="500"  alt=""/>
-</p>
 
-# RATS DB
+# RACS DB
 
-**RATS DB (Real-time Audio Timeseries Database)** is an append-only in memory and persistent timeseries audio storage server.
+**RACS DB (Remote Audio Caching Server)** is an append-only in memory audio storage server.

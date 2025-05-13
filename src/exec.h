@@ -1,133 +1,133 @@
 
-#ifndef RATS_EXEC_H
-#define RATS_EXEC_H
+#ifndef RACS_EXEC_H
+#define RACS_EXEC_H
 
 #include "kvstore.h"
 #include "parser.h"
 #include "command.h"
 
 typedef enum {
-    RATS_COMMAND_ARG_TYPE_STR,
-    RATS_COMMAND_ARG_TYPE_INT,
-    RATS_COMMAND_ARG_TYPE_FLOAT
-} rats_command_arg_type;
+    RACS_COMMAND_ARG_TYPE_STR,
+    RACS_COMMAND_ARG_TYPE_INT,
+    RACS_COMMAND_ARG_TYPE_FLOAT
+} racs_command_arg_type;
 
 typedef enum {
-    RATS_COMMAND_OP_PIPE,
-    RATS_COMMAND_OP_NONE
-} rats_command_op;
+    RACS_COMMAND_OP_PIPE,
+    RACS_COMMAND_OP_NONE
+} racs_command_op;
 
 typedef enum {
-    RATS_EXEC_STATUS_CONTINUE,
-    RATS_EXEC_STATUS_ABORT
-} rats_exec_status;
+    RACS_EXEC_STATUS_CONTINUE,
+    RACS_EXEC_STATUS_ABORT
+} racs_exec_status;
 
 typedef struct {
-    rats_kvstore *kv;
-} rats_exec;
+    racs_kvstore *kv;
+} racs_exec;
 
 typedef struct {
     const char *ptr;
     size_t size;
-} rats_command_arg_;
+} racs_command_arg_;
 
-typedef rats_command_arg_ rats_command_arg_str;
+typedef racs_command_arg_ racs_command_arg_str;
 
 typedef union {
     double f64;
-    rats_int64 i64;
-    rats_uint64 u64;
-    rats_command_arg_str str;
-} rats_command_arg_union;
+    racs_int64 i64;
+    racs_uint64 u64;
+    racs_command_arg_str str;
+} racs_command_arg_union;
 
 typedef struct {
-    rats_command_arg_type type;
-    rats_command_arg_union as;
-} rats_command_arg;
+    racs_command_arg_type type;
+    racs_command_arg_union as;
+} racs_command_arg;
 
 typedef struct {
     char name[255];
     int num_args;
     int max_num_args;
-    rats_command_op op;
-    rats_command_arg **args;
-} rats_command;
+    racs_command_op op;
+    racs_command_arg **args;
+} racs_command;
 
 typedef struct {
     int num_cmd;
     int max_num_cmd;
-    rats_command **cmd;
-} rats_exec_plan;
+    racs_command **cmd;
+} racs_exec_plan;
 
-typedef int (*rats_command_func)(msgpack_sbuffer *in_buf, msgpack_sbuffer *out_buf, rats_context *ctx);
+typedef int (*racs_command_func)(msgpack_sbuffer *in_buf, msgpack_sbuffer *out_buf, racs_context *ctx);
 
-void rats_exec_init(rats_exec *exec);
+void racs_exec_init(racs_exec *exec);
 
-void rats_exec_destroy(rats_exec *exec);
+void racs_exec_destroy(racs_exec *exec);
 
-rats_result rats_exec_exec(rats_exec *exec, rats_context *ctx, const char *cmd);
+racs_result racs_exec_exec(racs_exec *exec, racs_context *ctx, const char *cmd);
 
-rats_result rats_exec_stream(rats_context *ctx, rats_uint8 *data);
+racs_result racs_exec_stream(racs_context *ctx, racs_uint8 *data);
 
-rats_uint64 rats_exec_hash(void *key);
+racs_uint64 racs_exec_hash(void *key);
 
-int rats_exec_cmp(void *a, void *b);
+int racs_exec_cmp(void *a, void *b);
 
 void exec_destroy(void *key, void *value);
 
-rats_command_func rats_exec_get(rats_exec *exec, const char *cmd_name);
+racs_command_func racs_exec_get(racs_exec *exec, const char *cmd_name);
 
-rats_command *rats_command_create(const char *name, rats_command_op op, size_t size);
+racs_command *racs_command_create(const char *name, racs_command_op op, size_t size);
 
-void rats_command_destroy(rats_command *cmd);
+void racs_command_destroy(racs_command *cmd);
 
-rats_command_arg *rats_command_arg_create();
+racs_command_arg *racs_command_arg_create();
 
-rats_command_arg *rats_command_arg_create_str(const char *ptr, size_t size);
+racs_command_arg *racs_command_arg_create_str(const char *ptr, size_t size);
 
-rats_command_arg *rats_command_arg_create_int64(rats_int64 d);
+racs_command_arg *racs_command_arg_create_int64(racs_int64 d);
 
-rats_command_arg *rats_command_arg_create_float64(double d);
+racs_command_arg *racs_command_arg_create_float64(double d);
 
-void rats_command_arg_destroy(rats_command_arg *arg);
+void racs_command_arg_destroy(racs_command_arg *arg);
 
-rats_command *rats_handle_id(rats_token *curr, rats_token *prev);
+racs_command *racs_handle_id(racs_token *curr, racs_token *prev);
 
-void rats_handle_error(const char *message, msgpack_sbuffer *out_buf);
+void racs_handle_error(const char *message, msgpack_sbuffer *out_buf);
 
-void rats_handle_unknown_command(rats_command *cmd, msgpack_sbuffer *out_buf);
+void racs_handle_unknown_command(racs_command *cmd, msgpack_sbuffer *out_buf);
 
-int rats_command_handle_id(rats_command *cmd, msgpack_sbuffer *out_buf);
+int racs_command_handle_id(racs_command *cmd, msgpack_sbuffer *out_buf);
 
-int rats_command_handle_str(rats_command *cmd, msgpack_sbuffer *out_buf, rats_token *curr, rats_token *prev);
+int racs_command_handle_str(racs_command *cmd, msgpack_sbuffer *out_buf, racs_token *curr, racs_token *prev);
 
-int rats_command_handle_int64(rats_command *cmd, msgpack_sbuffer *out_buf, rats_token *curr, rats_token *prev);
+int racs_command_handle_int64(racs_command *cmd, msgpack_sbuffer *out_buf, racs_token *curr, racs_token *prev);
 
-int rats_command_handle_float64(rats_command *cmd, msgpack_sbuffer *out_buf, rats_token *curr, rats_token *prev);
+int racs_command_handle_float64(racs_command *cmd, msgpack_sbuffer *out_buf, racs_token *curr, racs_token *prev);
 
-int rats_command_handle_time(rats_command *cmd, msgpack_sbuffer *out_buf, rats_token *curr, rats_token *prev);
+int racs_command_handle_time(racs_command *cmd, msgpack_sbuffer *out_buf, racs_token *curr, racs_token *prev);
 
-void rats_command_add_arg(rats_command *cmd, rats_command_arg *arg);
+void racs_command_add_arg(racs_command *cmd, racs_command_arg *arg);
 
-void rats_command_serialize_args(rats_command *cmd, msgpack_packer *pk);
+void racs_command_serialize_args(racs_command *cmd, msgpack_packer *pk);
 
-void rats_command_arg_serialize_str(rats_command_arg *arg, msgpack_packer *pk);
+void racs_command_arg_serialize_str(racs_command_arg *arg, msgpack_packer *pk);
 
-void rats_command_arg_serialize_int64(rats_command_arg *arg, msgpack_packer *pk);
+void racs_command_arg_serialize_int64(racs_command_arg *arg, msgpack_packer *pk);
 
-void rats_command_arg_serialize_float64(rats_command_arg *arg, msgpack_packer *pk);
+void racs_command_arg_serialize_float64(racs_command_arg *arg, msgpack_packer *pk);
 
-void rats_exec_plan_init(rats_exec_plan *plan);
+void racs_exec_plan_init(racs_exec_plan *plan);
 
-void rats_exec_plan_destroy(rats_exec_plan *plan);
+void racs_exec_plan_destroy(racs_exec_plan *plan);
 
-void rats_exec_plan_add_command(rats_exec_plan *plan, rats_command *cmd);
+void racs_exec_plan_add_command(racs_exec_plan *plan, racs_command *cmd);
 
-void rats_exec_plan_exec(rats_exec_plan *plan, rats_exec *exec, rats_context *ctx, msgpack_sbuffer *in_buf,
+void racs_exec_plan_exec(racs_exec_plan *plan, racs_exec *exec, racs_context *ctx, msgpack_sbuffer *in_buf,
                          msgpack_sbuffer *out_buf);
 
-int rats_exec_plan_build(rats_exec_plan *plan, msgpack_sbuffer *out_buf, rats_parser *parser);
+int racs_exec_plan_build(racs_exec_plan *plan, msgpack_sbuffer *out_buf, racs_parser *parser);
 
-void rats_uppercase(char *str);
+void racs_uppercase(char *str);
 
-#endif //RATS_EXEC_H
+#endif //RACS_EXEC_H

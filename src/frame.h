@@ -1,6 +1,6 @@
 
-#ifndef RATS_ATSP_H
-#define RATS_ATSP_H
+#ifndef RACS_ATSP_H
+#define RACS_ATSP_H
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -11,23 +11,23 @@
 typedef struct {
     char chunk_id[4];
     char mac_addr[6];
-    rats_uint64 stream_id;
-    rats_uint32 checksum;
-    rats_uint16 channels;
-    rats_uint32 sample_rate;
-    rats_uint16 bit_depth;
-    rats_uint16 block_size;
-} rats_frame_header;
+    racs_uint64 stream_id;
+    racs_uint32 checksum;
+    racs_uint16 channels;
+    racs_uint32 sample_rate;
+    racs_uint16 bit_depth;
+    racs_uint16 block_size;
+} racs_frame_header;
 
 typedef struct {
-    rats_frame_header header;
-    rats_uint8 *pcm_block;
-} rats_frame;
+    racs_frame_header header;
+    racs_uint8 *pcm_block;
+} racs_frame;
 
-int rats_frame_parse(rats_uint8 *buf, rats_frame *frame);
+int racs_frame_parse(racs_uint8 *buf, racs_frame *frame);
 
-off_t rats_frame_header_parse(rats_uint8 *buf, rats_frame_header *header);
+off_t racs_frame_header_parse(racs_uint8 *buf, racs_frame_header *header);
 
-int rats_is_frame(const char *id);
+int racs_is_frame(const char *id);
 
-#endif //RATS_ATSP_H
+#endif //RACS_ATSP_H

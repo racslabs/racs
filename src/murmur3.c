@@ -1,19 +1,19 @@
 #include "murmur3.h"
 
-void murmur3_x64_128(const rats_uint8 *key, size_t len, rats_uint32 seed, rats_uint64 *out) {
-    rats_uint64 h1 = seed;
-    rats_uint64 h2 = seed;
+void murmur3_x64_128(const racs_uint8 *key, size_t len, racs_uint32 seed, racs_uint64 *out) {
+    racs_uint64 h1 = seed;
+    racs_uint64 h2 = seed;
 
-    rats_uint64 c1 = 0x87c37b91114253d5ull;
-    rats_uint64 c2 = 0x4cf5ad432745937full;
+    racs_uint64 c1 = 0x87c37b91114253d5ull;
+    racs_uint64 c2 = 0x4cf5ad432745937full;
 
     size_t n = len / 16;
 
-    const rats_uint64 *blocks = (const rats_uint64 *) key;
+    const racs_uint64 *blocks = (const racs_uint64 *) key;
 
     for (int i = 0; i < n; i += 2) {
-        rats_uint64 k1 = blocks[i + 0];
-        rats_uint64 k2 = blocks[i + 1];
+        racs_uint64 k1 = blocks[i + 0];
+        racs_uint64 k2 = blocks[i + 1];
 
         k1 *= c1;
         k1 = rotl64(k1, 31);
@@ -34,24 +34,24 @@ void murmur3_x64_128(const rats_uint8 *key, size_t len, rats_uint32 seed, rats_u
         h2 = h2 * 5 + 0x38495ab5;
     }
 
-    rats_uint64 k1 = 0;
-    rats_uint64 k2 = 0;
+    racs_uint64 k1 = 0;
+    racs_uint64 k2 = 0;
 
     switch (len & 15) {
         case 15:
-            k2 ^= ((rats_uint64) key[n + 14]) << 48;
+            k2 ^= ((racs_uint64) key[n + 14]) << 48;
         case 14:
-            k2 ^= ((rats_uint64) key[n + 13]) << 40;
+            k2 ^= ((racs_uint64) key[n + 13]) << 40;
         case 13:
-            k2 ^= ((rats_uint64) key[n + 12]) << 32;
+            k2 ^= ((racs_uint64) key[n + 12]) << 32;
         case 12:
-            k2 ^= ((rats_uint64) key[n + 11]) << 24;
+            k2 ^= ((racs_uint64) key[n + 11]) << 24;
         case 11:
-            k2 ^= ((rats_uint64) key[n + 10]) << 16;
+            k2 ^= ((racs_uint64) key[n + 10]) << 16;
         case 10:
-            k2 ^= ((rats_uint64) key[n + 9]) << 8;
+            k2 ^= ((racs_uint64) key[n + 9]) << 8;
         case 9:
-            k2 ^= ((rats_uint64) key[n + 8]) << 0;
+            k2 ^= ((racs_uint64) key[n + 8]) << 0;
 
             k2 *= c2;
             k2 = rotl64(k2, 33);
@@ -59,21 +59,21 @@ void murmur3_x64_128(const rats_uint8 *key, size_t len, rats_uint32 seed, rats_u
             h2 ^= k2;
 
         case 8:
-            k1 ^= ((rats_uint64) key[n + 7]) << 56;
+            k1 ^= ((racs_uint64) key[n + 7]) << 56;
         case 7:
-            k1 ^= ((rats_uint64) key[n + 6]) << 48;
+            k1 ^= ((racs_uint64) key[n + 6]) << 48;
         case 6:
-            k1 ^= ((rats_uint64) key[n + 5]) << 40;
+            k1 ^= ((racs_uint64) key[n + 5]) << 40;
         case 5:
-            k1 ^= ((rats_uint64) key[n + 4]) << 32;
+            k1 ^= ((racs_uint64) key[n + 4]) << 32;
         case 4:
-            k1 ^= ((rats_uint64) key[n + 3]) << 24;
+            k1 ^= ((racs_uint64) key[n + 3]) << 24;
         case 3:
-            k1 ^= ((rats_uint64) key[n + 2]) << 16;
+            k1 ^= ((racs_uint64) key[n + 2]) << 16;
         case 2:
-            k1 ^= ((rats_uint64) key[n + 1]) << 8;
+            k1 ^= ((racs_uint64) key[n + 1]) << 8;
         case 1:
-            k1 ^= ((rats_uint64) key[n + 0]) << 0;
+            k1 ^= ((racs_uint64) key[n + 0]) << 0;
 
             k1 *= c1;
             k1 = rotl64(k1, 31);

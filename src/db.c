@@ -1,8 +1,8 @@
 #include "db.h"
 
-rats_db *rats_db_instance() {
+racs_db *racs_db_instance() {
     if (!_db) {
-        _db = malloc(sizeof(rats_db));
+        _db = malloc(sizeof(racs_db));
         if (!_db) {
             perror("FATAL: Error creating db instance. shutting down");
             exit(EXIT_FAILURE);
@@ -11,20 +11,20 @@ rats_db *rats_db_instance() {
     return _db;
 }
 
-void rats_db_open(rats_db *db, const char *path) {
-    rats_context_init(&db->ctx, path);
-    rats_exec_init(&db->exec);
+void racs_db_open(racs_db *db, const char *path) {
+    racs_context_init(&db->ctx, path);
+    racs_exec_init(&db->exec);
 }
 
-void rats_db_close(rats_db *db) {
-    rats_exec_destroy(&db->exec);
-    rats_context_destroy(&db->ctx);
+void racs_db_close(racs_db *db) {
+    racs_exec_destroy(&db->exec);
+    racs_context_destroy(&db->ctx);
 }
 
-rats_result rats_db_exec(rats_db *db, const char *cmd) {
-    return rats_exec_exec(&db->exec, &db->ctx, cmd);
+racs_result racs_db_exec(racs_db *db, const char *cmd) {
+    return racs_exec_exec(&db->exec, &db->ctx, cmd);
 }
 
-rats_result rats_db_stream(rats_db *db, rats_uint8 *data) {
-    return rats_exec_stream(&db->ctx, data);
+racs_result racs_db_stream(racs_db *db, racs_uint8 *data) {
+    return racs_exec_stream(&db->ctx, data);
 }

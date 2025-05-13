@@ -1,6 +1,6 @@
 
-#ifndef RATS_COMMAND_H
-#define RATS_COMMAND_H
+#ifndef RACS_COMMAND_H
+#define RACS_COMMAND_H
 
 #include <msgpack.h>
 #include "scm.h"
@@ -11,47 +11,47 @@
 #include "format.h"
 
 typedef enum {
-    RATS_STATUS_OK,
-    RATS_STATUS_NOT_FOUND,
-    RATS_STATUS_ERROR
-} rats_status;
+    RACS_STATUS_OK,
+    RACS_STATUS_NOT_FOUND,
+    RACS_STATUS_ERROR
+} racs_status;
 
-#define rats_validate(pk, condition, error) \
+#define racs_validate(pk, condition, error) \
     if (!(condition)) {                      \
         msgpack_sbuffer_clear(out_buf);      \
-        return rats_serialize_error(pk, error); \
+        return racs_serialize_error(pk, error); \
     }
 
-#define rats_validate_type(pk, msg, arg_num, obj_type, error) \
-    rats_validate(pk, obj_type == ((msg).data.via.array.ptr[arg_num].type), error)
+#define racs_validate_type(pk, msg, arg_num, obj_type, error) \
+    racs_validate(pk, obj_type == ((msg).data.via.array.ptr[arg_num].type), error)
 
-#define rats_validate_num_args(pk, msg, num_args) \
+#define racs_validate_num_args(pk, msg, num_args) \
     if ((msg).data.type == MSGPACK_OBJECT_ARRAY && (msg).data.via.array.size != (num_args)) \
-        return rats_serialize_invalid_num_args(pk, num_args, (msg).data.via.array.size);
+        return racs_serialize_invalid_num_args(pk, num_args, (msg).data.via.array.size);
 
-#define rats_create_command(name) \
-    int rats_command_##name(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, rats_context* ctx)
+#define racs_create_command(name) \
+    int racs_command_##name(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, racs_context* ctx)
 
-rats_create_command(extract);
+racs_create_command(extract);
 
-rats_create_command(eval);
+racs_create_command(eval);
 
-rats_create_command(streamcreate);
+racs_create_command(streamcreate);
 
-rats_create_command(streaminfo);
+racs_create_command(streaminfo);
 
-rats_create_command(streamopen);
+racs_create_command(streamopen);
 
-rats_create_command(streamclose);
+racs_create_command(streamclose);
 
-rats_create_command(ping);
+racs_create_command(ping);
 
-rats_create_command(format);
+racs_create_command(format);
 
-rats_create_command(streamlist);
+racs_create_command(streamlist);
 
-rats_create_command(shutdown);
+racs_create_command(shutdown);
 
-int rats_stream(msgpack_sbuffer *out_buf, rats_context *ctx, rats_uint8 *data);
+int racs_stream(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data);
 
-#endif //RATS_COMMAND_H
+#endif //RACS_COMMAND_H

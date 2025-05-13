@@ -1,9 +1,9 @@
 #include "format_test.h"
 
 void test_format_wav() {
-    rats_db* db = rats_db_instance();
-    rats_db_open(db, "config.yaml");
-    rats_result res = rats_db_exec(db, "EXTRACT 'test' 2025-02-09T22:51:52.213Z 2025-02-09T22:51:52.214Z "
+    racs_db* db = racs_db_instance();
+    racs_db_open(db, "config.yaml");
+    racs_result res = racs_db_exec(db, "EXTRACT 'test' 2025-02-09T22:51:52.213Z 2025-02-09T22:51:52.214Z "
                                          "|> FORMAT 'audio/wav' 1 41100");
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
@@ -11,14 +11,14 @@ void test_format_wav() {
 
     msgpack_object obj = msg.data;
 
-    uint8_t* out = rats_deserialize_u8v(&obj, 1);
-    size_t size = rats_deserialize_u8v_size(&obj, 1);
+    uint8_t* out = racs_deserialize_u8v(&obj, 1);
+    size_t size = racs_deserialize_u8v_size(&obj, 1);
 
     FILE* f = fopen("out.wav", "wb");
     fwrite(out, 1, size, f);
     fclose(f);
 
     msgpack_unpacked_destroy(&msg);
-    rats_result_destroy(&res);
-    rats_db_close(db);
+    racs_result_destroy(&res);
+    racs_db_close(db);
 }

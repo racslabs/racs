@@ -1,9 +1,9 @@
 #include "create_test.h"
 
 void test_create() {
-    rats_db* db = rats_db_instance();
-    rats_db_open(db, "config.yaml");
-    rats_result res = rats_db_exec(db, "STREAMCREATE 'test' 44100 1");
+    racs_db* db = racs_db_instance();
+    racs_db_open(db, "config.yaml");
+    racs_result res = racs_db_exec(db, "STREAMCREATE 'test' 44100 1");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
@@ -14,6 +14,6 @@ void test_create() {
     msgpack_str_assert("null", &obj.via.array.ptr[0].via.str);
 
     msgpack_unpacked_destroy(&msg);
-    rats_result_destroy(&res);
-    rats_db_close(db);
+    racs_result_destroy(&res);
+    racs_db_close(db);
 }

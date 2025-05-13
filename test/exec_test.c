@@ -1,13 +1,13 @@
 #include "exec_test.h"
 
 void test_command_executor_unknown_command() {
-    rats_context ctx;
-    rats_context_init(&ctx, "config.yaml");
+    racs_context ctx;
+    racs_context_init(&ctx, "config.yaml");
 
-    rats_exec exec;
-    rats_exec_init(&exec);
+    racs_exec exec;
+    racs_exec_init(&exec);
 
-    rats_result result = rats_exec_exec(&exec, &ctx, "BOO 0.5");
+    racs_result result = racs_exec_exec(&exec, &ctx, "BOO 0.5");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
@@ -19,18 +19,18 @@ void test_command_executor_unknown_command() {
     msgpack_str_assert("Unknown command: BOO", &obj.via.array.ptr[1].via.str);
 
     msgpack_unpacked_destroy(&msg);
-    rats_exec_destroy(&exec);
-    rats_context_destroy(&ctx);
+    racs_exec_destroy(&exec);
+    racs_context_destroy(&ctx);
 }
 
 void test_command_executor_is_not_command() {
-    rats_context ctx;
-    rats_context_init(&ctx, "config.yaml");
+    racs_context ctx;
+    racs_context_init(&ctx, "config.yaml");
 
-    rats_exec exec;
-    rats_exec_init(&exec);
+    racs_exec exec;
+    racs_exec_init(&exec);
 
-    rats_result result = rats_exec_exec(&exec, &ctx, "PING |> 0.5");
+    racs_result result = racs_exec_exec(&exec, &ctx, "PING |> 0.5");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
@@ -42,18 +42,18 @@ void test_command_executor_is_not_command() {
     msgpack_str_assert("Token type 'float' is not a valid command.", &obj.via.array.ptr[1].via.str);
 
     msgpack_unpacked_destroy(&msg);
-    rats_exec_destroy(&exec);
-    rats_context_destroy(&ctx);
+    racs_exec_destroy(&exec);
+    racs_context_destroy(&ctx);
 }
 
 void test_command_executor_parse_error1() {
-    rats_context ctx;
-    rats_context_init(&ctx, "config.yaml");
+    racs_context ctx;
+    racs_context_init(&ctx, "config.yaml");
 
-    rats_exec exec;
-    rats_exec_init(&exec);
+    racs_exec exec;
+    racs_exec_init(&exec);
 
-    rats_result result = rats_exec_exec(&exec, &ctx, "0.5 BOO");
+    racs_result result = racs_exec_exec(&exec, &ctx, "0.5 BOO");
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
@@ -65,6 +65,6 @@ void test_command_executor_parse_error1() {
     msgpack_str_assert("Token type 'float' is not a valid command.", &obj.via.array.ptr[1].via.str);
 
     msgpack_unpacked_destroy(&msg);
-    rats_exec_destroy(&exec);
-    rats_context_destroy(&ctx);
+    racs_exec_destroy(&exec);
+    racs_context_destroy(&ctx);
 }

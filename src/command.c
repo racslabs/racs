@@ -1,6 +1,6 @@
 #include "command.h"
 
-rats_create_command(ping) {
+racs_create_command(ping) {
     msgpack_sbuffer_clear(out_buf);
 
     msgpack_packer pk;
@@ -9,13 +9,13 @@ rats_create_command(ping) {
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
 
-    rats_parse_buf(in_buf, &pk, &msg, "Error parsing args")
-    rats_validate_num_args(&pk, msg, 0)
+    racs_parse_buf(in_buf, &pk, &msg, "Error parsing args")
+    racs_validate_num_args(&pk, msg, 0)
 
-    return rats_serialize_str(&pk, "PONG");
+    return racs_serialize_str(&pk, "PONG");
 }
 
-rats_create_command(streamcreate) {
+racs_create_command(streamcreate) {
     msgpack_sbuffer_clear(out_buf);
 
     msgpack_packer pk;
@@ -24,28 +24,28 @@ rats_create_command(streamcreate) {
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
 
-    rats_parse_buf(in_buf, &pk, &msg, "Error parsing args")
+    racs_parse_buf(in_buf, &pk, &msg, "Error parsing args")
 
-    rats_validate_num_args(&pk, msg, 3)
-    rats_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected: string")
-    rats_validate_type(&pk, msg, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: int")
-    rats_validate_type(&pk, msg, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: int")
+    racs_validate_num_args(&pk, msg, 3)
+    racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected: string")
+    racs_validate_type(&pk, msg, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: int")
+    racs_validate_type(&pk, msg, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: int")
 
-    char *stream_id = rats_deserialize_str(&msg.data, 0);
+    char *stream_id = racs_deserialize_str(&msg.data, 0);
 
-    rats_uint32 sample_rate = rats_deserialize_uint32(&msg.data, 1);
-    rats_uint16 channels = rats_deserialize_uint16(&msg.data, 2);
+    racs_uint32 sample_rate = racs_deserialize_uint32(&msg.data, 1);
+    racs_uint16 channels = racs_deserialize_uint16(&msg.data, 2);
 
-    int rc = rats_streamcreate(ctx->mcache, stream_id, sample_rate, channels);
+    int rc = racs_streamcreate(ctx->mcache, stream_id, sample_rate, channels);
     free(stream_id);
 
     if (rc == 1)
-        return rats_serialize_null_with_status_ok(&pk);
+        return racs_serialize_null_with_status_ok(&pk);
 
-    return rats_serialize_error(&pk, "Failed to create stream");
+    return racs_serialize_error(&pk, "Failed to create stream");
 }
 
-rats_create_command(streamlist) {
+racs_create_command(streamlist) {
     msgpack_sbuffer_clear(out_buf);
 
     msgpack_packer pk;
@@ -54,24 +54,24 @@ rats_create_command(streamlist) {
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
 
-    rats_parse_buf(in_buf, &pk, &msg, "Error parsing args")
-    rats_validate_num_args(&pk, msg, 1)
-    rats_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
+    racs_parse_buf(in_buf, &pk, &msg, "Error parsing args")
+    racs_validate_num_args(&pk, msg, 1)
+    racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
 
-    char *pattern = rats_deserialize_str(&msg.data, 0);
+    char *pattern = racs_deserialize_str(&msg.data, 0);
 
-    rats_streams streams;
-    rats_streams_init(&streams);
-    rats_streaminfo_list(ctx->mcache, &streams, pattern);
+    racs_streams streams;
+    racs_streams_init(&streams);
+    racs_streaminfo_list(ctx->mcache, &streams, pattern);
 
-    int rc = rats_serialize_streams(&pk, &streams);
-    rats_streams_destroy(&streams);
+    int rc = racs_serialize_streams(&pk, &streams);
+    racs_streams_destroy(&streams);
     free(pattern);
 
     return rc;
 }
 
-rats_create_command(streamopen) {
+racs_create_command(streamopen) {
     msgpack_sbuffer_clear(out_buf);
 
     msgpack_packer pk;
@@ -80,22 +80,22 @@ rats_create_command(streamopen) {
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
 
-    rats_parse_buf(in_buf, &pk, &msg, "Error parsing args")
+    racs_parse_buf(in_buf, &pk, &msg, "Error parsing args")
 
-    rats_validate_num_args(&pk, msg, 1)
-    rats_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
+    racs_validate_num_args(&pk, msg, 1)
+    racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
 
-    char *stream_id = rats_deserialize_str(&msg.data, 0);
-    int rc = rats_streamopen(ctx->kv, rats_hash(stream_id));
+    char *stream_id = racs_deserialize_str(&msg.data, 0);
+    int rc = racs_streamopen(ctx->kv, racs_hash(stream_id));
     free(stream_id);
 
     if (rc == 1)
-        return rats_serialize_null_with_status_ok(&pk);
+        return racs_serialize_null_with_status_ok(&pk);
 
-    return rats_serialize_error(&pk, "Stream is already open");
+    return racs_serialize_error(&pk, "Stream is already open");
 }
 
-rats_create_command(streamclose) {
+racs_create_command(streamclose) {
     msgpack_sbuffer_clear(out_buf);
 
     msgpack_packer pk;
@@ -104,22 +104,22 @@ rats_create_command(streamclose) {
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
 
-    rats_parse_buf(in_buf, &pk, &msg, "Error parsing args")
+    racs_parse_buf(in_buf, &pk, &msg, "Error parsing args")
 
-    rats_validate_num_args(&pk, msg, 1)
-    rats_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
+    racs_validate_num_args(&pk, msg, 1)
+    racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
 
-    char *stream_id = rats_deserialize_str(&msg.data, 0);
-    int rc = rats_streamclose(ctx->kv, rats_hash(stream_id));
+    char *stream_id = racs_deserialize_str(&msg.data, 0);
+    int rc = racs_streamclose(ctx->kv, racs_hash(stream_id));
     free(stream_id);
 
     if (rc == 1)
-        return rats_serialize_null_with_status_ok(&pk);
+        return racs_serialize_null_with_status_ok(&pk);
 
-    return rats_serialize_error(&pk, "Stream is not open");
+    return racs_serialize_error(&pk, "Stream is not open");
 }
 
-rats_create_command(streaminfo) {
+racs_create_command(streaminfo) {
     msgpack_sbuffer_clear(out_buf);
 
     msgpack_packer pk;
@@ -128,26 +128,26 @@ rats_create_command(streaminfo) {
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
 
-    rats_parse_buf(in_buf, &pk, &msg, "Error parsing args")
+    racs_parse_buf(in_buf, &pk, &msg, "Error parsing args")
 
-    rats_validate_num_args(&pk, msg, 2)
-    rats_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
-    rats_validate_type(&pk, msg, 1, MSGPACK_OBJECT_STR, "Invalid type at arg 2. Expected string")
+    racs_validate_num_args(&pk, msg, 2)
+    racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
+    racs_validate_type(&pk, msg, 1, MSGPACK_OBJECT_STR, "Invalid type at arg 2. Expected string")
 
-    char *stream_id = rats_deserialize_str(&msg.data, 0);
-    char *attr = rats_deserialize_str(&msg.data, 1);
+    char *stream_id = racs_deserialize_str(&msg.data, 0);
+    char *attr = racs_deserialize_str(&msg.data, 1);
 
-    rats_uint64 hash = rats_hash(stream_id);
-    rats_uint64 value = rats_streaminfo_attr(ctx->mcache, hash, attr);
+    racs_uint64 hash = racs_hash(stream_id);
+    racs_uint64 value = racs_streaminfo_attr(ctx->mcache, hash, attr);
 
     free(stream_id);
     free(attr);
 
-    if (value != 0) return rats_serialize_uint64(&pk, value);
-    return rats_serialize_error(&pk, "Failure reading metadata");
+    if (value != 0) return racs_serialize_uint64(&pk, value);
+    return racs_serialize_error(&pk, "Failure reading metadata");
 }
 
-rats_create_command(eval) {
+racs_create_command(eval) {
     msgpack_sbuffer_clear(out_buf);
 
     msgpack_packer pk;
@@ -156,22 +156,22 @@ rats_create_command(eval) {
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
 
-    rats_parse_buf(in_buf, &pk, &msg, "Error parsing args")
+    racs_parse_buf(in_buf, &pk, &msg, "Error parsing args")
 
-    rats_validate_num_args(&pk, msg, 1)
-    rats_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
+    racs_validate_num_args(&pk, msg, 1)
+    racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
 
     char *error = NULL;
-    char *expr = rats_deserialize_str(&msg.data, 0);
-    SCM res = rats_scm_eval_with_error_handling(expr, &error);
+    char *expr = racs_deserialize_str(&msg.data, 0);
+    SCM res = racs_scm_eval_with_error_handling(expr, &error);
     free(expr);
 
-    if (error) return rats_serialize_error(&pk, error);
+    if (error) return racs_serialize_error(&pk, error);
 
-    return rats_scm_serialize(&pk, out_buf, res);
+    return racs_scm_serialize(&pk, out_buf, res);
 }
 
-rats_create_command(extract) {
+racs_create_command(extract) {
     msgpack_sbuffer_clear(out_buf);
 
     msgpack_packer pk;
@@ -180,36 +180,36 @@ rats_create_command(extract) {
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
 
-    rats_parse_buf(in_buf, &pk, &msg, "Error parsing args")
+    racs_parse_buf(in_buf, &pk, &msg, "Error parsing args")
 
-    rats_validate_num_args(&pk, msg, 3)
-    rats_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected: string")
-    rats_validate_type(&pk, msg, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: time")
-    rats_validate_type(&pk, msg, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: time")
+    racs_validate_num_args(&pk, msg, 3)
+    racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected: string")
+    racs_validate_type(&pk, msg, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: time")
+    racs_validate_type(&pk, msg, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: time")
 
-    char *stream_id = rats_deserialize_str(&msg.data, 0);
-    int64_t from = rats_deserialize_int64(&msg.data, 1);
-    int64_t to = rats_deserialize_int64(&msg.data, 2);
+    char *stream_id = racs_deserialize_str(&msg.data, 0);
+    int64_t from = racs_deserialize_int64(&msg.data, 1);
+    int64_t to = racs_deserialize_int64(&msg.data, 2);
 
-    rats_pcm pcm;
+    racs_pcm pcm;
 
-    int rc = rats_extract_pcm(ctx, &pcm, stream_id, from, to);
-    if (rc == RATS_EXTRACT_STATUS_NOT_FOUND) {
-        rats_pcm_destroy(&pcm);
-        return rats_serialize_error(&pk, "The stream-id does not exist");
+    int rc = racs_extract_pcm(ctx, &pcm, stream_id, from, to);
+    if (rc == RACS_EXTRACT_STATUS_NOT_FOUND) {
+        racs_pcm_destroy(&pcm);
+        return racs_serialize_error(&pk, "The stream-id does not exist");
     }
 
-    rc = rats_serialize_s16v(&pk, (rats_int16 *) pcm.out_stream.data, pcm.samples * pcm.channels);
-    rats_pcm_destroy(&pcm);
+    rc = racs_serialize_s16v(&pk, (racs_int16 *) pcm.out_stream.data, pcm.samples * pcm.channels);
+    racs_pcm_destroy(&pcm);
     return rc;
 }
 
-rats_create_command(shutdown) {
-    rats_context_destroy(ctx);
+racs_create_command(shutdown) {
+    racs_context_destroy(ctx);
     exit(1);
 }
 
-rats_create_command(format) {
+racs_create_command(format) {
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
 
@@ -219,38 +219,38 @@ rats_create_command(format) {
     msgpack_unpacked msg2;
     msgpack_unpacked_init(&msg2);
 
-    rats_parse_buf(in_buf, &pk, &msg1, "Error parsing args")
-    rats_parse_buf(out_buf, &pk, &msg2, "Error parsing buffer")
+    racs_parse_buf(in_buf, &pk, &msg1, "Error parsing args")
+    racs_parse_buf(out_buf, &pk, &msg2, "Error parsing buffer")
 
-    rats_validate_type(&pk, msg1, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected: string")
-    rats_validate_type(&pk, msg1, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: int")
-    rats_validate_type(&pk, msg1, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: int")
+    racs_validate_type(&pk, msg1, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected: string")
+    racs_validate_type(&pk, msg1, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: int")
+    racs_validate_type(&pk, msg1, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: int")
 
-    char *type = rats_deserialize_str(&msg2.data, 0);
+    char *type = racs_deserialize_str(&msg2.data, 0);
     if (strcmp(type, "i16v") != 0) {
         free(type);
         msgpack_sbuffer_clear(out_buf);
-        return rats_serialize_error(&pk, "Invalid input type. Expected: int16 array");
+        return racs_serialize_error(&pk, "Invalid input type. Expected: int16 array");
     }
 
-    int16_t *in = rats_deserialize_s16v(&msg2.data, 1);
-    size_t size = rats_deserialize_s16v_size(&msg2.data, 1);
+    int16_t *in = racs_deserialize_s16v(&msg2.data, 1);
+    size_t size = racs_deserialize_s16v_size(&msg2.data, 1);
 
-    char *mime_type = rats_deserialize_str(&msg1.data, 0);
-    rats_uint16 channels = rats_deserialize_uint16(&msg1.data, 1);
-    rats_uint32 sample_rate = rats_deserialize_uint32(&msg1.data, 2);
+    char *mime_type = racs_deserialize_str(&msg1.data, 0);
+    racs_uint16 channels = racs_deserialize_uint16(&msg1.data, 1);
+    racs_uint32 sample_rate = racs_deserialize_uint32(&msg1.data, 2);
 
     void *out = malloc(size * 2 + 44);
 
-    rats_format fmt;
+    racs_format fmt;
     fmt.channels = channels;
     fmt.sample_rate = sample_rate;
 
-    size_t n = rats_format_pcm(&fmt, in, out, size / channels, size * 2 + 44, mime_type);
+    size_t n = racs_format_pcm(&fmt, in, out, size / channels, size * 2 + 44, mime_type);
 
     if (n != 0) {
         msgpack_sbuffer_clear(out_buf);
-        int rc = rats_serialize_u8v(&pk, out, n);
+        int rc = racs_serialize_u8v(&pk, out, n);
 
         free(type);
         free(mime_type);
@@ -264,19 +264,19 @@ rats_create_command(format) {
     free(out);
 
     msgpack_sbuffer_clear(out_buf);
-    return rats_serialize_error(&pk, "Unsupported format");
+    return racs_serialize_error(&pk, "Unsupported format");
 }
 
-int rats_stream(msgpack_sbuffer *out_buf, rats_context *ctx, rats_uint8 *data) {
+int racs_stream(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data) {
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
 
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
 
-    int rc = rats_streamappend(ctx->mcache, ctx->mmt, ctx->kv, data);
-    if (rc == RATS_STREAM_OK)
-        return rats_serialize_null_with_status_ok(&pk);
+    int rc = racs_streamappend(ctx->mcache, ctx->mmt, ctx->kv, data);
+    if (rc == RACS_STREAM_OK)
+        return racs_serialize_null_with_status_ok(&pk);
 
-    return rats_serialize_error(&pk, rats_stream_status_string[rc]);
+    return racs_serialize_error(&pk, racs_stream_status_string[rc]);
 }

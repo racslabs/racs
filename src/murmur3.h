@@ -1,6 +1,6 @@
 
-#ifndef RATS_MURMUR3_H
-#define RATS_MURMUR3_H
+#ifndef RACS_MURMUR3_H
+#define RACS_MURMUR3_H
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -11,11 +11,11 @@
 extern "C" {
 #endif
 
-RATS_FORCE_INLINE rats_uint64 rotl64(rats_uint64 x, rats_int8 r) {
+RACS_FORCE_INLINE racs_uint64 rotl64(racs_uint64 x, racs_int8 r) {
     return (x << r) | (x >> (64 - r));
 }
 
-RATS_FORCE_INLINE rats_uint64 fmix64(rats_uint64 k) {
+RACS_FORCE_INLINE racs_uint64 fmix64(racs_uint64 k) {
     k ^= k >> 33;
     k *= 0xff51afd7ed558ccdull;
     k ^= k >> 33;
@@ -25,10 +25,10 @@ RATS_FORCE_INLINE rats_uint64 fmix64(rats_uint64 k) {
     return k;
 }
 
-void murmur3_x64_128(const rats_uint8 *key, size_t len, rats_uint32 seed, rats_uint64 *out);
+void murmur3_x64_128(const racs_uint8 *key, size_t len, racs_uint32 seed, racs_uint64 *out);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //RATS_MURMUR3_H
+#endif //RACS_MURMUR3_H

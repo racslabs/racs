@@ -1,6 +1,6 @@
 
-#ifndef RATS_BYTES_H
-#define RATS_BYTES_H
+#ifndef RACS_BYTES_H
+#define RACS_BYTES_H
 
 #include "export.h"
 #include "types.h"
@@ -8,40 +8,40 @@
 #include <unistd.h>
 #include <stdint.h>
 
-RATS_FORCE_INLINE off_t rats_write_bin(rats_uint8 *buf, void *data, int size, off_t offset) {
+RACS_FORCE_INLINE off_t racs_write_bin(racs_uint8 *buf, void *data, int size, off_t offset) {
     memcpy(buf + offset, data, size);
     return offset + size;
 }
 
-RATS_FORCE_INLINE off_t rats_write_uint64(rats_uint8 *buf, rats_uint64 d, off_t offset) {
-    return rats_write_bin(buf, &d, sizeof(rats_uint64), offset);
+RACS_FORCE_INLINE off_t racs_write_uint64(racs_uint8 *buf, racs_uint64 d, off_t offset) {
+    return racs_write_bin(buf, &d, sizeof(racs_uint64), offset);
 }
 
-RATS_FORCE_INLINE off_t rats_write_uint32(rats_uint8 *buf, rats_uint32 d, off_t offset) {
-    return rats_write_bin(buf, &d, sizeof(rats_uint32), offset);
+RACS_FORCE_INLINE off_t racs_write_uint32(racs_uint8 *buf, racs_uint32 d, off_t offset) {
+    return racs_write_bin(buf, &d, sizeof(racs_uint32), offset);
 }
 
-RATS_FORCE_INLINE off_t rats_write_uint16(rats_uint8 *buf, rats_uint16 d, off_t offset) {
-    return rats_write_bin(buf, &d, sizeof(rats_uint16), offset);
+RACS_FORCE_INLINE off_t racs_write_uint16(racs_uint8 *buf, racs_uint16 d, off_t offset) {
+    return racs_write_bin(buf, &d, sizeof(racs_uint16), offset);
 }
 
-RATS_FORCE_INLINE off_t rats_read_uint64(rats_uint64 *d, rats_uint8 *buf, off_t offset) {
-    memcpy(d, buf + offset, sizeof(rats_uint64));
-    return offset + (off_t) sizeof(rats_uint64);
+RACS_FORCE_INLINE off_t racs_read_uint64(racs_uint64 *d, racs_uint8 *buf, off_t offset) {
+    memcpy(d, buf + offset, sizeof(racs_uint64));
+    return offset + (off_t) sizeof(racs_uint64);
 }
 
-RATS_FORCE_INLINE off_t rats_read_uint32(rats_uint32 *d, rats_uint8 *buf, off_t offset) {
-    memcpy(d, buf + offset, sizeof(rats_uint32));
-    return offset + (off_t) sizeof(rats_uint32);
+RACS_FORCE_INLINE off_t racs_read_uint32(racs_uint32 *d, racs_uint8 *buf, off_t offset) {
+    memcpy(d, buf + offset, sizeof(racs_uint32));
+    return offset + (off_t) sizeof(racs_uint32);
 }
 
-RATS_FORCE_INLINE off_t rats_read_uint16(rats_uint16 *d, rats_uint8 *buf, off_t offset) {
-    memcpy(d, buf + offset, sizeof(rats_uint16));
-    return offset + (off_t) sizeof(rats_uint16);
+RACS_FORCE_INLINE off_t racs_read_uint16(racs_uint16 *d, racs_uint8 *buf, off_t offset) {
+    memcpy(d, buf + offset, sizeof(racs_uint16));
+    return offset + (off_t) sizeof(racs_uint16);
 }
 
-RATS_FORCE_INLINE void rats_io_read_uint64(rats_uint64 *d, int fd) {
-    read(fd, d, sizeof(rats_uint64));
+RACS_FORCE_INLINE void racs_io_read_uint64(racs_uint64 *d, int fd) {
+    read(fd, d, sizeof(racs_uint64));
 }
 
-#endif //RATS_BYTES_H
+#endif //RACS_BYTES_H

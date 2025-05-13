@@ -1,17 +1,17 @@
 #include "conn.h"
 
-void rats_conn_init(rats_conn *conn, int port) {
-    rats_conn_init_socket(conn);
-    rats_conn_init_sockopt(conn);
-    rats_conn_init_ioctl(conn);
+void racs_conn_init(racs_conn *conn, int port) {
+    racs_conn_init_socket(conn);
+    racs_conn_init_sockopt(conn);
+    racs_conn_init_ioctl(conn);
 
-    rats_conn_bind(conn, port);
-    rats_conn_listen(conn);
+    racs_conn_bind(conn, port);
+    racs_conn_listen(conn);
 
-    rats_conn_init_fds(conn);
+    racs_conn_init_fds(conn);
 }
 
-void rats_conn_init_socket(rats_conn *conn) {
+void racs_conn_init_socket(racs_conn *conn) {
     conn->new_sd = -1;
     conn->close = 0;
     conn->listen_sd = socket(AF_INET6, SOCK_STREAM, 0);
@@ -21,7 +21,7 @@ void rats_conn_init_socket(rats_conn *conn) {
     }
 }
 
-void rats_conn_init_sockopt(rats_conn *conn) {
+void racs_conn_init_sockopt(racs_conn *conn) {
     int rc = setsockopt(conn->listen_sd, SOL_SOCKET, SO_REUSEADDR, &conn->on, sizeof(conn->on));
     if (rc < 0) {
         perror("setsockopt() failed");
@@ -30,7 +30,7 @@ void rats_conn_init_sockopt(rats_conn *conn) {
     }
 }
 
-void rats_conn_init_ioctl(rats_conn *conn) {
+void racs_conn_init_ioctl(racs_conn *conn) {
     int rc = ioctl(conn->listen_sd, FIONBIO, &conn->on);
     if (rc < 0) {
         perror("ioctl() failed");
@@ -39,7 +39,7 @@ void rats_conn_init_ioctl(rats_conn *conn) {
     }
 }
 
-void rats_conn_init_fds(rats_conn *conn) {
+void racs_conn_init_fds(racs_conn *conn) {
     memset(conn->fds, 0, sizeof(conn->fds));
     conn->fds[0].fd = conn->listen_sd;
     conn->fds[0].events = POLLIN;
@@ -47,7 +47,7 @@ void rats_conn_init_fds(rats_conn *conn) {
     conn->nfds = 1;
 }
 
-void rats_conn_bind(rats_conn *conn, int port) {
+void racs_conn_bind(racs_conn *conn, int port) {
     memset(&conn->addr, 0, sizeof(conn->addr));
     conn->addr.sin6_family = AF_INET6;
     memcpy(&conn->addr.sin6_addr, &in6addr_any, sizeof(in6addr_any));
@@ -61,7 +61,7 @@ void rats_conn_bind(rats_conn *conn, int port) {
     }
 }
 
-void rats_conn_listen(rats_conn *conn) {
+void racs_conn_listen(racs_conn *conn) {
     int rc = listen(conn->listen_sd, 32);
     if (rc < 0) {
         perror("listen() failed");

@@ -1,49 +1,49 @@
-#ifndef RATS_KVSTORE_H
-#define RATS_KVSTORE_H
+#ifndef RACS_KVSTORE_H
+#define RACS_KVSTORE_H
 
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include "types.h"
 
-typedef rats_uint64 (*rats_kvstore_hash_callback)(void *key);
+typedef racs_uint64 (*racs_kvstore_hash_callback)(void *key);
 
-typedef int (*rats_kvstore_cmp_callback)(void *a, void *b);
+typedef int (*racs_kvstore_cmp_callback)(void *a, void *b);
 
-typedef void (*rats_kvstore_destroy_callback)(void *key, void *value);
+typedef void (*racs_kvstore_destroy_callback)(void *key, void *value);
 
 typedef struct {
-    rats_kvstore_hash_callback hash;
-    rats_kvstore_cmp_callback cmp;
-    rats_kvstore_destroy_callback destroy;
-} rats_kvstore_ops;
+    racs_kvstore_hash_callback hash;
+    racs_kvstore_cmp_callback cmp;
+    racs_kvstore_destroy_callback destroy;
+} racs_kvstore_ops;
 
 typedef struct {
     void *key;
     void *value;
-} rats_kvstore_entry;
+} racs_kvstore_entry;
 
 typedef struct {
     size_t count;
     size_t capacity;
-    rats_kvstore_entry *entries;
-} rats_kvstore_bin;
+    racs_kvstore_entry *entries;
+} racs_kvstore_bin;
 
 typedef struct {
     size_t capacity;
-    rats_kvstore_ops ops;
-    rats_kvstore_bin *bins;
-} rats_kvstore;
+    racs_kvstore_ops ops;
+    racs_kvstore_bin *bins;
+} racs_kvstore;
 
-rats_kvstore *rats_kvstore_create(size_t capacity, rats_kvstore_hash_callback hash, rats_kvstore_cmp_callback cmp,
-                                  rats_kvstore_destroy_callback destroy);
+racs_kvstore *racs_kvstore_create(size_t capacity, racs_kvstore_hash_callback hash, racs_kvstore_cmp_callback cmp,
+                                  racs_kvstore_destroy_callback destroy);
 
-void rats_kvstore_put(rats_kvstore *kv, void *key, void *value);
+void racs_kvstore_put(racs_kvstore *kv, void *key, void *value);
 
-void *rats_kvstore_get(rats_kvstore *kv, void *key);
+void *racs_kvstore_get(racs_kvstore *kv, void *key);
 
-void rats_kvstore_delete(rats_kvstore *kv, void *key);
+void racs_kvstore_delete(racs_kvstore *kv, void *key);
 
-void rats_kvstore_destroy(rats_kvstore *kv);
+void racs_kvstore_destroy(racs_kvstore *kv);
 
-#endif //RATS_KVSTORE_H
+#endif //RACS_KVSTORE_H

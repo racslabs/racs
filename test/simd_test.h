@@ -1,6 +1,6 @@
 
-#ifndef RATS_SIMD_TEST_H
-#define RATS_SIMD_TEST_H
+#ifndef RACS_SIMD_TEST_H
+#define RACS_SIMD_TEST_H
 
 #include <assert.h>
 #include <stdio.h>
@@ -8,4 +8,4 @@
 
 void test_simd_interleave();
 
-#endif //RATS_SIMD_TEST_H
+#endif //RACS_SIMD_TEST_H

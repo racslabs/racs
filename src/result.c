@@ -1,14 +1,14 @@
 #include "result.h"
 
-void rats_result_init(rats_result *result, size_t size) {
+void racs_result_init(racs_result *result, size_t size) {
     result->size = size;
     result->data = malloc(size);
     if (!result->data) {
-        perror("Failed to allocate data to rats_result");
+        perror("Failed to allocate data to racs_result");
     }
 }
 
-void rats_result_destroy(rats_result *result) {
+void racs_result_destroy(racs_result *result) {
     free(result->data);
 }
 

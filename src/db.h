@@ -1,25 +1,25 @@
 
-#ifndef RATS_DB_H
-#define RATS_DB_H
+#ifndef RACS_DB_H
+#define RACS_DB_H
 
 #include "exec.h"
 #include "context.h"
 
 typedef struct {
-    rats_context ctx;
-    rats_exec exec;
-} rats_db;
+    racs_context ctx;
+    racs_exec exec;
+} racs_db;
 
-static rats_db *_db = NULL;
+static racs_db *_db = NULL;
 
-rats_db *rats_db_instance();
+racs_db *racs_db_instance();
 
-void rats_db_open(rats_db *db, const char *path);
+void racs_db_open(racs_db *db, const char *path);
 
-void rats_db_close(rats_db *db);
+void racs_db_close(racs_db *db);
 
-rats_result rats_db_exec(rats_db *db, const char *cmd);
+racs_result racs_db_exec(racs_db *db, const char *cmd);
 
-rats_result rats_db_stream(rats_db *db, rats_uint8 *data);
+racs_result racs_db_stream(racs_db *db, racs_uint8 *data);
 
-#endif //RATS_DB_H
+#endif //RACS_DB_H

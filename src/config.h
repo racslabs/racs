@@ -1,6 +1,6 @@
 
-#ifndef RATS_CONFIG_H
-#define RATS_CONFIG_H
+#ifndef RACS_CONFIG_H
+#define RACS_CONFIG_H
 
 #include <cyaml/cyaml.h>
 #include <stdio.h>
@@ -11,40 +11,40 @@
 typedef struct {
     int tables;
     int entries;
-} rats_memtable_config;
+} racs_memtable_config;
 
 typedef struct {
     int entries;
-} rats_cache_config;
+} racs_cache_config;
 
 typedef struct {
     int                     port;
     char*                   data_dir;
-    rats_memtable_config    memtable;
-    rats_cache_config       cache;
-} rats_config;
+    racs_memtable_config    memtable;
+    racs_cache_config       cache;
+} racs_config;
 
-static const cyaml_schema_field_t rats_memtables_schema_fields[] = {
-        CYAML_FIELD_UINT("tables", CYAML_FLAG_DEFAULT, rats_memtable_config , tables),
-        CYAML_FIELD_UINT("entries", CYAML_FLAG_DEFAULT, rats_memtable_config , entries),
+static const cyaml_schema_field_t racs_memtables_schema_fields[] = {
+        CYAML_FIELD_UINT("tables", CYAML_FLAG_DEFAULT, racs_memtable_config , tables),
+        CYAML_FIELD_UINT("entries", CYAML_FLAG_DEFAULT, racs_memtable_config , entries),
         CYAML_FIELD_END
 };
 
-static const cyaml_schema_field_t rats_cache_schema_fields[] = {
-        CYAML_FIELD_UINT("entries", CYAML_FLAG_DEFAULT, rats_cache_config , entries),
+static const cyaml_schema_field_t racs_cache_schema_fields[] = {
+        CYAML_FIELD_UINT("entries", CYAML_FLAG_DEFAULT, racs_cache_config , entries),
         CYAML_FIELD_END
 };
 
-static const cyaml_schema_field_t rats_schema_fields[] = {
-        CYAML_FIELD_UINT("port", CYAML_FLAG_DEFAULT, rats_config , port),
-        CYAML_FIELD_STRING_PTR("data_dir", CYAML_FLAG_POINTER, rats_config, data_dir, 0, CYAML_UNLIMITED),
-        CYAML_FIELD_MAPPING("memtable", CYAML_FLAG_DEFAULT, rats_config, memtable, rats_memtables_schema_fields),
-        CYAML_FIELD_MAPPING("cache", CYAML_FLAG_DEFAULT, rats_config , cache, rats_cache_schema_fields),
+static const cyaml_schema_field_t racs_schema_fields[] = {
+        CYAML_FIELD_UINT("port", CYAML_FLAG_DEFAULT, racs_config , port),
+        CYAML_FIELD_STRING_PTR("data_dir", CYAML_FLAG_POINTER, racs_config, data_dir, 0, CYAML_UNLIMITED),
+        CYAML_FIELD_MAPPING("memtable", CYAML_FLAG_DEFAULT, racs_config, memtable, racs_memtables_schema_fields),
+        CYAML_FIELD_MAPPING("cache", CYAML_FLAG_DEFAULT, racs_config , cache, racs_cache_schema_fields),
         CYAML_FIELD_END
 };
 
-static const cyaml_schema_value_t rats_schema = {
-        CYAML_VALUE_MAPPING(CYAML_FLAG_POINTER, rats_config, rats_schema_fields)
+static const cyaml_schema_value_t racs_schema = {
+        CYAML_VALUE_MAPPING(CYAML_FLAG_POINTER, racs_config, racs_schema_fields)
 };
 
 static const cyaml_config_t yaml_config = {
@@ -54,16 +54,16 @@ static const cyaml_config_t yaml_config = {
         .log_level = CYAML_LOG_WARNING,
 };
 
-RATS_FORCE_INLINE void rats_config_load(rats_config** config, const char* path) {
-    cyaml_err_t err = cyaml_load_file(path, &yaml_config, &rats_schema, (void **)config, NULL);
+RACS_FORCE_INLINE void racs_config_load(racs_config** config, const char* path) {
+    cyaml_err_t err = cyaml_load_file(path, &yaml_config, &racs_schema, (void **)config, NULL);
     if (err != CYAML_OK) {
         fprintf(stderr, "CYAML error: %s\n", cyaml_strerror(err));
         exit(1);
     }
 }
 
-RATS_FORCE_INLINE void rats_config_destroy(rats_config* config) {
-    cyaml_free(&yaml_config, &rats_schema, config, 0);
+RACS_FORCE_INLINE void racs_config_destroy(racs_config* config) {
+    cyaml_free(&yaml_config, &racs_schema, config, 0);
 }
 
-#endif //RATS_CONFIG_H
+#endif //RACS_CONFIG_H

@@ -2,13 +2,13 @@
 
 static int path_cmp(const void *path1, const void *path2);
 
-static void list_files_recursive(rats_filelist *list, const char *path);
+static void list_files_recursive(racs_filelist *list, const char *path);
 
-rats_filelist *rats_filelist_create() {
-    rats_filelist *list = malloc(sizeof(rats_filelist));
+racs_filelist *racs_filelist_create() {
+    racs_filelist *list = malloc(sizeof(racs_filelist));
     if (!list) {
-        perror("Failed to allocate rats_filelist");
-        rats_filelist_destroy(list);
+        perror("Failed to allocate racs_filelist");
+        racs_filelist_destroy(list);
         return NULL;
     }
 
@@ -17,21 +17,21 @@ rats_filelist *rats_filelist_create() {
 
     list->files = malloc(2 * sizeof(char *));
     if (!list->files) {
-        perror("Failed to allocate file paths to rats_filelist");
-        rats_filelist_destroy(list);
+        perror("Failed to allocate file paths to racs_filelist");
+        racs_filelist_destroy(list);
         return NULL;
     }
 
     return list;
 }
 
-void rats_filelist_add(rats_filelist *list, const char *file_path) {
+void racs_filelist_add(racs_filelist *list, const char *file_path) {
     if (list->num_files == list->max_num_files) {
         list->max_num_files *= 2;
 
         char **files = realloc(list->files, list->max_num_files * sizeof(char *));
         if (!files) {
-            perror("Error reallocating file paths to rats_filelist");
+            perror("Error reallocating file paths to racs_filelist");
             return;
         }
 
@@ -42,7 +42,7 @@ void rats_filelist_add(rats_filelist *list, const char *file_path) {
     ++list->num_files;
 }
 
-void list_files_recursive(rats_filelist *list, const char *path) {
+void list_files_recursive(racs_filelist *list, const char *path) {
     DIR *dir = opendir(path);
     if (!dir) {
         perror("Failed to open directory");
@@ -61,7 +61,7 @@ void list_files_recursive(rats_filelist *list, const char *path) {
         if (entry->d_type == DT_DIR) {
             list_files_recursive(list, file_path);
         } else if (entry->d_type == DT_REG) {
-            rats_filelist_add(list, file_path);
+            racs_filelist_add(list, file_path);
         }
 
         free(file_path);
@@ -70,7 +70,7 @@ void list_files_recursive(rats_filelist *list, const char *path) {
     closedir(dir);
 }
 
-void rats_filelist_destroy(rats_filelist *list) {
+void racs_filelist_destroy(racs_filelist *list) {
     for (int i = 0; i < list->num_files; ++i) {
         free(list->files[i]);
     }
@@ -79,15 +79,15 @@ void rats_filelist_destroy(rats_filelist *list) {
     free(list);
 }
 
-rats_filelist *get_sorted_filelist(const char *path) {
-    rats_filelist *list = rats_filelist_create();
+racs_filelist *get_sorted_filelist(const char *path) {
+    racs_filelist *list = racs_filelist_create();
     list_files_recursive(list, path);
-    rats_filelist_sort(list);
+    racs_filelist_sort(list);
 
     return list;
 }
 
-char *rats_resolve_shared_path(const char *path1, const char *path2) {
+char *racs_resolve_shared_path(const char *path1, const char *path2) {
     if (!path1 || !path2) {
         perror("Paths cannot be null");
         return NULL;
@@ -111,7 +111,7 @@ char *rats_resolve_shared_path(const char *path1, const char *path2) {
     return shared_path;
 }
 
-void rats_filelist_sort(rats_filelist *list) {
+void racs_filelist_sort(racs_filelist *list) {
     qsort(list->files, list->num_files, sizeof(char *), path_cmp);
 }
 

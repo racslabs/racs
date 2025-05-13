@@ -1,6 +1,6 @@
 
-#ifndef RATS_EXTRACT_H
-#define RATS_EXTRACT_H
+#ifndef RACS_EXTRACT_H
+#define RACS_EXTRACT_H
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -17,17 +17,17 @@
 #include "streaminfo.h"
 
 typedef enum {
-    RATS_EXTRACT_STATUS_OK,
-    RATS_EXTRACT_STATUS_NOT_FOUND
-} rats_extract_status;
+    RACS_EXTRACT_STATUS_OK,
+    RACS_EXTRACT_STATUS_NOT_FOUND
+} racs_extract_status;
 
-int rats_extract_pcm(rats_context *ctx, rats_pcm *pcm, const char *stream_id, rats_time from, rats_time to);
+int racs_extract_pcm(racs_context *ctx, racs_pcm *pcm, const char *stream_id, racs_time from, racs_time to);
 
-rats_uint8 *
-rats_extract_from_cache_or_sstable(rats_cache *cache, rats_uint64 stream_id, rats_time time, const char *path);
+racs_uint8 *
+racs_extract_from_cache_or_sstable(racs_cache *cache, racs_uint64 stream_id, racs_time time, const char *path);
 
 void
-rats_extract_process_sstable(rats_pcm *pcm, rats_uint8 *data, rats_uint64 stream_id, rats_int64 from, rats_int64 to);
+racs_extract_process_sstable(racs_pcm *pcm, racs_uint8 *data, racs_uint64 stream_id, racs_int64 from, racs_int64 to);
 
 
-#endif //RATS_EXTRACT_H
+#endif //RACS_EXTRACT_H

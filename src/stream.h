@@ -1,6 +1,6 @@
 
-#ifndef RATS_STREAM_H
-#define RATS_STREAM_H
+#ifndef RACS_STREAM_H
+#define RACS_STREAM_H
 
 #include "streaminfo.h"
 #include "memtable.h"
@@ -8,45 +8,45 @@
 #include "result.h"
 
 typedef enum {
-    RATS_STREAM_OK,
-    RATS_STREAM_MALFORMED,
-    RATS_STREAM_CONFLICT,
-    RATS_STREAM_INVALID_SAMPLE_RATE,
-    RATS_STREAM_INVALID_CHANNELS,
-    RATS_STREAM_INVALID_BITDEPTH
-} rats_stream_status;
+    RACS_STREAM_OK,
+    RACS_STREAM_MALFORMED,
+    RACS_STREAM_CONFLICT,
+    RACS_STREAM_INVALID_SAMPLE_RATE,
+    RACS_STREAM_INVALID_CHANNELS,
+    RACS_STREAM_INVALID_BITDEPTH
+} racs_stream_status;
 
 typedef struct {
-    rats_kvstore *kv;
+    racs_kvstore *kv;
     pthread_rwlock_t rwlock;
-} rats_streamkv;
+} racs_streamkv;
 
-extern const char *const rats_stream_status_string[];
+extern const char *const racs_stream_status_string[];
 
-int rats_streamcreate(rats_cache *mcache, const char* stream_id, rats_uint32 sample_rate, rats_uint16 channels);
+int racs_streamcreate(racs_cache *mcache, const char* stream_id, racs_uint32 sample_rate, racs_uint16 channels);
 
-int rats_streamappend(rats_cache *mcache, rats_multi_memtable *mmt, rats_streamkv *kv, rats_uint8 *data);
+int racs_streamappend(racs_cache *mcache, racs_multi_memtable *mmt, racs_streamkv *kv, racs_uint8 *data);
 
-int rats_streamopen(rats_streamkv *kv, rats_uint64 stream_id);
+int racs_streamopen(racs_streamkv *kv, racs_uint64 stream_id);
 
-int rats_streamclose(rats_streamkv *kv, rats_uint64 stream_id);
+int racs_streamclose(racs_streamkv *kv, racs_uint64 stream_id);
 
-char *rats_streamkv_get(rats_streamkv *kv, rats_uint64 stream_id);
+char *racs_streamkv_get(racs_streamkv *kv, racs_uint64 stream_id);
 
-void rats_streamkv_delete(rats_streamkv *kv, rats_uint64 stream_id);
+void racs_streamkv_delete(racs_streamkv *kv, racs_uint64 stream_id);
 
-void rats_streamkv_put(rats_streamkv *kv, rats_uint64 stream_id, char mac_addr[]);
+void racs_streamkv_put(racs_streamkv *kv, racs_uint64 stream_id, char mac_addr[]);
 
-rats_streamkv *rats_streamkv_create(int capacity);
+racs_streamkv *racs_streamkv_create(int capacity);
 
-void rats_streamkv_destroy(rats_streamkv *kv);
+void racs_streamkv_destroy(racs_streamkv *kv);
 
-rats_uint64 rats_streamkv_hash(void *key);
+racs_uint64 racs_streamkv_hash(void *key);
 
-int rats_streamkv_cmp(void *a, void *b);
+int racs_streamkv_cmp(void *a, void *b);
 
-void rats_streamkv_destroy_entry(void *key, void *value);
+void racs_streamkv_destroy_entry(void *key, void *value);
 
-int rats_mac_addr_cmp(const char *src, const char *dest);
+int racs_mac_addr_cmp(const char *src, const char *dest);
 
-#endif //RATS_STREAM_H
+#endif //RACS_STREAM_H
