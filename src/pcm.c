@@ -30,5 +30,5 @@ size_t racs_pcm_write(racs_pcm *pcm, const void *in, size_t samples) {
 }
 
 void racs_pcm_destroy(racs_pcm *pcm) {
-    free(pcm->out_stream.data);
+//    free(pcm->out_stream.data);
 }

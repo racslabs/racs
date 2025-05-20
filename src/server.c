@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
     int listen_sd = -1, new_sd = -1;
     int desc_ready, end_server = FALSE, compress_array = FALSE;
     int close_conn;
-    char buffer[80];
+    char buffer[1024];
     struct sockaddr_in6 addr;
     int timeout;
     struct pollfd fds[200];
@@ -75,6 +75,7 @@ int main(int argc, char *argv[]) {
     addr.sin6_family = AF_INET6;
     memcpy(&addr.sin6_addr, &in6addr_any, sizeof(in6addr_any));
     addr.sin6_port = htons(db->ctx.config->port);
+
     rc = bind(listen_sd, (struct sockaddr *) &addr, sizeof(addr));
     if (rc < 0) {
         perror("bind() failed");
@@ -156,7 +157,6 @@ int main(int argc, char *argv[]) {
                 fds[i].fd = -1;
                 continue;
             }
-
 
             if (fds[i].revents & POLLERR) {
                 close(fds[i].fd);

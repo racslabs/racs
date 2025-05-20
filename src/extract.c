@@ -27,7 +27,35 @@ int racs_extract_pcm(racs_context *ctx, racs_pcm *pcm, const char *stream_id, ra
         }
     }
 
+    size_t count = 0;
+    racs_memtable_entry *entries = malloc(sizeof(racs_memtable_entry) * ctx->mmt->num_tables *
+            ctx->mmt->tables[0]->num_entries);
+
+    for (int i = 0; i < ctx->mmt->num_tables; ++i) {
+        racs_memtable *mt = ctx->mmt->tables[i];
+
+        for (int j = 0; j < mt->num_entries; ++j) {
+            racs_memtable_entry* entry = &mt->entries[j];
+            racs_time time = (racs_time) entry->key[1];
+
+            if (entry->key[0] == hash && time >= from && time <= to) {
+                memcpy(entries[count].key, entry->key, sizeof(entry->key));
+                entries[count].block = entry->block;
+                entries[count].block_size = entry->block_size;
+                ++count;
+            }
+        }
+    }
+
+    qsort(entries, count, sizeof(racs_memtable_entry), racs_extract_cmp);
+
+    for (int i = 0; i < count; ++i) {
+        size_t samples = entries[i].block_size / (pcm->channels * pcm->bit_depth / 8);
+        racs_pcm_write_s16(pcm, (racs_int16 *) entries[i].block, samples);
+    }
+
     free(path);
+    free(entries);
     racs_filelist_destroy(list);
 
     return RACS_EXTRACT_STATUS_OK;
@@ -76,4 +104,13 @@ racs_extract_process_sstable(racs_pcm *pcm, racs_uint8 *data, racs_uint64 stream
     }
 
     racs_sstable_destroy_except_data(sst);
+}
+
+int racs_extract_cmp(const void *entry1, const void *entry2) {
+    const racs_memtable_entry *e1 = (const racs_memtable_entry *)entry1;
+    const racs_memtable_entry *e2 = (const racs_memtable_entry *)entry2;
+
+    if (e1->key[1] < e2->key[1]) return -1;
+    if (e1->key[1] > e2->key[1]) return 1;
+    return 0;
 }

@@ -200,7 +200,7 @@ racs_create_command(extract) {
     }
 
     rc = racs_serialize_s16v(&pk, (racs_int16 *) pcm.out_stream.data, pcm.samples * pcm.channels);
-    racs_pcm_destroy(&pcm);
+    free(pcm.out_stream.data);
     return rc;
 }
 

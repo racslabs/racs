@@ -6,6 +6,6 @@ void test_rfc3339() {
     char buf[55];
     racs_time_to_rfc3339(milliseconds, buf);
 
-    assert(strcmp("2024-12-15T14:29:03.291Z", buf) == 0);
+    assert(strcmp("2024-05-15T23:29:03.291Z", buf) == 0);
     assert(racs_time_from_rfc3339(buf) == milliseconds);
 }

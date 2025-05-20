@@ -46,7 +46,6 @@ void list_files_recursive(racs_filelist *list, const char *path) {
     DIR *dir = opendir(path);
     if (!dir) {
         perror("Failed to open directory");
-        closedir(dir);
         return;
     }
 

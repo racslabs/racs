@@ -1,7 +1,7 @@
 port: 8080
 data_dir: "/Users/corbinmoon"
 memtable:
-  tables: 4
-  entries: 1024
+  tables: 2
+  entries: 4
 cache:
-  entries: 2048
+  entries: 2
