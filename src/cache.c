@@ -31,7 +31,7 @@ void racs_cache_put(racs_cache *cache, const racs_uint64 *key, racs_uint8 *value
 
     racs_cache_node *node = racs_cache_node_create(key, value);
 
-    racs_cache_insert_at_head(cache, node);
+    racs_cache_move_to_head(cache, node);
     racs_kvstore_put(cache->kv, key, &node->entry);
 
     ++cache->size;
@@ -101,7 +101,7 @@ racs_cache_node *racs_cache_node_create(const racs_uint64 *key, racs_uint8 *valu
     return node;
 }
 
-void racs_cache_insert_at_head(racs_cache *cache, racs_cache_node *node) {
+void racs_cache_move_to_head(racs_cache *cache, racs_cache_node *node) {
     if (!cache || !node) return;
 
     node->prev = NULL;

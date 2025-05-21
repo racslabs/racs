@@ -9,36 +9,52 @@ racs_multi_memtable *racs_multi_memtable_create(int num_tables, int capacity) {
 
     mmt->index = 0;
     mmt->num_tables = num_tables;
+    mmt->head = NULL;
+    mmt->tail = NULL;
     pthread_mutex_init(&mmt->mutex, NULL);
 
-    mmt->tables = malloc(num_tables * sizeof(racs_memtable));
-    if (!mmt->tables) {
-        perror("Failed to allocate racs_memtable to mmt");
-        free(mmt);
-        return NULL;
-    }
-
     for (int i = 0; i < num_tables; ++i) {
-        mmt->tables[i] = racs_memtable_create(capacity);
+        racs_memtable *mt = racs_memtable_create(capacity);
+        racs_multi_memtable_move_to_head(mmt, mt);
     }
 
     return mmt;
 }
 
+void racs_multi_memtable_move_to_head(racs_multi_memtable *mmt, racs_memtable *mt) {
+    mt->prev = NULL;
+    mt->next = (struct racs_memtable *) mmt->head;
+
+    if (mmt->head) {
+        mmt->head->prev = (struct racs_memtable *) mt;
+    } else {
+        mmt->tail = mt;
+    }
+
+    mmt->head = mt;
+}
+
 void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size) {
     if (!mmt) return;
 
-    racs_memtable *mt = mmt->tables[mmt->index];
-    if (!mt) {
-        perror("racs_memtable cannot be null");
-        return;
-    }
-
     pthread_mutex_lock(&mmt->mutex);
 
-    racs_memtable_append(mt, key, block, block_size);
-    mmt->index = ++mmt->index % mmt->num_tables;
+    racs_memtable *mt = mmt->head;
 
+    if (mt->num_entries >= mt->capacity) {
+        racs_memtable *tail = mmt->tail;
+        racs_memtable *prev = (racs_memtable *) tail->prev;
+
+        racs_memtable_flush(tail);
+
+        tail->prev = NULL;
+        racs_multi_memtable_move_to_head(mmt, tail);
+
+        prev->next = NULL;
+        mmt->tail = prev;
+    }
+
+    racs_memtable_append(mmt->head, key, block, block_size);
     pthread_mutex_unlock(&mmt->mutex);
 }
 
@@ -48,12 +64,12 @@ void racs_multi_memtable_destroy(racs_multi_memtable *mmt) {
     pthread_mutex_lock(&mmt->mutex);
     racs_multi_memtable_flush(mmt);
 
-    for (int i = 0; i < mmt->num_tables; ++i) {
-        racs_memtable *memtable = mmt->tables[i];
-        racs_memtable_destroy(memtable);
+    racs_memtable *mt = mmt->head;
+    while (mt) {
+        racs_memtable *next = (racs_memtable *) mt->next;
+        racs_memtable_destroy(mt);
+        mt = next;
     }
-
-    free(mmt->tables);
 
     pthread_mutex_unlock(&mmt->mutex);
     pthread_mutex_destroy(&mmt->mutex);
@@ -64,10 +80,16 @@ void racs_multi_memtable_destroy(racs_multi_memtable *mmt) {
 void racs_multi_memtable_flush(racs_multi_memtable *mmt) {
     if (!mmt) return;
 
-    for (int i = 0; i < mmt->num_tables; ++i) {
-        racs_memtable *mt = mmt->tables[i];
-        racs_memtable_flush(mt);
+    pthread_mutex_lock(&mmt->mutex);
+
+    racs_memtable *mt = mmt->head;
+    while (mt) {
+        racs_memtable *next = (racs_memtable *) mt->next;
+        racs_memtable_flush(next);
+        mt = next;
     }
+
+    pthread_mutex_unlock(&mmt->mutex);
 }
 
 racs_sstable *racs_sstable_read(const char *filename) {
@@ -194,10 +216,6 @@ void racs_memtable_append(racs_memtable *mt, racs_uint64 *key, racs_uint8 *block
     if (!mt) return;
 
     pthread_mutex_lock(&mt->mutex);
-
-    if (mt->num_entries >= mt->capacity) {
-        racs_memtable_flush(mt);
-    }
 
     memcpy(mt->entries[mt->num_entries].key, key, sizeof(racs_uint64) * 2);
     memcpy(mt->entries[mt->num_entries].block, block, block_size);

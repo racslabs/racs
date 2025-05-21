@@ -49,7 +49,7 @@ void racs_scache_destroy(void *key, void *value);
 
 racs_cache_node *racs_cache_node_create(const racs_uint64 *key, racs_uint8 *value);
 
-void racs_cache_insert_at_head(racs_cache *cache, racs_cache_node *node);
+void racs_cache_move_to_head(racs_cache *cache, racs_cache_node *node);
 
 #ifdef __cplusplus
 }

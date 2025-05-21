@@ -44,6 +44,8 @@ typedef struct {
     racs_uint16 num_entries;
     racs_uint16 capacity;
     pthread_mutex_t mutex;
+    struct racs_memtable *next;
+    struct racs_memtable *prev;
 } racs_memtable;
 
 typedef struct {
@@ -63,6 +65,8 @@ typedef struct {
     int index;
     int num_tables;
     racs_memtable **tables;
+    racs_memtable *head;
+    racs_memtable *tail;
     pthread_mutex_t mutex;
 } racs_multi_memtable;
 
@@ -73,6 +77,8 @@ void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs
 void racs_multi_memtable_destroy(racs_multi_memtable *mmt);
 
 void racs_multi_memtable_flush(racs_multi_memtable *mmt);
+
+void racs_multi_memtable_move_to_head(racs_multi_memtable *mmt, racs_memtable *mt);
 
 racs_sstable *racs_sstable_read(const char *filename);
 

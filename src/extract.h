@@ -29,6 +29,4 @@ racs_extract_from_cache_or_sstable(racs_cache *cache, racs_uint64 stream_id, rac
 void
 racs_extract_process_sstable(racs_pcm *pcm, racs_uint8 *data, racs_uint64 stream_id, racs_int64 from, racs_int64 to);
 
-int racs_extract_cmp(const void *entry1, const void *entry2);
-
 #endif //RACS_EXTRACT_H
