@@ -31,8 +31,13 @@ int racs_extract_pcm(racs_context *ctx, racs_pcm *pcm, const char *stream_id, ra
     while (mt) {
         for (int i = 0; i < mt->num_entries; ++i) {
             racs_memtable_entry *entry = &mt->entries[i];
-            size_t samples = entry->block_size / (pcm->channels * pcm->bit_depth / 8);
-            racs_pcm_write_s16(pcm, (racs_int16 *) entry->block, samples);
+            racs_uint64 _stream_id = entry->key[0];
+            racs_time time = (racs_time)entry->key[1];
+
+            if (hash == _stream_id && time >= from && time <= to) {
+                size_t samples = entry->block_size / (pcm->channels * pcm->bit_depth / 8);
+                racs_pcm_write_s16(pcm, (racs_int16 *) entry->block, samples);
+            }
         }
         mt = (racs_memtable *) mt->next;
     }

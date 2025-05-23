@@ -64,7 +64,6 @@ typedef struct {
 typedef struct {
     int index;
     int num_tables;
-    racs_memtable **tables;
     racs_memtable *head;
     racs_memtable *tail;
     pthread_mutex_t mutex;
