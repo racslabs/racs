@@ -119,14 +119,13 @@ void racs_cache_move_to_head(racs_cache *cache, racs_cache_node *node) {
 racs_uint64 racs_cache_hash(void *key) {
     racs_uint64 hash[2];
     murmur3_x64_128(key, 2 * sizeof(racs_uint64), 0, hash);
-    printf("hash %llu\n", hash[0] % 2);
     return hash[0];
 }
 
 int racs_cache_cmp(void *a, void *b) {
     racs_uint64 *x = (racs_uint64 *) a;
     racs_uint64 *y = (racs_uint64 *) b;
-    return x[0] == y[0] && x[1] == y[1];
+    return x[0] != y[0] || x[1] != y[1];
 }
 
 void racs_scache_destroy(void *key, void *value) {

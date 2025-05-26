@@ -42,15 +42,15 @@ void racs_kvstore_put(racs_kvstore *kv, void *key, void *value) {
     if (!kv) return;
 
     racs_kvstore_bin *bin = kvstore_get_bin(kv, key);
-    racs_kvstore_entry *node = bin->node;
+    racs_kvstore_entry *curr = bin->node;
 
-    while (node) {
-        if (kv->ops.cmp(node->key, key)) {
+    while (curr) {
+        if (kv->ops.cmp(curr->key, key)) {
             racs_kvstore_delete(kv, key);
             break;
         }
 
-        node = (racs_kvstore_entry *) node->next;
+        curr = (racs_kvstore_entry *) curr->next;
     }
 
     kvstore_bin_append(bin, key, value);
@@ -85,7 +85,9 @@ void racs_kvstore_delete(racs_kvstore *kv, void *key) {
         if (kv->ops.cmp(curr->key, key)) {
             if (prev) prev->next = curr->next;
             else bin->node = (racs_kvstore_entry *) curr->next;
+
             kv->ops.destroy(curr->key, curr->value);
+            free(curr);
 
             --bin->count;
             return;
@@ -128,4 +130,5 @@ void kvstore_bin_append(racs_kvstore_bin *bin, void *key, void *value) {
     node->next = (struct racs_kvstore_entry *) bin->node;
 
     bin->node = node;
+    ++bin->count;
 }

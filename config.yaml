@@ -4,4 +4,4 @@ memtable:
   tables: 2
   entries: 1
 cache:
-  entries: 20
+  entries: 2
