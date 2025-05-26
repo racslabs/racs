@@ -35,44 +35,39 @@ racs_kvstore *racs_kvstore_create(size_t capacity, racs_kvstore_hash_callback ha
 
 void kvstore_bin_init(racs_kvstore_bin *bin) {
     bin->count = 0;
-    bin->capacity = 2;
-
-    bin->entries = malloc(2 * sizeof(racs_kvstore_entry));
-    if (!bin->entries) {
-        perror("Error allocating racs_kvstore entries");
-    }
+    bin->node = NULL;
 }
 
 void racs_kvstore_put(racs_kvstore *kv, void *key, void *value) {
     if (!kv) return;
 
     racs_kvstore_bin *bin = kvstore_get_bin(kv, key);
+    racs_kvstore_entry *node = bin->node;
 
-    for (int i = 0; i < bin->count; ++i) {
-        racs_kvstore_entry *entry = &bin->entries[i];
-
-        if (kv->ops.cmp(entry->key, key)) {
-            kv->ops.destroy(entry->key, entry->value);
-            entry->value = value;
-            entry->key = key;
-            return;
+    while (node) {
+        if (kv->ops.cmp(node->key, key)) {
+            racs_kvstore_delete(kv, key);
+            break;
         }
+
+        node = (racs_kvstore_entry *) node->next;
     }
 
     kvstore_bin_append(bin, key, value);
 }
 
-void *racs_kvstore_get(racs_kvstore *kv, void *key) {
+void * racs_kvstore_get(racs_kvstore *kv, void *key) {
     if (!kv) return NULL;
 
     racs_kvstore_bin *bin = kvstore_get_bin(kv, key);
+    racs_kvstore_entry *curr = bin->node;
 
-    for (int i = 0; i < bin->count; ++i) {
-        racs_kvstore_entry *entry = &bin->entries[i];
-
-        if (kv->ops.cmp(entry->key, key)) {
-            return entry->value;
+    while (curr) {
+        if (kv->ops.cmp(curr->key, key)) {
+            return curr->value;
         }
+
+        curr = (racs_kvstore_entry *) curr->next;
     }
 
     return NULL;
@@ -83,18 +78,21 @@ void racs_kvstore_delete(racs_kvstore *kv, void *key) {
 
     racs_kvstore_bin *bin = kvstore_get_bin(kv, key);
 
-    for (int i = 0; i < bin->count; ++i) {
-        racs_kvstore_entry *entry = &bin->entries[i];
+    racs_kvstore_entry *prev = NULL;
+    racs_kvstore_entry *curr = bin->node;
 
-        if (kv->ops.cmp(entry->key, key)) {
-            kv->ops.destroy(entry->key, entry->value);
-            for (int j = i; j < bin->count - 1; ++j) {
-                bin->entries[j] = bin->entries[j + 1];
-            }
+    while (curr) {
+        if (kv->ops.cmp(curr->key, key)) {
+            if (prev) prev->next = curr->next;
+            else bin->node = (racs_kvstore_entry *) curr->next;
+            kv->ops.destroy(curr->key, curr->value);
 
             --bin->count;
             return;
         }
+
+        prev = curr;
+        curr = (racs_kvstore_entry *) curr->next;
     }
 }
 
@@ -107,12 +105,15 @@ void racs_kvstore_destroy(racs_kvstore *kv) {
     for (int i = 0; i < kv->capacity; ++i) {
         racs_kvstore_bin *bin = &kv->bins[i];
 
-        for (int j = 0; j < bin->count; ++j) {
-            racs_kvstore_entry *entry = &bin->entries[j];
-            kv->ops.destroy(entry->key, entry->value);
-        }
+        racs_kvstore_entry *curr = bin->node;
 
-        free(bin->entries);
+        while (curr) {
+            racs_kvstore_entry *next = (racs_kvstore_entry *) curr->next;
+            kv->ops.destroy(curr->key, curr->value);
+            free(curr);
+
+            curr = next;
+        }
     }
 
     free(kv->bins);
@@ -121,20 +122,10 @@ void racs_kvstore_destroy(racs_kvstore *kv) {
 void kvstore_bin_append(racs_kvstore_bin *bin, void *key, void *value) {
     if (!bin) return;
 
-    if (bin->count == bin->capacity) {
-        bin->capacity *= bin->capacity;
+    racs_kvstore_entry *node = malloc(sizeof(racs_kvstore_entry));
+    node->key = key;
+    node->value = value;
+    node->next = (struct racs_kvstore_entry *) bin->node;
 
-        racs_kvstore_entry *entries = realloc(bin->entries, bin->capacity * sizeof(racs_kvstore_entry));
-        if (!entries) {
-            perror("Error reallocating entries");
-            return;
-        }
-
-        bin->entries = entries;
-    }
-
-    bin->entries[bin->count].key = key;
-    bin->entries[bin->count].value = value;
-
-    ++bin->count;
+    bin->node = node;
 }

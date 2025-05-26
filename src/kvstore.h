@@ -21,12 +21,12 @@ typedef struct {
 typedef struct {
     void *key;
     void *value;
+    struct racs_kvstore_entry *next;
 } racs_kvstore_entry;
 
 typedef struct {
     size_t count;
-    size_t capacity;
-    racs_kvstore_entry *entries;
+    racs_kvstore_entry *node;
 } racs_kvstore_bin;
 
 typedef struct {

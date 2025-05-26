@@ -119,6 +119,7 @@ void racs_cache_move_to_head(racs_cache *cache, racs_cache_node *node) {
 racs_uint64 racs_cache_hash(void *key) {
     racs_uint64 hash[2];
     murmur3_x64_128(key, 2 * sizeof(racs_uint64), 0, hash);
+    printf("hash %llu\n", hash[0] % 2);
     return hash[0];
 }
 

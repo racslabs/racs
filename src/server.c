@@ -4,7 +4,6 @@
 #define FALSE            0
 
 int main(int argc, char *argv[]) {
-//    racs_run_tests(argc, argv);
     int len, rc, on = 1;
     int listen_sd = -1, new_sd = -1;
     int desc_ready, end_server = FALSE, compress_array = FALSE;
