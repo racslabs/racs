@@ -57,7 +57,7 @@ int racs_streamappend(racs_cache *mcache, racs_multi_memtable *mmt, racs_streamk
 
     racs_time offset = racs_streaminfo_offset(&streaminfo);
     racs_uint64 key[2] = {frame.header.stream_id, offset};
-    racs_multi_memtable_append(mmt, key, frame.pcm_block, frame.header.block_size);
+    racs_multi_memtable_append(mmt, key, frame.pcm_block, frame.header.block_size, frame.header.checksum);
 
     streaminfo.size += frame.header.block_size;
     racs_streaminfo_put(mcache, &streaminfo, frame.header.stream_id);

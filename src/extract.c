@@ -77,7 +77,7 @@ racs_extract_process_sstable(racs_pcm *pcm, racs_uint8 *data, racs_uint64 stream
         size_t offset = sst->index_entries[i].offset;
 
         racs_memtable_entry *entry = racs_memtable_entry_read(data, offset);
-        if (!entry) return;
+        if (!entry) continue;
 
         racs_time time = (racs_time) entry->key[1];
         if (entry->key[0] == stream_id && time >= from && time <= to) {

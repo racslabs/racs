@@ -2,12 +2,10 @@
 
 int racs_frame_parse(racs_uint8 *buf, racs_frame *frame) {
     off_t offset = racs_frame_header_parse(buf, &frame->header);
-
     frame->pcm_block = buf + offset;
-    return 1;
-//    racs_uint32 checksum = crc32c(0, frame->pcm_block, frame->header.block_size);
-//
-//    return checksum == frame->header.checksum;
+
+    racs_uint32 checksum = crc32c(0, frame->pcm_block, frame->header.block_size);
+    return checksum == frame->header.checksum;
 }
 
 off_t racs_frame_header_parse(racs_uint8 *buf, racs_frame_header *header) {

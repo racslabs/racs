@@ -34,7 +34,7 @@ void racs_multi_memtable_move_to_head(racs_multi_memtable *mmt, racs_memtable *m
     mmt->head = mt;
 }
 
-void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size) {
+void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum) {
     if (!mmt) return;
 
     pthread_mutex_lock(&mmt->mutex);
@@ -54,7 +54,7 @@ void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs
         mmt->tail = prev;
     }
 
-    racs_memtable_append(mmt->head, key, block, block_size);
+    racs_memtable_append(mmt->head, key, block, block_size, checksum);
     pthread_mutex_unlock(&mmt->mutex);
 }
 
@@ -172,12 +172,20 @@ racs_memtable_entry *racs_memtable_entry_read(racs_uint8 *buf, size_t offset) {
         return NULL;
     }
 
-    offset = racs_read_uint16(&entry->block_size, buf, (off_t) offset);
     offset = racs_read_uint64(&entry->key[0], buf, (off_t) offset);
     offset = racs_read_uint64(&entry->key[1], buf, (off_t) offset);
+    offset = racs_read_uint32(&entry->checksum, buf, (off_t) offset);
+    offset = racs_read_uint16(&entry->block_size, buf, (off_t) offset);
 
     entry->block = malloc(entry->block_size);
     memcpy(entry->block, buf + offset, entry->block_size);
+
+    if (crc32c(0, entry->block, entry->block_size) != entry->checksum) {
+        free(entry->block);
+        free(entry);
+
+        return NULL;
+    }
 
     return entry;
 }
@@ -212,7 +220,7 @@ racs_memtable *racs_memtable_create(int capacity) {
     return mt;
 }
 
-void racs_memtable_append(racs_memtable *mt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size) {
+void racs_memtable_append(racs_memtable *mt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum) {
     if (!mt) return;
 
     pthread_mutex_lock(&mt->mutex);
@@ -221,6 +229,7 @@ void racs_memtable_append(racs_memtable *mt, racs_uint64 *key, racs_uint8 *block
     memcpy(mt->entries[mt->num_entries].block, block, block_size);
 
     mt->entries[mt->num_entries].block_size = block_size;
+    mt->entries[mt->num_entries].checksum = checksum;
     ++mt->num_entries;
 
     pthread_mutex_unlock(&mt->mutex);
@@ -390,9 +399,10 @@ racs_sstable_index_entry_update(racs_sstable_index_entry *index_entry, racs_memt
 }
 
 off_t racs_memtable_entry_write(racs_uint8 *buf, const racs_memtable_entry *mt_entry, off_t offset) {
-    offset = racs_write_uint16(buf, mt_entry->block_size, offset);
     offset = racs_write_uint64(buf, mt_entry->key[0], offset);
     offset = racs_write_uint64(buf, mt_entry->key[1], offset);
+    offset = racs_write_uint32(buf, mt_entry->checksum, offset);
+    offset = racs_write_uint16(buf, mt_entry->block_size, offset);
     return racs_write_bin(buf, mt_entry->block, mt_entry->block_size, offset);
 }
 
