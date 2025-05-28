@@ -32,9 +32,9 @@ int racs_ogg_write_callback(void *user_data, const racs_uint8 *ptr, racs_int32 l
 
 int racs_ogg_read_callback(void *user_data);
 
-size_t racs_ogg_write(racs_ogg *ogg, const void *in, void *out, size_t samples, size_t size);
+size_t racs_ogg_write(racs_ogg *ogg, const void *in, void *out, size_t samples);
 
-size_t racs_ogg_write_s16(racs_ogg *ogg, const racs_int16 *in, void *out, size_t samples, size_t size);
+size_t racs_ogg_write_s16(racs_ogg *ogg, const racs_int16 *in, void *out, size_t samples);
 
 void racs_ogg_destroy(racs_ogg *ogg);
 

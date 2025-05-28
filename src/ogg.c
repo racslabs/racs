@@ -51,7 +51,7 @@ void racs_ogg_init(racs_ogg *ogg, void *out) {
     }
 }
 
-size_t racs_ogg_write(racs_ogg *ogg, const void *in, void *out, size_t samples, size_t size) {
+size_t racs_ogg_write(racs_ogg *ogg, const void *in, void *out, size_t samples) {
     racs_ogg_init(ogg, out);
 
     int samples_per_channel = (int) (RACS_OGG_FRAMESIZE_20MS * ogg->format.sample_rate);
@@ -69,9 +69,7 @@ size_t racs_ogg_write(racs_ogg *ogg, const void *in, void *out, size_t samples, 
         ogg->err = ope_encoder_write(ogg->enc, pcm, samples_per_channel);
         if (ogg->err != OPE_OK) {
             fprintf(stderr, "Filed to encode ogg: %s\n", ope_strerror(ogg->err));
-            ope_comments_destroy(ogg->comments);
-            ope_encoder_drain(ogg->enc);
-            ope_encoder_destroy(ogg->enc);
+            racs_ogg_destroy(ogg);
             free(pcm);
             break;
         }
@@ -83,8 +81,8 @@ size_t racs_ogg_write(racs_ogg *ogg, const void *in, void *out, size_t samples, 
     return ogg->w_pos;
 }
 
-size_t racs_ogg_write_s16(racs_ogg *ogg, const racs_int16 *in, void *out, size_t samples, size_t size) {
-    return racs_ogg_write(ogg, in, out, samples, size);
+size_t racs_ogg_write_s16(racs_ogg *ogg, const racs_int16 *in, void *out, size_t samples) {
+    return racs_ogg_write(ogg, in, out, samples);
 }
 
 void racs_ogg_destroy(racs_ogg *ogg) {

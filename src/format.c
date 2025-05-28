@@ -30,7 +30,7 @@ racs_format_pcm(racs_format *fmt, const void *in, void *out, size_t samples, siz
         racs_ogg_set_channels(&ogg, fmt->channels);
         racs_ogg_set_sample_rate(&ogg, fmt->sample_rate);
 
-        racs_ogg_write_s16(&ogg, in, out, samples, size);
+        racs_ogg_write_s16(&ogg, in, out, samples);
         racs_ogg_destroy(&ogg);
 
         return ogg.w_pos;
