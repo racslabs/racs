@@ -55,7 +55,7 @@ size_t racs_ogg_write(racs_ogg *ogg, const void *in, void *out, size_t samples, 
     racs_ogg_init(ogg, out);
 
     int samples_per_channel = (int) (RACS_OGG_FRAMESIZE_20MS * ogg->format.sample_rate);
-    off_t frame_size = samples_per_channel * ogg->format.channels;
+    off_t frame_size = samples_per_channel * ogg->format.channels * sizeof(racs_int16);
 
     racs_int16 *pcm = malloc(sizeof(racs_int16) * frame_size);
     if (!pcm) {
@@ -70,6 +70,7 @@ size_t racs_ogg_write(racs_ogg *ogg, const void *in, void *out, size_t samples, 
         if (ogg->err != OPE_OK) {
             fprintf(stderr, "Filed to encode ogg: %s\n", ope_strerror(ogg->err));
             ope_comments_destroy(ogg->comments);
+            ope_encoder_drain(ogg->enc);
             ope_encoder_destroy(ogg->enc);
             free(pcm);
             break;

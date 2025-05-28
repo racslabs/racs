@@ -5,7 +5,7 @@
 #include <lame/lame.h>
 #include "types.h"
 
-// This file is a wrapper of _lame
+// This file is a wrapper of lame
 
 typedef struct {
     racs_uint16 channels;

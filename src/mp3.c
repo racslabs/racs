@@ -10,6 +10,7 @@ void racs_mp3_set_sample_rate(racs_mp3 *mp3, racs_uint32 sample_rate) {
 
 void racs_mp3_init(racs_mp3 *mp3) {
     mp3->_lame = lame_init();
+    mp3->pos = 0;
 
     lame_set_in_samplerate(mp3->_lame, (int) mp3->format.sample_rate);
     lame_set_num_channels(mp3->_lame, mp3->format.channels);
@@ -18,7 +19,10 @@ void racs_mp3_init(racs_mp3 *mp3) {
 }
 
 size_t racs_mp3_write(racs_mp3 *mp3, const void *in, void *out, size_t samples, size_t size) {
-    mp3->pos = lame_encode_buffer_interleaved(mp3->_lame, (racs_int16 *) in, (int) samples, out, (int) size);
+    if (mp3->format.channels == 1)
+        mp3->pos = lame_encode_buffer(mp3->_lame, (racs_int16 *) in, NULL, (int) samples, out, (int) size);
+    else if (mp3->format.channels == 2)
+        mp3->pos = lame_encode_buffer_interleaved(mp3->_lame, (racs_int16 *) in, (int) samples, out, (int) size);
     return mp3->pos;
 }
 
