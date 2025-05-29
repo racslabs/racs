@@ -67,4 +67,6 @@ racs_cache *racs_mcache_create(size_t capacity);
 
 racs_uint64 racs_hash(const char *stream_id);
 
+int racs_mcache_cmp(void *a, void *b);
+
 #endif //RACS_STREAMINFO_H

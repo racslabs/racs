@@ -13,7 +13,7 @@ racs_cache *racs_mcache_create(size_t capacity) {
     cache->capacity = capacity;
     cache->head = NULL;
     cache->tail = NULL;
-    cache->kv = racs_kvstore_create(capacity, racs_cache_hash, racs_cache_cmp, racs_mcache_destroy);
+    cache->kv = racs_kvstore_create(capacity, racs_cache_hash, racs_mcache_cmp, racs_mcache_destroy);
 
     return cache;
 }
@@ -346,4 +346,10 @@ void racs_streams_destroy(racs_streams *streams) {
         free(streams->streams[i]);
     }
     free(streams->streams);
+}
+
+int racs_mcache_cmp(void *a, void *b) {
+    racs_uint64 *x = (racs_uint64 *) a;
+    racs_uint64 *y = (racs_uint64 *) b;
+    return x[0] == y[0];
 }
