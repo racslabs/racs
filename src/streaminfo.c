@@ -85,8 +85,13 @@ int racs_streaminfo_get(racs_cache *mcache, racs_streaminfo *streaminfo, racs_ui
         }
 
         close(fd);
-        free(data);
         free(path);
+
+        racs_uint64 *_key = malloc(2 * sizeof(racs_uint64));
+        _key[0] = stream_id;
+        _key[1] = 0;
+        racs_cache_put(mcache, key, data);
+
         return -1;
     }
 
@@ -95,7 +100,7 @@ int racs_streaminfo_get(racs_cache *mcache, racs_streaminfo *streaminfo, racs_ui
 }
 
 int racs_streaminfo_put(racs_cache *mcache, racs_streaminfo *streaminfo, racs_uint64 stream_id) {
-    racs_uint64 *key = malloc(2 * sizeof(racs_int64));
+    racs_uint64 *key = malloc(2 * sizeof(racs_uint64));
     if (!key) {
         perror("Failed to allocate key.");
         return 0;
@@ -119,60 +124,6 @@ int racs_streaminfo_put(racs_cache *mcache, racs_streaminfo *streaminfo, racs_ui
     racs_cache_put(mcache, key, data);
 
     return 1;
-}
-
-void racs_streaminfo_load(racs_cache *mcache) {
-    char* dir1;
-    char* dir2;
-
-    asprintf(&dir1, "%s/.data", racs_streaminfo_dir);
-    asprintf(&dir2, "%s/.data/md", racs_streaminfo_dir);
-
-    mkdir(dir1, 0777);
-    mkdir(dir2, 0777);
-
-    racs_filelist *list = get_sorted_filelist(dir2);
-    free(dir1);
-    free(dir2);
-
-    for (int i = 0; i < list->num_files; ++i) {
-        int fd = open(list->files[i], O_RDONLY);
-        if (fd == -1) {
-            perror("Failed to open racs_streaminfo file.");
-            continue;
-        }
-
-        racs_uint64 stream_id = strtoull(list->files[i], NULL, 10);
-        racs_uint64 *key = malloc(2 * sizeof(racs_int64));
-        if (!key) {
-            close(fd);
-            continue;
-        }
-
-        key[0] = stream_id;
-        key[1] = 0;
-
-        size_t len = racs_streaminfo_filesize(list->files[i]);
-        racs_uint8 *data = malloc(len);
-        if (!data) {
-            close(fd);
-            free(key);
-
-            continue;
-        }
-
-        if (read(fd, data, len) != len) {
-            close(fd);
-            free(key);
-            free(data);
-
-            continue;
-        }
-
-        racs_cache_put(mcache, key, data);
-    }
-
-    racs_filelist_destroy(list);
 }
 
 void racs_mcache_destroy(void *key, void *value) {
@@ -276,27 +227,22 @@ void racs_streaminfo_path(char **path, racs_uint64 stream_id) {
     asprintf(path, "%s/.data/md/%llu", racs_streaminfo_dir, stream_id);
 }
 
-void racs_streaminfo_list(racs_cache *mcache, racs_streams *streams, const char* pattern) {
-    char *path = NULL;
-    asprintf(&path, "%s/.data/md", racs_streaminfo_dir);
+racs_uint64 racs_path_to_stream_id(char *path) {
+    char *curr;
+    char *prev = NULL;
 
-    racs_filelist *list = racs_filelist_create();
-    racs_filelist_add(list, path);
-
-    for (int i = 0; i < list->num_files; ++i) {
-        racs_uint64 stream_id = strtoull(list->files[i], NULL, 10);
-
-        racs_streaminfo streaminfo;
-        int rc = racs_streaminfo_get(mcache, &streaminfo, stream_id);
-        if (rc == -1 || rc == 1) {
-            rc = fnmatch(pattern, streaminfo.id, FNM_IGNORECASE);
-            if (rc == 0) racs_streams_add(streams, streaminfo.id);
-        }
+    curr = strtok(path, "/");
+    while (curr != NULL) {
+        prev = curr;
+        curr = strtok(NULL, "/");
     }
 
-    racs_filelist_destroy(list);
-    free(path);
+    if (!prev) return 0;
 
+    return strtoull(prev, NULL, 10);
+}
+
+void racs_streaminfo_list(racs_cache *mcache, racs_streams *streams, const char* pattern) {
     pthread_rwlock_rdlock(&mcache->rwlock);
 
     racs_cache_node *node = mcache->head;
@@ -306,12 +252,35 @@ void racs_streaminfo_list(racs_cache *mcache, racs_streams *streams, const char*
         racs_streaminfo streaminfo;
         racs_streaminfo_read(&streaminfo, node->entry.value);
         int rc = fnmatch(pattern, streaminfo.id, FNM_IGNORECASE);
+        printf("cache %s\n", streaminfo.id);
         if (rc == 0) racs_streams_add(streams, streaminfo.id);
 
         node = next;
     }
 
     pthread_rwlock_unlock(&mcache->rwlock);
+
+    char *path = NULL;
+    asprintf(&path, "%s/.data/md", racs_streaminfo_dir);
+
+    racs_filelist *list = get_sorted_filelist(path);
+
+    for (int i = 0; i < list->num_files; ++i) {
+        racs_uint64 stream_id = racs_path_to_stream_id(list->files[i]);
+        printf("id %llu\n", stream_id);
+
+        racs_streaminfo streaminfo;
+        int rc = racs_streaminfo_get(mcache, &streaminfo, stream_id);
+        if (rc == -1 || rc == 1) {
+            printf("file %s\n", streaminfo.id);
+            rc = fnmatch(pattern, streaminfo.id, FNM_IGNORECASE);
+            if (rc == 0) racs_streams_add(streams, streaminfo.id);
+        }
+    }
+
+    racs_filelist_destroy(list);
+    free(path);
+
 }
 
 void racs_streams_add(racs_streams *streams, const char *stream) {

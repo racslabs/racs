@@ -14,8 +14,6 @@ void racs_context_init(racs_context *ctx, const char *path) {
                                           ctx->config->memtable.entries);
     racs_streaminfo_dir = ctx->config->data_dir;
     racs_time_dir = ctx->config->data_dir;
-
-    racs_streaminfo_load(ctx->mcache);
 }
 
 void racs_context_destroy(racs_context *ctx) {

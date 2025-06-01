@@ -35,8 +35,6 @@ int racs_streaminfo_get(racs_cache *mcache, racs_streaminfo *streaminfo, racs_ui
 
 int racs_streaminfo_put(racs_cache *mcache, racs_streaminfo *streaminfo, racs_uint64 stream_id);
 
-void racs_streaminfo_load(racs_cache *mcache);
-
 void racs_streaminfo_list(racs_cache *mcache, racs_streams *streams, const char* pattern);
 
 size_t racs_streaminfo_size(racs_streaminfo* streaminfo);
@@ -68,5 +66,7 @@ racs_cache *racs_mcache_create(size_t capacity);
 racs_uint64 racs_hash(const char *stream_id);
 
 int racs_mcache_cmp(void *a, void *b);
+
+racs_uint64 racs_path_to_stream_id(char *path);
 
 #endif //RACS_STREAMINFO_H

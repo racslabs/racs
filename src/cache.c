@@ -102,18 +102,36 @@ racs_cache_node *racs_cache_node_create(const racs_uint64 *key, racs_uint8 *valu
 }
 
 void racs_cache_move_to_head(racs_cache *cache, racs_cache_node *node) {
-    if (!cache || !node) return;
+    if (!cache || !node || cache->head == node)
+        return;
+
+    racs_cache_node *prev = (racs_cache_node *) node->prev;
+    if (prev) {
+        prev->next = node->next;
+    }
+
+    racs_cache_node *next = (racs_cache_node *) node->next;
+    if (next) {
+        next->prev = node->prev;
+    }
+
+    if (cache->tail == node) {
+        cache->tail = (racs_cache_node *) node->prev;
+    }
 
     node->prev = NULL;
     node->next = (struct racs_cache_node *) cache->head;
 
     if (cache->head) {
-        cache->head->prev = (struct racs_cache_node *) node;
-    } else {
-        cache->tail = node;
+        racs_cache_node *head = cache->head;
+        head->prev = (struct racs_cache_node *) node;
     }
 
     cache->head = node;
+
+    if (cache->tail == NULL) {
+        cache->tail = node;
+    }
 }
 
 racs_uint64 racs_cache_hash(void *key) {
