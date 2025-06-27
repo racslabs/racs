@@ -106,14 +106,13 @@ racs_kvstore_bin *kvstore_get_bin(racs_kvstore *kv, void *key) {
 void racs_kvstore_destroy(racs_kvstore *kv) {
     for (int i = 0; i < kv->capacity; ++i) {
         racs_kvstore_bin *bin = &kv->bins[i];
-
         racs_kvstore_entry *curr = bin->node;
 
         while (curr) {
             racs_kvstore_entry *next = (racs_kvstore_entry *) curr->next;
             kv->ops.destroy(curr->key, curr->value);
-            free(curr);
 
+            free(curr);
             curr = next;
         }
     }
@@ -127,7 +126,7 @@ void kvstore_bin_append(racs_kvstore_bin *bin, void *key, void *value) {
     racs_kvstore_entry *node = malloc(sizeof(racs_kvstore_entry));
     node->key = key;
     node->value = value;
-    node->next = (struct racs_kvstore_entry *) bin->node;
+    node->next = bin->node;
 
     bin->node = node;
     ++bin->count;

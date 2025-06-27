@@ -20,9 +20,17 @@ int racs_streamcreate(racs_cache *mcache, const char* stream_id, racs_uint32 sam
     streaminfo.id = (char*)stream_id;
 
     racs_uint64 hash = racs_hash(stream_id);
-
     if (racs_streaminfo_get(mcache, &streaminfo, hash)) return 0;
-    return racs_streaminfo_put(mcache, &streaminfo, hash);
+
+    size_t size = racs_streaminfo_size(&streaminfo);
+    racs_uint8 *data = malloc(size);
+    if (!data) return 0;
+
+    racs_streaminfo_write(data, &streaminfo);
+    racs_streaminfo_flush(data, size, hash);
+    racs_streaminfo_put(mcache, &streaminfo, hash);
+
+    return 1;
 }
 
 int racs_streamappend(racs_cache *mcache, racs_multi_memtable *mmt, racs_streamkv *kv, racs_uint8 *data) {

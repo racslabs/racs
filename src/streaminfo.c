@@ -90,7 +90,7 @@ int racs_streaminfo_get(racs_cache *mcache, racs_streaminfo *streaminfo, racs_ui
         racs_uint64 *_key = malloc(2 * sizeof(racs_uint64));
         _key[0] = stream_id;
         _key[1] = 0;
-        racs_cache_put(mcache, key, data);
+        racs_cache_put(mcache, _key, data);
 
         return -1;
     }
@@ -118,7 +118,10 @@ int racs_streaminfo_put(racs_cache *mcache, racs_streaminfo *streaminfo, racs_ui
 
     size_t len = racs_streaminfo_size(streaminfo);
     racs_uint8 *data = malloc(len);
-    if (!data) return 0;
+    if (!data) {
+        free(key);
+        return 0;
+    }
 
     racs_streaminfo_write(data, streaminfo);
     racs_cache_put(mcache, key, data);
@@ -127,15 +130,16 @@ int racs_streaminfo_put(racs_cache *mcache, racs_streaminfo *streaminfo, racs_ui
 }
 
 void racs_mcache_destroy(void *key, void *value) {
-    racs_cache_entry *entry = (racs_cache_entry *) value;
-    racs_uint64 stream_id = entry->key[0];
+    racs_cache_node *node = (racs_cache_node *)value;
+    racs_uint64 stream_id = node->entry.key[0];
 
     racs_streaminfo streaminfo;
 
-    off_t size = racs_streaminfo_read(&streaminfo, entry->value);
-    racs_streaminfo_flush(entry->value, size, stream_id);
+    off_t size = racs_streaminfo_read(&streaminfo, node->entry.value);
+    racs_streaminfo_flush(node->entry.value, size, stream_id);
 
-    free(entry->value);
+    free(node->entry.value);
+    free(node);
     free(key);
 }
 
@@ -243,23 +247,6 @@ racs_uint64 racs_path_to_stream_id(char *path) {
 }
 
 void racs_streaminfo_list(racs_cache *mcache, racs_streams *streams, const char* pattern) {
-    pthread_rwlock_rdlock(&mcache->rwlock);
-
-    racs_cache_node *node = mcache->head;
-    while (node) {
-        racs_cache_node *next = (racs_cache_node *) node->next;
-
-        racs_streaminfo streaminfo;
-        racs_streaminfo_read(&streaminfo, node->entry.value);
-        int rc = fnmatch(pattern, streaminfo.id, FNM_IGNORECASE);
-        printf("cache %s\n", streaminfo.id);
-        if (rc == 0) racs_streams_add(streams, streaminfo.id);
-
-        node = next;
-    }
-
-    pthread_rwlock_unlock(&mcache->rwlock);
-
     char *path = NULL;
     asprintf(&path, "%s/.data/md", racs_streaminfo_dir);
 
@@ -267,12 +254,11 @@ void racs_streaminfo_list(racs_cache *mcache, racs_streams *streams, const char*
 
     for (int i = 0; i < list->num_files; ++i) {
         racs_uint64 stream_id = racs_path_to_stream_id(list->files[i]);
-        printf("id %llu\n", stream_id);
 
         racs_streaminfo streaminfo;
         int rc = racs_streaminfo_get(mcache, &streaminfo, stream_id);
+
         if (rc == -1 || rc == 1) {
-            printf("file %s\n", streaminfo.id);
             rc = fnmatch(pattern, streaminfo.id, FNM_IGNORECASE);
             if (rc == 0) racs_streams_add(streams, streaminfo.id);
         }
@@ -280,7 +266,6 @@ void racs_streaminfo_list(racs_cache *mcache, racs_streams *streams, const char*
 
     racs_filelist_destroy(list);
     free(path);
-
 }
 
 void racs_streams_add(racs_streams *streams, const char *stream) {

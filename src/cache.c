@@ -21,18 +21,23 @@ racs_cache *racs_scache_create(size_t capacity) {
 void racs_cache_put(racs_cache *cache, const racs_uint64 *key, racs_uint8 *value) {
     if (!cache) return;
 
-    racs_cache_entry *entry = racs_kvstore_get(cache->kv, key);
-    if (entry) return;
-
     pthread_rwlock_wrlock(&cache->rwlock);
 
-    if (cache->size >= cache->capacity)
+    racs_cache_node *_node = racs_kvstore_get(cache->kv, key);
+    if (_node) {
+        racs_cache_move_to_head(cache, _node);
+        pthread_rwlock_unlock(&cache->rwlock);
+        return;
+    }
+
+    if (cache->size >= cache->capacity) {
         racs_cache_evict(cache);
+    }
 
     racs_cache_node *node = racs_cache_node_create(key, value);
 
     racs_cache_move_to_head(cache, node);
-    racs_kvstore_put(cache->kv, key, &node->entry);
+    racs_kvstore_put(cache->kv, key, node);
 
     ++cache->size;
 
@@ -44,12 +49,16 @@ racs_uint8 *racs_cache_get(racs_cache *cache, const racs_uint64 *key) {
 
     pthread_rwlock_rdlock(&cache->rwlock);
 
-    racs_cache_entry *entry = racs_kvstore_get(cache->kv, key);
+    racs_cache_node *node = racs_kvstore_get(cache->kv, key);
+    if (!node) {
+        pthread_rwlock_unlock(&cache->rwlock);
+        return NULL;
+    }
+
+    racs_cache_move_to_head(cache, node);
     pthread_rwlock_unlock(&cache->rwlock);
 
-    if (entry) return entry->value;
-
-    return NULL;
+    return node->entry.value;
 }
 
 void racs_cache_destroy(racs_cache *cache) {
@@ -57,13 +66,6 @@ void racs_cache_destroy(racs_cache *cache) {
 
     pthread_rwlock_wrlock(&cache->rwlock);
     racs_kvstore_destroy(cache->kv);
-
-    racs_cache_node *node = cache->head;
-    while (node) {
-        racs_cache_node *next = (racs_cache_node *) node->next;
-        free(node);
-        node = next;
-    }
 
     pthread_rwlock_unlock(&cache->rwlock);
     pthread_rwlock_destroy(&cache->rwlock);
@@ -75,11 +77,11 @@ void racs_cache_evict(racs_cache *cache) {
     if (!cache) return;
 
     racs_cache_node *tail = cache->tail;
-    racs_cache_entry *entry = &tail->entry;
+    racs_cache_node *prev = cache->tail->prev;
 
-    racs_kvstore_delete(cache->kv, entry->key);
+    racs_kvstore_delete(cache->kv, tail->entry.key);
 
-    cache->tail = (racs_cache_node *) tail->prev;
+    cache->tail = prev;
     cache->tail->next = NULL;
 
     --cache->size;
@@ -102,36 +104,34 @@ racs_cache_node *racs_cache_node_create(const racs_uint64 *key, racs_uint8 *valu
 }
 
 void racs_cache_move_to_head(racs_cache *cache, racs_cache_node *node) {
-    if (!cache || !node || cache->head == node)
+    if (!cache || !node) return;
+
+    if (!cache->head) {
+        cache->head = node;
+        cache->tail = node;
+        node->prev = NULL;
+        node->next = NULL;
+        return;
+    }
+
+    if (cache->head == node)
         return;
 
-    racs_cache_node *prev = (racs_cache_node *) node->prev;
-    if (prev) {
-        prev->next = node->next;
-    }
-
-    racs_cache_node *next = (racs_cache_node *) node->next;
-    if (next) {
-        next->prev = node->prev;
-    }
-
     if (cache->tail == node) {
-        cache->tail = (racs_cache_node *) node->prev;
+        cache->tail = node->prev;
+        if (cache->tail) cache->tail->next = NULL;
     }
+
+    racs_cache_node *prev = node->prev;
+    racs_cache_node *next = node->next;
+
+    if (prev) prev->next = next;
+    if (next) next->prev = prev;
 
     node->prev = NULL;
-    node->next = (struct racs_cache_node *) cache->head;
-
-    if (cache->head) {
-        racs_cache_node *head = cache->head;
-        head->prev = (struct racs_cache_node *) node;
-    }
-
+    node->next = cache->head;
+    cache->head->prev = node;
     cache->head = node;
-
-    if (cache->tail == NULL) {
-        cache->tail = node;
-    }
 }
 
 racs_uint64 racs_cache_hash(void *key) {
@@ -147,6 +147,7 @@ int racs_cache_cmp(void *a, void *b) {
 }
 
 void racs_scache_destroy(void *key, void *value) {
-    racs_cache_entry *entry = (racs_cache_entry *) value;
-    free(entry->value);
+    racs_cache_node *node = (racs_cache_node *) value;
+    free(node->entry.value);
+    free(node);
 }
