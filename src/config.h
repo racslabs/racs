@@ -18,10 +18,16 @@ typedef struct {
 } racs_cache_config;
 
 typedef struct {
+    int size;
+    char* log_dir;
+} racs_log_config;
+
+typedef struct {
     int                     port;
     char*                   data_dir;
     racs_memtable_config    memtable;
     racs_cache_config       cache;
+    racs_log_config         log;
 } racs_config;
 
 static const cyaml_schema_field_t racs_memtables_schema_fields[] = {
@@ -35,11 +41,18 @@ static const cyaml_schema_field_t racs_cache_schema_fields[] = {
         CYAML_FIELD_END
 };
 
+static const cyaml_schema_field_t racs_log_schema_fields[] = {
+        CYAML_FIELD_UINT("size", CYAML_FLAG_DEFAULT, racs_log_config , size),
+        CYAML_FIELD_STRING_PTR("log_dir", CYAML_FLAG_POINTER, racs_log_config, log_dir, 0, CYAML_UNLIMITED),
+        CYAML_FIELD_END
+};
+
 static const cyaml_schema_field_t racs_schema_fields[] = {
         CYAML_FIELD_UINT("port", CYAML_FLAG_DEFAULT, racs_config , port),
         CYAML_FIELD_STRING_PTR("data_dir", CYAML_FLAG_POINTER, racs_config, data_dir, 0, CYAML_UNLIMITED),
         CYAML_FIELD_MAPPING("memtable", CYAML_FLAG_DEFAULT, racs_config, memtable, racs_memtables_schema_fields),
         CYAML_FIELD_MAPPING("cache", CYAML_FLAG_DEFAULT, racs_config , cache, racs_cache_schema_fields),
+        CYAML_FIELD_MAPPING("log", CYAML_FLAG_DEFAULT, racs_config , log, racs_log_schema_fields),
         CYAML_FIELD_END
 };
 

@@ -6,6 +6,7 @@
 #include "cache.h"
 #include "stream.h"
 #include "memtable.h"
+#include "log.h"
 
 typedef struct {
     racs_config *config;

@@ -2,6 +2,7 @@
 
 const char* racs_streaminfo_dir = NULL;
 const char* racs_time_dir = NULL;
+const char* racs_log_dir = NULL;
 
 void racs_context_init(racs_context *ctx, const char *path) {
     ctx->config = NULL;
@@ -14,6 +15,7 @@ void racs_context_init(racs_context *ctx, const char *path) {
                                           ctx->config->memtable.entries);
     racs_streaminfo_dir = ctx->config->data_dir;
     racs_time_dir = ctx->config->data_dir;
+    racs_log_dir = ctx->config->log.log_dir;
 }
 
 void racs_context_destroy(racs_context *ctx) {

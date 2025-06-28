@@ -5,3 +5,6 @@ memtable:
   entries: 30
 cache:
   entries: 2
+log:
+  size: 1024
+  log_dir: "/Users/corbinmoon/racs/cmake-build-debug"

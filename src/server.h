@@ -5,5 +5,6 @@
 #include "conn.h"
 #include "db.h"
 #include "scm_bindings.h"
+#include "log.h"
 
 #endif //RACS_SERVER_H

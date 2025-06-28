@@ -22,6 +22,7 @@ int main(int argc, char *argv[]) {
 
     racs_db *db = racs_db_instance();
     racs_db_open(db, argv[2]);
+    racs_log *log = racs_log_instance();
 
     /*************************************************************/
     /* Create an AF_INET6 stream socket to receive incoming      */
@@ -29,7 +30,7 @@ int main(int argc, char *argv[]) {
     /*************************************************************/
     listen_sd = socket(AF_INET6, SOCK_STREAM, 0);
     if (listen_sd < 0) {
-        perror("socket() failed");
+        racs_log_append(log, ERROR, "socket() failed");
         exit(-1);
     }
 
@@ -117,7 +118,7 @@ int main(int argc, char *argv[]) {
         /***********************************************************/
         /* Call poll() and wait 3 minutes for it to complete.      */
         /***********************************************************/
-        printf("Waiting on poll()...\n");
+        racs_log_info("Waiting on poll()...");
         rc = poll(fds, nfds, timeout);
 
         /***********************************************************/
