@@ -15,11 +15,11 @@ typedef struct {
 } racs_log;
 
 typedef enum {
-    INFO,
-    WARN,
-    DEBUG,
-    ERROR,
-    FATAL
+    RACS_LOG_INFO,
+    RACS_LOG_WARN,
+    RACS_LOG_DEBUG,
+    RACS_LOG_ERROR,
+    RACS_LOG_FATAL
 } racs_log_level;
 
 extern const char *const racs_log_level_string[];
@@ -28,7 +28,11 @@ extern const char *racs_log_dir;
 
 static racs_log *_log = NULL;
 
-#define racs_log_info(...)  racs_log_append(racs_log_instance(), INFO, __VA_ARGS__)
+#define racs_log_info(...)  racs_log_append(racs_log_instance(), RACS_LOG_INFO, __VA_ARGS__)
+#define racs_log_warn(...)  racs_log_append(racs_log_instance(), RACS_LOG_WARN, __VA_ARGS__)
+#define racs_log_debug(...)  racs_log_append(racs_log_instance(), RACS_LOG_DEBUG, __VA_ARGS__)
+#define racs_log_error(...)  racs_log_append(racs_log_instance(), RACS_LOG_ERROR, __VA_ARGS__)
+#define racs_log_fatal(...)  racs_log_append(racs_log_instance(), RACS_LOG_FATAL, __VA_ARGS__)
 
 racs_log *racs_log_instance();
 

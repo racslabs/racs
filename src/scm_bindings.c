@@ -66,7 +66,7 @@ SCM racs_scm_streamcreate(SCM stream_id, SCM sample_rate, SCM channels) {
 
 SCM racs_scm_streaminfo(SCM stream_id, SCM attr) {
     char *cmd = NULL;
-    asprintf(&cmd, "INFO '%s' '%s'",
+    asprintf(&cmd, "RACS_LOG_INFO '%s' '%s'",
              scm_to_locale_string(stream_id),
              scm_to_locale_string(attr));
 

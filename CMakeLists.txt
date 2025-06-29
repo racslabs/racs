@@ -100,6 +100,7 @@ add_executable(racs
         src/config.h
         src/log.h
         src/log.c
+        src/version.h
 )
 
 target_link_libraries(racs msgpack-c

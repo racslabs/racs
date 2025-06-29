@@ -22,7 +22,12 @@ int main(int argc, char *argv[]) {
 
     racs_db *db = racs_db_instance();
     racs_db_open(db, argv[2]);
-    racs_log *log = racs_log_instance();
+    racs_log_instance();
+
+    char ver[55];
+    racs_version(ver);
+
+    racs_log_info(ver);
 
     /*************************************************************/
     /* Create an AF_INET6 stream socket to receive incoming      */
@@ -30,7 +35,7 @@ int main(int argc, char *argv[]) {
     /*************************************************************/
     listen_sd = socket(AF_INET6, SOCK_STREAM, 0);
     if (listen_sd < 0) {
-        racs_log_append(log, ERROR, "socket() failed");
+        racs_log_fatal("socket() failed");
         exit(-1);
     }
 
@@ -40,7 +45,7 @@ int main(int argc, char *argv[]) {
     rc = setsockopt(listen_sd, SOL_SOCKET, SO_REUSEADDR,
                     (char *) &on, sizeof(on));
     if (rc < 0) {
-        perror("setsockopt() failed");
+        racs_log_fatal("setsockopt() failed");
         close(listen_sd);
         exit(-1);
     }
@@ -51,7 +56,7 @@ int main(int argc, char *argv[]) {
     int off = 0;
     rc = setsockopt(listen_sd, IPPROTO_IPV6, IPV6_V6ONLY, &off, sizeof(off));
     if (rc < 0) {
-        perror("setsockopt(IPV6_V6ONLY) failed");
+        racs_log_fatal("setsockopt(IPV6_V6ONLY) failed");
         close(listen_sd);
         exit(-1);
     }
@@ -63,7 +68,7 @@ int main(int argc, char *argv[]) {
     /*************************************************************/
     rc = ioctl(listen_sd, FIONBIO, (char *) &on);
     if (rc < 0) {
-        perror("ioctl() failed");
+        racs_log_fatal("ioctl() failed");
         close(listen_sd);
         exit(-1);
     }
@@ -78,7 +83,7 @@ int main(int argc, char *argv[]) {
 
     rc = bind(listen_sd, (struct sockaddr *) &addr, sizeof(addr));
     if (rc < 0) {
-        perror("bind() failed");
+        racs_log_fatal("bind() failed");
         close(listen_sd);
         exit(-1);
     }
@@ -88,7 +93,7 @@ int main(int argc, char *argv[]) {
     /*************************************************************/
     rc = listen(listen_sd, 32);
     if (rc < 0) {
-        perror("listen() failed");
+        racs_log_fatal("listen() failed");
         close(listen_sd);
         exit(-1);
     }
@@ -114,18 +119,21 @@ int main(int argc, char *argv[]) {
     /* Loop waiting for incoming connects or for incoming data   */
     /* on any of the connected sockets.                          */
     /*************************************************************/
+
+    racs_log_info("Listening on port %d", db->ctx.config->port);
+    racs_log_info("Log file: %s/racs.log", racs_log_dir);
+
     do {
         /***********************************************************/
         /* Call poll() and wait 3 minutes for it to complete.      */
         /***********************************************************/
-        racs_log_info("Waiting on poll()...");
         rc = poll(fds, nfds, timeout);
 
         /***********************************************************/
         /* Check to see if the poll call failed.                   */
         /***********************************************************/
         if (rc < 0) {
-            perror("  poll() failed");
+            racs_log_error("  poll() failed");
             break;
         }
 
@@ -133,7 +141,7 @@ int main(int argc, char *argv[]) {
         /* Check to see if the 3 minute time out expired.          */
         /***********************************************************/
         if (rc == 0) {
-            printf("  poll() timed out.  End program.\n");
+            racs_log_error("  poll() timed out.  End program.");
             break;
         }
 
@@ -169,7 +177,7 @@ int main(int argc, char *argv[]) {
             /* log and end the server.                               */
             /*********************************************************/
             if (fds[i].revents != POLLIN) {
-                printf("  Error! revents = %d\n", fds[i].revents);
+                racs_log_fatal("  Error! revents = %d", fds[i].revents);
                 end_server = TRUE;
                 break;
             }
@@ -178,7 +186,6 @@ int main(int argc, char *argv[]) {
                 /*******************************************************/
                 /* Listening descriptor is readable.                   */
                 /*******************************************************/
-                printf("  Listening socket is readable\n");
 
                 /*******************************************************/
                 /* Accept all incoming connections that are            */
@@ -196,7 +203,7 @@ int main(int argc, char *argv[]) {
                     new_sd = accept(listen_sd, NULL, NULL);
                     if (new_sd < 0) {
                         if (errno != EWOULDBLOCK) {
-                            perror("  accept() failed");
+                            racs_log_fatal("  accept() failed");
                             end_server = TRUE;
                         }
                         break;
@@ -206,7 +213,6 @@ int main(int argc, char *argv[]) {
                     /* Add the new incoming connection to the            */
                     /* pollfd structure                                  */
                     /*****************************************************/
-                    printf("  New incoming connection - %d\n", new_sd);
                     fds[nfds].fd = new_sd;
                     fds[nfds].events = POLLIN;
                     nfds++;
@@ -224,7 +230,6 @@ int main(int argc, char *argv[]) {
                 /*********************************************************/
 
             else {
-                printf("  Descriptor %d is readable\n", fds[i].fd);
                 close_conn = FALSE;
                 /*******************************************************/
                 /* Receive all incoming data on this socket            */
@@ -244,7 +249,7 @@ int main(int argc, char *argv[]) {
                     rc = recv(fds[i].fd, buffer, sizeof(buffer), 0);
                     if (rc < 0) {
                         if (errno != EWOULDBLOCK) {
-                            perror("  recv() failed");
+                            racs_log_fatal("  recv() failed");
                             close_conn = TRUE;
                         }
                         break;
@@ -257,7 +262,7 @@ int main(int argc, char *argv[]) {
                     /* closed by the client                              */
                     /*****************************************************/
                     if (rc == 0) {
-                        printf("  Connection closed\n");
+                        racs_log_info("  Connection closed");
                         close_conn = TRUE;
                         break;
                     }
@@ -266,7 +271,6 @@ int main(int argc, char *argv[]) {
                     /* Data was received                                 */
                     /*****************************************************/
                     len = rc;
-                    printf("  %d bytes received\n", len);
 
                     racs_memstream_write(&in_stream, buffer, len);
 
@@ -290,7 +294,7 @@ int main(int argc, char *argv[]) {
 
                 rc = send(fds[i].fd, res.data, res.size, 0);
                 if (rc < 0) {
-                    perror("  send() failed");
+                    racs_log_fatal("  send() failed");
                     close_conn = TRUE;
                     break;
                 }
