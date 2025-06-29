@@ -19,9 +19,10 @@ void racs_context_init(racs_context *ctx, const char *path) {
 }
 
 void racs_context_destroy(racs_context *ctx) {
-    racs_config_destroy(ctx->config);
+    racs_multi_memtable_destroy(ctx->mmt);
+    racs_streamkv_destroy(ctx->kv);
     racs_cache_destroy(ctx->scache);
     racs_cache_destroy(ctx->mcache);
-    racs_streamkv_destroy(ctx->kv);
-    racs_multi_memtable_destroy(ctx->mmt);
+    racs_log_destroy(_log);
+    racs_config_destroy(ctx->config);
 }

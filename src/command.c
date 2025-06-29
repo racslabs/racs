@@ -206,7 +206,7 @@ racs_create_command(extract) {
 
 racs_create_command(shutdown) {
     racs_context_destroy(ctx);
-    exit(1);
+    exit(0);
 }
 
 racs_create_command(format) {
