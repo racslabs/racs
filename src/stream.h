@@ -6,6 +6,7 @@
 #include "memtable.h"
 #include "frame.h"
 #include "result.h"
+#include "log.h"
 
 typedef enum {
     RACS_STREAM_OK,

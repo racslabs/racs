@@ -1,5 +1,4 @@
 #include "time.h"
-#include "types.h"
 
 racs_time racs_time_now() {
     struct timespec ts;
@@ -33,7 +32,7 @@ racs_time racs_time_from_rfc3339(const char *buf) {
     if (sscanf(buf, "%d-%d-%dT%d:%d:%d.%dZ",
                &info.tm_year, &info.tm_mon, &info.tm_mday,
                &info.tm_hour, &info.tm_min, &info.tm_sec, &mill) < 3) {
-        fprintf(stderr, "Invalid RFC 3339 format\n");
+        racs_log_error("Invalid RFC 3339 format");
         return -1;
     }
 
@@ -53,12 +52,12 @@ racs_time racs_time_from_path(const char *path) {
     if (sscanf(match, ".data/seg/%4d/%2d/%2d/%2d/%2d/%2d/%3ld",
                &info.tm_year, &info.tm_mon, &info.tm_mday,
                &info.tm_hour, &info.tm_min, &info.tm_sec, &mill) != 7) {
-        fprintf(stderr, "Invalid path format\n");
+        racs_log_error("Invalid path format");
         return -1;
     }
 
     if (mill < 0 || mill > 999) {
-        fprintf(stderr, "Invalid mill value: %ld\n", mill);
+        racs_log_error("Invalid mill value: %ld", mill);
         return -1;
     }
 

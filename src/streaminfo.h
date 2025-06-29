@@ -10,6 +10,7 @@
 #include "bytes.h"
 #include "cache.h"
 #include "filelist.h"
+#include "log.h"
 
 typedef struct {
     racs_uint16 channels;

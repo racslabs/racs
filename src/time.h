@@ -9,6 +9,7 @@
 #include "export.h"
 #include "filelist.h"
 #include "types.h"
+#include "log.h"
 
 #ifdef __cplusplus
 extern "C" {

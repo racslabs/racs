@@ -76,7 +76,7 @@ int racs_streamappend(racs_cache *mcache, racs_multi_memtable *mmt, racs_streamk
 int racs_streamopen(racs_streamkv *kv, racs_uint64 stream_id) {
     char *mac_addr = racs_streamkv_get(kv, stream_id);
     if (mac_addr) {
-        perror("Stream is already open");
+        racs_log_error("Stream is already open");
         return 0;
     }
 
@@ -101,7 +101,7 @@ int racs_streamclose(racs_streamkv *kv, racs_uint64 stream_id) {
 racs_streamkv *racs_streamkv_create(int capacity) {
     racs_streamkv *kv = malloc(sizeof(racs_streamkv));
     if (!kv) {
-        perror("Failed to allocate racs_streamkv");
+        racs_log_error("Failed to allocate racs_streamkv");
         return NULL;
     }
 
@@ -127,7 +127,7 @@ void racs_streamkv_put(racs_streamkv *kv, racs_uint64 stream_id, char mac_addr[]
 
     racs_uint64 *key = malloc(2 * sizeof(racs_uint64));
     if (!key) {
-        perror("Failed to allocate key.");
+        racs_log_error("Failed to allocate key.");
         return;
     }
 
@@ -136,7 +136,7 @@ void racs_streamkv_put(racs_streamkv *kv, racs_uint64 stream_id, char mac_addr[]
 
     char *_mac_addr = malloc(6);
     if (!_mac_addr) {
-        perror("Failed to allocate mac_addr buffer");
+        racs_log_error("Failed to allocate mac_addr buffer");
         return;
     }
 

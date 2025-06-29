@@ -258,7 +258,7 @@ void racs_handle_unknown_command(racs_command *cmd, msgpack_sbuffer *out_buf) {
 racs_command *racs_command_create(const char *name, racs_command_op op, size_t size) {
     racs_command *cmd = malloc(sizeof(racs_command));
     if (!cmd) {
-        perror("Failed to allocate racs_command");
+        racs_log_error("Failed to allocate racs_command");
         return NULL;
     }
 
@@ -271,7 +271,7 @@ racs_command *racs_command_create(const char *name, racs_command_op op, size_t s
 
     cmd->args = malloc(cmd->max_num_args * sizeof(racs_command_arg *));
     if (!cmd->args) {
-        perror("Failed to allocate args to racs_command");
+        racs_log_error("Failed to allocate args to racs_command");
         free(cmd);
         return NULL;
     }
@@ -291,7 +291,7 @@ void racs_command_destroy(racs_command *cmd) {
 racs_command_arg *racs_command_arg_create() {
     racs_command_arg *arg = malloc(sizeof(racs_command_arg));
     if (!arg) {
-        perror("Error allocating racs_command_arg");
+        racs_log_error("Error allocating racs_command_arg");
         return NULL;
     }
 
@@ -341,7 +341,7 @@ void racs_command_add_arg(racs_command *cmd, racs_command_arg *arg) {
 
         racs_command_arg **args = realloc(cmd->args, cmd->max_num_args * sizeof(racs_command_arg *));
         if (!args) {
-            perror("Failed to reallocate args to racs_command");
+            racs_log_error("Failed to reallocate args to racs_command");
             return;
         }
 
@@ -358,7 +358,7 @@ void racs_exec_plan_init(racs_exec_plan *plan) {
 
     plan->cmd = malloc(plan->max_num_cmd * sizeof(racs_command *));
     if (!plan->cmd) {
-        perror("Failed to allocate commands to racs_exec_plan");
+        racs_log_error("Failed to allocate commands to racs_exec_plan");
         return;
     }
 }
@@ -378,7 +378,7 @@ void racs_exec_plan_add_command(racs_exec_plan *plan, racs_command *cmd) {
 
         racs_command **_cmd = realloc(plan->cmd, plan->max_num_cmd * sizeof(racs_command *));
         if (!_cmd) {
-            perror("Error reallocating commands to racs_exec_plan");
+            racs_log_error("Error reallocating commands to racs_exec_plan");
             return;
         }
 

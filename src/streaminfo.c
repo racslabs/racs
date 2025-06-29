@@ -3,7 +3,7 @@
 racs_cache *racs_mcache_create(size_t capacity) {
     racs_cache *cache = malloc(sizeof(racs_cache));
     if (!cache) {
-        perror("Failed to allocate racs_mcache");
+        racs_log_error("Failed to allocate racs_mcache");
         return NULL;
     }
 
@@ -37,7 +37,7 @@ racs_uint64 racs_streaminfo_attr(racs_cache *mcache, racs_uint64 stream_id, cons
 size_t racs_streaminfo_filesize(const char *path) {
     struct stat s;
     if (stat(path, &s) == -1) {
-        perror("Failed to get racs_streaminfo file size.");
+        racs_log_error("Failed to get racs_streaminfo file size.");
         return 0;
     }
 
@@ -63,7 +63,7 @@ int racs_streaminfo_get(racs_cache *mcache, racs_streaminfo *streaminfo, racs_ui
 
         int fd = open(path, O_RDONLY);
         if (fd == -1) {
-            perror("Failed to open racs_streaminfo file");
+            racs_log_error("Failed to open racs_streaminfo file");
             free(path);
             return 0;
         }
@@ -102,7 +102,7 @@ int racs_streaminfo_get(racs_cache *mcache, racs_streaminfo *streaminfo, racs_ui
 int racs_streaminfo_put(racs_cache *mcache, racs_streaminfo *streaminfo, racs_uint64 stream_id) {
     racs_uint64 *key = malloc(2 * sizeof(racs_uint64));
     if (!key) {
-        perror("Failed to allocate key.");
+        racs_log_error("Failed to allocate key.");
         return 0;
     }
 
@@ -111,7 +111,7 @@ int racs_streaminfo_put(racs_cache *mcache, racs_streaminfo *streaminfo, racs_ui
 
     int rc = racs_streaminfo_get(mcache, streaminfo, stream_id);
     if (rc == -1 || rc == 1) {
-        perror("Stream already exist.");
+        racs_log_error("Stream already exist.");
         free(key);
         return 0;
     }
@@ -197,13 +197,13 @@ void racs_streaminfo_flush(racs_uint8 *data, racs_uint32 len, racs_uint64 stream
 
     int fd = open(path, O_WRONLY | O_TRUNC | O_CREAT, 0644);
     if (fd == -1) {
-        perror("Failed to open racs_streaminfo file");
+        racs_log_error("Failed to open racs_streaminfo file");
         free(path);
         return;
     }
 
     if (flock(fd, LOCK_EX) == -1) {
-        perror("Failed to lock racs_streaminfo file");
+        racs_log_error("Failed to lock racs_streaminfo file");
         close(fd);
         free(path);
         return;
@@ -274,7 +274,7 @@ void racs_streams_add(racs_streams *streams, const char *stream) {
 
         char **_streams = realloc(streams->streams, streams->max_streams * sizeof(char *));
         if (!_streams) {
-            perror("Error reallocating file paths to racs_filelist");
+            racs_log_error("Error reallocating file paths to racs_filelist");
             return;
         }
 
@@ -290,7 +290,7 @@ void racs_streams_init(racs_streams *streams) {
     streams->max_streams = 2;
     streams->streams = malloc(2 * sizeof(char *));
     if (!streams->streams) {
-        perror("Failed to allocate racs_streams");
+        racs_log_error("Failed to allocate racs_streams");
         return;
     }
 }
