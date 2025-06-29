@@ -10,7 +10,7 @@ racs_kvstore *racs_kvstore_create(size_t capacity, racs_kvstore_hash_callback ha
                                   racs_kvstore_destroy_callback destroy) {
     racs_kvstore *kv = malloc(sizeof(racs_kvstore));
     if (!kv) {
-        perror("Error allocating racs_kvstore");
+        racs_log_fatal("Error allocating racs_kvstore");
         return NULL;
     }
 
@@ -21,7 +21,7 @@ racs_kvstore *racs_kvstore_create(size_t capacity, racs_kvstore_hash_callback ha
 
     kv->bins = malloc(capacity * sizeof(racs_kvstore_bin));
     if (!kv->bins) {
-        perror("Failed to allocate racs_kvstore bins");
+        racs_log_fatal("Failed to allocate racs_kvstore bins");
         free(kv);
         return NULL;
     }

@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "types.h"
+#include "log.h"
 
 typedef racs_uint64 (*racs_kvstore_hash_callback)(void *key);
 

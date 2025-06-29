@@ -4,6 +4,7 @@
 
 #include "kvstore.h"
 #include "murmur3.h"
+#include "log.h"
 #include "types.h"
 #include <pthread.h>
 

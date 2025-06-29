@@ -4,7 +4,7 @@ racs_db *racs_db_instance() {
     if (!_db) {
         _db = malloc(sizeof(racs_db));
         if (!_db) {
-            perror("RACS_LOG_FATAL: Error creating db instance. shutting down");
+            perror("Error creating db instance. shutting down");
             exit(EXIT_FAILURE);
         }
     }

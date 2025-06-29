@@ -3,7 +3,7 @@
 racs_cache *racs_scache_create(size_t capacity) {
     racs_cache *cache = malloc(sizeof(racs_cache));
     if (!cache) {
-        perror("Failed to allocate racs_cache");
+        racs_log_fatal("Failed to allocate racs_cache");
         return NULL;
     }
 
@@ -90,7 +90,7 @@ void racs_cache_evict(racs_cache *cache) {
 racs_cache_node *racs_cache_node_create(const racs_uint64 *key, racs_uint8 *value) {
     racs_cache_node *node = malloc(sizeof(racs_cache_node));
     if (!node) {
-        perror("Failed to allocate racs_cache_node");
+        racs_log_fatal("Failed to allocate racs_cache_node");
         return NULL;
     }
 
