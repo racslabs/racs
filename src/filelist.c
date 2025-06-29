@@ -7,7 +7,7 @@ static void list_files_recursive(racs_filelist *list, const char *path);
 racs_filelist *racs_filelist_create() {
     racs_filelist *list = malloc(sizeof(racs_filelist));
     if (!list) {
-        perror("Failed to allocate racs_filelist");
+        racs_log_error("Failed to allocate racs_filelist");
         racs_filelist_destroy(list);
         return NULL;
     }
@@ -17,7 +17,7 @@ racs_filelist *racs_filelist_create() {
 
     list->files = malloc(2 * sizeof(char *));
     if (!list->files) {
-        perror("Failed to allocate file paths to racs_filelist");
+        racs_log_error("Failed to allocate file paths to racs_filelist");
         racs_filelist_destroy(list);
         return NULL;
     }
@@ -31,7 +31,7 @@ void racs_filelist_add(racs_filelist *list, const char *file_path) {
 
         char **files = realloc(list->files, list->max_num_files * sizeof(char *));
         if (!files) {
-            perror("Error reallocating file paths to racs_filelist");
+            racs_log_error("Error reallocating file paths to racs_filelist");
             return;
         }
 
@@ -45,7 +45,7 @@ void racs_filelist_add(racs_filelist *list, const char *file_path) {
 void list_files_recursive(racs_filelist *list, const char *path) {
     DIR *dir = opendir(path);
     if (!dir) {
-        perror("Failed to open directory");
+        racs_log_error("Failed to open directory");
         return;
     }
 
@@ -88,7 +88,7 @@ racs_filelist *get_sorted_filelist(const char *path) {
 
 char *racs_resolve_shared_path(const char *path1, const char *path2) {
     if (!path1 || !path2) {
-        perror("Paths cannot be null");
+        racs_log_error("Paths cannot be null");
         return NULL;
     }
 

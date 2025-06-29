@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "types.h"
+#include "log.h"
 
 typedef struct {
     racs_uint8 *data;

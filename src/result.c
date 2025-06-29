@@ -4,7 +4,7 @@ void racs_result_init(racs_result *result, size_t size) {
     result->size = size;
     result->data = malloc(size);
     if (!result->data) {
-        perror("Failed to allocate data to racs_result");
+        racs_log_error("Failed to allocate data to racs_result");
     }
 }
 

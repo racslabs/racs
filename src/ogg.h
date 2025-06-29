@@ -4,6 +4,7 @@
 
 #include <opus/opusenc.h>
 #include "memory.h"
+#include "log.h"
 
 #define RACS_OGG_FRAMESIZE_20MS 0.02
 

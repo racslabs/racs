@@ -20,8 +20,6 @@ static racs_token parser_token_error(racs_parser *parser);
 
 static racs_token parser_lex_token_eof();
 
-static void print_n_chars(const char *str, size_t n);
-
 void racs_parser_init(racs_parser *parser, const char *source) {
     parser->ptr = source;
     parser->curr = 0;
@@ -77,44 +75,6 @@ racs_token racs_parser_next_token(racs_parser *parser) {
     }
 
     return parser_token_error(parser);
-}
-
-void racs_token_print(racs_token *token) {
-    switch (token->type) {
-        case RACS_TOKEN_TYPE_ID:
-            printf("[ID   ] ");
-            print_n_chars(token->as.id.ptr, token->as.id.size);
-            break;
-        case RACS_TOKEN_TYPE_STR:
-            printf("[STR  ] ");
-            print_n_chars(token->as.str.ptr, token->as.str.size);
-            break;
-        case RACS_TOKEN_TYPE_PIPE:
-            printf("[PIPE ] |>\n");
-            break;
-        case RACS_TOKEN_TYPE_INT:
-            printf("[INT  ] %lld\n", token->as.i64);
-            break;
-        case RACS_TOKEN_TYPE_FLOAT:
-            printf("[FLOAT] %f\n", token->as.f64);
-            break;
-        case RACS_TOKEN_TYPE_EOF:
-            printf("[EOF  ]\n");
-            break;
-        case RACS_TOKEN_TYPE_TIME:
-            printf("[TIME ] %lld\n", token->as.time);
-            break;
-        case RACS_TOKEN_TYPE_ERROR:
-            printf("[ERR  ] %s\n", token->as.err.msg);
-            break;
-    }
-}
-
-void print_n_chars(const char *str, size_t n) {
-    for (int i = 0; i < n && str[i] != '\0'; i++) {
-        printf("%c", str[i]);
-    }
-    printf("\n");
 }
 
 int match_token(const char *ptr, const char *pattern, regmatch_t *match) {
@@ -228,7 +188,7 @@ racs_token parser_lex_token_eof() {
 
 racs_token parser_token_error(racs_parser *parser) {
     sprintf(parser->error, "Invalid token at %lld", parser->curr);
-    perror(parser->error);
+    racs_log_error(parser->error);
 
     racs_token token;
     token.type = RACS_TOKEN_TYPE_ERROR;

@@ -11,7 +11,7 @@ void racs_ogg_set_sample_rate(racs_ogg *ogg, racs_uint32 sample_rate) {
 int racs_ogg_write_callback(void *user_data, const racs_uint8 *ptr, racs_int32 len) {
     racs_ogg *ogg = (racs_ogg *) user_data;
     if (!ogg) {
-        perror("racs_ogg cannot be null");
+        racs_log_error("racs_ogg cannot be null");
         return 1;
     }
 
@@ -39,14 +39,14 @@ void racs_ogg_init(racs_ogg *ogg, void *out) {
 
     ogg->comments = ope_comments_create();
     if (!ogg->comments) {
-        perror("Failed to allocate OggOpusComments");
+        racs_log_error("Failed to allocate OggOpusComments");
         return;
     }
 
     ogg->enc = ope_encoder_create_callbacks(&callbacks, ogg, ogg->comments, (int) ogg->format.sample_rate,
                                             ogg->format.channels, 0, &ogg->err);
     if (!ogg->enc) {
-        perror("Failed to create OggOpusEnc");
+        racs_log_error("Failed to create OggOpusEnc");
         return;
     }
 }
@@ -59,7 +59,7 @@ size_t racs_ogg_write(racs_ogg *ogg, const void *in, void *out, size_t samples) 
 
     racs_int16 *pcm = malloc(sizeof(racs_int16) * frame_size);
     if (!pcm) {
-        perror("Failed to allocate pcm frame");
+        racs_log_error("Failed to allocate pcm frame");
         return 0;
     }
 
@@ -68,7 +68,7 @@ size_t racs_ogg_write(racs_ogg *ogg, const void *in, void *out, size_t samples) 
 
         ogg->err = ope_encoder_write(ogg->enc, pcm, samples_per_channel);
         if (ogg->err != OPE_OK) {
-            fprintf(stderr, "Filed to encode ogg: %s\n", ope_strerror(ogg->err));
+            racs_log_error("Failed to encode ogg: %s", ope_strerror(ogg->err));
             racs_ogg_destroy(ogg);
             free(pcm);
             break;

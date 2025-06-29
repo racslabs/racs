@@ -10,6 +10,7 @@
 #include <regex.h>
 #include "bytes.h"
 #include "time.h"
+#include "log.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -68,8 +69,6 @@ typedef struct {
 } racs_parser;
 
 void racs_parser_init(racs_parser *parser, const char *source);
-
-void racs_token_print(racs_token *token);
 
 racs_token racs_parser_next_token(racs_parser *parser);
 

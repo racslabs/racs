@@ -3,7 +3,7 @@
 racs_multi_memtable *racs_multi_memtable_create(int num_tables, int capacity) {
     racs_multi_memtable *mmt = malloc(sizeof(racs_multi_memtable));
     if (!mmt) {
-        perror("Failed to allocate mmt");
+        racs_log_fatal("Failed to allocate racs_multi_memtable");
         return NULL;
     }
 
@@ -95,20 +95,20 @@ void racs_multi_memtable_flush(racs_multi_memtable *mmt) {
 racs_sstable *racs_sstable_read(const char *filename) {
     int fd = open(filename, O_RDONLY);
     if (fd == -1) {
-        perror("Failed to open racs_sstable");
+        racs_log_error("Failed to open racs_sstable");
         return NULL;
     }
 
     off_t file_size = lseek(fd, 0, SEEK_END);
     if (file_size == -1) {
-        perror("Failed to determine file entries");
+        racs_log_error("Failed to read file entries");
         close(fd);
         return NULL;
     }
 
     racs_uint16 entry_count;
     if (pread(fd, &entry_count, sizeof(racs_uint16), file_size - RACS_TRAILER_SIZE) != sizeof(racs_uint16)) {
-        perror("Failed to read entry num_files");
+        racs_log_error("Failed to read entry_count");
         close(fd);
         return NULL;
     }
@@ -125,14 +125,14 @@ racs_sstable *racs_sstable_read(const char *filename) {
     sstable->data = malloc(file_size);
 
     if (!sstable->data) {
-        perror("Failed to allocate data");
+        racs_log_error("Failed to allocate racs_sstable data");
         free(sstable);
         close(fd);
         return NULL;
     }
 
     if (pread(fd, sstable->data, file_size, 0) != file_size) {
-        perror("Failed to read file contents");
+        racs_log_error("Failed to read racs_sstable data");
         free(sstable->data);
         free(sstable);
         close(fd);
@@ -168,7 +168,7 @@ void racs_sstable_destroy_except_data(racs_sstable *sst) {
 racs_memtable_entry *racs_memtable_entry_read(racs_uint8 *buf, size_t offset) {
     racs_memtable_entry *entry = malloc(sizeof(racs_memtable_entry));
     if (!entry) {
-        perror("Failed to allocate racs_memtable_entry");
+        racs_log_error("Failed to allocate racs_memtable_entry");
         return NULL;
     }
 
@@ -193,7 +193,7 @@ racs_memtable_entry *racs_memtable_entry_read(racs_uint8 *buf, size_t offset) {
 racs_memtable *racs_memtable_create(int capacity) {
     racs_memtable *mt = malloc(sizeof(racs_memtable));
     if (!mt) {
-        perror("Failed to allocate mt");
+        racs_log_error("Failed to allocate racs_memtable");
         return NULL;
     }
 
@@ -202,7 +202,7 @@ racs_memtable *racs_memtable_create(int capacity) {
 
     mt->entries = malloc(sizeof(racs_memtable_entry) * mt->capacity);
     if (!mt->entries) {
-        perror("Failed to allocate racs_memtable_entry to mt");
+        racs_log_error("Failed to allocate racs_memtable_entry to racs_memtable");
         free(mt);
         return NULL;
     }
@@ -211,7 +211,7 @@ racs_memtable *racs_memtable_create(int capacity) {
 
     for (int i = 0; i < mt->capacity; ++i) {
         if (posix_memalign((void **) &mt->entries[i].block, RACS__ALIGN, RACS_MAX_BLOCK_SIZE) != 0) {
-            perror("Failed to allocate block to mt");
+            racs_log_error("Failed to allocate block to racs_memtable");
             racs_memtable_destroy(mt);
             return NULL;
         }
@@ -267,7 +267,7 @@ void racs_memtable_destroy(racs_memtable *mt) {
 void racs_memtable_write(racs_memtable *mt) {
     racs_sstable *sst = racs_sstable_create(mt->num_entries);
     if (!sst) {
-        perror("sst cannot be null");
+        racs_log_error("racs_sstable cannot be null");
         return;
     }
 
@@ -313,7 +313,7 @@ void racs_sstable_path(racs_int64 timestamp, char **path) {
 racs_uint8 *racs_allocate_buffer(size_t size, racs_sstable *sst) {
     racs_uint8 *buf;
     if (posix_memalign((void *) &buf, RACS_BLOCK_ALIGN, size) != 0) {
-        perror("Buffer allocation failed");
+        racs_log_error("Buffer allocation failed");
         return NULL;
     }
     return buf;
@@ -322,7 +322,7 @@ racs_uint8 *racs_allocate_buffer(size_t size, racs_sstable *sst) {
 int racs_sstable_open(const char *path, racs_sstable *sst) {
     sst->fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (sst->fd == -1) {
-        perror("Failed to open sst");
+        racs_log_error("Failed to open racs_sstable");
         return -1;
     }
     return 0;
@@ -336,13 +336,13 @@ void racs_sstable_write(racs_uint8 *buf, racs_sstable *sst, size_t offset) {
 racs_sstable *racs_sstable_create(int num_entries) {
     racs_sstable *sst = malloc(sizeof(racs_sstable));
     if (!sst) {
-        perror("Failed to allocate sst");
+        racs_log_error("Failed to allocate racs_sstable");
         return NULL;
     }
 
     sst->index_entries = malloc(sizeof(racs_sstable_index_entry) * num_entries);
     if (!sst->index_entries) {
-        perror("Failed to allocate racs_sstable_index_entry to sst");
+        racs_log_error("Failed to allocate racs_sstable_index_entry to racs_sstable");
         free(sst);
         return NULL;
     }

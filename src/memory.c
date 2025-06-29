@@ -17,7 +17,7 @@ int racs_memstream_write(racs_memstream *stream, const void *data, size_t size) 
 
         racs_uint8 *_data = realloc(stream->data, _size);
         if (!_data) {
-            perror("Failed to re-allocate racs_memstream data");
+            racs_log_error("Failed to re-allocate racs_memstream data");
             return RACS_MEMSTREAM_ABORT;
         }
 
