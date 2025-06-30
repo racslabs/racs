@@ -6,7 +6,8 @@ const char *const racs_stream_status_string[] = {
         "Stream is closed or currently in use.",
         "Invalid sample rate.",
         "Invalid channels.",
-        "Invalid bit depth."
+        "Invalid bit depth.",
+        "Stream not found."
 };
 
 int racs_streamcreate(racs_cache *mcache, const char* stream_id, racs_uint32 sample_rate, racs_uint16 channels) {
@@ -39,17 +40,16 @@ int racs_streamappend(racs_cache *mcache, racs_multi_memtable *mmt, racs_streamk
         return RACS_STREAM_MALFORMED;
 
     char *mac_addr = racs_streamkv_get(kv, frame.header.stream_id);
-    if (!mac_addr || !racs_mac_addr_cmp(frame.header.mac_addr, mac_addr))
+    if (mac_addr && !racs_mac_addr_cmp(frame.header.mac_addr, mac_addr))
         return RACS_STREAM_CONFLICT;
 
     racs_streamkv_put(kv, frame.header.stream_id, frame.header.mac_addr);
 
     racs_streaminfo streaminfo;
     memset(&streaminfo, 0, sizeof(racs_streaminfo));
-
     int rc = racs_streaminfo_get(mcache, &streaminfo, frame.header.stream_id);
-    if (rc == -1 || rc == 1)
-        racs_streaminfo_put(mcache, &streaminfo, frame.header.stream_id);
+
+    if (rc == 0) return RACS_STREAM_NOT_FOUND;
 
     if (frame.header.sample_rate != streaminfo.sample_rate)
         return RACS_STREAM_INVALID_SAMPLE_RATE;
@@ -180,8 +180,8 @@ void racs_streamkv_destroy_entry(void *key, void *value) {
 }
 
 int racs_mac_addr_cmp(const char *src, const char *dest) {
-    char _mac_addr[6] = {0};
-    if (memcmp(dest, _mac_addr, 6) == 0) return 1;
+//    char _mac_addr[6] = {0};
+//    if (memcmp(dest, _mac_addr, 6) == 0) return 1;
     if (memcmp(src, dest, 6) == 0) return 1;
     return 0;
 }

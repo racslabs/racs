@@ -175,7 +175,7 @@ racs_time racs_streaminfo_offset(racs_streaminfo *streaminfo) {
 
 racs_uint64 racs_hash(const char *stream_id) {
     racs_uint64 hash[2];
-    murmur3_x64_128((void *) stream_id, strlen(stream_id), 0, hash);
+    murmur3_x64_128((racs_uint8*)stream_id, strlen(stream_id), 0, hash);
     return hash[0];
 }
 
