@@ -30,9 +30,8 @@ void racs_cache_put(racs_cache *cache, const racs_uint64 *key, racs_uint8 *value
         return;
     }
 
-    if (cache->size >= cache->capacity) {
+    if (cache->size >= cache->capacity)
         racs_cache_evict(cache);
-    }
 
     racs_cache_node *node = racs_cache_node_create(key, value);
 
@@ -82,7 +81,7 @@ void racs_cache_evict(racs_cache *cache) {
     racs_kvstore_delete(cache->kv, tail->entry.key);
 
     cache->tail = prev;
-    cache->tail->next = NULL;
+    if (cache->tail) cache->tail->next = NULL;
 
     --cache->size;
 }
@@ -143,10 +142,11 @@ racs_uint64 racs_cache_hash(void *key) {
 int racs_cache_cmp(void *a, void *b) {
     racs_uint64 *x = (racs_uint64 *) a;
     racs_uint64 *y = (racs_uint64 *) b;
-    return x[0] != y[0] || x[1] != y[1];
+    return x[0] == y[0] && x[1] == y[1];
 }
 
 void racs_scache_destroy(void *key, void *value) {
+    free(key);
     racs_cache_node *node = (racs_cache_node *) value;
     free(node->entry.value);
     free(node);

@@ -111,7 +111,7 @@ int racs_streaminfo_put(racs_cache *mcache, racs_streaminfo *streaminfo, racs_ui
 
     int rc = racs_streaminfo_get(mcache, streaminfo, stream_id);
     if (rc == -1 || rc == 1) {
-        racs_log_error("Stream already exist.");
+        racs_log_info("Stream already exist.");
         free(key);
         return 0;
     }

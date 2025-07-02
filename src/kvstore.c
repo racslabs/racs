@@ -63,9 +63,8 @@ void * racs_kvstore_get(racs_kvstore *kv, void *key) {
     racs_kvstore_entry *curr = bin->node;
 
     while (curr) {
-        if (kv->ops.cmp(curr->key, key)) {
+        if (kv->ops.cmp(curr->key, key))
             return curr->value;
-        }
 
         curr = (racs_kvstore_entry *) curr->next;
     }

@@ -59,7 +59,11 @@ racs_extract_from_cache_or_sstable(racs_cache *cache, racs_uint64 stream_id, rac
 
         data = sstable->data;
         racs_sstable_destroy_except_data(sstable);
-        racs_cache_put(cache, key, data);
+
+        racs_uint64 *_key = malloc(sizeof(racs_uint64) * 2);
+        memcpy(_key, key, sizeof(racs_uint64) * 2);
+
+        racs_cache_put(cache, _key, data);
     }
 
     return data;

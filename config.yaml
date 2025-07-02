@@ -5,4 +5,4 @@ memtable:
   tables: 2
   entries: 2
 cache:
-  entries: 2
+  entries: 3

@@ -40,16 +40,17 @@ int racs_streamappend(racs_cache *mcache, racs_multi_memtable *mmt, racs_streamk
         return RACS_STREAM_MALFORMED;
 
     char *mac_addr = racs_streamkv_get(kv, frame.header.stream_id);
-    if (mac_addr && !racs_mac_addr_cmp(frame.header.mac_addr, mac_addr))
-        return RACS_STREAM_CONFLICT;
+    if (!mac_addr) return RACS_STREAM_CONFLICT;
 
-    racs_streamkv_put(kv, frame.header.stream_id, frame.header.mac_addr);
+    if (!racs_mac_addr_cmp(frame.header.mac_addr, mac_addr))
+        return RACS_STREAM_CONFLICT;
 
     racs_streaminfo streaminfo;
     memset(&streaminfo, 0, sizeof(racs_streaminfo));
     int rc = racs_streaminfo_get(mcache, &streaminfo, frame.header.stream_id);
 
     if (rc == 0) return RACS_STREAM_NOT_FOUND;
+    racs_streamkv_put(kv, frame.header.stream_id, frame.header.mac_addr);
 
     if (frame.header.sample_rate != streaminfo.sample_rate)
         return RACS_STREAM_INVALID_SAMPLE_RATE;
@@ -90,7 +91,7 @@ int racs_streamopen(racs_streamkv *kv, racs_uint64 stream_id) {
 int racs_streamclose(racs_streamkv *kv, racs_uint64 stream_id) {
     char *mac_addr = racs_streamkv_get(kv, stream_id);
     if (!mac_addr) {
-        perror("Stream is not open");
+        racs_log_info("Stream is not open");
         return 0;
     }
 
@@ -171,7 +172,7 @@ racs_uint64 racs_streamkv_hash(void *key) {
 int racs_streamkv_cmp(void *a, void *b) {
     racs_uint64 *x = (racs_uint64 *) a;
     racs_uint64 *y = (racs_uint64 *) b;
-    return x[0] == y[0] && x[1] == y[1];
+    return x[0] == y[0];
 }
 
 void racs_streamkv_destroy_entry(void *key, void *value) {
@@ -180,8 +181,8 @@ void racs_streamkv_destroy_entry(void *key, void *value) {
 }
 
 int racs_mac_addr_cmp(const char *src, const char *dest) {
-//    char _mac_addr[6] = {0};
-//    if (memcmp(dest, _mac_addr, 6) == 0) return 1;
+    char _mac_addr[6] = {0};
+    if (memcmp(dest, _mac_addr, 6) == 0) return 1;
     if (memcmp(src, dest, 6) == 0) return 1;
     return 0;
 }
