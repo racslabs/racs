@@ -239,6 +239,9 @@ int main(int argc, char *argv[]) {
                 racs_memstream in_stream;
                 racs_memstream_init(&in_stream);
 
+                racs_memstream out_stream;
+                racs_memstream_init(&out_stream);
+
                 do {
                     /*****************************************************/
                     /* Receive data on this connection until the         */
@@ -290,16 +293,20 @@ int main(int argc, char *argv[]) {
                     res = racs_db_exec(db, (const char *) in_stream.data);
                 }
 
-                free(in_stream.data);
+                racs_memstream_write(&out_stream, &res.size, sizeof(size_t));
+                racs_memstream_write(&out_stream, res.data, res.size);
 
-                rc = send(fds[i].fd, res.data, res.size, 0);
+                free(in_stream.data);
+                free(res.data);
+
+                rc = send(fds[i].fd, out_stream.data, out_stream.current_pos, 0);
                 if (rc < 0) {
                     racs_log_fatal("  send() failed");
                     close_conn = TRUE;
                     break;
                 }
 
-                free(res.data);
+                free(out_stream.data);
 
                 /*******************************************************/
                 /* If the close_conn flag was turned on, we need       */
