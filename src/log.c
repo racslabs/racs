@@ -1,8 +1,8 @@
 #include "log.h"
 
 const char *const racs_log_level_string[] = {
-        "INFO",
-        "WARN",
+        "INFO ",
+        "WARN ",
         "DEBUG",
         "ERROR",
         "FATAL"

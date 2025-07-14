@@ -8,7 +8,7 @@ int main(int argc, char *argv[]) {
     int listen_sd = -1, new_sd = -1;
     int desc_ready, end_server = FALSE, compress_array = FALSE;
     int close_conn;
-    char buffer[1024];
+    char buffer[4096];
     struct sockaddr_in6 addr;
     int timeout;
     struct pollfd fds[200];
@@ -120,7 +120,7 @@ int main(int argc, char *argv[]) {
     /* on any of the connected sockets.                          */
     /*************************************************************/
 
-    racs_log_info("Listening on port %d", db->ctx.config->port);
+    racs_log_info("Listening on port %d ...", db->ctx.config->port);
     racs_log_info("Log file: %s/racs.log", racs_log_dir);
 
     do {
