@@ -1,5 +1,7 @@
 
 #include "biquad.h"
+#include "../signal/biquad.hpp"
+#include "../signal/biquad_design.hpp"
 
 using namespace racs;
 using namespace racs::signal;

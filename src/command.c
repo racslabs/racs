@@ -222,6 +222,8 @@ racs_create_command(format) {
     racs_parse_buf(in_buf, &pk, &msg1, "Error parsing args")
     racs_parse_buf(out_buf, &pk, &msg2, "Error parsing buffer")
 
+    racs_validate_num_args(&pk, msg1, 3)
+
     racs_validate_type(&pk, msg1, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected: string")
     racs_validate_type(&pk, msg1, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: int")
     racs_validate_type(&pk, msg1, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: int")
@@ -233,7 +235,7 @@ racs_create_command(format) {
         return racs_serialize_error(&pk, "Invalid input type. Expected: int16 array");
     }
 
-    int16_t *in = racs_deserialize_s16v(&msg2.data, 1);
+    racs_int16 *in = racs_deserialize_s16v(&msg2.data, 1);
     size_t size = racs_deserialize_s16v_size(&msg2.data, 1);
 
     char *mime_type = racs_deserialize_str(&msg1.data, 0);
@@ -265,6 +267,50 @@ racs_create_command(format) {
 
     msgpack_sbuffer_clear(out_buf);
     return racs_serialize_error(&pk, "Unsupported format");
+}
+
+racs_create_command(biquad) {
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
+
+    msgpack_unpacked msg1;
+    msgpack_unpacked_init(&msg1);
+
+    msgpack_unpacked msg2;
+    msgpack_unpacked_init(&msg2);
+
+    racs_parse_buf(in_buf, &pk, &msg1, "Error parsing args")
+    racs_parse_buf(out_buf, &pk, &msg2, "Error parsing buffer")
+
+    racs_validate_num_args(&pk, msg1, 5)
+
+    racs_validate_type(&pk, msg1, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected: string")
+    racs_validate_type(&pk, msg1, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: int")
+    racs_validate_type(&pk, msg1, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: int")
+    racs_validate_type(&pk, msg1, 3, MSGPACK_OBJECT_FLOAT64, "Invalid type at arg 4. Expected: float")
+    racs_validate_type(&pk, msg1, 4, MSGPACK_OBJECT_FLOAT64, "Invalid type at arg 5. Expected: float")
+
+    char *type = racs_deserialize_str(&msg2.data, 0);
+
+    racs_uint16 channels = racs_deserialize_uint16(&msg2.data, 1);
+    racs_uint32 sample_rate = racs_deserialize_uint32(&msg2.data, 2);
+    float cutoff = racs_deserialize_float32(&msg2.data, 3);
+    float p0 = racs_deserialize_float32(&msg2.data, 4);
+
+    racs_int16 *in = racs_deserialize_s16v(&msg2.data, 1);
+    size_t size = racs_deserialize_s16v_size(&msg2.data, 1);
+
+    racs_int16 *out = racs_biquad_s16(in, type, cutoff, (float)sample_rate, p0, channels, size / channels);
+
+    if (!out) {
+        msgpack_sbuffer_clear(out_buf);
+        return racs_serialize_error(&pk, "Failed to apply biquad filter.");
+    }
+
+    int rc = racs_serialize_s16v(&pk, out, size);
+    free(out);
+
+    return rc;
 }
 
 int racs_stream(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data) {

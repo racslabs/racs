@@ -108,4 +108,5 @@ struct aligned_allocator_traits {
 };
 
 }
+
 #endif //RACS_ALLOCATOR_HPP

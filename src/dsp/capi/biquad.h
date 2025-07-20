@@ -1,13 +1,12 @@
 
-#ifndef RACS_BIQUAD_H
-#define RACS_BIQUAD_H
-
-#include "../signal/biquad.hpp"
-#include "../signal/biquad_design.hpp"
+#ifndef RACS_CAPI_BIQUAD_H
+#define RACS_CAPI_BIQUAD_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <stddef.h>
 
 float *racs_biquad(float *in, float *coeff, size_t in_size, size_t coeff_size);
 
@@ -33,4 +32,4 @@ float *racs_peaking_coeff(float fc, float q, float g, float fs, size_t *out_size
 }
 #endif
 
-#endif //RACS_BIQUAD_H
+#endif //RACS_CAPI_BIQUAD_H

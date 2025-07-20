@@ -9,6 +9,7 @@
 #include "extract.h"
 #include "wav.h"
 #include "format.h"
+#include "biquad.h"
 
 typedef enum {
     RACS_STATUS_OK,
@@ -51,6 +52,8 @@ racs_create_command(format);
 racs_create_command(streamlist);
 
 racs_create_command(shutdown);
+
+racs_create_command(biquad);
 
 int racs_stream(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data);
 

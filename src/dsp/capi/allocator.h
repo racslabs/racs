@@ -1,23 +1,19 @@
 
-#ifndef RACS_ALLOCATOR_H
-#define RACS_ALLOCATOR_H
-
-#include "../core/allocator.hpp"
+#ifndef RACS_CAPI_ALLOCATOR_H
+#define RACS_CAPI_ALLOCATOR_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-RACS_INLINE void* racs_malloc(size_t size) {
-    return racs::racs_malloc(size);
-}
+#include <stddef.h>
 
-RACS_INLINE void racs_free(void* ptr) {
-    return racs::racs_free(ptr);
-}
+void* racs_malloc(size_t size);
+
+void racs_free(void* ptr);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //RACS_ALLOCATOR_H
+#endif //RACS_CAPI_ALLOCATOR_H

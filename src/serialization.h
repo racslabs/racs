@@ -95,6 +95,8 @@ size_t racs_deserialize_s16v_size(msgpack_object *obj, int n);
 
 size_t racs_deserialize_s32v_size(msgpack_object *obj, int n);
 
+float racs_deserialize_float32(msgpack_object *obj, int n);
+
 int racs_is_object_type(msgpack_object *obj, msgpack_object_type type, int arg_num);
 
 #endif //RACS_SERIALIZATION_H

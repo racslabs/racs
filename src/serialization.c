@@ -223,3 +223,7 @@ racs_int64 racs_deserialize_int64(msgpack_object *obj, int n) {
 racs_uint64 racs_deserialize_uint64(msgpack_object *obj, int n) {
     return obj->via.array.ptr[n].via.u64;
 }
+
+float racs_deserialize_float32(msgpack_object *obj, int n) {
+    return (float)obj->via.array.ptr[n].via.f64;
+}

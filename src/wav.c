@@ -10,15 +10,15 @@ void racs_wav_set_sample_rate(racs_wav *wav, racs_uint32 sample_rate) {
 }
 
 size_t racs_wav_write_s16(racs_wav *wav, const racs_int16 *in, void *out, size_t samples, size_t size) {
-    if (wav->format.channels == 2) {
-        racs_int16 *_in = malloc(wav->format.channels * samples * sizeof(racs_int16));
-        racs_simd_planar_s16(in, _in, wav->format.channels * samples);
-
-        size_t _size = racs_wav_write(wav, _in, out, samples, size);
-
-        free(_in);
-        return _size;
-    }
+//    if (wav->format.channels == 2) {
+//        racs_int16 *_in = malloc(wav->format.channels * samples * sizeof(racs_int16));
+//        racs_simd_planar_s16(in, _in, wav->format.channels * samples);
+//
+//        size_t _size = racs_wav_write(wav, _in, out, samples, size);
+//
+//        free(_in);
+//        return _size;
+//    }
 
     return racs_wav_write(wav, in, out, samples, size);
 }

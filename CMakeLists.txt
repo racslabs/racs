@@ -58,7 +58,8 @@ file(GLOB_RECURSE RACS_INCLUDE_FILES CONFIGURE_DEPENDS ${RACS_DSP_SOURCE_DIR}/*.
 file(GLOB_RECURSE RACS_SOURCE_FILES CONFIGURE_DEPENDS ${RACS_DSP_SOURCE_DIR}/*.hpp ${RACS_DSP_SOURCE_DIR}/*.cpp)
 file(GLOB_RECURSE RACS_TEST_FILES CONFIGURE_DEPENDS ${RACS_TEST_DIR}/*.hpp ${RACS_TEST_DIR}/*.cpp)
 
-add_library(${RACS_STATIC_LIBRARY_NAME} STATIC ${RACS_SOURCE_FILES})
+add_library(${RACS_STATIC_LIBRARY_NAME} STATIC ${RACS_SOURCE_FILES}
+        src/dsp/capi/allocator.cpp)
 set_target_properties(${RACS_STATIC_LIBRARY_NAME} PROPERTIES PREFIX "")
 
 enable_testing()
@@ -209,6 +210,9 @@ add_executable(racs
         src/log.h
         src/log.c
         src/version.h
+        src/types.c
+        src/biquad.h
+        src/biquad.c
 )
 
 target_link_libraries(racs msgpack-c
