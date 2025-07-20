@@ -2,7 +2,7 @@ port: 8080
 data_dir: "/Users/corbinmoon/racs/cmake-build-debug"
 log_dir: "/Users/corbinmoon/racs/cmake-build-debug"
 memtable:
-  tables: 6
-  entries: 2
+  tables: 2
+  entries: 1
 cache:
   entries: 2

@@ -1,7 +1,113 @@
 cmake_minimum_required(VERSION 3.27)
-project(racs C)
+project(racs LANGUAGES C CXX)
 
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 17)
+
+set(RACS_DSP_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src/dsp)
+set(RACS_TEST_DIR ${CMAKE_SOURCE_DIR}/test)
+set(RACS_STATIC_LIBRARY_NAME libracs_dsp)
+
+include(FetchContent)
+include(GoogleTest)
+
+if (WIN32 OR APPLE)
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+    FetchContent_Declare(
+            googletest
+            URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+            DOWNLOAD_EXTRACT_TIMESTAMP true
+    )
+else()
+    FetchContent_Declare(
+            googletest
+            URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+    )
+endif()
+
+if(WIN32)
+    set(CMAKE_STATIC_LIBRARY_SUFFIX ".lib")
+elseif(UNIX)
+    set(CMAKE_STATIC_LIBRARY_SUFFIX ".a")
+endif()
+
+option(RACS_AVX2_CMAKE_BUILD "AVX2 CMake build" OFF)
+option(RACS_NEON8_CMAKE_BUILD "NEON8 CMake build" OFF)
+
+if (RACS_AVX2_CMAKE_BUILD)
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        add_compile_options(-march=native -O2)
+    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MVSC")
+        add_compile_options(/arch:AVX /O2)
+    endif()
+elseif (RACS_NEON8_CMAKE_BUILD)
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        set(ARM_ALIASES armv6l armv7l aarch64)
+        add_compile_options(-O2 -march=armv8-a+simd)
+    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MVSC")
+        add_compile_options(/arch:ARM64 /O2)
+    endif()
+endif()
+
+FetchContent_MakeAvailable(googletest)
+
+add_compile_definitions(RACS_MULTITHREADED)
+
+file(GLOB_RECURSE RACS_INCLUDE_FILES CONFIGURE_DEPENDS ${RACS_DSP_SOURCE_DIR}/*.hpp)
+file(GLOB_RECURSE RACS_SOURCE_FILES CONFIGURE_DEPENDS ${RACS_DSP_SOURCE_DIR}/*.hpp ${RACS_DSP_SOURCE_DIR}/*.cpp)
+file(GLOB_RECURSE RACS_TEST_FILES CONFIGURE_DEPENDS ${RACS_TEST_DIR}/*.hpp ${RACS_TEST_DIR}/*.cpp)
+
+add_library(${RACS_STATIC_LIBRARY_NAME} STATIC ${RACS_SOURCE_FILES})
+set_target_properties(${RACS_STATIC_LIBRARY_NAME} PROPERTIES PREFIX "")
+
+enable_testing()
+
+add_executable(racs_test ${RACS_SOURCE_FILES} ${RACS_TEST_FILES})
+
+target_link_libraries(
+        racs_test
+        PRIVATE
+        GTest::gtest_main
+        ${RACS_STATIC_LIBRARY_NAME}
+)
+
+gtest_discover_tests(racs_test)
+
+option(INSTALL_GMOCK OFF)
+option(INSTALL_GTEST OFF)
+#
+## Install headers
+#install(DIRECTORY
+#        src/audio
+#        src/core
+#        src/dwt
+#        src/fft
+#        src/linalg
+#        src/math
+#        src/nn
+#        src/runtime
+#        src/signal
+#        src/simd
+#        src/special
+#        src/stats
+#        src/capi
+#        DESTINATION include/racs
+#        PATTERN "*.cpp" EXCLUDE
+#)
+#
+#install(FILES src/version.hpp DESTINATION include/racs)
+#
+## Install library
+#include(GNUInstallDirs)
+#install(TARGETS ${RACS_STATIC_LIBRARY_NAME}
+#        EXPORT ${PROJECT_NAME}-config
+#        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+#        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+#        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+#        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+#----------------------------------------
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -18,7 +124,9 @@ include_directories(
         ${LAME_INCLUDE_DIRS}
         ${GUILE_INCLUDE_DIRS}
         ${YAML_INCLUDE_DIRS}
-        ${msgpack-c_INCLUDE_DIRS})
+        ${msgpack-c_INCLUDE_DIRS}
+        ${RACS_DSP_SOURCE_DIR}
+)
 
 option(RACS_AVX2_CMAKE_BUILD "AVX2 CMake build" OFF)
 option(RACS_NEON8_CMAKE_BUILD "NEON8 CMake build" ON)
@@ -108,6 +216,8 @@ target_link_libraries(racs msgpack-c
         ${LAME_LIBRARIES}
         ${OPUS_LIBRARIES}
         ${OPUSENC_LIBRARIES}
-        ${YAML_LIBRARIES})
+        ${YAML_LIBRARIES}
+        libracs_dsp
+)
 
 enable_testing()
