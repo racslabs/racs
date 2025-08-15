@@ -58,8 +58,7 @@ file(GLOB_RECURSE RACS_INCLUDE_FILES CONFIGURE_DEPENDS ${RACS_DSP_SOURCE_DIR}/*.
 file(GLOB_RECURSE RACS_SOURCE_FILES CONFIGURE_DEPENDS ${RACS_DSP_SOURCE_DIR}/*.hpp ${RACS_DSP_SOURCE_DIR}/*.cpp)
 file(GLOB_RECURSE RACS_TEST_FILES CONFIGURE_DEPENDS ${RACS_TEST_DIR}/*.hpp ${RACS_TEST_DIR}/*.cpp)
 
-add_library(${RACS_STATIC_LIBRARY_NAME} STATIC ${RACS_SOURCE_FILES}
-        src/dsp/capi/allocator.cpp)
+add_library(${RACS_STATIC_LIBRARY_NAME} STATIC ${RACS_SOURCE_FILES})
 set_target_properties(${RACS_STATIC_LIBRARY_NAME} PROPERTIES PREFIX "")
 
 enable_testing()
@@ -113,7 +112,7 @@ option(INSTALL_GTEST OFF)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 find_package(Guile REQUIRED)
-find_package(msgpack-c REQUIRED)
+find_package(Msgpack)
 find_package(Lame)
 find_package(Opus)
 find_package(OpusEnc)
@@ -125,7 +124,7 @@ include_directories(
         ${LAME_INCLUDE_DIRS}
         ${GUILE_INCLUDE_DIRS}
         ${YAML_INCLUDE_DIRS}
-        ${msgpack-c_INCLUDE_DIRS}
+        ${MSGPACK_INCLUDE_DIRS}
         ${RACS_DSP_SOURCE_DIR}
 )
 
@@ -160,7 +159,6 @@ add_executable(racs
         src/bytes.h
         src/kvstore.h
         src/kvstore.c
-        src/simd/simd.h
         src/parser.h
         src/parser.c
         src/exec.h
@@ -186,8 +184,6 @@ add_executable(racs
         src/memory.h
         src/memory.c
         src/pcm.c
-        src/simd/pcm_simd.h
-        src/simd/pcm_neon.c
         src/extract.h
         src/extract.c
         src/wav.h
@@ -215,7 +211,8 @@ add_executable(racs
         src/biquad.c
 )
 
-target_link_libraries(racs msgpack-c
+target_link_libraries(racs
+        ${MSGPACK_LIBRARIES}
         ${GUILE_LIBRARIES}
         ${LAME_LIBRARIES}
         ${OPUS_LIBRARIES}

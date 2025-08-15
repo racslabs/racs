@@ -50,24 +50,26 @@ find_program(GUILE_CONFIG_EXECUTABLE
         NAMES guile-config3.0 guile-config2.2 guile-config2.0 guile-config
 )
 
+message("LOOK! ${GUILE_CONFIG_EXECUTABLE}")
 
-if (GUILE_CONFIG_EXECUTABLE)
-    execute_process (COMMAND ${GUILE_CONFIG_EXECUTABLE} info prefix
-            OUTPUT_VARIABLE GUILE_ROOT_DIR
-            OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-    execute_process (COMMAND ${GUILE_CONFIG_EXECUTABLE} info sitedir
-            OUTPUT_VARIABLE GUILE_SITE_DIR
-            OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-    execute_process (COMMAND ${GUILE_CONFIG_EXECUTABLE} info extensiondir
-            OUTPUT_VARIABLE GUILE_EXTENSION_DIR
-            OUTPUT_STRIP_TRAILING_WHITESPACE)
-endif ()
-
-# handle REQUIRED and QUIET options
-include (FindPackageHandleStandardArgs)
-find_package_handle_standard_args (Guile REQUIRED_VARS GUILE_EXECUTABLE GUILE_ROOT_DIR GUILE_INCLUDE_DIRS GUILE_LIBRARIES VERSION_VAR GUILE_VERSION_STRING)
-
-
-mark_as_advanced (GUILE_INCLUDE_DIR GUILE_LIBRARY)
+#
+#if (GUILE_CONFIG_EXECUTABLE)
+#    execute_process (COMMAND ${GUILE_CONFIG_EXECUTABLE} info prefix
+#            OUTPUT_VARIABLE GUILE_ROOT_DIR
+#            OUTPUT_STRIP_TRAILING_WHITESPACE)
+#
+#    execute_process (COMMAND ${GUILE_CONFIG_EXECUTABLE} info sitedir
+#            OUTPUT_VARIABLE GUILE_SITE_DIR
+#            OUTPUT_STRIP_TRAILING_WHITESPACE)
+#
+#    execute_process (COMMAND ${GUILE_CONFIG_EXECUTABLE} info extensiondir
+#            OUTPUT_VARIABLE GUILE_EXTENSION_DIR
+#            OUTPUT_STRIP_TRAILING_WHITESPACE)
+#endif ()
+#
+## handle REQUIRED and QUIET options
+#include (FindPackageHandleStandardArgs)
+#find_package_handle_standard_args (Guile REQUIRED_VARS GUILE_EXECUTABLE GUILE_ROOT_DIR GUILE_INCLUDE_DIRS GUILE_LIBRARIES VERSION_VAR GUILE_VERSION_STRING)
+#
+#
+#mark_as_advanced (GUILE_INCLUDE_DIR GUILE_LIBRARY)
