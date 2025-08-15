@@ -12,11 +12,11 @@ racs_int16 *racs_biquad_s16(racs_int16 *in,
     float *coeff = NULL;
 
     size_t coeff_size;
-    if (strcmp(type, "ap") == 0)
+    if (strcmp(type, "ap") == 0 || strcmp(type, "allpass") == 0)
         coeff = racs_allpass_coeff(fc, p0, fs, &coeff_size);
-    if (strcmp(type, "lp") == 0)
+    if (strcmp(type, "lp") == 0 || strcmp(type, "lowpass") == 0)
         coeff = racs_lowpass_coeff(fc, p0, fs, &coeff_size);
-    if (strcmp(type, "hp") == 0)
+    if (strcmp(type, "hp") == 0 || strcmp(type, "highpass") == 0)
         coeff = racs_highpass_coeff(fc, p0, fs, &coeff_size);
 
     if (!coeff) {
@@ -32,7 +32,6 @@ racs_int16 *racs_biquad_s16(racs_int16 *in,
 
     if (!f_out) {
         racs_free(f_in);
-        racs_free(f_out);
         racs_free(coeff);
         return NULL;
     }
