@@ -201,6 +201,18 @@ void dilate(float* a, float* b, size_t n, size_t d) {
     }
 }
 
+void interleaved(const float *q0, const float *q1, float *q2, size_t n) {
+    size_t i = 0;
+    size_t m = n & ~7;
+
+    //TODO: ADD
+
+    for (; i < n; ++i) {
+        q2[i * 2] = q0[i];
+        q2[i * 2 + 1] = q1[i];
+    }
+}
+
 #endif
 
 }
