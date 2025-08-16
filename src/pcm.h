@@ -3,7 +3,6 @@
 #define RACS_PCM_H
 
 #include "memory.h"
-#include "simd/pcm_simd.h"
 
 typedef struct {
     racs_uint8 channels;

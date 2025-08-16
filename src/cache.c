@@ -76,7 +76,7 @@ void racs_cache_evict(racs_cache *cache) {
     if (!cache) return;
 
     racs_cache_node *tail = cache->tail;
-    racs_cache_node *prev = cache->tail->prev;
+    racs_cache_node *prev = (racs_cache_node *) cache->tail->prev;
 
     racs_kvstore_delete(cache->kv, tail->entry.key);
 
@@ -117,19 +117,19 @@ void racs_cache_move_to_head(racs_cache *cache, racs_cache_node *node) {
         return;
 
     if (cache->tail == node) {
-        cache->tail = node->prev;
+        cache->tail = (racs_cache_node *) node->prev;
         if (cache->tail) cache->tail->next = NULL;
     }
 
-    racs_cache_node *prev = node->prev;
-    racs_cache_node *next = node->next;
+    racs_cache_node *prev = (racs_cache_node *) node->prev;
+    racs_cache_node *next = (racs_cache_node *) node->next;
 
-    if (prev) prev->next = next;
-    if (next) next->prev = prev;
+    if (prev) prev->next = (struct racs_cache_node *) next;
+    if (next) next->prev = (struct racs_cache_node *) prev;
 
     node->prev = NULL;
-    node->next = cache->head;
-    cache->head->prev = node;
+    node->next = (struct racs_cache_node *) cache->head;
+    cache->head->prev = (struct racs_cache_node *) node;
     cache->head = node;
 }
 

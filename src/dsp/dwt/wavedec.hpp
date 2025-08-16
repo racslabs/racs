@@ -24,6 +24,7 @@
 #define RACS_WAVEDEC_HPP
 
 #include "dwt.hpp"
+#include <algorithm>
 
 namespace racs::dwt {
 

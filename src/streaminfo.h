@@ -5,12 +5,17 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#include <sys/file.h>
 #include <fnmatch.h>
 #include "types.h"
 #include "bytes.h"
 #include "cache.h"
 #include "filelist.h"
 #include "log.h"
+
+#ifndef FNM_IGNORECASE
+#define FNM_IGNORECASE 0x01
+#endif
 
 typedef struct {
     racs_uint16 channels;

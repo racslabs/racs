@@ -128,12 +128,12 @@ include_directories(
         ${RACS_DSP_SOURCE_DIR}
 )
 
-option(RACS_AVX2_CMAKE_BUILD "AVX2 CMake build" OFF)
-option(RACS_NEON8_CMAKE_BUILD "NEON8 CMake build" ON)
+option(RACS_AVX2_CMAKE_BUILD "AVX2 CMake build" ON)
+option(RACS_NEON8_CMAKE_BUILD "NEON8 CMake build" OFF)
 
 if (RACS_AVX2_CMAKE_BUILD)
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        add_compile_options(-march=native -O2)
+        add_compile_options(-mavx2 -O2)
     endif()
 elseif (RACS_NEON8_CMAKE_BUILD)
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")

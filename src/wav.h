@@ -4,7 +4,6 @@
 
 #include <stdlib.h>
 #include "bytes.h"
-#include "simd/pcm_simd.h"
 
 typedef struct {
     char chunk_id[4];

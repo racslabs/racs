@@ -161,7 +161,7 @@ off_t racs_streaminfo_read(racs_streaminfo *streaminfo, racs_uint8 *buf) {
     offset = racs_read_uint16(&streaminfo->bit_depth, buf, offset);
     offset = racs_read_uint32(&streaminfo->sample_rate, buf, offset);
     offset = racs_read_uint64(&streaminfo->size, buf, offset);
-    offset = racs_read_uint64(&streaminfo->ref, buf, offset);
+    offset = racs_read_uint64((racs_uint64 *) &streaminfo->ref, buf, offset);
     offset = racs_read_uint32(&streaminfo->id_size, buf, offset);
 
     streaminfo->id = (char*)buf + offset;

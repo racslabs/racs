@@ -125,7 +125,7 @@ void kvstore_bin_append(racs_kvstore_bin *bin, void *key, void *value) {
     racs_kvstore_entry *node = malloc(sizeof(racs_kvstore_entry));
     node->key = key;
     node->value = value;
-    node->next = bin->node;
+    node->next = (struct racs_kvstore_entry *) bin->node;
 
     bin->node = node;
     ++bin->count;
