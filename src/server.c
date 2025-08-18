@@ -3,6 +3,96 @@
 #define TRUE             1
 #define FALSE            0
 
+void racs_conn_stream_init(racs_conn_stream *stream) {
+    racs_memstream_init(&stream->in_stream);
+    racs_memstream_init(&stream->out_stream);
+}
+
+void racs_conn_stream_reset(racs_conn_stream *stream) {
+    free(stream->in_stream.data);
+    free(stream->out_stream.data);
+
+    racs_conn_stream_init(stream);
+}
+
+int racs_recv_length_prefix(int fd, size_t *len) {
+    int rc;
+
+    rc = recv(fd, len, sizeof(size_t), 0);
+    if (rc < 0) {
+        if (errno != EWOULDBLOCK) {
+            racs_log_fatal("  recv() failed");
+            return -1;
+        }
+    }
+
+    if (rc == 0) {
+        racs_log_info("  Connection closed");
+        return -1;
+    }
+
+    return 8;
+}
+
+int racs_recv(int fd, int len, racs_conn_stream *stream) {
+    int rc;
+    char buf[4096];
+
+    while (stream->in_stream.current_pos < len) {
+        rc = recv(fd, buf, sizeof(buf), 0);
+
+        if (rc < 0) {
+            if (errno != EWOULDBLOCK) {
+                racs_log_fatal("  recv() failed");
+                return -1;
+            }
+        }
+
+        if (rc == 0) {
+            racs_log_info("  Connection closed");
+            return -1;
+        }
+
+        racs_log_debug("%d bytes received", rc);
+        racs_memstream_write(&stream->in_stream, buf, rc);
+    }
+
+    return stream->in_stream.current_pos;
+}
+
+void racs_send_length_prefix(racs_conn_stream *stream, size_t *len) {
+    if (stream->out_stream.current_pos <= 0) {
+        *len = 0;
+        return;
+    }
+
+    memcpy(len, stream->out_stream.data, sizeof(size_t));
+}
+
+int racs_send(int fd, racs_conn_stream *stream) {
+    int rc;
+
+    size_t length;
+    racs_send_length_prefix(stream, &length);
+
+    racs_uint8 *buf = stream->out_stream.data;
+    size_t bytes = 0;
+
+    while (length - bytes > 0) {
+        rc = send(fd, buf + bytes, 4096, 0);
+        if (rc < 0) {
+            racs_log_error("  send() failed");
+            return -1;
+        }
+
+        bytes += rc;
+    }
+
+    racs_log_debug("%zu bytes sent", bytes);
+    return 0;
+}
+
+
 int main(int argc, char *argv[]) {
     int len, rc, on = 1;
     int listen_sd = -1, new_sd = -1;
@@ -13,6 +103,8 @@ int main(int argc, char *argv[]) {
     int timeout;
     struct pollfd fds[200];
     int nfds = 1, current_size = 0, i, j;
+
+    racs_conn_stream streams[200];
 
     if (strcmp(argv[1], "--config") != 0)
         exit(1);
@@ -42,8 +134,7 @@ int main(int argc, char *argv[]) {
     /*************************************************************/
     /* Allow socket descriptor to be reuseable                   */
     /*************************************************************/
-    rc = setsockopt(listen_sd, SOL_SOCKET, SO_REUSEADDR,
-                    (char *) &on, sizeof(on));
+    rc = setsockopt(listen_sd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
     if (rc < 0) {
         racs_log_fatal("setsockopt() failed");
         close(listen_sd);
@@ -61,15 +152,33 @@ int main(int argc, char *argv[]) {
         exit(-1);
     }
 
+    rc = setsockopt(listen_sd, IPPROTO_TCP, TCP_FASTOPEN, &off, sizeof(off));
+    if (rc < 0) {
+        racs_log_fatal("setsockopt(TCP_FASTOPEN) failed");
+        exit(-1);
+    }
+
+
     /*************************************************************/
     /* Set socket to be nonblocking. All of the sockets for      */
     /* the incoming connections will also be nonblocking since   */
     /* they will inherit that state from the listening socket.   */
     /*************************************************************/
-    rc = ioctl(listen_sd, FIONBIO, (char *) &on);
+//    rc = ioctl(listen_sd, FIONBIO, &on);
+//    if (rc < 0) {
+//        racs_log_fatal("ioctl() failed");
+//        close(listen_sd);
+//        exit(-1);
+//    }
+
+    rc = fcntl(listen_sd, F_GETFL, 0);
     if (rc < 0) {
-        racs_log_fatal("ioctl() failed");
-        close(listen_sd);
+        racs_log_fatal("fcntl(F_GETFL) failed");
+        exit(-1);
+    }
+
+    if (fcntl(listen_sd, F_SETFL, rc | O_NONBLOCK) < 0) {
+        racs_log_fatal("fcntl(F_SETFL) failed");
         exit(-1);
     }
 
@@ -215,6 +324,7 @@ int main(int argc, char *argv[]) {
                     /*****************************************************/
                     fds[nfds].fd = new_sd;
                     fds[nfds].events = POLLIN;
+                    racs_conn_stream_init(&streams[nfds]);
                     nfds++;
 
                     /*****************************************************/
@@ -236,77 +346,39 @@ int main(int argc, char *argv[]) {
                 /* before we loop back and call poll again.            */
                 /*******************************************************/
 
-                racs_memstream in_stream;
-                racs_memstream_init(&in_stream);
+                size_t length = 0;
+                rc = racs_recv_length_prefix(fds[i].fd, &length);
+                if (rc < 0) close_conn = TRUE;
 
-                racs_memstream out_stream;
-                racs_memstream_init(&out_stream);
-
-                do {
-                    /*****************************************************/
-                    /* Receive data on this connection until the         */
-                    /* recv fails with EWOULDBLOCK. If any other         */
-                    /* failure occurs, we will close the                 */
-                    /* connection.                                       */
-                    /*****************************************************/
-                    rc = recv(fds[i].fd, buffer, sizeof(buffer), 0);
-                    if (rc < 0) {
-                        if (errno != EWOULDBLOCK) {
-                            racs_log_fatal("  recv() failed");
-                            close_conn = TRUE;
-                        }
-                        break;
-                    }
-
-
-
-                    /*****************************************************/
-                    /* Check to see if the connection has been           */
-                    /* closed by the client                              */
-                    /*****************************************************/
-                    if (rc == 0) {
-                        racs_log_info("  Connection closed");
-                        close_conn = TRUE;
-                        break;
-                    }
-
-                    /*****************************************************/
-                    /* Data was received                                 */
-                    /*****************************************************/
-                    len = rc;
-
-                    racs_memstream_write(&in_stream, buffer, len);
-
-                } while (TRUE);
+                rc = racs_recv(fds[i].fd, (int)length, &streams[i]);
+                if (rc < 0) close_conn = TRUE;
 
                 /*****************************************************/
                 /* Echo the data back to the client                  */
                 /*****************************************************/
 
+                if (streams[i].in_stream.current_pos > 0) {
+                    racs_result res;
 
+                    if (racs_is_frame((const char *) streams[i].in_stream.data)) {
+                        res = racs_db_stream(db, streams[i].in_stream.data);
+                    } else {
+                        res = racs_db_exec(db, (const char *) streams[i].in_stream.data);
+                    }
 
-                racs_result res;
+                    racs_memstream_write(&streams[i].out_stream, &res.size, sizeof(size_t));
+                    racs_memstream_write(&streams[i].out_stream, res.data, res.size);
+                    free(res.data);
 
-                if (racs_is_frame((const char *) in_stream.data)) {
-                    res = racs_db_stream(db, in_stream.data);
-                } else {
-                    res = racs_db_exec(db, (const char *) in_stream.data);
+                    rc = racs_send(fds[i].fd, &streams[i]);
+                    if (rc < 0) {
+                        close_conn = TRUE;
+                        break;
+                    }
+
+                    racs_conn_stream_reset(&streams[i]);
                 }
 
-                racs_memstream_write(&out_stream, &res.size, sizeof(size_t));
-                racs_memstream_write(&out_stream, res.data, res.size);
-
-                free(in_stream.data);
-                free(res.data);
-
-                rc = send(fds[i].fd, out_stream.data, out_stream.current_pos, 0);
-                if (rc < 0) {
-                    racs_log_fatal("  send() failed");
-                    close_conn = TRUE;
-                    break;
-                }
-
-                free(out_stream.data);
 
                 /*******************************************************/
                 /* If the close_conn flag was turned on, we need       */

@@ -21,5 +21,6 @@ off_t racs_frame_header_parse(racs_uint8 *buf, racs_frame_header *header) {
 }
 
 int racs_is_frame(const char *id) {
+    if (!id) return 0;
     return memcmp(id, "rspt", 4) == 0;
 }

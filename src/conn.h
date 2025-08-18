@@ -12,6 +12,7 @@
 #include <netinet/in.h>
 #include <errno.h>
 #include <string.h>
+#include <netinet/tcp.h>
 
 typedef struct {
     int len, rc, on;
