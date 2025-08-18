@@ -76,9 +76,11 @@ int racs_send(int fd, racs_conn_stream *stream) {
     racs_send_length_prefix(stream, &length);
 
     racs_uint8 *buf = stream->out_stream.data;
-    size_t bytes = 0;
 
-    while (length - bytes > 0) {
+    int bytes = 0;
+    int n = (int)length;
+
+    while (n - bytes > 0) {
         rc = send(fd, buf + bytes, 4096, 0);
         if (rc < 0) {
             racs_log_error("  send() failed");
@@ -371,7 +373,9 @@ int main(int argc, char *argv[]) {
                     free(res.data);
 
                     rc = racs_send(fds[i].fd, &streams[i]);
+
                     if (rc < 0) {
+                        racs_conn_stream_reset(&streams[i]);
                         close_conn = TRUE;
                         break;
                     }
