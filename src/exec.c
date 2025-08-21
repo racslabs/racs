@@ -221,7 +221,7 @@ int racs_command_handle_float64(racs_command *cmd, msgpack_sbuffer *out_buf, rac
 }
 
 void racs_exec_init(racs_exec *exec) {
-    exec->kv = racs_kvstore_create(11, racs_exec_hash, racs_exec_cmp, exec_destroy);
+    exec->kv = racs_kvstore_create(100, racs_exec_hash, racs_exec_cmp, exec_destroy);
     racs_kvstore_put(exec->kv, strdup("PING"), racs_command_ping);
     racs_kvstore_put(exec->kv, strdup("CREATE"), racs_command_streamcreate);
     racs_kvstore_put(exec->kv, strdup("INFO"), racs_command_streaminfo);

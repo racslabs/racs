@@ -57,13 +57,13 @@ size_t racs_ogg_write(racs_ogg *ogg, const void *in, void *out, size_t samples) 
     int samples_per_channel = (int) (RACS_OGG_FRAMESIZE_20MS * ogg->format.sample_rate);
     off_t frame_size = samples_per_channel * ogg->format.channels * sizeof(racs_int16);
 
-    racs_int16 *pcm = malloc(sizeof(racs_int16) * frame_size);
+    racs_int16 *pcm = malloc(frame_size);
     if (!pcm) {
         racs_log_error("Failed to allocate pcm frame");
         return 0;
     }
 
-    while (ogg->r_pos < samples * ogg->format.channels) {
+    while (ogg->r_pos < samples * ogg->format.channels * sizeof(racs_int16)) {
         memcpy(pcm, in + ogg->r_pos, frame_size);
 
         ogg->err = ope_encoder_write(ogg->enc, pcm, samples_per_channel);
