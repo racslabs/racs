@@ -70,7 +70,6 @@ size_t racs_ogg_write(racs_ogg *ogg, const void *in, void *out, size_t samples) 
         if (ogg->err != OPE_OK) {
             racs_log_error("Failed to encode ogg: %s", ope_strerror(ogg->err));
             racs_ogg_destroy(ogg);
-            free(pcm);
             break;
         }
 
