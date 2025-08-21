@@ -2,6 +2,7 @@
 
 #define TRUE             1
 #define FALSE            0
+#define CHUNK_SIZE       4096
 
 void racs_conn_stream_init(racs_conn_stream *stream) {
     racs_memstream_init(&stream->in_stream);
@@ -36,7 +37,7 @@ int racs_recv_length_prefix(int fd, size_t *len) {
 
 int racs_recv(int fd, int len, racs_conn_stream *stream) {
     int rc;
-    char buf[4096];
+    char buf[CHUNK_SIZE];
 
     while (stream->in_stream.current_pos < len) {
         rc = recv(fd, buf, sizeof(buf), 0);
@@ -60,39 +61,36 @@ int racs_recv(int fd, int len, racs_conn_stream *stream) {
     return stream->in_stream.current_pos;
 }
 
-void racs_send_length_prefix(racs_conn_stream *stream, size_t *len) {
-    if (stream->out_stream.current_pos <= 0) {
-        *len = 0;
-        return;
-    }
-
-    memcpy(len, stream->out_stream.data, sizeof(size_t));
-}
-
 int racs_send(int fd, racs_conn_stream *stream) {
-    int rc;
+    size_t bytes = 0;
+    size_t n = stream->out_stream.current_pos;
+    ssize_t rc;
 
-    size_t length;
-    racs_send_length_prefix(stream, &length);
+    signal(SIGPIPE, SIG_IGN);
 
-    racs_uint8 *buf = stream->out_stream.data;
-
-    int bytes = 0;
-    int n = (int)length;
-
-    while (n - bytes > 0) {
-        rc = send(fd, buf + bytes, 4096, 0);
+    while (bytes < n) {
+        size_t to_send = (n - bytes < CHUNK_SIZE) ? n - bytes : CHUNK_SIZE;
+        rc = send(fd, stream->out_stream.data + bytes, to_send, MSG_NOSIGNAL);
         if (rc < 0) {
-            racs_log_error("  send() failed");
+            if (errno == EPIPE) {
+                racs_log_error("peer closed connection (EPIPE) after %zu bytes", bytes);
+            } else {
+                racs_log_error("send() failed");
+            }
+            return -1;
+        }
+        if (rc == 0) {
+            racs_log_error("send() returned 0 (peer closed?)");
             return -1;
         }
 
-        bytes += rc;
+        bytes += (size_t)rc;
     }
 
-    racs_log_debug("%zu bytes sent", bytes);
+    racs_log_info("%zu bytes sent successfully", bytes);
     return 0;
 }
+
 
 
 int main(int argc, char *argv[]) {

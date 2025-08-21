@@ -231,7 +231,6 @@ void racs_exec_init(racs_exec *exec) {
     racs_kvstore_put(exec->kv, strdup("EXTRACT"), racs_command_extract);
     racs_kvstore_put(exec->kv, strdup("EVAL"), racs_command_eval);
     racs_kvstore_put(exec->kv, strdup("FORMAT"), racs_command_format);
-    racs_kvstore_put(exec->kv, strdup("BIQUAD"), racs_command_biquad);
     racs_kvstore_put(exec->kv, strdup("SHUTDOWN"), racs_command_shutdown);
 }
 
