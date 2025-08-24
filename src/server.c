@@ -73,7 +73,7 @@ int racs_send(int fd, racs_conn_stream *stream) {
         rc = send(fd, stream->out_stream.data + bytes, to_send, MSG_NOSIGNAL);
         if (rc < 0) {
             if (errno == EPIPE) {
-                racs_log_error("peer closed connection (EPIPE) after %zu bytes", bytes);
+                racs_log_error("peer closed connection (EPIPE)");
             } else {
                 racs_log_error("send() failed");
             }
@@ -87,7 +87,7 @@ int racs_send(int fd, racs_conn_stream *stream) {
         bytes += (size_t)rc;
     }
 
-    racs_log_info("%zu bytes sent successfully", bytes);
+    racs_log_info("%zu bytes sent", bytes);
     return 0;
 }
 
@@ -331,7 +331,7 @@ int main(int argc, char *argv[]) {
                     /* Loop back up and accept another incoming          */
                     /* connection                                        */
                     /*****************************************************/
-                } while (new_sd != -1);
+                } while (1);
             }
 
                 /*********************************************************/

@@ -28,11 +28,11 @@ void racs_parser_init(racs_parser *parser, const char *source) {
 racs_token racs_parser_next_token(racs_parser *parser) {
     regmatch_t match;
 
-    while (isspace(*parser->ptr)) {
+    while (*parser->ptr != '\0' && isspace(*parser->ptr)) {
         parser_advance(parser, 1);
     }
 
-    if (*parser->ptr == '\0') {
+    if (parser->ptr == NULL || *parser->ptr == '\0') {
         return parser_lex_token_eof();
     }
 
@@ -56,12 +56,6 @@ racs_token racs_parser_next_token(racs_parser *parser) {
         }
     }
 
-    if (isalpha(*parser->ptr) || *parser->ptr == '_') {
-        if (match_token(parser->ptr, RACS_REGEX_ID, &match)) {
-            return parser_lex_token_id(parser, &match);
-        }
-    }
-
     if (*parser->ptr == '\'') {
         if (match_token(parser->ptr, RACS_REGEX_STR, &match)) {
             return parser_lex_token_str(parser, &match);
@@ -71,6 +65,12 @@ racs_token racs_parser_next_token(racs_parser *parser) {
     if (*parser->ptr == '|') {
         if (match_token(parser->ptr, RACS_REGEX_PIPE, &match)) {
             return parser_lex_token_pipe(parser, &match);
+        }
+    }
+
+    if (isalpha(*parser->ptr) || *parser->ptr == '_') {
+        if (match_token(parser->ptr, RACS_REGEX_ID, &match)) {
+            return parser_lex_token_id(parser, &match);
         }
     }
 
@@ -187,7 +187,7 @@ racs_token parser_lex_token_eof() {
 }
 
 racs_token parser_token_error(racs_parser *parser) {
-    sprintf(parser->error, "Invalid token at %lld", parser->curr);
+    sprintf(parser->error, "Invalid token at %d", parser->curr);
     racs_log_error(parser->error);
 
     racs_token token;

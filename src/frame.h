@@ -10,7 +10,7 @@
 
 typedef struct {
     char chunk_id[4];
-    char mac_addr[6];
+    racs_uint64 session_id[2];
     racs_uint64 stream_id;
     racs_uint32 checksum;
     racs_uint16 channels;
