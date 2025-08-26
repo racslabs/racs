@@ -27,6 +27,8 @@ void racs_multi_memtable_move_to_head(racs_multi_memtable *mmt, racs_memtable *m
 
     if (mmt->head) {
         mmt->head->prev = (struct racs_memtable *) mt;
+        mmt->tail = (racs_memtable *) mmt->tail->prev;
+        mmt->tail->next = NULL;
     } else {
         mmt->tail = mt;
     }
@@ -42,16 +44,8 @@ void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs
     racs_memtable *mt = mmt->head;
 
     if (mt->num_entries >= mt->capacity) {
-        racs_memtable *tail = mmt->tail;
-        racs_memtable *prev = (racs_memtable *) tail->prev;
-
-        racs_memtable_flush(tail);
-
-        tail->prev = NULL;
-        racs_multi_memtable_move_to_head(mmt, tail);
-
-        prev->next = NULL;
-        mmt->tail = prev;
+        racs_memtable_flush(mmt->tail);
+        racs_multi_memtable_move_to_head(mmt, mmt->tail);
     }
 
     racs_memtable_append(mmt->head, key, block, block_size, checksum);
