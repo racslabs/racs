@@ -164,21 +164,10 @@ int main(int argc, char *argv[]) {
     /* the incoming connections will also be nonblocking since   */
     /* they will inherit that state from the listening socket.   */
     /*************************************************************/
-//    rc = ioctl(listen_sd, FIONBIO, &on);
-//    if (rc < 0) {
-//        racs_log_fatal("ioctl() failed");
-//        close(listen_sd);
-//        exit(-1);
-//    }
-
-    rc = fcntl(listen_sd, F_GETFL, 0);
+    rc = ioctl(listen_sd, FIONBIO, &on);
     if (rc < 0) {
-        racs_log_fatal("fcntl(F_GETFL) failed");
-        exit(-1);
-    }
-
-    if (fcntl(listen_sd, F_SETFL, rc | O_NONBLOCK) < 0) {
-        racs_log_fatal("fcntl(F_SETFL) failed");
+        racs_log_fatal("ioctl() failed");
+        close(listen_sd);
         exit(-1);
     }
 
