@@ -17,6 +17,7 @@
 #include "time.h"
 #include "murmur3.h"
 #include "crc32c.h"
+#include "version.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,7 +29,7 @@ extern "C" {
 
 #define RACS_INDEX_ENTRY_SIZE 24
 
-#define RACS_HEADER_SIZE 8
+#define RACS_HEADER_SIZE 16
 
 #define RACS_MEMTABLE_ENTRY_METADATA_SIZE 22
 

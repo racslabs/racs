@@ -324,6 +324,9 @@ int racs_sstable_open(const char *path, racs_sstable *sst) {
 
 void racs_sstable_write(racs_uint8 *buf, racs_sstable *sst, size_t offset) {
     racs_write_uint64(buf, offset, 0);
+    racs_write_uint32(buf, RACS_VERSION, 8);
+    racs_write_uint32(buf, 0, 12);
+
     write(sst->fd, buf, offset);
 }
 
