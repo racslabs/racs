@@ -20,7 +20,7 @@ SCM racs_scm_extract(SCM stream_id, SCM from, SCM to) {
         scm_misc_error("extract", "Deserialization error", SCM_EOL);
     }
 
-    char *type = racs_deserialize_str(&msg.data, 0);
+    char *type = racs_unpack_str(&msg.data, 0);
     if (strcmp(type, "error") == 0) {
         racs_scm_propagate_error(&msg.data, res.data);
     }
@@ -30,8 +30,8 @@ SCM racs_scm_extract(SCM stream_id, SCM from, SCM to) {
         return SCM_EOL;
     }
 
-    size_t size = racs_deserialize_s32v_size(&msg.data, 1);
-    racs_int32 *data = racs_deserialize_s32v(&msg.data, 1);
+    size_t size = racs_unpack_s32v_size(&msg.data, 1);
+    racs_int32 *data = racs_unpack_s32v(&msg.data, 1);
 
     return scm_take_s32vector(data, size);
 }
@@ -56,7 +56,7 @@ SCM racs_scm_streamcreate(SCM stream_id, SCM sample_rate, SCM channels) {
         scm_misc_error("create", "Deserialization error", SCM_EOL);
     }
 
-    char *type = racs_deserialize_str(&msg.data, 0);
+    char *type = racs_unpack_str(&msg.data, 0);
     if (strcmp(type, "error") == 0) {
         racs_scm_propagate_error(&msg.data, res.data);
     }
@@ -83,7 +83,7 @@ SCM racs_scm_streaminfo(SCM stream_id, SCM attr) {
         scm_misc_error("info", "Deserialization error", SCM_EOL);
     }
 
-    char *type = racs_deserialize_str(&msg.data, 0);
+    char *type = racs_unpack_str(&msg.data, 0);
     if (strcmp(type, "error") == 0) {
         racs_scm_propagate_error(&msg.data, res.data);
     }
@@ -93,7 +93,7 @@ SCM racs_scm_streaminfo(SCM stream_id, SCM attr) {
         return SCM_EOL;
     }
 
-    racs_uint64 value = racs_deserialize_uint64(&msg.data, 1);
+    racs_uint64 value = racs_unpack_uint64(&msg.data, 1);
     return scm_from_uint64(value);
 }
 

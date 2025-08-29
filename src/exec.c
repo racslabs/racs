@@ -241,7 +241,7 @@ void racs_exec_destroy(racs_exec *exec) {
 void racs_handle_error(const char *message, msgpack_sbuffer *out_buf) {
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
-    racs_serialize_error(&pk, message);
+    racs_pack_error(&pk, message);
 }
 
 void racs_handle_unknown_command(racs_command *cmd, msgpack_sbuffer *out_buf) {
@@ -250,7 +250,7 @@ void racs_handle_unknown_command(racs_command *cmd, msgpack_sbuffer *out_buf) {
 
     char *message = NULL;
     asprintf(&message, "Unknown command: %s", cmd->name);
-    racs_serialize_error(&pk, message);
+    racs_pack_error(&pk, message);
 
     free(message);
 }

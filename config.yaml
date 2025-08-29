@@ -1,5 +1,5 @@
 port: 8080
-data_dir: "/home/corbin"
+data_dir: "/home/corbin/racs/cmake-build-debug"
 log_dir: "/home/corbin/racs/cmake-build-debug"
 memtable:
   tables: 1024

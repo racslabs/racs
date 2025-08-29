@@ -4,7 +4,7 @@
 
 #include <msgpack.h>
 #include "scm.h"
-#include "serialization.h"
+#include "pack.h"
 #include "stream.h"
 #include "extract.h"
 #include "wav.h"
@@ -20,7 +20,7 @@ typedef enum {
 #define racs_validate(pk, condition, error) \
     if (!(condition)) {                      \
         msgpack_sbuffer_clear(out_buf);      \
-        return racs_serialize_error(pk, error); \
+        return racs_pack_error(pk, error); \
     }
 
 #define racs_validate_type(pk, msg, arg_num, obj_type, error) \
@@ -28,7 +28,7 @@ typedef enum {
 
 #define racs_validate_num_args(pk, msg, num_args) \
     if ((msg).data.type == MSGPACK_OBJECT_ARRAY && (msg).data.via.array.size != (num_args)) \
-        return racs_serialize_invalid_num_args(pk, num_args, (msg).data.via.array.size);
+        return racs_pack_invalid_num_args(pk, num_args, (msg).data.via.array.size);
 
 #define racs_create_command(name) \
     int racs_command_##name(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, racs_context* ctx)

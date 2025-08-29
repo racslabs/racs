@@ -151,8 +151,8 @@ add_executable(racs
         src/exec.c
         src/command.h
         src/command.c
-        src/serialization.h
-        src/serialization.c
+        src/pack.h
+        src/pack.c
         src/db.h
         src/db.c
         src/context.h

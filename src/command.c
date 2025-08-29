@@ -12,7 +12,7 @@ racs_create_command(ping) {
     racs_parse_buf(in_buf, &pk, &msg, "Error parsing args")
     racs_validate_num_args(&pk, msg, 0)
 
-    return racs_serialize_str(&pk, "PONG");
+    return racs_pack_str(&pk, "PONG");
 }
 
 racs_create_command(streamcreate) {
@@ -31,18 +31,18 @@ racs_create_command(streamcreate) {
     racs_validate_type(&pk, msg, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: int")
     racs_validate_type(&pk, msg, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: int")
 
-    char *stream_id = racs_deserialize_str(&msg.data, 0);
+    char *stream_id = racs_unpack_str(&msg.data, 0);
 
-    racs_uint32 sample_rate = racs_deserialize_uint32(&msg.data, 1);
-    racs_uint16 channels = racs_deserialize_uint16(&msg.data, 2);
+    racs_uint32 sample_rate = racs_unpack_uint32(&msg.data, 1);
+    racs_uint16 channels = racs_unpack_uint16(&msg.data, 2);
 
     int rc = racs_streamcreate(ctx->mcache, stream_id, sample_rate, channels);
     free(stream_id);
 
     if (rc == 1)
-        return racs_serialize_null_with_status_ok(&pk);
+        return racs_pack_null_with_status_ok(&pk);
 
-    return racs_serialize_error(&pk, "Failed to create stream");
+    return racs_pack_error(&pk, "Failed to create stream");
 }
 
 racs_create_command(streamlist) {
@@ -58,13 +58,13 @@ racs_create_command(streamlist) {
     racs_validate_num_args(&pk, msg, 1)
     racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
 
-    char *pattern = racs_deserialize_str(&msg.data, 0);
+    char *pattern = racs_unpack_str(&msg.data, 0);
 
     racs_streams streams;
     racs_streams_init(&streams);
     racs_streaminfo_list(ctx->mcache, &streams, pattern);
 
-    int rc = racs_serialize_streams(&pk, &streams);
+    int rc = racs_pack_streams(&pk, &streams);
     racs_streams_destroy(&streams);
     free(pattern);
 
@@ -85,14 +85,14 @@ racs_create_command(streamopen) {
     racs_validate_num_args(&pk, msg, 1)
     racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
 
-    char *stream_id = racs_deserialize_str(&msg.data, 0);
+    char *stream_id = racs_unpack_str(&msg.data, 0);
     int rc = racs_streamopen(ctx->kv, racs_hash(stream_id));
     free(stream_id);
 
     if (rc == 1)
-        return racs_serialize_null_with_status_ok(&pk);
+        return racs_pack_null_with_status_ok(&pk);
 
-    return racs_serialize_error(&pk, "Stream is already open");
+    return racs_pack_error(&pk, "Stream is already open");
 }
 
 racs_create_command(streamclose) {
@@ -109,14 +109,14 @@ racs_create_command(streamclose) {
     racs_validate_num_args(&pk, msg, 1)
     racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
 
-    char *stream_id = racs_deserialize_str(&msg.data, 0);
+    char *stream_id = racs_unpack_str(&msg.data, 0);
     int rc = racs_streamclose(ctx->kv, racs_hash(stream_id));
     free(stream_id);
 
     if (rc == 1)
-        return racs_serialize_null_with_status_ok(&pk);
+        return racs_pack_null_with_status_ok(&pk);
 
-    return racs_serialize_error(&pk, "Stream is not open");
+    return racs_pack_error(&pk, "Stream is not open");
 }
 
 racs_create_command(streaminfo) {
@@ -134,8 +134,8 @@ racs_create_command(streaminfo) {
     racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
     racs_validate_type(&pk, msg, 1, MSGPACK_OBJECT_STR, "Invalid type at arg 2. Expected string")
 
-    char *stream_id = racs_deserialize_str(&msg.data, 0);
-    char *attr = racs_deserialize_str(&msg.data, 1);
+    char *stream_id = racs_unpack_str(&msg.data, 0);
+    char *attr = racs_unpack_str(&msg.data, 1);
 
     racs_uint64 hash = racs_hash(stream_id);
     racs_uint64 value = racs_streaminfo_attr(ctx->mcache, hash, attr);
@@ -143,8 +143,8 @@ racs_create_command(streaminfo) {
     free(stream_id);
     free(attr);
 
-    if (value != 0) return racs_serialize_uint64(&pk, value);
-    return racs_serialize_error(&pk, "Failure reading metadata");
+    if (value != 0) return racs_pack_uint64(&pk, value);
+    return racs_pack_error(&pk, "Failure reading metadata");
 }
 
 racs_create_command(eval) {
@@ -162,13 +162,13 @@ racs_create_command(eval) {
     racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
 
     char *error = NULL;
-    char *expr = racs_deserialize_str(&msg.data, 0);
+    char *expr = racs_unpack_str(&msg.data, 0);
     SCM res = racs_scm_eval_with_error_handling(expr, &error);
     free(expr);
 
-    if (error) return racs_serialize_error(&pk, error);
+    if (error) return racs_pack_error(&pk, error);
 
-    return racs_scm_serialize(&pk, out_buf, res);
+    return racs_scm_pack(&pk, out_buf, res);
 }
 
 racs_create_command(extract) {
@@ -187,19 +187,19 @@ racs_create_command(extract) {
     racs_validate_type(&pk, msg, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: time")
     racs_validate_type(&pk, msg, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: time")
 
-    char *stream_id = racs_deserialize_str(&msg.data, 0);
-    int64_t from = racs_deserialize_int64(&msg.data, 1);
-    int64_t to = racs_deserialize_int64(&msg.data, 2);
+    char *stream_id = racs_unpack_str(&msg.data, 0);
+    int64_t from = racs_unpack_int64(&msg.data, 1);
+    int64_t to = racs_unpack_int64(&msg.data, 2);
 
     racs_pcm pcm;
 
     int rc = racs_extract_pcm(ctx, &pcm, stream_id, from, to);
     if (rc == RACS_EXTRACT_STATUS_NOT_FOUND) {
         racs_pcm_destroy(&pcm);
-        return racs_serialize_error(&pk, "The stream-id does not exist");
+        return racs_pack_error(&pk, "The stream-id does not exist");
     }
 
-    rc = racs_serialize_s16v(&pk, (racs_int16 *) pcm.out_stream.data, pcm.samples * pcm.channels);
+    rc = racs_pack_s16v(&pk, (racs_int16 *) pcm.out_stream.data, pcm.samples * pcm.channels);
     free(pcm.out_stream.data);
     return rc;
 }
@@ -228,19 +228,19 @@ racs_create_command(format) {
     racs_validate_type(&pk, msg1, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: int")
     racs_validate_type(&pk, msg1, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: int")
 
-    char *type = racs_deserialize_str(&msg2.data, 0);
+    char *type = racs_unpack_str(&msg2.data, 0);
     if (strcmp(type, "i16v") != 0) {
         free(type);
         msgpack_sbuffer_clear(out_buf);
-        return racs_serialize_error(&pk, "Invalid input type. Expected: int16 array");
+        return racs_pack_error(&pk, "Invalid input type. Expected: int16 array");
     }
 
-    racs_int16 *in = racs_deserialize_s16v(&msg2.data, 1);
-    size_t size = racs_deserialize_s16v_size(&msg2.data, 1);
+    racs_int16 *in = racs_unpack_s16v(&msg2.data, 1);
+    size_t size = racs_unpack_s16v_size(&msg2.data, 1);
 
-    char *mime_type = racs_deserialize_str(&msg1.data, 0);
-    racs_uint16 channels = racs_deserialize_uint16(&msg1.data, 1);
-    racs_uint32 sample_rate = racs_deserialize_uint32(&msg1.data, 2);
+    char *mime_type = racs_unpack_str(&msg1.data, 0);
+    racs_uint16 channels = racs_unpack_uint16(&msg1.data, 1);
+    racs_uint32 sample_rate = racs_unpack_uint32(&msg1.data, 2);
 
     void *out = malloc(size * 2 + 44);
 
@@ -252,7 +252,7 @@ racs_create_command(format) {
 
     if (n != 0) {
         msgpack_sbuffer_clear(out_buf);
-        int rc = racs_serialize_u8v(&pk, out, n);
+        int rc = racs_pack_u8v(&pk, out, n);
 
         free(type);
         free(mime_type);
@@ -266,7 +266,7 @@ racs_create_command(format) {
     free(out);
 
     msgpack_sbuffer_clear(out_buf);
-    return racs_serialize_error(&pk, "Unsupported format");
+    return racs_pack_error(&pk, "Unsupported format");
 }
 
 racs_create_command(biquad) {
@@ -290,24 +290,24 @@ racs_create_command(biquad) {
     racs_validate_type(&pk, msg1, 3, MSGPACK_OBJECT_FLOAT64, "Invalid type at arg 4. Expected: float")
     racs_validate_type(&pk, msg1, 4, MSGPACK_OBJECT_FLOAT64, "Invalid type at arg 5. Expected: float")
 
-    char *type = racs_deserialize_str(&msg2.data, 0);
+    char *type = racs_unpack_str(&msg2.data, 0);
 
-    racs_uint16 channels = racs_deserialize_uint16(&msg2.data, 1);
-    racs_uint32 sample_rate = racs_deserialize_uint32(&msg2.data, 2);
-    float cutoff = racs_deserialize_float32(&msg2.data, 3);
-    float p0 = racs_deserialize_float32(&msg2.data, 4);
+    racs_uint16 channels = racs_unpack_uint16(&msg2.data, 1);
+    racs_uint32 sample_rate = racs_unpack_uint32(&msg2.data, 2);
+    float cutoff = racs_unpack_float32(&msg2.data, 3);
+    float p0 = racs_unpack_float32(&msg2.data, 4);
 
-    racs_int16 *in = racs_deserialize_s16v(&msg2.data, 1);
-    size_t size = racs_deserialize_s16v_size(&msg2.data, 1);
+    racs_int16 *in = racs_unpack_s16v(&msg2.data, 1);
+    size_t size = racs_unpack_s16v_size(&msg2.data, 1);
 
     racs_int16 *out = racs_biquad_s16(in, type, cutoff, (float)sample_rate, p0, channels, size / channels);
 
     if (!out) {
         msgpack_sbuffer_clear(out_buf);
-        return racs_serialize_error(&pk, "Failed to apply biquad filter.");
+        return racs_pack_error(&pk, "Failed to apply biquad filter.");
     }
 
-    int rc = racs_serialize_s16v(&pk, out, size);
+    int rc = racs_pack_s16v(&pk, out, size);
     free(out);
 
     return rc;
@@ -322,7 +322,7 @@ int racs_stream(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data) {
 
     int rc = racs_streamappend(ctx->mcache, ctx->mmt, ctx->kv, data);
     if (rc == RACS_STREAM_OK)
-        return racs_serialize_null_with_status_ok(&pk);
+        return racs_pack_null_with_status_ok(&pk);
 
-    return racs_serialize_error(&pk, racs_stream_status_string[rc]);
+    return racs_pack_error(&pk, racs_stream_status_string[rc]);
 }
