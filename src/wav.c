@@ -9,17 +9,15 @@ void racs_wav_set_sample_rate(racs_wav *wav, racs_uint32 sample_rate) {
     wav->format.sample_rate = sample_rate;
 }
 
-size_t racs_wav_write_s16(racs_wav *wav, const racs_int16 *in, void *out, size_t samples, size_t size) {
-//    if (wav->format.channels == 2) {
-//        racs_int16 *_in = malloc(wav->format.channels * samples * sizeof(racs_int16));
-//        racs_simd_planar_s16(in, _in, wav->format.channels * samples);
-//
-//        size_t _size = racs_wav_write(wav, _in, out, samples, size);
-//
-//        free(_in);
-//        return _size;
-//    }
+void racs_wav_set_bit_depth(racs_wav *wav, racs_uint16 bit_depth) {
+    wav->format.bit_depth = bit_depth;
+}
 
+size_t racs_wav_write_s16(racs_wav *wav, const racs_int16 *in, void *out, size_t samples, size_t size) {
+    return racs_wav_write(wav, in, out, samples, size);
+}
+
+size_t racs_wav_write_s24(racs_wav *wav, const racs_int24 *in, void *out, size_t samples, size_t size) {
     return racs_wav_write(wav, in, out, samples, size);
 }
 
@@ -35,8 +33,6 @@ size_t racs_wav_write(racs_wav *wav, const void *in, void *out, size_t samples, 
 }
 
 void racs_wav_encode_header(void *out, racs_wav *wav, racs_uint32 samples) {
-    wav->format.bit_depth = 16;
-
     memcpy(wav->header.chunk_id, "RIFF", 4);
     wav->header.chunk_size = (samples * wav->format.channels * wav->format.bit_depth / 8) + 36;
     memcpy(wav->header.format, "WAVE", 4);
@@ -49,8 +45,6 @@ void racs_wav_encode_header(void *out, racs_wav *wav, racs_uint32 samples) {
 void racs_wav_encode_format(void *out, racs_wav *wav) {
     wav->format.block_align = wav->format.channels * wav->format.bit_depth / 8;
     wav->format.byte_rate = wav->format.sample_rate * wav->format.block_align;
-
-    wav->format.sub_chunk1_size = 16;
     wav->format.audio_format = 1;
 
     memcpy(wav->format.sub_chunk1_id, "fmt ", 4);

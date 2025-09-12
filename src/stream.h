@@ -25,7 +25,7 @@ typedef struct {
 
 extern const char *const racs_stream_status_string[];
 
-int racs_streamcreate(racs_cache *mcache, const char* stream_id, racs_uint32 sample_rate, racs_uint16 channels);
+int racs_streamcreate(racs_cache *mcache, const char* stream_id, racs_uint32 sample_rate, racs_uint16 channels, racs_uint16 bit_depth);
 
 int racs_streamappend(racs_cache *mcache, racs_multi_memtable *mmt, racs_streamkv *kv, racs_uint8 *data);
 

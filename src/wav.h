@@ -38,9 +38,13 @@ void racs_wav_set_channels(racs_wav *wav, racs_uint16 channels);
 
 void racs_wav_set_sample_rate(racs_wav *wav, racs_uint32 sample_rate);
 
+void racs_wav_set_bit_depth(racs_wav *wav, racs_uint16 bit_depth);
+
 size_t racs_wav_write(racs_wav *wav, const void *in, void *out, size_t samples, size_t size);
 
 size_t racs_wav_write_s16(racs_wav *wav, const racs_int16 *in, void *out, size_t samples, size_t size);
+
+size_t racs_wav_write_s24(racs_wav *wav, const racs_int24 *in, void *out, size_t samples, size_t size);
 
 void racs_wav_encode_header(void *out, racs_wav *wav, racs_uint32 samples);
 

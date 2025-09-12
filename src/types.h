@@ -21,10 +21,10 @@ typedef unsigned long long racs_uint64;
 
 // 24-bit integer types (useful for file I/O and packing)
 typedef struct {
-    unsigned char _[3];
+    racs_uint8 l, m, h;
 } racs_uint24;
 typedef struct {
-    signed char _[3];
+    racs_int8 l, m, h;
 } racs_int24;
 
 // Standard time type
@@ -41,5 +41,15 @@ typedef float complex racs_complex;
 float *racs_s16_f32(const racs_int16 *in, size_t n);
 
 racs_int16 *racs_f32_s16(const float *in, size_t n);
+
+racs_int32 *racs_s16_s32(const racs_int16 *in, size_t n);
+
+racs_int32 *racs_s24_s32(const racs_int24 *in, size_t n);
+
+racs_int24 *racs_s32_s24(const racs_int32 *in, size_t n);
+
+racs_int16 *racs_s32_s16(const racs_int32 *in, size_t n);
+
+racs_int16 *racs_s32_s16_d8(const racs_int32 *in, size_t n);
 
 #endif // RACS_TYPES_H

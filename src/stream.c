@@ -10,13 +10,13 @@ const char *const racs_stream_status_string[] = {
         "Stream not found."
 };
 
-int racs_streamcreate(racs_cache *mcache, const char* stream_id, racs_uint32 sample_rate, racs_uint16 channels) {
+int racs_streamcreate(racs_cache *mcache, const char* stream_id, racs_uint32 sample_rate, racs_uint16 channels, racs_uint16 bit_depth) {
     racs_streaminfo streaminfo;
     memset(&streaminfo, 0, sizeof(racs_streaminfo));
 
     streaminfo.sample_rate = sample_rate;
     streaminfo.channels = channels;
-    streaminfo.bit_depth = 16;
+    streaminfo.bit_depth = bit_depth;
     streaminfo.id_size = strlen(stream_id) + 1;
     streaminfo.id = (char*)stream_id;
 

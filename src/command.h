@@ -53,8 +53,6 @@ racs_create_command(streamlist);
 
 racs_create_command(shutdown);
 
-racs_create_command(biquad);
-
 int racs_stream(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data);
 
 #endif //RACS_COMMAND_H

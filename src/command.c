@@ -26,17 +26,19 @@ racs_create_command(streamcreate) {
 
     racs_parse_buf(in_buf, &pk, &msg, "Error parsing args")
 
-    racs_validate_num_args(&pk, msg, 3)
+    racs_validate_num_args(&pk, msg, 4)
     racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected: string")
     racs_validate_type(&pk, msg, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: int")
     racs_validate_type(&pk, msg, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: int")
+    racs_validate_type(&pk, msg, 3, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 4. Expected: int")
 
     char *stream_id = racs_unpack_str(&msg.data, 0);
 
     racs_uint32 sample_rate = racs_unpack_uint32(&msg.data, 1);
     racs_uint16 channels = racs_unpack_uint16(&msg.data, 2);
+    racs_uint16 bit_depth = racs_unpack_uint16(&msg.data, 3);
 
-    int rc = racs_streamcreate(ctx->mcache, stream_id, sample_rate, channels);
+    int rc = racs_streamcreate(ctx->mcache, stream_id, sample_rate, channels, bit_depth);
     free(stream_id);
 
     if (rc == 1)
@@ -199,8 +201,18 @@ racs_create_command(extract) {
         return racs_pack_error(&pk, "The stream-id does not exist");
     }
 
-    rc = racs_pack_s16v(&pk, (racs_int16 *) pcm.out_stream.data, pcm.samples * pcm.channels);
+    racs_int32 *out = NULL;
+
+    if (pcm.bit_depth == 16)
+        out = racs_s16_s32((const racs_int16 *) pcm.out_stream.data, pcm.samples * pcm.channels);
+    if (pcm.bit_depth == 24)
+        out = racs_s24_s32((const racs_int24 *) pcm.out_stream.data, pcm.samples * pcm.channels);
+
+    rc = racs_pack_s32v(&pk, out, pcm.samples * pcm.channels);
+
     free(pcm.out_stream.data);
+    free(out);
+
     return rc;
 }
 
@@ -222,31 +234,34 @@ racs_create_command(format) {
     racs_parse_buf(in_buf, &pk, &msg1, "Error parsing args")
     racs_parse_buf(out_buf, &pk, &msg2, "Error parsing buffer")
 
-    racs_validate_num_args(&pk, msg1, 3)
+    racs_validate_num_args(&pk, msg1, 4)
 
     racs_validate_type(&pk, msg1, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected: string")
     racs_validate_type(&pk, msg1, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: int")
     racs_validate_type(&pk, msg1, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: int")
+    racs_validate_type(&pk, msg1, 3, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: int")
 
     char *type = racs_unpack_str(&msg2.data, 0);
-    if (strcmp(type, "i16v") != 0) {
+    if (strcmp(type, "i32v") != 0) {
         free(type);
         msgpack_sbuffer_clear(out_buf);
         return racs_pack_error(&pk, "Invalid input type. Expected: int16 array");
     }
 
-    racs_int16 *in = racs_unpack_s16v(&msg2.data, 1);
-    size_t size = racs_unpack_s16v_size(&msg2.data, 1);
+    racs_int32 *in = racs_unpack_s32v(&msg2.data, 1);
+    size_t size = racs_unpack_s32v_size(&msg2.data, 1);
 
     char *mime_type = racs_unpack_str(&msg1.data, 0);
-    racs_uint16 channels = racs_unpack_uint16(&msg1.data, 1);
-    racs_uint32 sample_rate = racs_unpack_uint32(&msg1.data, 2);
+    racs_uint32 sample_rate = racs_unpack_uint32(&msg1.data, 1);
+    racs_uint16 channels = racs_unpack_uint16(&msg1.data, 2);
+    racs_uint16 bit_depth = racs_unpack_uint16(&msg1.data, 3);
 
     void *out = malloc(size * 2 + 44);
 
     racs_format fmt;
     fmt.channels = channels;
     fmt.sample_rate = sample_rate;
+    fmt.bit_depth = bit_depth;
 
     size_t n = racs_format_pcm(&fmt, in, out, size / channels, size * 2 + 44, mime_type);
 
@@ -267,50 +282,6 @@ racs_create_command(format) {
 
     msgpack_sbuffer_clear(out_buf);
     return racs_pack_error(&pk, "Unsupported format");
-}
-
-racs_create_command(biquad) {
-    msgpack_packer pk;
-    msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
-
-    msgpack_unpacked msg1;
-    msgpack_unpacked_init(&msg1);
-
-    msgpack_unpacked msg2;
-    msgpack_unpacked_init(&msg2);
-
-    racs_parse_buf(in_buf, &pk, &msg1, "Error parsing args")
-    racs_parse_buf(out_buf, &pk, &msg2, "Error parsing buffer")
-
-    racs_validate_num_args(&pk, msg1, 5)
-
-    racs_validate_type(&pk, msg1, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected: string")
-    racs_validate_type(&pk, msg1, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: int")
-    racs_validate_type(&pk, msg1, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: int")
-    racs_validate_type(&pk, msg1, 3, MSGPACK_OBJECT_FLOAT64, "Invalid type at arg 4. Expected: float")
-    racs_validate_type(&pk, msg1, 4, MSGPACK_OBJECT_FLOAT64, "Invalid type at arg 5. Expected: float")
-
-    char *type = racs_unpack_str(&msg2.data, 0);
-
-    racs_uint16 channels = racs_unpack_uint16(&msg2.data, 1);
-    racs_uint32 sample_rate = racs_unpack_uint32(&msg2.data, 2);
-    float cutoff = racs_unpack_float32(&msg2.data, 3);
-    float p0 = racs_unpack_float32(&msg2.data, 4);
-
-    racs_int16 *in = racs_unpack_s16v(&msg2.data, 1);
-    size_t size = racs_unpack_s16v_size(&msg2.data, 1);
-
-    racs_int16 *out = racs_biquad_s16(in, type, cutoff, (float)sample_rate, p0, channels, size / channels);
-
-    if (!out) {
-        msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Failed to apply biquad filter.");
-    }
-
-    int rc = racs_pack_s16v(&pk, out, size);
-    free(out);
-
-    return rc;
 }
 
 int racs_stream(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data) {
