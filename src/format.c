@@ -42,7 +42,7 @@ racs_format_pcm(racs_format *fmt, const void *in, void *out, size_t samples, siz
         }
 
         if (fmt->bit_depth == 24) {
-            racs_int16 *_in = racs_s32_s16_d8(in, fmt->channels * samples);
+            racs_int16 *_in = racs_s32_s16_d8(in, samples * fmt->channels);
             bytes = racs_mp3_write_s16(&mp3, _in, out, samples, size);
             free(_in);
         }

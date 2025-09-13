@@ -245,7 +245,7 @@ racs_create_command(format) {
     if (strcmp(type, "i32v") != 0) {
         free(type);
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Invalid input type. Expected: int16 array");
+        return racs_pack_error(&pk, "Invalid input type. Expected: int32 array");
     }
 
     racs_int32 *in = racs_unpack_s32v(&msg2.data, 1);
