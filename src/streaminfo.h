@@ -23,6 +23,7 @@ typedef struct {
     racs_uint32 sample_rate;
     racs_uint64 size;
     racs_time   ref;
+    racs_time   ttl;
     racs_uint32 id_size;
     char*       id;
 } racs_streaminfo;

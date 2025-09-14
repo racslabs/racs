@@ -58,7 +58,7 @@ int racs_streamappend(racs_cache *mcache, racs_multi_memtable *mmt, racs_streamk
     if (frame.header.channels != streaminfo.channels)
         return RACS_STREAM_INVALID_CHANNELS;
 
-    if (frame.header.bit_depth != 16)
+    if (frame.header.bit_depth != 16 && frame.header.bit_depth != 24)
         return RACS_STREAM_INVALID_BITDEPTH;
 
     if (streaminfo.ref == 0 && streaminfo.size == 0)

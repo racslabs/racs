@@ -45,7 +45,7 @@ size_t racs_streaminfo_filesize(const char *path) {
 }
 
 size_t racs_streaminfo_size(racs_streaminfo* streaminfo) {
-    return 28 + streaminfo->id_size;
+    return 36 + streaminfo->id_size;
 }
 
 int racs_streaminfo_get(racs_cache *mcache, racs_streaminfo *streaminfo, racs_uint64 stream_id) {
@@ -150,6 +150,7 @@ off_t racs_streaminfo_write(racs_uint8 *buf, racs_streaminfo *streaminfo) {
     offset = racs_write_uint32(buf, streaminfo->sample_rate, offset);
     offset = racs_write_uint64(buf, streaminfo->size, offset);
     offset = racs_write_uint64(buf, streaminfo->ref, offset);
+    offset = racs_write_uint64(buf, streaminfo->ttl, offset);
     offset = racs_write_uint32(buf, streaminfo->id_size, offset);
     offset = racs_write_bin(buf, streaminfo->id, streaminfo->id_size, offset);
     return offset;
@@ -162,6 +163,7 @@ off_t racs_streaminfo_read(racs_streaminfo *streaminfo, racs_uint8 *buf) {
     offset = racs_read_uint32(&streaminfo->sample_rate, buf, offset);
     offset = racs_read_uint64(&streaminfo->size, buf, offset);
     offset = racs_read_uint64((racs_uint64 *) &streaminfo->ref, buf, offset);
+    offset = racs_read_uint64((racs_uint64 *) &streaminfo->ttl, buf, offset);
     offset = racs_read_uint32(&streaminfo->id_size, buf, offset);
 
     streaminfo->id = (char*)buf + offset;
