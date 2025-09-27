@@ -140,12 +140,12 @@ racs_create_command(streaminfo) {
     char *attr = racs_unpack_str(&msg.data, 1);
 
     racs_uint64 hash = racs_hash(stream_id);
-    racs_uint64 value = racs_streaminfo_attr(ctx->mcache, hash, attr);
+    racs_int64 value = racs_streaminfo_attr(ctx->mcache, hash, attr);
 
     free(stream_id);
     free(attr);
 
-    if (value != 0) return racs_pack_uint64(&pk, value);
+    if (value != 0) return racs_pack_int64(&pk, value);
     return racs_pack_error(&pk, "Failure reading metadata");
 }
 

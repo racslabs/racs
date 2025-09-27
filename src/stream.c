@@ -2,7 +2,7 @@
 
 const char *const racs_stream_status_string[] = {
         "",
-        "Malformed atsp frame.",
+        "Malformed rspt frame.",
         "Stream is closed or currently in use.",
         "Invalid sample rate.",
         "Invalid channels.",
@@ -19,6 +19,7 @@ int racs_streamcreate(racs_cache *mcache, const char* stream_id, racs_uint32 sam
     streaminfo.bit_depth = bit_depth;
     streaminfo.id_size = strlen(stream_id) + 1;
     streaminfo.id = (char*)stream_id;
+    streaminfo.ttl = -1;
 
     racs_uint64 hash = racs_hash(stream_id);
     if (racs_streaminfo_get(mcache, &streaminfo, hash)) return 0;
@@ -28,7 +29,7 @@ int racs_streamcreate(racs_cache *mcache, const char* stream_id, racs_uint32 sam
     if (!data) return 0;
 
     racs_streaminfo_write(data, &streaminfo);
-    racs_streaminfo_flush(data, size, hash);
+//    racs_streaminfo_flush(data, size, hash);
     racs_streaminfo_put(mcache, &streaminfo, hash);
 
     return 1;
@@ -69,6 +70,7 @@ int racs_streamappend(racs_cache *mcache, racs_multi_memtable *mmt, racs_streamk
     racs_multi_memtable_append(mmt, key, frame.pcm_block, frame.header.block_size, frame.header.checksum);
 
     streaminfo.size += frame.header.block_size;
+    racs_log_info("before size %zu", streaminfo.size);
     racs_streaminfo_put(mcache, &streaminfo, frame.header.stream_id);
 
     return RACS_STREAM_OK;

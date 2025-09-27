@@ -54,7 +54,6 @@ int racs_recv(int fd, int len, racs_conn_stream *stream) {
             return -1;
         }
 
-        racs_log_debug("%d bytes received", rc);
         racs_memstream_write(&stream->in_stream, buf, rc);
     }
 
@@ -87,7 +86,6 @@ int racs_send(int fd, racs_conn_stream *stream) {
         bytes += (size_t)rc;
     }
 
-    racs_log_info("%zu bytes sent", bytes);
     return 0;
 }
 

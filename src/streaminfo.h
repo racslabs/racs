@@ -36,7 +36,7 @@ typedef struct {
 
 extern const char* racs_streaminfo_dir;
 
-racs_uint64 racs_streaminfo_attr(racs_cache *mcache, racs_uint64 stream_id, const char *attr);
+racs_int64 racs_streaminfo_attr(racs_cache *mcache, racs_uint64 stream_id, const char *attr);
 
 int racs_streaminfo_get(racs_cache *mcache, racs_streaminfo *streaminfo, racs_uint64 stream_id);
 

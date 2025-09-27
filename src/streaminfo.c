@@ -18,18 +18,24 @@ racs_cache *racs_mcache_create(size_t capacity) {
     return cache;
 }
 
-racs_uint64 racs_streaminfo_attr(racs_cache *mcache, racs_uint64 stream_id, const char *attr) {
+racs_int64 racs_streaminfo_attr(racs_cache *mcache, racs_uint64 stream_id, const char *attr) {
     racs_streaminfo streaminfo;
     if (racs_streaminfo_get(mcache, &streaminfo, stream_id) == 0) return 0;
 
-    if (strcmp(attr, "rate") == 0)
+    if (strcmp(attr, "sample_rate") == 0)
         return streaminfo.sample_rate;
 
     if (strcmp(attr, "channels") == 0)
         return streaminfo.channels;
 
-    if (strcmp(attr, "bitdepth") == 0)
+    if (strcmp(attr, "bit_depth") == 0)
         return streaminfo.bit_depth;
+
+    if (strcmp(attr, "size") == 0)
+        return streaminfo.size;
+
+    if (strcmp(attr, "ref") == 0)
+        return streaminfo.ref;
 
     return 0;
 }
@@ -109,9 +115,12 @@ int racs_streaminfo_put(racs_cache *mcache, racs_streaminfo *streaminfo, racs_ui
     key[0] = stream_id;
     key[1] = 0;
 
-    int rc = racs_streaminfo_get(mcache, streaminfo, stream_id);
+    racs_streaminfo s;
+    int rc = racs_streaminfo_get(mcache, &s, stream_id);
+
     if (rc == -1 || rc == 1) {
-        racs_log_info("Stream already exist.");
+        racs_uint8 *data = racs_cache_get(mcache, key);
+        racs_streaminfo_write(data, streaminfo);
         free(key);
         return 0;
     }
