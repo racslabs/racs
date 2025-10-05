@@ -40,10 +40,10 @@ int racs_streamappend(racs_cache *mcache, racs_multi_memtable *mmt, racs_streamk
     if (!racs_frame_parse(data, &frame))
         return RACS_STREAM_MALFORMED;
 
-    racs_uint64 *sessiond_id = racs_streamkv_get(kv, frame.header.stream_id);
-    if (!sessiond_id) return RACS_STREAM_CONFLICT;
+    racs_uint64 *session_id = racs_streamkv_get(kv, frame.header.stream_id);
+    if (!session_id) return RACS_STREAM_CONFLICT;
 
-    if (!racs_session_cmp(frame.header.session_id, sessiond_id))
+    if (!racs_session_cmp(frame.header.session_id, session_id))
         return RACS_STREAM_CONFLICT;
 
     racs_streaminfo streaminfo;

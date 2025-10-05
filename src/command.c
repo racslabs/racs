@@ -256,14 +256,14 @@ racs_create_command(format) {
     racs_uint16 channels = racs_unpack_uint16(&msg1.data, 2);
     racs_uint16 bit_depth = racs_unpack_uint16(&msg1.data, 3);
 
-    void *out = malloc(size * 2 + 44);
+    void *out = malloc(size * (bit_depth / 8) + 44);
 
     racs_format fmt;
     fmt.channels = channels;
     fmt.sample_rate = sample_rate;
     fmt.bit_depth = bit_depth;
 
-    size_t n = racs_format_pcm(&fmt, in, out, size / channels, size * 2 + 44, mime_type);
+    size_t n = racs_format_pcm(&fmt, in, out, size / channels, size * (bit_depth / 8) + 44, mime_type);
 
     if (n != 0) {
         msgpack_sbuffer_clear(out_buf);

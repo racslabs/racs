@@ -20,11 +20,8 @@ typedef signed long long racs_int64;
 typedef unsigned long long racs_uint64;
 
 // 24-bit integer types (useful for file I/O and packing)
-typedef struct {
-    racs_uint8 l, m, h;
-} racs_uint24;
-typedef struct {
-    racs_int8 l, m, h;
+typedef struct __attribute__((packed)) {
+    racs_uint8 _[3];
 } racs_int24;
 
 // Standard time type

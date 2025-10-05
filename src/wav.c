@@ -46,7 +46,7 @@ void racs_wav_encode_format(void *out, racs_wav *wav) {
     wav->format.block_align = wav->format.channels * wav->format.bit_depth / 8;
     wav->format.byte_rate = wav->format.sample_rate * wav->format.block_align;
 
-    wav->format.sub_chunk1_size = wav->format.bit_depth;
+    wav->format.sub_chunk1_size = 16;
     wav->format.audio_format = 1;
 
     memcpy(wav->format.sub_chunk1_id, "fmt ", 4);
