@@ -204,7 +204,7 @@ racs_memtable *racs_memtable_create(int capacity) {
     pthread_mutex_init(&mt->mutex, NULL);
 
     for (int i = 0; i < mt->capacity; ++i) {
-        if (posix_memalign((void **) &mt->entries[i].block, RACS__ALIGN, RACS_MAX_BLOCK_SIZE) != 0) {
+        if (posix_memalign((void **) &mt->entries[i].block, RACS_ALIGN, RACS_MAX_BLOCK_SIZE) != 0) {
             racs_log_error("Failed to allocate block to racs_memtable");
             racs_memtable_destroy(mt);
             return NULL;

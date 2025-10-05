@@ -10,7 +10,7 @@ extern "C" {
 
 #define RACS_PACKED __attribute__((packed))
 
-#define RACS__ALIGN 32
+#define RACS_ALIGN 32
 
 #ifdef __cplusplus
 }
