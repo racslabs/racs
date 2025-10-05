@@ -20,7 +20,7 @@ typedef signed long long racs_int64;
 typedef unsigned long long racs_uint64;
 
 // 24-bit integer types (useful for file I/O and packing)
-typedef struct __attribute__((packed)) {
+typedef struct RACS_PACKED {
     racs_uint8 _[3];
 } racs_int24;
 

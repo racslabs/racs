@@ -45,9 +45,9 @@ racs_int24 *racs_s32_s24(const racs_int32 *in, size_t n) {
     for (int i = 0; i < n; ++i) {
         racs_int32 s = in[i];
 
-        out[i]._[0] = (racs_int8)(s & 0xff);
-        out[i]._[1] = (racs_int8)((s >> 8) & 0xff);
-        out[i]._[2] = (racs_int8)((s >> 16) & 0xff);
+        out[i]._[0] = (racs_uint8)(s & 0xff);
+        out[i]._[1] = (racs_uint8)((s >> 8) & 0xff);
+        out[i]._[2] = (racs_uint8)((s >> 16) & 0xff);
     }
 
     return out;

@@ -8,6 +8,8 @@ extern "C" {
 
 #define RACS_FORCE_INLINE inline __attribute__((always_inline))
 
+#define RACS_PACKED __attribute__((packed))
+
 #define RACS__ALIGN 32
 
 #ifdef __cplusplus
