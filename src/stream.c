@@ -29,7 +29,7 @@ int racs_streamcreate(racs_cache *mcache, const char* stream_id, racs_uint32 sam
     if (!data) return 0;
 
     racs_streaminfo_write(data, &streaminfo);
-//    racs_streaminfo_flush(data, size, hash);
+    racs_streaminfo_flush(data, size, hash);
     racs_streaminfo_put(mcache, &streaminfo, hash);
 
     return 1;

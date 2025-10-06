@@ -9,7 +9,6 @@
 #include "extract.h"
 #include "wav.h"
 #include "format.h"
-#include "biquad.h"
 
 typedef enum {
     RACS_STATUS_OK,

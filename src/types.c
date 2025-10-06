@@ -1,7 +1,8 @@
 #include "types.h"
 
 float *racs_s16_f32(const racs_int16 *in, size_t n) {
-    float *out = racs_malloc(sizeof(float) * n);
+    float *out = NULL;
+    posix_memalign((void **)&out, RACS_ALIGN, sizeof(float) * n);
 
     for (int i = 0; i < n; ++i)
         out[i] = (float)in[i] / 32767;

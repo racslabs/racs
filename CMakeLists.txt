@@ -3,79 +3,6 @@ project(racs LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 17)
-
-set(RACS_DSP_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src/dsp)
-set(RACS_TEST_DIR ${CMAKE_SOURCE_DIR}/test)
-set(RACS_STATIC_LIBRARY_NAME libracs_dsp)
-
-include(FetchContent)
-include(GoogleTest)
-
-if (WIN32 OR APPLE)
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-
-    FetchContent_Declare(
-            googletest
-            URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
-            DOWNLOAD_EXTRACT_TIMESTAMP true
-    )
-else()
-    FetchContent_Declare(
-            googletest
-            URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
-    )
-endif()
-
-if(WIN32)
-    set(CMAKE_STATIC_LIBRARY_SUFFIX ".lib")
-elseif(UNIX)
-    set(CMAKE_STATIC_LIBRARY_SUFFIX ".a")
-endif()
-
-option(RACS_AVX2_CMAKE_BUILD "AVX2 CMake build" ON)
-option(RACS_NEON8_CMAKE_BUILD "NEON8 CMake build" OFF)
-add_compile_options(-march=native -O2)
-if (RACS_AVX2_CMAKE_BUILD)
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        add_compile_options(-march=native -O2)
-    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MVSC")
-        add_compile_options(/arch:AVX /O2)
-    endif()
-elseif (RACS_NEON8_CMAKE_BUILD)
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        set(ARM_ALIASES armv6l armv7l aarch64)
-        add_compile_options(-O2 -march=armv8-a+simd)
-    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MVSC")
-        add_compile_options(/arch:ARM64 /O2)
-    endif()
-endif()
-
-FetchContent_MakeAvailable(googletest)
-
-add_compile_definitions(RACS_MULTITHREADED)
-
-file(GLOB_RECURSE RACS_INCLUDE_FILES CONFIGURE_DEPENDS ${RACS_DSP_SOURCE_DIR}/*.hpp)
-file(GLOB_RECURSE RACS_SOURCE_FILES CONFIGURE_DEPENDS ${RACS_DSP_SOURCE_DIR}/*.hpp ${RACS_DSP_SOURCE_DIR}/*.cpp)
-file(GLOB_RECURSE RACS_TEST_FILES CONFIGURE_DEPENDS ${RACS_TEST_DIR}/*.hpp ${RACS_TEST_DIR}/*.cpp)
-
-add_library(${RACS_STATIC_LIBRARY_NAME} STATIC ${RACS_SOURCE_FILES})
-set_target_properties(${RACS_STATIC_LIBRARY_NAME} PROPERTIES PREFIX "")
-
-enable_testing()
-
-add_executable(racs_test ${RACS_SOURCE_FILES} ${RACS_TEST_FILES})
-
-target_link_libraries(
-        racs_test
-        PRIVATE
-        GTest::gtest_main
-        ${RACS_STATIC_LIBRARY_NAME}
-)
-
-gtest_discover_tests(racs_test)
-
-option(INSTALL_GMOCK OFF)
-option(INSTALL_GTEST OFF)
 #
 ## Install headers
 #install(DIRECTORY
@@ -193,8 +120,6 @@ add_executable(racs
         src/log.c
         src/version.h
         src/types.c
-        src/biquad.h
-        src/biquad.c
 )
 
 target_link_libraries(racs
@@ -204,7 +129,54 @@ target_link_libraries(racs
         ${OPUS_LIBRARIES}
         ${OPUSENC_LIBRARIES}
         ${YAML_LIBRARIES}
-        libracs_dsp
 )
+
+set(RACS_TEST_DIR ${CMAKE_SOURCE_DIR}/test)
+
+include(FetchContent)
+include(GoogleTest)
+
+if (WIN32 OR APPLE)
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+    FetchContent_Declare(
+            googletest
+            URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+            DOWNLOAD_EXTRACT_TIMESTAMP true
+    )
+else()
+    FetchContent_Declare(
+            googletest
+            URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+    )
+endif()
+
+if(WIN32)
+    set(CMAKE_STATIC_LIBRARY_SUFFIX ".lib")
+elseif(UNIX)
+    set(CMAKE_STATIC_LIBRARY_SUFFIX ".a")
+endif()
+
+FetchContent_MakeAvailable(googletest)
+
+file(GLOB_RECURSE RACS_TEST_FILES CONFIGURE_DEPENDS ${RACS_TEST_DIR}/*.hpp ${RACS_TEST_DIR}/*.cpp)
+
+set_target_properties(${RACS_STATIC_LIBRARY_NAME} PROPERTIES PREFIX "")
+
+enable_testing()
+
+add_executable(racs_test ${RACS_SOURCE_FILES} ${RACS_TEST_FILES})
+
+target_link_libraries(
+        racs_test
+        PRIVATE
+        GTest::gtest_main
+        ${RACS_STATIC_LIBRARY_NAME}
+)
+
+gtest_discover_tests(racs_test)
+
+option(INSTALL_GMOCK OFF)
+option(INSTALL_GTEST OFF)
 
 enable_testing()

@@ -4,7 +4,6 @@
 #include <time.h>
 #include <stdlib.h>
 #include "export.h"
-#include "capi/allocator.h"
 
 // Basic integer types
 typedef signed char racs_int8;
@@ -19,7 +18,7 @@ typedef unsigned int racs_uint32;
 typedef signed long long racs_int64;
 typedef unsigned long long racs_uint64;
 
-// 24-bit integer types (useful for file I/O and packing)
+// 24-bit integer type (useful for file I/O and packing)
 typedef struct RACS_PACKED {
     racs_uint8 _[3];
 } racs_int24;
