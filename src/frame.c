@@ -9,18 +9,18 @@ int racs_frame_parse(racs_uint8 *buf, racs_frame *frame) {
 }
 
 off_t racs_frame_header_parse(racs_uint8 *buf, racs_frame_header *header) {
-    memcpy(&header->chunk_id, buf, 4);
-    memcpy(&header->session_id, buf + 4, 16);
-    racs_read_uint64(&header->stream_id, buf, 20);
-    racs_read_uint32(&header->checksum, buf, 28);
-    racs_read_uint16(&header->channels, buf, 32);
-    racs_read_uint32(&header->sample_rate, buf, 34);
-    racs_read_uint16(&header->bit_depth, buf, 38);
-    racs_read_uint16(&header->block_size, buf, 40);
-    return 42;
+    memcpy(&header->chunk_id, buf, 3);
+    memcpy(&header->session_id, buf + 3, 16);
+    racs_read_uint64(&header->stream_id, buf, 19);
+    racs_read_uint32(&header->checksum, buf, 27);
+    racs_read_uint16(&header->channels, buf, 31);
+    racs_read_uint32(&header->sample_rate, buf, 33);
+    racs_read_uint16(&header->bit_depth, buf, 37);
+    racs_read_uint16(&header->block_size, buf, 39);
+    return 41;
 }
 
 int racs_is_frame(const char *id) {
     if (!id) return 0;
-    return memcmp(id, "rspt", 4) == 0;
+    return memcmp(id, "rsp", 3) == 0;
 }

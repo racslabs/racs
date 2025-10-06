@@ -9,7 +9,7 @@
 #include "crc32c.h"
 
 typedef struct {
-    char chunk_id[4];
+    char chunk_id[3];
     racs_uint64 session_id[2];
     racs_uint64 stream_id;
     racs_uint32 checksum;
