@@ -242,7 +242,7 @@ racs_create_command(format) {
     racs_validate_type(&pk, msg1, 3, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: int")
 
     char *type = racs_unpack_str(&msg2.data, 0);
-    if (strcmp(type, "i32v") != 0) {
+    if (strcmp(type, "s32v") != 0) {
         free(type);
         msgpack_sbuffer_clear(out_buf);
         return racs_pack_error(&pk, "Invalid input type. Expected: int32 array");

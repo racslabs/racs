@@ -10,11 +10,11 @@ const char *const racs_type_string[] = {
         "error",
         "bool",
         "u8v",
-        "i8v",
+        "s8v",
         "u16v",
-        "i16v",
+        "s16v",
         "u32v",
-        "i32v",
+        "s32v",
         "f32v",
         "c64v"
 };

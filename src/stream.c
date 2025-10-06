@@ -70,7 +70,6 @@ int racs_streamappend(racs_cache *mcache, racs_multi_memtable *mmt, racs_streamk
     racs_multi_memtable_append(mmt, key, frame.pcm_block, frame.header.block_size, frame.header.checksum);
 
     streaminfo.size += frame.header.block_size;
-    racs_log_info("before size %zu", streaminfo.size);
     racs_streaminfo_put(mcache, &streaminfo, frame.header.stream_id);
 
     return RACS_STREAM_OK;
