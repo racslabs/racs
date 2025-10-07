@@ -227,7 +227,7 @@ void racs_exec_init(racs_exec *exec) {
     racs_kvstore_put(exec->kv, strdup("INFO"), racs_command_streaminfo);
     racs_kvstore_put(exec->kv, strdup("OPEN"), racs_command_streamopen);
     racs_kvstore_put(exec->kv, strdup("CLOSE"), racs_command_streamclose);
-    racs_kvstore_put(exec->kv, strdup("LIST"), racs_command_streamlist);
+    racs_kvstore_put(exec->kv, strdup("LS"), racs_command_streamlist);
     racs_kvstore_put(exec->kv, strdup("EXTRACT"), racs_command_extract);
     racs_kvstore_put(exec->kv, strdup("EVAL"), racs_command_eval);
     racs_kvstore_put(exec->kv, strdup("FORMAT"), racs_command_format);

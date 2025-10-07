@@ -100,7 +100,7 @@ SCM racs_scm_streaminfo(SCM stream_id, SCM attr) {
 
 SCM racs_scm_streamlist(SCM pattern) {
     char *cmd = NULL;
-    asprintf(&cmd, "LIST '%s'", scm_to_locale_string(pattern));
+    asprintf(&cmd, "LS '%s'", scm_to_locale_string(pattern));
 
     racs_db *db = racs_db_instance();
     racs_result res = racs_db_exec(db, cmd);
@@ -112,7 +112,7 @@ SCM racs_scm_streamlist(SCM pattern) {
 
     if (msgpack_unpack_next(&msg, (char *) res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
         free(res.data);
-        scm_misc_error("list", "Deserialization error", SCM_EOL);
+        scm_misc_error("ls", "Deserialization error", SCM_EOL);
     }
 
     char *type = racs_unpack_str(&msg.data, 0);
@@ -131,6 +131,67 @@ SCM racs_scm_streamlist(SCM pattern) {
     }
 
     return list;
+}
+
+SCM racs_scm_streamopen(SCM stream_id) {
+    char *cmd = NULL;
+    asprintf(&cmd, "OPEN '%s'", scm_to_locale_string(stream_id));
+
+    racs_db *db = racs_db_instance();
+    racs_result res = racs_db_exec(db, cmd);
+
+    free(cmd);
+
+    msgpack_unpacked msg;
+    msgpack_unpacked_init(&msg);
+
+    if (msgpack_unpack_next(&msg, (char *) res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
+        free(res.data);
+        scm_misc_error("open", "Deserialization error", SCM_EOL);
+    }
+
+    char *type = racs_unpack_str(&msg.data, 0);
+    if (strcmp(type, "error") == 0) {
+        racs_scm_propagate_error(&msg.data, res.data);
+    }
+
+    return SCM_EOL;
+}
+
+SCM racs_scm_streamclose(SCM stream_id) {
+    char *cmd = NULL;
+    asprintf(&cmd, "CLOSE '%s'", scm_to_locale_string(stream_id));
+
+    racs_db *db = racs_db_instance();
+    racs_result res = racs_db_exec(db, cmd);
+
+    free(cmd);
+
+    msgpack_unpacked msg;
+    msgpack_unpacked_init(&msg);
+
+    if (msgpack_unpack_next(&msg, (char *) res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
+        free(res.data);
+        scm_misc_error("close", "Deserialization error", SCM_EOL);
+    }
+
+    char *type = racs_unpack_str(&msg.data, 0);
+    if (strcmp(type, "error") == 0) {
+        racs_scm_propagate_error(&msg.data, res.data);
+    }
+
+    return SCM_EOL;
+}
+
+SCM racs_scm_shutdown() {
+    racs_db *db = racs_db_instance();
+    racs_db_exec(db, "SHUTDOWN");
+
+    return SCM_EOL;
+}
+
+SCM racs_scm_ping() {
+    return scm_from_locale_string("PONG");
 }
 
 SCM racs_scm_format(SCM data, SCM mime_type, SCM sample_rate, SCM channels, SCM bit_depth) {
@@ -163,5 +224,9 @@ void racs_scm_init_bindings() {
     scm_c_define_gsubr("create", 4, 0, 0, racs_scm_streamcreate);
     scm_c_define_gsubr("info", 2, 0, 0, racs_scm_streaminfo);
     scm_c_define_gsubr("format", 5, 0, 0, racs_scm_format);
-    scm_c_define_gsubr("list", 1, 0, 0, racs_scm_streamlist);
+    scm_c_define_gsubr("ls", 1, 0, 0, racs_scm_streamlist);
+    scm_c_define_gsubr("ping", 0, 0, 0, racs_scm_ping);
+    scm_c_define_gsubr("open", 1, 0, 0, racs_scm_streamopen);
+    scm_c_define_gsubr("close", 1, 0, 0, racs_scm_streamclose);
+    scm_c_define_gsubr("shutdown", 0, 0, 0, racs_scm_shutdown);
 }

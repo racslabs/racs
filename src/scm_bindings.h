@@ -11,7 +11,15 @@ SCM racs_scm_streamcreate(SCM stream_id, SCM sample_rate, SCM channels, SCM bit_
 
 SCM racs_scm_streaminfo(SCM stream_id, SCM attr);
 
+SCM racs_scm_streamopen(SCM stream_id);
+
+SCM racs_scm_streamclose(SCM stream_id);
+
 SCM racs_scm_streamlist(SCM pattern);
+
+SCM racs_scm_shutdown();
+
+SCM racs_scm_ping();
 
 SCM racs_scm_format(SCM data, SCM mime_type, SCM sample_rate, SCM channels, SCM bit_depth);
 
