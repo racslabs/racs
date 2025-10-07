@@ -98,6 +98,41 @@ SCM racs_scm_streaminfo(SCM stream_id, SCM attr) {
     return scm_from_int64(value);
 }
 
+SCM racs_scm_streamlist(SCM pattern) {
+    char *cmd = NULL;
+    asprintf(&cmd, "LIST '%s'", scm_to_locale_string(pattern));
+
+    racs_db *db = racs_db_instance();
+    racs_result res = racs_db_exec(db, cmd);
+
+    free(cmd);
+
+    msgpack_unpacked msg;
+    msgpack_unpacked_init(&msg);
+
+    if (msgpack_unpack_next(&msg, (char *) res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
+        free(res.data);
+        scm_misc_error("list", "Deserialization error", SCM_EOL);
+    }
+
+    char *type = racs_unpack_str(&msg.data, 0);
+    if (strcmp(type, "error") == 0) {
+        racs_scm_propagate_error(&msg.data, res.data);
+    }
+
+    SCM list = SCM_EOL;
+    size_t size = msg.data.via.array.size;
+
+    for (int i = 1; i < size; i++) {
+        char *str = racs_unpack_str(&msg.data, i);
+        SCM _str = scm_from_locale_string(str);
+        list = scm_cons(_str, list);
+        free(str);
+    }
+
+    return list;
+}
+
 SCM racs_scm_format(SCM data, SCM mime_type, SCM sample_rate, SCM channels, SCM bit_depth) {
     char *_mime_type = scm_to_locale_string(mime_type);
     racs_uint32 _sample_rate = scm_to_uint32(sample_rate);
@@ -128,4 +163,5 @@ void racs_scm_init_bindings() {
     scm_c_define_gsubr("create", 4, 0, 0, racs_scm_streamcreate);
     scm_c_define_gsubr("info", 2, 0, 0, racs_scm_streaminfo);
     scm_c_define_gsubr("format", 5, 0, 0, racs_scm_format);
+    scm_c_define_gsubr("list", 1, 0, 0, racs_scm_streamlist);
 }
