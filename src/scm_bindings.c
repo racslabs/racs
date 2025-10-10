@@ -229,4 +229,11 @@ void racs_scm_init_bindings() {
     scm_c_define_gsubr("open", 1, 0, 0, racs_scm_streamopen);
     scm_c_define_gsubr("close", 1, 0, 0, racs_scm_streamclose);
     scm_c_define_gsubr("shutdown", 0, 0, 0, racs_scm_shutdown);
+
+    scm_c_export("extract", "create", "info", "format", "ls",
+                 "ping", "open", "close", "shutdown", NULL);
+}
+
+void racs_scm_init_module() {
+    scm_c_define_module("racs", racs_scm_init_bindings, NULL);
 }

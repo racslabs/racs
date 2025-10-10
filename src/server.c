@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
         exit(1);
 
     scm_init_guile();
-    racs_scm_init_bindings();
+    racs_scm_init_module();
 
     racs_db *db = racs_db_instance();
     racs_db_open(db, argv[2]);

@@ -165,7 +165,8 @@ racs_create_command(eval) {
 
     char *error = NULL;
     char *expr = racs_unpack_str(&msg.data, 0);
-    SCM res = racs_scm_eval_with_error_handling(expr, &error);
+
+    SCM res = racs_scm_safe_eval_with_error_handling(expr, &error);
     free(expr);
 
     if (error) return racs_pack_error(&pk, error);

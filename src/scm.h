@@ -29,11 +29,11 @@ int racs_scm_pack_element(msgpack_packer *pk, msgpack_sbuffer *buf, SCM v);
 
 void racs_scm_propagate_error(msgpack_object *obj, racs_uint8 *data);
 
-SCM racs_scm_eval_wrapper(void *data);
+SCM racs_scm_safe_eval(void *body);
 
 SCM racs_scm_error_handler(void *data, SCM key, SCM args);
 
-SCM racs_scm_eval_with_error_handling(char *expr, char **error);
+SCM racs_scm_safe_eval_with_error_handling(char *expr, char **error);
 
 void racs_unescape_single_quotes(char *s);
 

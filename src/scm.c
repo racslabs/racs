@@ -178,8 +178,36 @@ int racs_scm_pack_list(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x) {
     return RACS_STATUS_OK;
 }
 
-SCM racs_scm_eval_wrapper(void *data) {
-    return scm_c_eval_string((const char *) data);
+SCM racs_scm_safe_eval(void *body) {
+    scm_c_use_module("ice-9 sandbox");
+
+    SCM eval_in_sandbox = scm_variable_ref(scm_c_lookup( "eval-in-sandbox"));
+    SCM make_sandbox_module = scm_variable_ref(scm_c_lookup("make-sandbox-module"));
+
+    SCM base_module = scm_list_4(scm_list_2(scm_from_locale_symbol("scheme"),
+                                            scm_from_locale_symbol("base")),
+                                 scm_from_locale_symbol("+"),
+                                 scm_from_locale_symbol("-"),
+                                 scm_from_locale_symbol("*"));
+
+    SCM racs_module = scm_list_n(scm_list_1(scm_from_locale_symbol("racs")),
+                                 scm_from_locale_symbol("extract"),
+                                 scm_from_locale_symbol("create"),
+                                 scm_from_locale_symbol("info"),
+                                 scm_from_locale_symbol("format"),
+                                 scm_from_locale_symbol("ls"),
+                                 scm_from_locale_symbol("ping"),
+                                 scm_from_locale_symbol("open"),
+                                 scm_from_locale_symbol("close"),
+                                 scm_from_locale_symbol("shutdown"),
+                                 SCM_UNDEFINED);
+
+    SCM modules = scm_list_2(base_module, racs_module);
+    SCM bindings = scm_call_1(make_sandbox_module, modules);
+    SCM module_keyword = scm_from_latin1_keyword("module");
+
+    SCM expr = scm_c_read_string((char *)body);
+    return scm_call_3(eval_in_sandbox, expr, module_keyword, bindings);
 }
 
 SCM racs_scm_error_handler(void *data, SCM key, SCM args) {
@@ -187,7 +215,7 @@ SCM racs_scm_error_handler(void *data, SCM key, SCM args) {
     return SCM_BOOL_F;
 }
 
-SCM racs_scm_eval_with_error_handling(char *expr, char **error) {
+SCM racs_scm_safe_eval_with_error_handling(char *expr, char **error) {
     SCM original_error_port = scm_current_error_port();
     SCM error_port = scm_open_output_string();
 
@@ -195,8 +223,8 @@ SCM racs_scm_eval_with_error_handling(char *expr, char **error) {
     racs_unescape_single_quotes(expr);
 
     SCM result = scm_c_catch(SCM_BOOL_T,
-                             racs_scm_eval_wrapper,
-                             (void *) expr,
+                             racs_scm_safe_eval,
+                             expr,
                              racs_scm_error_handler,
                              error_port,
                              NULL,

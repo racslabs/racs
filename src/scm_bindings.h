@@ -25,4 +25,6 @@ SCM racs_scm_format(SCM data, SCM mime_type, SCM sample_rate, SCM channels, SCM 
 
 void racs_scm_init_bindings();
 
+void racs_scm_init_module();
+
 #endif //RACS_SCM_BINDINGS_H
