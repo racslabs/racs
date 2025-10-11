@@ -89,19 +89,17 @@ int racs_send(int fd, racs_conn_stream *stream) {
     return 0;
 }
 
-
-
 int main(int argc, char *argv[]) {
-    int len, rc, on = 1;
-    int listen_sd = -1, new_sd = -1;
-    int desc_ready, end_server = FALSE, compress_array = FALSE;
+    int rc;
+    int new_sd = -1;
+    int end_server = FALSE, compress_array = FALSE;
     int close_conn;
-    char buffer[4096];
     struct sockaddr_in6 addr;
     int timeout;
     struct pollfd fds[200];
     int nfds = 1, current_size = 0, i, j;
 
+    racs_conn conn;
     racs_conn_stream streams[200];
 
     if (strcmp(argv[1], "--config") != 0)
@@ -119,55 +117,7 @@ int main(int argc, char *argv[]) {
 
     racs_log_info(ver);
 
-    /*************************************************************/
-    /* Create an AF_INET6 stream socket to receive incoming      */
-    /* connections on                                            */
-    /*************************************************************/
-    listen_sd = socket(AF_INET6, SOCK_STREAM, 0);
-    if (listen_sd < 0) {
-        racs_log_fatal("socket() failed");
-        exit(-1);
-    }
-
-    /*************************************************************/
-    /* Allow socket descriptor to be reuseable                   */
-    /*************************************************************/
-    rc = setsockopt(listen_sd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
-    if (rc < 0) {
-        racs_log_fatal("setsockopt() failed");
-        close(listen_sd);
-        exit(-1);
-    }
-
-    /*************************************************************/
-    /* Disable IPV6 only.                   */
-    /*************************************************************/
-    int off = 0;
-    rc = setsockopt(listen_sd, IPPROTO_IPV6, IPV6_V6ONLY, &off, sizeof(off));
-    if (rc < 0) {
-        racs_log_fatal("setsockopt(IPV6_V6ONLY) failed");
-        close(listen_sd);
-        exit(-1);
-    }
-
-    rc = setsockopt(listen_sd, IPPROTO_TCP, TCP_FASTOPEN, &off, sizeof(off));
-    if (rc < 0) {
-        racs_log_fatal("setsockopt(TCP_FASTOPEN) failed");
-        exit(-1);
-    }
-
-
-    /*************************************************************/
-    /* Set socket to be nonblocking. All of the sockets for      */
-    /* the incoming connections will also be nonblocking since   */
-    /* they will inherit that state from the listening socket.   */
-    /*************************************************************/
-    rc = ioctl(listen_sd, FIONBIO, &on);
-    if (rc < 0) {
-        racs_log_fatal("ioctl() failed");
-        close(listen_sd);
-        exit(-1);
-    }
+    racs_init_socketopts(&conn);
 
     /*************************************************************/
     /* Bind the socket                                           */
@@ -177,20 +127,20 @@ int main(int argc, char *argv[]) {
     memcpy(&addr.sin6_addr, &in6addr_any, sizeof(in6addr_any));
     addr.sin6_port = htons(db->ctx.config->port);
 
-    rc = bind(listen_sd, (struct sockaddr *) &addr, sizeof(addr));
+    rc = bind(conn.listen_sd, (struct sockaddr *) &addr, sizeof(addr));
     if (rc < 0) {
         racs_log_fatal("bind() failed");
-        close(listen_sd);
+        close(conn.listen_sd);
         exit(-1);
     }
 
     /*************************************************************/
     /* Set the listen back log                                   */
     /*************************************************************/
-    rc = listen(listen_sd, 32);
+    rc = listen(conn.listen_sd, 32);
     if (rc < 0) {
         racs_log_fatal("listen() failed");
-        close(listen_sd);
+        close(conn.listen_sd);
         exit(-1);
     }
 
@@ -202,7 +152,7 @@ int main(int argc, char *argv[]) {
     /*************************************************************/
     /* Set up the initial listening socket                        */
     /*************************************************************/
-    fds[0].fd = listen_sd;
+    fds[0].fd = conn.listen_sd;
     fds[0].events = POLLIN;
     /*************************************************************/
     /* Initialize the timeout to 3 minutes. If no                */
@@ -278,7 +228,7 @@ int main(int argc, char *argv[]) {
                 break;
             }
 
-            if (fds[i].fd == listen_sd) {
+            if (fds[i].fd == conn.listen_sd) {
                 /*******************************************************/
                 /* Listening descriptor is readable.                   */
                 /*******************************************************/
@@ -296,7 +246,7 @@ int main(int argc, char *argv[]) {
                     /* failure on accept will cause us to end the        */
                     /* server.                                           */
                     /*****************************************************/
-                    new_sd = accept(listen_sd, NULL, NULL);
+                    new_sd = accept(conn.listen_sd, NULL, NULL);
                     if (new_sd < 0) {
                         if (errno != EWOULDBLOCK) {
                             racs_log_fatal("  accept() failed");
@@ -408,7 +358,7 @@ int main(int argc, char *argv[]) {
     } while (end_server == FALSE); /* End of serving running.    */
 
     /*************************************************************/
-    /* Clean up all of the sockets that are open                 */
+    /* Clean up all the sockets that are open                 */
     /*************************************************************/
     for (i = 0; i < nfds; i++) {
         if (fds[i].fd >= 0)
