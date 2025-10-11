@@ -16,8 +16,11 @@
 
 typedef struct {
     int listen_sd, new_sd;
+    struct sockaddr_in6 addr;
 } racs_conn;
 
 void racs_init_socketopts(racs_conn *conn);
+
+void racs_socket_bind(racs_conn *conn, int port);
 
 #endif //RACS_CONN_H

@@ -44,3 +44,17 @@ void racs_init_socketopts(racs_conn *conn) {
         exit(-1);
     }
 }
+
+void racs_socket_bind(racs_conn *conn, int port) {
+    memset(&conn->addr, 0, sizeof(conn->addr));
+    conn->addr.sin6_family = AF_INET6;
+    memcpy(&conn->addr.sin6_addr, &in6addr_any, sizeof(in6addr_any));
+    conn->addr.sin6_port = htons(port);
+
+    int rc = bind(conn->listen_sd, (struct sockaddr *) &conn->addr, sizeof(conn->addr));
+    if (rc < 0) {
+        racs_log_fatal("bind() failed");
+        close(conn->listen_sd);
+        exit(-1);
+    }
+}

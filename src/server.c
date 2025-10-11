@@ -118,21 +118,7 @@ int main(int argc, char *argv[]) {
     racs_log_info(ver);
 
     racs_init_socketopts(&conn);
-
-    /*************************************************************/
-    /* Bind the socket                                           */
-    /*************************************************************/
-    memset(&addr, 0, sizeof(addr));
-    addr.sin6_family = AF_INET6;
-    memcpy(&addr.sin6_addr, &in6addr_any, sizeof(in6addr_any));
-    addr.sin6_port = htons(db->ctx.config->port);
-
-    rc = bind(conn.listen_sd, (struct sockaddr *) &addr, sizeof(addr));
-    if (rc < 0) {
-        racs_log_fatal("bind() failed");
-        close(conn.listen_sd);
-        exit(-1);
-    }
+    racs_socket_bind(&conn, db->ctx.config->port);
 
     /*************************************************************/
     /* Set the listen back log                                   */
