@@ -9,10 +9,6 @@
 
 #include "filelist.h"
 
-static int path_cmp(const void *path1, const void *path2);
-
-static void list_files_recursive(racs_filelist *list, const char *path);
-
 racs_filelist *racs_filelist_create() {
     racs_filelist *list = malloc(sizeof(racs_filelist));
     if (!list) {
@@ -51,7 +47,7 @@ void racs_filelist_add(racs_filelist *list, const char *file_path) {
     ++list->num_files;
 }
 
-void list_files_recursive(racs_filelist *list, const char *path) {
+void racs_list_files_recursive(racs_filelist *list, const char *path) {
     DIR *dir = opendir(path);
     if (!dir) {
         racs_log_error("Failed to open directory");
@@ -67,7 +63,7 @@ void list_files_recursive(racs_filelist *list, const char *path) {
         asprintf(&file_path, "%s/%s", path, entry->d_name);
 
         if (entry->d_type == DT_DIR) {
-            list_files_recursive(list, file_path);
+            racs_list_files_recursive(list, file_path);
         } else if (entry->d_type == DT_REG) {
             racs_filelist_add(list, file_path);
         }
@@ -89,7 +85,7 @@ void racs_filelist_destroy(racs_filelist *list) {
 
 racs_filelist *get_sorted_filelist(const char *path) {
     racs_filelist *list = racs_filelist_create();
-    list_files_recursive(list, path);
+    racs_list_files_recursive(list, path);
     racs_filelist_sort(list);
 
     return list;
@@ -120,9 +116,9 @@ char *racs_resolve_shared_path(const char *path1, const char *path2) {
 }
 
 void racs_filelist_sort(racs_filelist *list) {
-    qsort(list->files, list->num_files, sizeof(char *), path_cmp);
+    qsort(list->files, list->num_files, sizeof(char *), racs_path_cmp);
 }
 
-int path_cmp(const void *path1, const void *path2) {
+int racs_path_cmp(const void *path1, const void *path2) {
     return strcmp(*(const char **) path1, *(const char **) path2);
 }

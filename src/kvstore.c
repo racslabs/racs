@@ -9,12 +9,6 @@
 
 #include "kvstore.h"
 
-static void kvstore_bin_init(racs_kvstore_bin *bin);
-
-static void kvstore_bin_append(racs_kvstore_bin *bin, void *key, void *value);
-
-static racs_kvstore_bin *kvstore_get_bin(racs_kvstore *kv, void *key);
-
 racs_kvstore *racs_kvstore_create(size_t capacity, racs_kvstore_hash_callback hash, racs_kvstore_cmp_callback cmp,
                                   racs_kvstore_destroy_callback destroy) {
     racs_kvstore *kv = malloc(sizeof(racs_kvstore));
@@ -36,13 +30,13 @@ racs_kvstore *racs_kvstore_create(size_t capacity, racs_kvstore_hash_callback ha
     }
 
     for (int i = 0; i < capacity; ++i) {
-        kvstore_bin_init(&kv->bins[i]);
+        racs_kvstore_bin_init(&kv->bins[i]);
     }
 
     return kv;
 }
 
-void kvstore_bin_init(racs_kvstore_bin *bin) {
+void racs_kvstore_bin_init(racs_kvstore_bin *bin) {
     bin->count = 0;
     bin->node = NULL;
 }
@@ -50,7 +44,7 @@ void kvstore_bin_init(racs_kvstore_bin *bin) {
 void racs_kvstore_put(racs_kvstore *kv, void *key, void *value) {
     if (!kv) return;
 
-    racs_kvstore_bin *bin = kvstore_get_bin(kv, key);
+    racs_kvstore_bin *bin = racs_kvstore_get_bin(kv, key);
     racs_kvstore_entry *curr = bin->node;
 
     while (curr) {
@@ -62,13 +56,13 @@ void racs_kvstore_put(racs_kvstore *kv, void *key, void *value) {
         curr = (racs_kvstore_entry *) curr->next;
     }
 
-    kvstore_bin_append(bin, key, value);
+    racs_kvstore_bin_append(bin, key, value);
 }
 
 void * racs_kvstore_get(racs_kvstore *kv, void *key) {
     if (!kv) return NULL;
 
-    racs_kvstore_bin *bin = kvstore_get_bin(kv, key);
+    racs_kvstore_bin *bin = racs_kvstore_get_bin(kv, key);
     racs_kvstore_entry *curr = bin->node;
 
     while (curr) {
@@ -84,7 +78,7 @@ void * racs_kvstore_get(racs_kvstore *kv, void *key) {
 void racs_kvstore_delete(racs_kvstore *kv, void *key) {
     if (!kv) return;
 
-    racs_kvstore_bin *bin = kvstore_get_bin(kv, key);
+    racs_kvstore_bin *bin = racs_kvstore_get_bin(kv, key);
 
     racs_kvstore_entry *prev = NULL;
     racs_kvstore_entry *curr = bin->node;
@@ -106,7 +100,7 @@ void racs_kvstore_delete(racs_kvstore *kv, void *key) {
     }
 }
 
-racs_kvstore_bin *kvstore_get_bin(racs_kvstore *kv, void *key) {
+racs_kvstore_bin *racs_kvstore_get_bin(racs_kvstore *kv, void *key) {
     racs_uint64 hash = kv->ops.hash(key) % kv->capacity;
     return &kv->bins[hash];
 }
@@ -128,7 +122,7 @@ void racs_kvstore_destroy(racs_kvstore *kv) {
     free(kv->bins);
 }
 
-void kvstore_bin_append(racs_kvstore_bin *bin, void *key, void *value) {
+void racs_kvstore_bin_append(racs_kvstore_bin *bin, void *key, void *value) {
     if (!bin) return;
 
     racs_kvstore_entry *node = malloc(sizeof(racs_kvstore_entry));

@@ -76,6 +76,26 @@ typedef struct {
     regoff_t curr;
 } racs_parser;
 
+void racs_parser_advance(racs_parser *parser, regoff_t step);
+
+int racs_match_token(const char *ptr, const char *pattern, regmatch_t *match);
+
+racs_token racs_parser_lex_token_str(racs_parser *parser, regmatch_t *match);
+
+racs_token racs_parser_lex_token_id(racs_parser *parser, regmatch_t *match);
+
+racs_token racs_parser_lex_token_int64(racs_parser *parser, regmatch_t *match);
+
+racs_token racs_parser_lex_token_float64(racs_parser *parser, regmatch_t *match);
+
+racs_token racs_parser_lex_token_time(racs_parser *parser, regmatch_t *match);
+
+racs_token racs_parser_lex_token_pipe(racs_parser *parser, regmatch_t *match);
+
+racs_token racs_parser_token_error(racs_parser *parser);
+
+racs_token racs_parser_lex_token_eof();
+
 void racs_parser_init(racs_parser *parser, const char *source);
 
 racs_token racs_parser_next_token(racs_parser *parser);

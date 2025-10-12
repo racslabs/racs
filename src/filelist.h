@@ -33,6 +33,10 @@ racs_filelist *racs_filelist_create();
 
 racs_filelist *get_sorted_filelist(const char *path);
 
+int racs_path_cmp(const void *path1, const void *path2);
+
+void racs_list_files_recursive(racs_filelist *list, const char *path);
+
 char *racs_resolve_shared_path(const char *path1, const char *path2);
 
 #endif //RACS_FILELIST_H

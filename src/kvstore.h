@@ -45,6 +45,12 @@ typedef struct {
     racs_kvstore_bin *bins;
 } racs_kvstore;
 
+void racs_kvstore_bin_init(racs_kvstore_bin *bin);
+
+void racs_kvstore_bin_append(racs_kvstore_bin *bin, void *key, void *value);
+
+racs_kvstore_bin *racs_kvstore_get_bin(racs_kvstore *kv, void *key);
+
 racs_kvstore *racs_kvstore_create(size_t capacity, racs_kvstore_hash_callback hash, racs_kvstore_cmp_callback cmp,
                                   racs_kvstore_destroy_callback destroy);
 
