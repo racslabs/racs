@@ -1,0 +1,120 @@
+                      RACS Source Available License (RSAL-1.0)
+                     Copyright © 2025 RACS Labs, LLC. All rights reserved.
+--------------------------------------------------------------------------------
+
+1. DEFINITIONS
+   -----------------------------------------------------------------------------
+
+   “Software” means the RACS (Remote Audio Caching Server) source code, object
+   code, documentation, configuration files, and associated materials.
+
+   “You” or “Your” means any individual or legal entity exercising permissions
+   granted by this License.
+
+   “Commercial Use” means any use of the Software (a) for commercial advantage
+   or monetary compensation, (b) within a proprietary or for-profit product or
+   service, or (c) as part of any internal or hosted system primarily intended
+   for commercial benefit.
+
+   “Non-Commercial Use” means any personal, academic, research, or other
+   non-profit use of the Software.
+
+   “Instance” means a single installation or running copy of the Software,
+   whether physical or virtual, on one operating system environment, container,
+   or virtual machine, regardless of the number of users or clients connected
+   to it.
+
+
+2. LICENSE GRANT
+   -----------------------------------------------------------------------------
+
+   Subject to the terms of this License, RACS Labs, LLC grants You a
+   non-exclusive, worldwide, non-transferable, royalty-free license to:
+
+     1. Use, reproduce, modify, and distribute the Software solely for
+        Non-Commercial Use;
+
+     2. View and study the source code for internal purposes;
+
+     3. Redistribute unmodified copies of the Software in source or binary
+        form, provided that this License and the above copyright notice
+        are included.
+
+
+3. COMMERCIAL USE
+   -----------------------------------------------------------------------------
+
+   Commercial Use of the Software requires a separate commercial license.
+
+   For commercial licensing, including use in proprietary or for-profit
+   systems, please contact:
+
+       RACS Labs, LLC
+       Email: sales@racslabs.com
+       License Fee: USD $500 per Instance per year (subject to change).
+
+   No right to Commercial Use is granted under this License without a separate
+   written agreement.
+
+
+4. RESTRICTIONS
+   -----------------------------------------------------------------------------
+
+   Except as expressly permitted by this License or applicable law, You may not:
+
+     1. Use the Software for Commercial Use without a valid commercial license;
+     2. Remove or alter any proprietary notices, trademarks, or license terms;
+     3. Redistribute modified versions of the Software under a different license;
+     4. Use the Software to create a competing service or substantially similar
+        product;
+     5. Sublicense, lease, or rent the Software to third parties.
+
+
+5. OWNERSHIP
+   -----------------------------------------------------------------------------
+
+   The Software and all associated intellectual property rights are owned by
+   RACS Labs, LLC. This License does not transfer ownership or grant any
+   implied rights.
+
+
+6. DISCLAIMER OF WARRANTY
+   -----------------------------------------------------------------------------
+
+   THE SOFTWARE IS PROVIDED “AS IS,” WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. USE OF THE SOFTWARE
+   IS AT YOUR OWN RISK.
+
+
+7. LIMITATION OF LIABILITY
+   -----------------------------------------------------------------------------
+
+   IN NO EVENT SHALL RACS LABS, LLC OR ITS CONTRIBUTORS BE LIABLE FOR ANY CLAIM,
+   DAMAGES, OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT, OR OTHERWISE, ARISING
+   FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+   IN THE SOFTWARE.
+
+
+8. TERMINATION
+   -----------------------------------------------------------------------------
+
+   This License automatically terminates if You violate its terms. Upon
+   termination, You must immediately cease all use and distribution of the
+   Software and destroy all copies in Your possession.
+
+
+9. GOVERNING LAW
+   -----------------------------------------------------------------------------
+
+   This License shall be governed by and construed in accordance with the laws
+   of the United States and the Commonwealth of Pennsylvania, without regard to
+   conflict-of-law principles.
+
+
+--------------------------------------------------------------------------------
+   RACS – Remote Audio Caching Server
+   License Version: RSAL-1.0
+   Date: October 12, 2025
+   Copyright © 2025 RACS Labs, LLC
+--------------------------------------------------------------------------------

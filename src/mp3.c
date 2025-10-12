@@ -1,3 +1,12 @@
+// RACS - Remote Audio Caching Server
+// Copyright (c) 2025 RACS Labs, LLC. All rights reserved.
+//
+// Licensed under the RACS Source Available License (RSAL-1.0).
+// Non-commercial use only. Commercial use requires a paid license.
+// Contact: sales@racslabs.com
+//
+// SPDX-License-Identifier: RACS-SAL-1.0
+
 #include "mp3.h"
 
 void racs_mp3_set_channels(racs_mp3 *mp3, racs_uint16 channels) {

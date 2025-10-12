@@ -30,7 +30,7 @@ void racs_args(int argc, char *argv[]) {
         if (strcmp(argv[1], "--config") == 0 || strcmp(argv[1], "-c") == 0) {
             printf("racs: required arg <file> is missing\n");
         } else if (strncmp(argv[1], "--", 2) == 0 || strncmp(argv[1], "-", 1) == 0)
-            printf("racs: option %s: is unknown\b", argv[1]);
+            printf("racs: option %s: is unknown\n", argv[1]);
     }
 
     if (argc == 3) {

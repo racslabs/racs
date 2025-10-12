@@ -1,40 +1,17 @@
+# RACS - Remote Audio Caching Server
+# Copyright (c) 2025 RACS Labs, LLC. All rights reserved.
+#
+# Licensed under the RACS Source Available License (RSAL-1.0).
+# Non-commercial use only. Commercial use requires a paid license.
+# Contact: sales@racslabs.com
+#
+# SPDX-License-Identifier: RACS-SAL-1.0
+
 cmake_minimum_required(VERSION 3.27)
 project(racs LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 17)
-#
-## Install headers
-#install(DIRECTORY
-#        src/audio
-#        src/core
-#        src/dwt
-#        src/fft
-#        src/linalg
-#        src/math
-#        src/nn
-#        src/runtime
-#        src/signal
-#        src/simd
-#        src/special
-#        src/stats
-#        src/capi
-#        DESTINATION include/racs
-#        PATTERN "*.cpp" EXCLUDE
-#)
-#
-#install(FILES src/version.hpp DESTINATION include/racs)
-#
-## Install library
-#include(GNUInstallDirs)
-#install(TARGETS ${RACS_STATIC_LIBRARY_NAME}
-#        EXPORT ${PROJECT_NAME}-config
-#        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-#        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-#        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-#        PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-
-#----------------------------------------
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
