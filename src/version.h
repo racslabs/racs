@@ -14,7 +14,7 @@
                        RACS_VERSION_PATCH)
 
 RACS_FORCE_INLINE void racs_version(char* buf) {
-    sprintf(buf, "RACS %d.%d.%d  (%s)", RACS_VERSION_MAJOR, RACS_VERSION_MINOR, RACS_VERSION_PATCH, __DATE__);
+    sprintf(buf, "racs %d.%d.%d  (%s)", RACS_VERSION_MAJOR, RACS_VERSION_MINOR, RACS_VERSION_PATCH, __DATE__);
 }
 
 #endif //RACS_VERSION_H

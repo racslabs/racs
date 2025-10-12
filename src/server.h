@@ -31,7 +31,11 @@ void racs_help();
 
 void racs_args(int argc, char *argv[]);
 
-void racs_init_socketopts(racs_conn *conn);
+void racs_init_socket(racs_conn *conn);
+
+void racs_set_socketopts(racs_conn *conn);
+
+void racs_set_nonblocking(racs_conn *conn);
 
 void racs_socket_bind(racs_conn *conn, int port);
 
@@ -44,6 +48,7 @@ void racs_conn_stream_reset(racs_conn_stream *stream);
 int racs_recv_length_prefix(int fd, size_t *len);
 
 int racs_recv(int fd, int len, racs_conn_stream *stream);
+
 int racs_send(int fd, racs_conn_stream *stream);
 
 #endif //RACS_SERVER_H

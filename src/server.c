@@ -12,10 +12,7 @@ void racs_help() {
 }
 
 void racs_args(int argc, char *argv[]) {
-    if (argc < 2 || argc > 3) {
-        printf("racs: try 'racs --help' for more information\n");
-        exit(-1);
-    }
+    if (argc < 2 || argc > 3) goto try_help;
 
     if (argc == 2) {
         if (strcmp(argv[1], "--version") == 0 || strcmp(argv[1], "-v") == 0) {
@@ -30,29 +27,31 @@ void racs_args(int argc, char *argv[]) {
             exit(0);
         }
 
-        if (strncmp(argv[1], "--", 2) == 0 || strncmp(argv[1], "-", 1) == 0)
+        if (strcmp(argv[1], "--config") == 0 || strcmp(argv[1], "-c") == 0) {
+            printf("racs: required arg <file> is missing\n");
+        } else if (strncmp(argv[1], "--", 2) == 0 || strncmp(argv[1], "-", 1) == 0)
             printf("racs: option %s: is unknown\b", argv[1]);
-
-        printf("racs: try 'racs --help' for more information\n");
-        exit(-1);
     }
 
     if (argc == 3) {
+        if (strcmp(argv[1], "--version") == 0 || strcmp(argv[1], "-v") == 0)
+            goto try_help;
+        if (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0)
+            goto try_help;
+
         if (strcmp(argv[1], "--config") == 0 || strcmp(argv[1], "-c") == 0)
             return;
 
         if (strncmp(argv[1], "--", 2) == 0 || strncmp(argv[1], "-", 1) == 0)
             printf("racs: option %s: is unknown\n", argv[1]);
-
-        printf("racs: try 'racs --help' for more information\n");
-        exit(-1);
     }
+
+    try_help:
+    printf("racs: try 'racs --help' for more information\n");
+    exit(-1);
 }
 
-
-void racs_init_socketopts(racs_conn *conn) {
-    int on = 1, off = 0, rc;
-
+void racs_init_socket(racs_conn *conn) {
     // Create an AF_INET6 stream socket to receive incoming
     // connections
     conn->listen_sd = socket(AF_INET6, SOCK_STREAM, 0);
@@ -60,6 +59,10 @@ void racs_init_socketopts(racs_conn *conn) {
         racs_log_fatal("socket() failed");
         exit(-1);
     }
+}
+
+void racs_set_socketopts(racs_conn *conn) {
+    int on = 1, off = 0, rc;
 
     // Allow socket descriptor to be reusable
     rc = setsockopt(conn->listen_sd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
@@ -82,6 +85,10 @@ void racs_init_socketopts(racs_conn *conn) {
         racs_log_fatal("setsockopt(TCP_FASTOPEN) failed");
         exit(-1);
     }
+}
+
+void racs_set_nonblocking(racs_conn *conn) {
+    int rc, on = 1;
 
     // Set socket to be nonblocking. All the sockets for
     // the incoming connections will also be nonblocking since
@@ -228,7 +235,10 @@ int main(int argc, char *argv[]) {
     racs_version(ver);
     racs_log_info(ver);
 
-    racs_init_socketopts(&conn);
+    racs_init_socket(&conn);
+    racs_set_socketopts(&conn);
+    racs_set_nonblocking(&conn);
+
     racs_socket_bind(&conn, db->ctx.config->port);
     racs_socket_listen(&conn);
 
