@@ -58,3 +58,12 @@ void racs_socket_bind(racs_conn *conn, int port) {
         exit(-1);
     }
 }
+
+void racs_socket_listen(racs_conn *conn) {
+    int rc = listen(conn->listen_sd, 32);
+    if (rc < 0) {
+        racs_log_fatal("listen() failed");
+        close(conn->listen_sd);
+        exit(-1);
+    }
+}

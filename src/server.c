@@ -92,9 +92,8 @@ int racs_send(int fd, racs_conn_stream *stream) {
 int main(int argc, char *argv[]) {
     int rc;
     int new_sd = -1;
-    int end_server = FALSE, compress_array = FALSE;
+    int end = FALSE, compress = FALSE;
     int close_conn;
-    struct sockaddr_in6 addr;
     int timeout;
     struct pollfd fds[200];
     int nfds = 1, current_size = 0, i, j;
@@ -114,81 +113,50 @@ int main(int argc, char *argv[]) {
 
     char ver[55];
     racs_version(ver);
-
     racs_log_info(ver);
 
     racs_init_socketopts(&conn);
     racs_socket_bind(&conn, db->ctx.config->port);
+    racs_socket_listen(&conn);
 
-    /*************************************************************/
-    /* Set the listen back log                                   */
-    /*************************************************************/
-    rc = listen(conn.listen_sd, 32);
-    if (rc < 0) {
-        racs_log_fatal("listen() failed");
-        close(conn.listen_sd);
-        exit(-1);
-    }
-
-    /*************************************************************/
-    /* Initialize the pollfd structure                           */
-    /*************************************************************/
+    // Initialize the pollfd structure
     memset(fds, 0, sizeof(fds));
 
-    /*************************************************************/
-    /* Set up the initial listening socket                        */
-    /*************************************************************/
+    // Set up the initial listening socket
     fds[0].fd = conn.listen_sd;
     fds[0].events = POLLIN;
-    /*************************************************************/
-    /* Initialize the timeout to 3 minutes. If no                */
-    /* activity after 3 minutes this program will end.           */
-    /* timeout value is based on milliseconds.                   */
-    /*************************************************************/
-    timeout = -1;
 
-    /*************************************************************/
-    /* Loop waiting for incoming connects or for incoming data   */
-    /* on any of the connected sockets.                          */
-    /*************************************************************/
+    timeout = -1;
 
     racs_log_info("Listening on port %d ...", db->ctx.config->port);
     racs_log_info("Log file: %s/racs.log", racs_log_dir);
 
+    // Loop waiting for incoming connects or for incoming data
+    // on any of the connected sockets.
     do {
-        /***********************************************************/
-        /* Call poll() and wait 3 minutes for it to complete.      */
-        /***********************************************************/
+        // Call poll() and wait for it to complete.
         rc = poll(fds, nfds, timeout);
 
-        /***********************************************************/
-        /* Check to see if the poll call failed.                   */
-        /***********************************************************/
+        // Check to see if the poll call failed.
         if (rc < 0) {
             racs_log_error("  poll() failed");
             break;
         }
 
-        /***********************************************************/
-        /* Check to see if the 3 minute time out expired.          */
-        /***********************************************************/
+        // Check to see if time out expired.
         if (rc == 0) {
             racs_log_error("  poll() timed out.  End program.");
             break;
         }
 
-
-        /***********************************************************/
-        /* One or more descriptors are readable.  Need to          */
-        /* determine which ones they are.                          */
-        /***********************************************************/
+        // One or more descriptors are readable.  Need to
+        // determine which ones they are.
         current_size = nfds;
         for (i = 0; i < current_size; i++) {
-            /*********************************************************/
-            /* Loop through to find the descriptors that returned    */
-            /* POLLIN and determine whether it's the listening       */
-            /* or the active connection.                             */
-            /*********************************************************/
+
+            // Loop through to find the descriptors that returned
+            // POLLIN and determine whether it's the listening
+            // or the active connection.
             if (fds[i].revents == 0)
                 continue;
 
@@ -204,82 +172,54 @@ int main(int argc, char *argv[]) {
                 continue;
             }
 
-            /*********************************************************/
-            /* If revents is not POLLIN, it's an unexpected result,  */
-            /* log and end the server.                               */
-            /*********************************************************/
+            // If revents is not POLLIN, it's an unexpected result,
+            // log and end the server.
             if (fds[i].revents != POLLIN) {
                 racs_log_fatal("  Error! revents = %d", fds[i].revents);
-                end_server = TRUE;
+                end = TRUE;
                 break;
             }
 
             if (fds[i].fd == conn.listen_sd) {
-                /*******************************************************/
-                /* Listening descriptor is readable.                   */
-                /*******************************************************/
 
-                /*******************************************************/
-                /* Accept all incoming connections that are            */
-                /* queued up on the listening socket before we         */
-                /* loop back and call poll again.                      */
-                /*******************************************************/
+                // Accept all incoming connections that are
+                // queued up on the listening socket before we
+                // loop back and call poll again.
                 do {
-                    /*****************************************************/
-                    /* Accept each incoming connection. If               */
-                    /* accept fails with EWOULDBLOCK, then we            */
-                    /* have accepted all of them. Any other              */
-                    /* failure on accept will cause us to end the        */
-                    /* server.                                           */
-                    /*****************************************************/
+                    // Accept each incoming connection. If
+                    // accept fails with EWOULDBLOCK, then we
+                    // have accepted all of them. Any other
+                    // failure on accept will cause us to end the
+                    // server.
                     new_sd = accept(conn.listen_sd, NULL, NULL);
                     if (new_sd < 0) {
                         if (errno != EWOULDBLOCK) {
                             racs_log_fatal("  accept() failed");
-                            end_server = TRUE;
+                            end = TRUE;
                         }
                         break;
                     }
 
-                    /*****************************************************/
-                    /* Add the new incoming connection to the            */
-                    /* pollfd structure                                  */
-                    /*****************************************************/
+                    // Add the new incoming connection to the
+                    // pollfd structure
                     fds[nfds].fd = new_sd;
                     fds[nfds].events = POLLIN;
                     racs_conn_stream_init(&streams[nfds]);
                     nfds++;
-
-                    /*****************************************************/
-                    /* Loop back up and accept another incoming          */
-                    /* connection                                        */
-                    /*****************************************************/
                 } while (1);
-            }
-
-                /*********************************************************/
-                /* This is not the listening socket, therefore an        */
-                /* existing connection must be readable                  */
-                /*********************************************************/
-
-            else {
+            } else {
+                // Receive all incoming data on this socket
+                // before we loop back and call poll again.
                 close_conn = FALSE;
-                /*******************************************************/
-                /* Receive all incoming data on this socket            */
-                /* before we loop back and call poll again.            */
-                /*******************************************************/
-
                 size_t length = 0;
+
                 rc = racs_recv_length_prefix(fds[i].fd, &length);
                 if (rc < 0) close_conn = TRUE;
 
-                rc = racs_recv(fds[i].fd, (int)length, &streams[i]);
+                rc = racs_recv(fds[i].fd, (int) length, &streams[i]);
                 if (rc < 0) close_conn = TRUE;
 
-                /*****************************************************/
-                /* Echo the data back to the client                  */
-                /*****************************************************/
-
+                // Echo the data back to the client
                 if (streams[i].in_stream.current_pos > 0) {
                     racs_result res;
 
@@ -304,32 +244,27 @@ int main(int argc, char *argv[]) {
                     racs_conn_stream_reset(&streams[i]);
                 }
 
-
-                /*******************************************************/
-                /* If the close_conn flag was turned on, we need       */
-                /* to clean up this active connection. This            */
-                /* clean up process includes removing the              */
-                /* descriptor.                                         */
-                /*******************************************************/
+                // If the close_conn flag was turned on, we need
+                // to clean up this active connection. This
+                // clean up process includes removing the
+                // descriptor.
                 if (close_conn) {
                     close(fds[i].fd);
                     fds[i].fd = -1;
-                    compress_array = TRUE;
+                    compress = TRUE;
                 }
 
 
-            }  /* End of existing connection is readable             */
-        } /* End of loop through pollable descriptors              */
+            }
+        }
 
-        /***********************************************************/
-        /* If the compress_array flag was turned on, we need       */
-        /* to squeeze together the array and decrement the number  */
-        /* of file descriptors. We do not need to move back the    */
-        /* events and revents fields because the events will always*/
-        /* be POLLIN in this case, and revents is output.          */
-        /***********************************************************/
-        if (compress_array) {
-            compress_array = FALSE;
+        // If the compress flag was turned on, we need
+        // to squeeze together the array and decrement the number
+        // of file descriptors. We do not need to move back the
+        // events and revents fields because the events will always
+        // be POLLIN in this case, and revents is output.
+        if (compress) {
+            compress = FALSE;
             for (i = 0; i < nfds; i++) {
                 if (fds[i].fd == -1) {
                     for (j = i; j < nfds - 1; j++) {
@@ -341,11 +276,9 @@ int main(int argc, char *argv[]) {
             }
         }
 
-    } while (end_server == FALSE); /* End of serving running.    */
+    } while (end == FALSE);
 
-    /*************************************************************/
-    /* Clean up all the sockets that are open                 */
-    /*************************************************************/
+    // Clean up all the sockets that are open
     for (i = 0; i < nfds; i++) {
         if (fds[i].fd >= 0)
             close(fds[i].fd);

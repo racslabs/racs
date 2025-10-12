@@ -23,4 +23,6 @@ void racs_init_socketopts(racs_conn *conn);
 
 void racs_socket_bind(racs_conn *conn, int port);
 
+void racs_socket_listen(racs_conn *conn);
+
 #endif //RACS_CONN_H
