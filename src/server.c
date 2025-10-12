@@ -4,6 +4,51 @@
 #define FALSE            0
 #define CHUNK_SIZE       4096
 
+void racs_help() {
+    printf("Usage: racs [options...] <file>\n");
+    printf("-c, --config <file>     Run server with config.yml file\n");
+    printf("-v, --version           Show version and quit\n");
+    printf("-h, --help              Get help for commands\n");
+}
+
+void racs_args(int argc, char *argv[]) {
+    if (argc < 2 || argc > 3) {
+        printf("racs: try 'racs --help' for more information\n");
+        exit(-1);
+    }
+
+    if (argc == 2) {
+        if (strcmp(argv[1], "--version") == 0 || strcmp(argv[1], "-v") == 0) {
+            char ver[55];
+            racs_version(ver);
+            printf("%s\n", ver);
+            exit(0);
+        }
+
+        if (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0) {
+            racs_help();
+            exit(0);
+        }
+
+        if (strncmp(argv[1], "--", 2) == 0 || strncmp(argv[1], "-", 1) == 0)
+            printf("racs: option %s: is unknown\b", argv[1]);
+
+        printf("racs: try 'racs --help' for more information\n");
+        exit(-1);
+    }
+
+    if (argc == 3) {
+        if (strcmp(argv[1], "--config") == 0 || strcmp(argv[1], "-c") == 0)
+            return;
+
+        if (strncmp(argv[1], "--", 2) == 0 || strncmp(argv[1], "-", 1) == 0)
+            printf("racs: option %s: is unknown\n", argv[1]);
+
+        printf("racs: try 'racs --help' for more information\n");
+        exit(-1);
+    }
+}
+
 
 void racs_init_socketopts(racs_conn *conn) {
     int on = 1, off = 0, rc;
@@ -167,11 +212,10 @@ int main(int argc, char *argv[]) {
     struct pollfd fds[200];
     int nfds = 1, current_size = 0, i, j;
 
+    racs_args(argc, argv);
+
     racs_conn conn;
     racs_conn_stream streams[200];
-
-    if (strcmp(argv[1], "--config") != 0)
-        exit(1);
 
     scm_init_guile();
     racs_scm_init_module();
@@ -322,8 +366,6 @@ int main(int argc, char *argv[]) {
                     fds[i].fd = -1;
                     compress = TRUE;
                 }
-
-
             }
         }
 
