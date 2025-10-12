@@ -79,12 +79,6 @@ void racs_set_socketopts(racs_conn *conn) {
         close(conn->listen_sd);
         exit(-1);
     }
-
-    rc = setsockopt(conn->listen_sd, IPPROTO_TCP, TCP_FASTOPEN, &off, sizeof(off));
-    if (rc < 0) {
-        racs_log_fatal("setsockopt(TCP_FASTOPEN) failed");
-        exit(-1);
-    }
 }
 
 void racs_set_nonblocking(racs_conn *conn) {
@@ -123,7 +117,6 @@ void racs_socket_listen(racs_conn *conn) {
         exit(-1);
     }
 }
-
 
 void racs_conn_stream_init(racs_conn_stream *stream) {
     racs_memstream_init(&stream->in_stream);
