@@ -111,8 +111,6 @@ add_executable(racs
         src/streaminfo.c
         src/stream.h
         src/stream.c
-        src/conn.h
-        src/conn.c
         src/server.h
         src/server.c
         src/config.h

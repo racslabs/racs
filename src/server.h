@@ -2,7 +2,15 @@
 #ifndef RACS_SERVER_H
 #define RACS_SERVER_H
 
-#include "conn.h"
+
+#include <sys/types.h>      // for socket types
+#include <sys/socket.h>     // for socket, connect, send, recv
+#include <sys/ioctl.h>      // for ioctl, FIONBIO
+#include <netinet/in.h>     // for sockaddr_in, htons, etc.
+#include <netinet/tcp.h>    // for TCP_FASTOPEN
+#include <arpa/inet.h>      // for inet_pton, inet_ntop
+#include <poll.h>
+
 #include "db.h"
 #include "scm_bindings.h"
 #include "log.h"
@@ -13,6 +21,17 @@ typedef struct {
     racs_memstream in_stream;
     racs_memstream out_stream;
 } racs_conn_stream;
+
+typedef struct {
+    int listen_sd, new_sd;
+    struct sockaddr_in6 addr;
+} racs_conn;
+
+void racs_init_socketopts(racs_conn *conn);
+
+void racs_socket_bind(racs_conn *conn, int port);
+
+void racs_socket_listen(racs_conn *conn);
 
 void racs_conn_stream_init(racs_conn_stream *stream);
 
