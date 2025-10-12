@@ -11,8 +11,10 @@
 #define RACS_CONFIG_H
 
 #include <cyaml/cyaml.h>
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <wordexp.h>
 #include "types.h"
 #include "export.h"
 
@@ -64,12 +66,33 @@ static const cyaml_config_t yaml_config = {
         .log_level = CYAML_LOG_WARNING,
 };
 
+RACS_FORCE_INLINE char *racs_expand_path(const char* path) {
+    wordexp_t p;
+    if (wordexp(path, &p, 0) != 0) {
+        printf("racs: could not expand path: %s", path);
+        exit(-1);
+    }
+
+    char *result = strdup(p.we_wordv[0]);
+    wordfree(&p);
+    return result;
+}
+
 RACS_FORCE_INLINE void racs_config_load(racs_config** config, const char* path) {
     cyaml_err_t err = cyaml_load_file(path, &yaml_config, &racs_schema, (void **)config, NULL);
     if (err != CYAML_OK) {
         fprintf(stderr, "CYAML error: %s\n", cyaml_strerror(err));
         exit(1);
     }
+
+    char *exp_data_dir = racs_expand_path(config[0]->data_dir);
+    char *exp_log_dir = racs_expand_path(config[0]->log_dir);
+
+    free(config[0]->data_dir);
+    free(config[0]->log_dir);
+
+    config[0]->data_dir = exp_data_dir;
+    config[0]->log_dir = exp_log_dir;
 }
 
 RACS_FORCE_INLINE void racs_config_destroy(racs_config* config) {

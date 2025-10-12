@@ -1,8 +1,60 @@
-port: 8080
-data_dir: "/home/corbin/racs/cmake-build-debug"
-log_dir: "/home/corbin/racs/cmake-build-debug"
+# ============================================================================
+# RACS Configuration File
+# ============================================================================
+# Remote Audio Caching Server (RACS)
+# ----------------------------------------------------------------------------
+# This file defines runtime parameters for the RACS server.
+# RACS is responsible for caching and serving time-series audio data efficiently.
+# Paths may include environment variables such as ${HOME} or ${XDG_DATA_HOME}.
+# ============================================================================
+
+
+# ---------------------------------------------------------------------------
+# Network configuration
+# ---------------------------------------------------------------------------
+
+# TCP port that the RACS server listens on for incoming client connections.
+# Change this if running multiple RACS instances or if port 6381 is in use.
+port: 6381
+
+
+# ---------------------------------------------------------------------------
+# File system locations
+# ---------------------------------------------------------------------------
+
+# Directory where RACS stores persistent data:
+#   - Serialized audio blocks flushed from memory
+#   - Metadata files
+# Supports environment variable expansion (e.g., ${HOME}, ${XDG_DATA_HOME}).
+data_dir: "${HOME}"
+
+# Directory where RACS writes its log files:
+#   - Server startup and shutdown logs
+#   - Cache access logs
+#   - Errors, warnings, and background task messages
+# Must be writable by the user running the RACS process.
+log_dir: "${HOME}"
+
+
+# ---------------------------------------------------------------------------
+# Memtable configuration
+# ---------------------------------------------------------------------------
+
 memtable:
+  # Number of memtables that can reside in memory simultaneously.
+  # Each memtable holds a portion of incoming audio data before being flushed.
   tables: 1024
+
+  # Maximum number of audio blocks that each memtable can store before flush.
+  # Once this limit is reached, the memtable is serialized to disk and cleared.
   entries: 40
+
+
+# ---------------------------------------------------------------------------
+# Cache configuration
+# ---------------------------------------------------------------------------
+
 cache:
+  # Number of recently accessed memtables to retain in the in-memory cache.
+  # Increasing this value improves read performance but increases memory usage.
   entries: 4096

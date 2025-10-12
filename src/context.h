@@ -28,4 +28,5 @@ void racs_context_init(racs_context *ctx, const char *path);
 
 void racs_context_destroy(racs_context *ctx);
 
+
 #endif //RACS_CONTEXT_H
