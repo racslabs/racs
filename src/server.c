@@ -186,14 +186,19 @@ int racs_send(int fd, racs_conn_stream *stream) {
     while (bytes < n) {
         size_t to_send = (n - bytes < CHUNK_SIZE) ? n - bytes : CHUNK_SIZE;
         rc = send(fd, stream->out_stream.data + bytes, to_send, MSG_NOSIGNAL);
+
         if (rc < 0) {
-            if (errno == EPIPE) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                continue;
+            } else if (errno == EPIPE) {
                 racs_log_error("peer closed connection (EPIPE)");
+                return -1;
             } else {
-                racs_log_error("send() failed");
+                racs_log_error("send() failed: %s", strerror(errno));
+                return -1;
             }
-            return -1;
         }
+
         if (rc == 0) {
             racs_log_error("send() returned 0 (peer closed?)");
             return -1;
