@@ -136,9 +136,10 @@ int racs_recv_length_prefix(int fd, size_t *len) {
     rc = recv(fd, len, sizeof(size_t), 0);
     if (rc < 0) {
         if (errno != EWOULDBLOCK) {
-            racs_log_fatal("  recv() failed");
+            racs_log_fatal("recv() failed: %s", strerror(errno));
             return -1;
         }
+        return 0;
     }
 
     if (rc == 0) {
@@ -158,9 +159,10 @@ int racs_recv(int fd, int len, racs_conn_stream *stream) {
 
         if (rc < 0) {
             if (errno != EWOULDBLOCK) {
-                racs_log_fatal("  recv() failed");
+                racs_log_fatal("recv() failed: %s", strerror(errno));
                 return -1;
             }
+            continue;
         }
 
         if (rc == 0) {
