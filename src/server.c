@@ -2,7 +2,7 @@
 
 #define TRUE             1
 #define FALSE            0
-#define CHUNK_SIZE       4096
+#define CHUNK_SIZE       (4096*16)
 
 void racs_help() {
     printf("Usage: racs [options...] <file>\n");
@@ -79,6 +79,17 @@ void racs_set_socketopts(racs_conn *conn) {
         close(conn->listen_sd);
         exit(-1);
     }
+
+    rc = setsockopt(conn->listen_sd, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on));
+    if (rc < 0) {
+        perror("setsockopt TCP_NODELAY");
+        close(conn->listen_sd);
+        exit(-1);
+    }
+
+    int bufsize = 1024*1024; // 1 MB
+    setsockopt(conn->listen_sd, SOL_SOCKET, SO_SNDBUF, &bufsize, sizeof(bufsize));
+    setsockopt(conn->listen_sd, SOL_SOCKET, SO_RCVBUF, &bufsize, sizeof(bufsize));
 }
 
 void racs_set_nonblocking(racs_conn *conn) {
@@ -134,6 +145,7 @@ int racs_recv_length_prefix(int fd, size_t *len) {
     int rc;
 
     rc = recv(fd, len, sizeof(size_t), 0);
+    racs_log_info("expected bytes: %d", rc);
     if (rc < 0) {
         if (errno != EWOULDBLOCK) {
             racs_log_fatal("recv() failed: %s", strerror(errno));
@@ -171,6 +183,7 @@ int racs_recv(int fd, int len, racs_conn_stream *stream) {
         }
 
         racs_memstream_write(&stream->in_stream, buf, rc);
+        racs_log_info("bytes recived %zu", stream->in_stream.current_pos);
     }
 
     return stream->in_stream.current_pos;
