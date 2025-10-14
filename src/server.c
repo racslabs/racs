@@ -1,8 +1,6 @@
 #include "server.h"
 
-#define TRUE             1
-#define FALSE            0
-#define CHUNK_SIZE       (4096*16)
+#define RACS_CHUNK_SIZE     (4096*16)
 
 void racs_help() {
     printf("Usage: racs [options...] <file>\n");
@@ -63,6 +61,7 @@ void racs_init_socket(racs_conn *conn) {
 
 void racs_set_socketopts(racs_conn *conn) {
     int on = 1, off = 0, rc;
+    int bufsize = 1024*1024; // 1 MB
 
     // Allow socket descriptor to be reusable
     rc = setsockopt(conn->listen_sd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
@@ -82,14 +81,24 @@ void racs_set_socketopts(racs_conn *conn) {
 
     rc = setsockopt(conn->listen_sd, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on));
     if (rc < 0) {
-        perror("setsockopt TCP_NODELAY");
+        perror("setsockopt TCP_NODELAY failed");
         close(conn->listen_sd);
         exit(-1);
     }
 
-    int bufsize = 1024*1024; // 1 MB
-    setsockopt(conn->listen_sd, SOL_SOCKET, SO_SNDBUF, &bufsize, sizeof(bufsize));
-    setsockopt(conn->listen_sd, SOL_SOCKET, SO_RCVBUF, &bufsize, sizeof(bufsize));
+    rc = setsockopt(conn->listen_sd, SOL_SOCKET, SO_SNDBUF, &bufsize, sizeof(bufsize));
+    if (rc < 0) {
+        perror("setsockopt SO_SNDBUF failed");
+        close(conn->listen_sd);
+        exit(-1);
+    }
+
+    rc = setsockopt(conn->listen_sd, SOL_SOCKET, SO_RCVBUF, &bufsize, sizeof(bufsize));
+    if (rc < 0) {
+        perror("setsockopt SO_RCVBUF failed");
+        close(conn->listen_sd);
+        exit(-1);
+    }
 }
 
 void racs_set_nonblocking(racs_conn *conn) {
@@ -145,7 +154,6 @@ int racs_recv_length_prefix(int fd, size_t *len) {
     int rc;
 
     rc = recv(fd, len, sizeof(size_t), 0);
-    racs_log_info("expected bytes: %d", rc);
     if (rc < 0) {
         if (errno != EWOULDBLOCK) {
             racs_log_fatal("recv() failed: %s", strerror(errno));
@@ -164,7 +172,7 @@ int racs_recv_length_prefix(int fd, size_t *len) {
 
 int racs_recv(int fd, int len, racs_conn_stream *stream) {
     int rc;
-    char buf[CHUNK_SIZE];
+    char buf[RACS_CHUNK_SIZE];
 
     while (stream->in_stream.current_pos < len) {
         rc = recv(fd, buf, sizeof(buf), 0);
@@ -183,7 +191,6 @@ int racs_recv(int fd, int len, racs_conn_stream *stream) {
         }
 
         racs_memstream_write(&stream->in_stream, buf, rc);
-        racs_log_info("bytes recived %zu", stream->in_stream.current_pos);
     }
 
     return stream->in_stream.current_pos;
@@ -197,7 +204,7 @@ int racs_send(int fd, racs_conn_stream *stream) {
     signal(SIGPIPE, SIG_IGN);
 
     while (bytes < n) {
-        size_t to_send = (n - bytes < CHUNK_SIZE) ? n - bytes : CHUNK_SIZE;
+        size_t to_send = (n - bytes < RACS_CHUNK_SIZE) ? n - bytes : RACS_CHUNK_SIZE;
         rc = send(fd, stream->out_stream.data + bytes, to_send, MSG_NOSIGNAL);
 
         if (rc < 0) {
@@ -226,7 +233,7 @@ int racs_send(int fd, racs_conn_stream *stream) {
 int main(int argc, char *argv[]) {
     int rc;
     int new_sd = -1;
-    int end = FALSE, compress = FALSE;
+    int end = false, compress = false;
     int close_conn;
     int timeout;
     struct pollfd fds[200];
@@ -312,7 +319,7 @@ int main(int argc, char *argv[]) {
             // log and end the server.
             if (fds[i].revents != POLLIN) {
                 racs_log_fatal("  Error! revents = %d", fds[i].revents);
-                end = TRUE;
+                end = true;
                 break;
             }
 
@@ -331,7 +338,7 @@ int main(int argc, char *argv[]) {
                     if (new_sd < 0) {
                         if (errno != EWOULDBLOCK) {
                             racs_log_fatal("  accept() failed");
-                            end = TRUE;
+                            end = true;
                         }
                         break;
                     }
@@ -346,14 +353,14 @@ int main(int argc, char *argv[]) {
             } else {
                 // Receive all incoming data on this socket
                 // before we loop back and call poll again.
-                close_conn = FALSE;
+                close_conn = false;
                 size_t length = 0;
 
                 rc = racs_recv_length_prefix(fds[i].fd, &length);
-                if (rc < 0) close_conn = TRUE;
+                if (rc < 0) close_conn = true;
 
                 rc = racs_recv(fds[i].fd, (int) length, &streams[i]);
-                if (rc < 0) close_conn = TRUE;
+                if (rc < 0) close_conn = true;
 
                 // Echo the data back to the client
                 if (streams[i].in_stream.current_pos > 0) {
@@ -373,7 +380,7 @@ int main(int argc, char *argv[]) {
 
                     if (rc < 0) {
                         racs_conn_stream_reset(&streams[i]);
-                        close_conn = TRUE;
+                        close_conn = true;
                         break;
                     }
 
@@ -387,7 +394,7 @@ int main(int argc, char *argv[]) {
                 if (close_conn) {
                     close(fds[i].fd);
                     fds[i].fd = -1;
-                    compress = TRUE;
+                    compress = true;
                 }
             }
         }
@@ -398,7 +405,7 @@ int main(int argc, char *argv[]) {
         // events and revents fields because the events will always
         // be POLLIN in this case, and revents is output.
         if (compress) {
-            compress = FALSE;
+            compress = false;
             for (i = 0; i < nfds; i++) {
                 if (fds[i].fd == -1) {
                     for (j = i; j < nfds - 1; j++) {
@@ -410,7 +417,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
-    } while (end == FALSE);
+    } while (end == false);
 
     // Clean up all the sockets that are open
     for (i = 0; i < nfds; i++) {
