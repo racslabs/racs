@@ -1,3 +1,12 @@
+// RACS - Remote Audio Caching Server
+// Copyright (c) 2025 RACS Labs, LLC. All rights reserved.
+//
+// Licensed under the RACS Source Available License (RACS-SAL-1.0).
+// Non-commercial use only. Commercial use requires a paid license.
+// Contact: sales@racslabs.com
+//
+// SPDX-License-Identifier: RACS-SAL-1.0
+
 #include "server.h"
 
 #define RACS_CHUNK_SIZE     (4096*16)
