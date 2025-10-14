@@ -1,7 +1,7 @@
 // RACS - Remote Audio Caching Server
 // Copyright (c) 2025 RACS Labs, LLC. All rights reserved.
 //
-// Licensed under the RACS Source Available License (RSAL-1.0).
+// Licensed under the RACS Source Available License (RACS-SAL-1.0).
 // Non-commercial use only. Commercial use requires a paid license.
 // Contact: sales@racslabs.com
 //
@@ -9,6 +9,10 @@
 
 #ifndef RACS_EXEC_H
 #define RACS_EXEC_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "kvstore.h"
 #include "parser.h"
@@ -137,5 +141,10 @@ void racs_exec_plan_exec(racs_exec_plan *plan, racs_exec *exec, racs_context *ct
 int racs_exec_plan_build(racs_exec_plan *plan, msgpack_sbuffer *out_buf, racs_parser *parser);
 
 void racs_uppercase(char *str);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //RACS_EXEC_H

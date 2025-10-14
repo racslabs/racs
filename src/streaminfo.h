@@ -1,7 +1,7 @@
 // RACS - Remote Audio Caching Server
 // Copyright (c) 2025 RACS Labs, LLC. All rights reserved.
 //
-// Licensed under the RACS Source Available License (RSAL-1.0).
+// Licensed under the RACS Source Available License (RACS-SAL-1.0).
 // Non-commercial use only. Commercial use requires a paid license.
 // Contact: sales@racslabs.com
 //
@@ -9,6 +9,10 @@
 
 #ifndef RACS_STREAMINFO_H
 #define RACS_STREAMINFO_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <fcntl.h>
 #include <stdio.h>
@@ -83,5 +87,9 @@ racs_uint64 racs_hash(const char *stream_id);
 int racs_mcache_cmp(void *a, void *b);
 
 racs_uint64 racs_path_to_stream_id(char *path);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //RACS_STREAMINFO_H

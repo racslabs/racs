@@ -1,7 +1,7 @@
 // RACS - Remote Audio Caching Server
 // Copyright (c) 2025 RACS Labs, LLC. All rights reserved.
 //
-// Licensed under the RACS Source Available License (RSAL-1.0).
+// Licensed under the RACS Source Available License (RACS-SAL-1.0).
 // Non-commercial use only. Commercial use requires a paid license.
 // Contact: sales@racslabs.com
 //
@@ -9,6 +9,10 @@
 
 #ifndef RACS_LOG_H
 #define RACS_LOG_H
+
+#ifdef __cplusplus
+}
+#endif
 
 #include <pthread.h>
 #include <stdarg.h>
@@ -53,5 +57,9 @@ void racs_log_open(racs_log *log);
 void racs_log_close(racs_log *log);
 
 void racs_log_append(racs_log *log, racs_log_level level, const char *fmt, ...);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //RACS_LOG_H

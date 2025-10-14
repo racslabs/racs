@@ -1,7 +1,7 @@
 // RACS - Remote Audio Caching Server
 // Copyright (c) 2025 RACS Labs, LLC. All rights reserved.
 //
-// Licensed under the RACS Source Available License (RSAL-1.0).
+// Licensed under the RACS Source Available License (RACS-SAL-1.0).
 // Non-commercial use only. Commercial use requires a paid license.
 // Contact: sales@racslabs.com
 //
@@ -9,6 +9,10 @@
 
 #ifndef RACS_BYTES_H
 #define RACS_BYTES_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "export.h"
 #include "types.h"
@@ -51,5 +55,9 @@ RACS_FORCE_INLINE off_t racs_read_uint16(racs_uint16 *d, racs_uint8 *buf, off_t 
 RACS_FORCE_INLINE void racs_io_read_uint64(racs_uint64 *d, int fd) {
     read(fd, d, sizeof(racs_uint64));
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //RACS_BYTES_H

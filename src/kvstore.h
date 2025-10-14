@@ -1,7 +1,7 @@
 // RACS - Remote Audio Caching Server
 // Copyright (c) 2025 RACS Labs, LLC. All rights reserved.
 //
-// Licensed under the RACS Source Available License (RSAL-1.0).
+// Licensed under the RACS Source Available License (RACS-SAL-1.0).
 // Non-commercial use only. Commercial use requires a paid license.
 // Contact: sales@racslabs.com
 //
@@ -9,6 +9,10 @@
 
 #ifndef RACS_KVSTORE_H
 #define RACS_KVSTORE_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdlib.h>
 #include <string.h>
@@ -61,5 +65,9 @@ void *racs_kvstore_get(racs_kvstore *kv, void *key);
 void racs_kvstore_delete(racs_kvstore *kv, void *key);
 
 void racs_kvstore_destroy(racs_kvstore *kv);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //RACS_KVSTORE_H

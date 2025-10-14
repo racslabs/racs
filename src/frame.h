@@ -1,14 +1,18 @@
 // RACS - Remote Audio Caching Server
 // Copyright (c) 2025 RACS Labs, LLC. All rights reserved.
 //
-// Licensed under the RACS Source Available License (RSAL-1.0).
+// Licensed under the RACS Source Available License (RACS-SAL-1.0).
 // Non-commercial use only. Commercial use requires a paid license.
 // Contact: sales@racslabs.com
 //
 // SPDX-License-Identifier: RACS-SAL-1.0
 
-#ifndef RACS_ATSP_H
-#define RACS_ATSP_H
+#ifndef RACS_FRAME_H
+#define RACS_FRAME_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -38,4 +42,8 @@ off_t racs_frame_header_parse(racs_uint8 *buf, racs_frame_header *header);
 
 int racs_is_frame(const char *id);
 
-#endif //RACS_ATSP_H
+#ifdef __cplusplus
+}
+#endif
+
+#endif //RACS_FRAME_H

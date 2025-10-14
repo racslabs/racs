@@ -1,7 +1,7 @@
 // RACS - Remote Audio Caching Server
 // Copyright (c) 2025 RACS Labs, LLC. All rights reserved.
 //
-// Licensed under the RACS Source Available License (RSAL-1.0).
+// Licensed under the RACS Source Available License (RACS-SAL-1.0).
 // Non-commercial use only. Commercial use requires a paid license.
 // Contact: sales@racslabs.com
 //
@@ -9,6 +9,10 @@
 
 #ifndef RACS_CONFIG_H
 #define RACS_CONFIG_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <cyaml/cyaml.h>
 #include <string.h>
@@ -98,5 +102,9 @@ RACS_FORCE_INLINE void racs_config_load(racs_config** config, const char* path) 
 RACS_FORCE_INLINE void racs_config_destroy(racs_config* config) {
     cyaml_free(&yaml_config, &racs_schema, config, 0);
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //RACS_CONFIG_H

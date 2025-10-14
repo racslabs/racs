@@ -1,7 +1,7 @@
 // RACS - Remote Audio Caching Server
 // Copyright (c) 2025 RACS Labs, LLC. All rights reserved.
 //
-// Licensed under the RACS Source Available License (RSAL-1.0).
+// Licensed under the RACS Source Available License (RACS-SAL-1.0).
 // Non-commercial use only. Commercial use requires a paid license.
 // Contact: sales@racslabs.com
 //
@@ -9,6 +9,10 @@
 
 #ifndef RACS_FILELIST_H
 #define RACS_FILELIST_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -38,5 +42,9 @@ int racs_path_cmp(const void *path1, const void *path2);
 void racs_list_files_recursive(racs_filelist *list, const char *path);
 
 char *racs_resolve_shared_path(const char *path1, const char *path2);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //RACS_FILELIST_H

@@ -1,7 +1,7 @@
 // RACS - Remote Audio Caching Server
 // Copyright (c) 2025 RACS Labs, LLC. All rights reserved.
 //
-// Licensed under the RACS Source Available License (RSAL-1.0).
+// Licensed under the RACS Source Available License (RACS-SAL-1.0).
 // Non-commercial use only. Commercial use requires a paid license.
 // Contact: sales@racslabs.com
 //
@@ -9,6 +9,10 @@
 
 #ifndef RACS_WAV_H
 #define RACS_WAV_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdlib.h>
 #include "bytes.h"
@@ -59,5 +63,9 @@ void racs_wav_encode_header(void *out, racs_wav *wav, racs_uint32 samples);
 void racs_wav_encode_format(void *out, racs_wav *wav);
 
 void racs_wav_encode_data(void *out, racs_wav *wav, const void *data, racs_uint32 samples);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //RACS_WAV_H

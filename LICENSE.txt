@@ -1,4 +1,4 @@
-                      RACS Source Available License (RSAL-1.0)
+                      RACS Source Available License (RACS-SAL-1.0)
                      Copyright © 2025 RACS Labs, LLC. All rights reserved.
 --------------------------------------------------------------------------------
 
@@ -114,7 +114,7 @@
 
 --------------------------------------------------------------------------------
    RACS – Remote Audio Caching Server
-   License Version: RSAL-1.0
+   License Version: RACS-SAL-1.0
    Date: October 12, 2025
    Copyright © 2025 RACS Labs, LLC
 --------------------------------------------------------------------------------

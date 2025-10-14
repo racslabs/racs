@@ -1,7 +1,7 @@
 # RACS - Remote Audio Caching Server
 # Copyright (c) 2025 RACS Labs, LLC. All rights reserved.
 #
-# Licensed under the RACS Source Available License (RSAL-1.0).
+# Licensed under the RACS Source Available License (RACS-SAL-1.0).
 # Non-commercial use only. Commercial use requires a paid license.
 # Contact: sales@racslabs.com
 #
@@ -12,6 +12,9 @@ project(racs LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 17)
+
+set(RACS_TEST_DIR ${CMAKE_SOURCE_DIR}/test)
+set(RACS_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -29,73 +32,12 @@ include_directories(
         ${GUILE_INCLUDE_DIRS}
         ${YAML_INCLUDE_DIRS}
         ${MSGPACK_INCLUDE_DIRS}
-        ${RACS_DSP_SOURCE_DIR}
 )
 
-add_executable(racs
-        src/export.h
-        src/time.h
-        src/time.c
-        src/murmur3.h
-        src/murmur3.c
-        src/memtable.h
-        src/memtable.c
-        src/cache.h
-        src/cache.c
-        src/result.h
-        src/result.c
-        src/filelist.h
-        src/filelist.c
-        src/bytes.h
-        src/kvstore.h
-        src/kvstore.c
-        src/parser.h
-        src/parser.c
-        src/exec.h
-        src/exec.c
-        src/command.h
-        src/command.c
-        src/pack.h
-        src/pack.c
-        src/db.h
-        src/db.c
-        src/context.h
-        src/context.c
-        src/scm.h
-        src/scm.c
-        src/scm_bindings.h
-        src/scm_bindings.c
-        src/crc32c.h
-        src/crc32c.c
-        src/frame.h
-        src/frame.c
-        src/pcm.h
-        src/types.h
-        src/memory.h
-        src/memory.c
-        src/pcm.c
-        src/extract.h
-        src/extract.c
-        src/wav.h
-        src/wav.c
-        src/format.c
-        src/format.h
-        src/mp3.h
-        src/mp3.c
-        src/ogg.h
-        src/ogg.c
-        src/streaminfo.h
-        src/streaminfo.c
-        src/stream.h
-        src/stream.c
-        src/server.h
-        src/server.c
-        src/config.h
-        src/log.h
-        src/log.c
-        src/version.h
-        src/types.c
-)
+file(GLOB_RECURSE RACS_TEST_FILES CONFIGURE_DEPENDS ${RACS_TEST_DIR}/*.hpp ${RACS_TEST_DIR}/*.cpp)
+file(GLOB_RECURSE RACS_SOURCE_FILES CONFIGURE_DEPENDS ${RACS_SOURCE_DIR}/*.h ${RACS_SOURCE_DIR}/*.c)
+
+add_executable(racs ${RACS_SOURCE_FILES})
 
 target_link_libraries(racs
         ${MSGPACK_LIBRARIES}
@@ -105,8 +47,6 @@ target_link_libraries(racs
         ${OPUSENC_LIBRARIES}
         ${YAML_LIBRARIES}
 )
-
-set(RACS_TEST_DIR ${CMAKE_SOURCE_DIR}/test)
 
 include(FetchContent)
 include(GoogleTest)
@@ -126,17 +66,8 @@ else()
     )
 endif()
 
-if(WIN32)
-    set(CMAKE_STATIC_LIBRARY_SUFFIX ".lib")
-elseif(UNIX)
-    set(CMAKE_STATIC_LIBRARY_SUFFIX ".a")
-endif()
 
 FetchContent_MakeAvailable(googletest)
-
-file(GLOB_RECURSE RACS_TEST_FILES CONFIGURE_DEPENDS ${RACS_TEST_DIR}/*.hpp ${RACS_TEST_DIR}/*.cpp)
-
-set_target_properties(${RACS_STATIC_LIBRARY_NAME} PROPERTIES PREFIX "")
 
 enable_testing()
 
@@ -146,7 +77,6 @@ target_link_libraries(
         racs_test
         PRIVATE
         GTest::gtest_main
-        ${RACS_STATIC_LIBRARY_NAME}
 )
 
 gtest_discover_tests(racs_test)
