@@ -1,0 +1,67 @@
+version: 2.1
+orbs:
+  win: circleci/windows@4.1.1
+  macos: circleci/macos@2.2.0
+jobs:
+  linux-gcc:
+    docker:
+      - image: cimg/base:current-22.04
+    environment:
+      CC: gcc-12
+      CXX: g++-12
+    executor: ""
+    steps:
+      - checkout
+      - run:
+          name: Install Software
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y ninja-build git unzip cmake g++-12 libstdc++-12-dev
+            sudo apt-get install -y 
+            sudo apt-get install -y protobuf-compiler
+      - run: /bin/bash .ci/build-project.sh
+      - run: ctest --output-on-failure --output-junit test-results.xml --test-dir build
+      - store_test_results:
+          path: build/test-results.xml
+  linux-clang-libstdcpp:
+    docker:
+      - image: cimg/base:current-22.04
+    environment:
+      CC: clang-14
+      CXX: clang++-14
+      CXXFLAGS: -stdlib=libstdc++
+    executor: ""
+    steps:
+      - checkout
+      - run:
+          name: Install Software
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y ninja-build git unzip cmake clang-14 libc++-14-dev libc++abi-14-dev libstdc++-12-dev
+            sudo apt-get install -y libabsl-dev
+      - run: /bin/bash .ci/build-project.sh
+      - run: ctest --output-on-failure --output-junit test-results.xml --test-dir build
+      - store_test_results:
+          path: build/test-results.xml
+  mac-gcc:
+    macos:
+      xcode: 13.4.1
+    environment:
+      CC: gcc-13
+      CXX: g++-13
+    executor: ""
+    steps:
+      - checkout
+      - run: brew install cmake ninja pkg-config gcc@13 git unzip
+      - run: brew install guile lame msgpack opus libopusenc libcyaml
+      - run: /bin/bash .ci/build-project.sh
+      - run: ctest --output-on-failure --output-junit test-results.xml --test-dir build
+      - store_test_results:
+          path: build/test-results.xml
+workflows:
+  version: 2
+  run-all:
+    jobs:
+      - linux-gcc
+      - mac-gcc
+      - linux-clang-libstdcpp
