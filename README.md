@@ -1,3 +1,3 @@
-<img alt="Alt text" src="./logo.svg" style="width: 100%; height: 350px;" />
+![alt text](./logo.svg)
 
 **RACS (Remote Audio Caching Server)** is an append-only, persistent audio caching server with built-in range queries and DSP functions.

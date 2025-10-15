@@ -203,8 +203,8 @@ void racs_streaminfo_flush(racs_uint8 *data, racs_uint32 len, racs_uint64 stream
     char* dir1;
     char* dir2;
 
-    asprintf(&dir1, "%s/.data", racs_streaminfo_dir);
-    asprintf(&dir2, "%s/.data/md", racs_streaminfo_dir);
+    asprintf(&dir1, "%s/.racs", racs_streaminfo_dir);
+    asprintf(&dir2, "%s/.racs/md", racs_streaminfo_dir);
 
     char *path = NULL;
     racs_streaminfo_path(&path, stream_id);
@@ -248,7 +248,7 @@ int racs_streaminfo_exits(racs_uint64 stream_id) {
 }
 
 void racs_streaminfo_path(char **path, racs_uint64 stream_id) {
-    asprintf(path, "%s/.data/md/%llu", racs_streaminfo_dir, stream_id);
+    asprintf(path, "%s/.racs/md/%llu", racs_streaminfo_dir, stream_id);
 }
 
 racs_uint64 racs_path_to_stream_id(char *path) {
@@ -268,7 +268,7 @@ racs_uint64 racs_path_to_stream_id(char *path) {
 
 void racs_streaminfo_list(racs_cache *mcache, racs_streams *streams, const char* pattern) {
     char *path = NULL;
-    asprintf(&path, "%s/.data/md", racs_streaminfo_dir);
+    asprintf(&path, "%s/.racs/md", racs_streaminfo_dir);
 
     racs_filelist *list = get_sorted_filelist(path);
 

@@ -13,7 +13,7 @@
 
 void racs_help() {
     printf("Usage: racs [options...] <file>\n");
-    printf("-c, --config <file>     Run server with config.yml file\n");
+    printf("-c, --config <file>     Run server with conf.yml file\n");
     printf("-v, --version           Show version and quit\n");
     printf("-h, --help              Get help for commands\n");
 }
