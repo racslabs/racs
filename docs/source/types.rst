@@ -31,8 +31,6 @@ Time Types
 Type ``time`` represents a single point in time with millisecond precision.
 
 ``time`` types are represented in RFC3339 format. The supported formats include:
-
-- ``YYYY-MM-DD``
 - ``YYYY-MM-DDT00:00:000Z``
 
 
@@ -50,15 +48,15 @@ Numeric Vector Types
 --------------------
 
 +---------------+--------------------------------------------------------------------------------------------------------------------------+
-| ``i8v``       | Represents a 1-D vector of signed bytes. Binary data is returned as ``i8v`` by default.                                  |
+| ``s8v``       | Represents a 1-D vector of signed bytes. Binary data is returned as ``s8v`` by default.                                  |
 +---------------+--------------------------------------------------------------------------------------------------------------------------+
 | ``u8v``       | Represents a 1-D vector of unsigned bytes.                                                                               |
 +---------------+--------------------------------------------------------------------------------------------------------------------------+
-| ``i16v``      | Represents a 1-D vector of signed 16-bit integers.                                                                       |
+| ``s16v``      | Represents a 1-D vector of signed 16-bit integers.                                                                       |
 +---------------+--------------------------------------------------------------------------------------------------------------------------+
 | ``u16v``      | Represents a 1-D vector of unsigned 16-bit integers.                                                                     |
 +---------------+--------------------------------------------------------------------------------------------------------------------------+
-| ``i32v``      | Represents a 1-D vector of signed 32-bit integers. PCM data is returned as ``i32v`` by default.                          |
+| ``s32v``      | Represents a 1-D vector of signed 32-bit integers. PCM data is returned as ``s32v`` by default.                          |
 +---------------+--------------------------------------------------------------------------------------------------------------------------+
 | ``u32v``      | Represents a 1-D vector of unsigned 32-bit integers.                                                                     |
 +---------------+--------------------------------------------------------------------------------------------------------------------------+
@@ -66,5 +64,3 @@ Numeric Vector Types
 +---------------+--------------------------------------------------------------------------------------------------------------------------+
 | ``c64v``      | Represents a 1-D vector of complex numbers. Real and imaginary parts are IEEE-754 32-bit floating-point numbers.         |
 +---------------+--------------------------------------------------------------------------------------------------------------------------+
-
-``f64v`` and ``c128v`` are not yet supported, but will be in the near future.
