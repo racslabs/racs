@@ -6,9 +6,9 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'zform'
-copyright = '2025, AUXTS Labs Ltd.'
-author = 'AUXTS Labs'
+project = 'racs'
+copyright = '2025, RACS Labs, LLC.'
+author = 'RACS Labs'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

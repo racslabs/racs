@@ -31,7 +31,7 @@ Time Types
 Type ``time`` represents a single point in time with millisecond precision.
 
 ``time`` types are represented in RFC3339 format. The supported formats include:
-- ``YYYY-MM-DDT00:00:000Z``
+- ``YYYY-MM-DDTHH:MM:SS:MSZ``
 
 
 List Types
@@ -48,7 +48,7 @@ Numeric Vector Types
 --------------------
 
 +---------------+--------------------------------------------------------------------------------------------------------------------------+
-| ``s8v``       | Represents a 1-D vector of signed bytes. Binary data is returned as ``s8v`` by default.                                  |
+| ``s8v``       | Represents a 1-D vector of signed bytes.                                                                                 |
 +---------------+--------------------------------------------------------------------------------------------------------------------------+
 | ``u8v``       | Represents a 1-D vector of unsigned bytes.                                                                               |
 +---------------+--------------------------------------------------------------------------------------------------------------------------+
@@ -56,7 +56,7 @@ Numeric Vector Types
 +---------------+--------------------------------------------------------------------------------------------------------------------------+
 | ``u16v``      | Represents a 1-D vector of unsigned 16-bit integers.                                                                     |
 +---------------+--------------------------------------------------------------------------------------------------------------------------+
-| ``s32v``      | Represents a 1-D vector of signed 32-bit integers. PCM data is returned as ``s32v`` by default.                          |
+| ``s32v``      | Represents a 1-D vector of signed 32-bit integers.                                                                       |
 +---------------+--------------------------------------------------------------------------------------------------------------------------+
 | ``u32v``      | Represents a 1-D vector of unsigned 32-bit integers.                                                                     |
 +---------------+--------------------------------------------------------------------------------------------------------------------------+

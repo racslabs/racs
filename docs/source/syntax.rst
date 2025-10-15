@@ -1,7 +1,7 @@
 Syntax
 ======
 
-Command syntax
+Command Syntax
 --------------
 
 The command syntax follows this structure:
