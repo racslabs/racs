@@ -13,6 +13,8 @@ Commands
 
 :ref:`INFO`
 
+:ref:`LS`
+
 :ref:`OPEN`
 
 :ref:`PING`

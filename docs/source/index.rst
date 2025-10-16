@@ -8,3 +8,4 @@ RACS
    types
    streaming
    commands
+   scheme
