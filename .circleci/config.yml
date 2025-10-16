@@ -44,7 +44,7 @@ jobs:
           path: build/test-results.xml
   mac-gcc:
     macos:
-      xcode: 13.4.1
+      xcode: 16.3
     environment:
       CC: gcc-13
       CXX: g++-13
