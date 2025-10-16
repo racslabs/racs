@@ -2,12 +2,12 @@ Scheme Bindings
 ===============
 
 **Description:**
-RACS includes an embedded Guile Scheme interpreter, allowing Scheme expressions to interact directly with the server.
+RACS includes an embedded Guile Scheme interpreter, allowing direct interaction with the server using Scheme expressions.
 This is done using the :ref:`EVAL` command.
 
 .. note::
 
-   For safety, Scheme evaluation is sandboxed. Only the operators ``+``, ``-``, ``*``, ``list`` and the RACS command bindings are allowed in the sandbox. This prevents arbitrary code execution.
+    For security, Scheme evaluation is sandboxed. Only the operators ``+``, ``-``, ``*``, ``list`` and the RACS command bindings are allowed in the sandbox. This prevents arbitrary code execution.
 
 Supported Command Bindings
 --------------------------

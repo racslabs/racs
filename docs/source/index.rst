@@ -4,8 +4,7 @@ RACS
    :caption: Contents
    :maxdepth: 1
 
-   syntax
-   types
    streaming
+   types
    commands
    scheme
