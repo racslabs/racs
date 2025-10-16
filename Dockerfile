@@ -38,7 +38,7 @@ RUN git clone --branch dev --single-branch https://${GITHUB_TOKEN}@${REPO_URL} \
 WORKDIR /racs
 RUN ls -l .
 # Build
-RUN cmake -B build -G Ninja && cmake --build build --config Release
+RUN cmake -B build -G Ninja && cmake --build build --target racs -j 10
 
 # Copy binary (inside container, single-stage)
 RUN cp build/racs /usr/local/bin/racs
