@@ -20,10 +20,9 @@ Type ``null`` represents a missing or unknown value.
 String Types
 ------------
 
-Type ``string`` represents a sequence of characters. All strings are expected to be UTF-8 encoded.
+Type ``string`` represents a sequence of characters. All strings are ASCII-encoded.
 
 String literals must be enclosed in single quotes.
-
 
 Time Types
 ----------
@@ -31,8 +30,8 @@ Time Types
 Type ``time`` represents a single point in time with millisecond precision.
 
 ``time`` types are represented in RFC3339 format. The supported formats include:
-- ``YYYY-MM-DDTHH:MM:SS:MSZ``
 
+- ``YYYY-MM-DDTHH:MM:SS:MSZ``
 
 List Types
 ----------
@@ -42,7 +41,6 @@ Type ``list`` is an ordered collection of values.
 A list may contain mixed types but they must be basic types or strings.
 
 For example: ``("1" 2 false)`` is valid, but ``((1 2) false)`` is not.
-
 
 Numeric Vector Types
 --------------------

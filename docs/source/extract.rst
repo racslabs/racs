@@ -17,7 +17,7 @@ Arguments
 | from      | ``time``   | Start timestamp in the stream, RFC 3339 format:      |
 |           |            | ``YYYY-MM-DDTHH:MM:SS:MSZ`` (UTC, no offset).        |
 +-----------+------------+------------------------------------------------------+
-| end       | ``time``   | End timestamp in the stream, RFC 3339 format:        |
+| to        | ``time``   | End timestamp in the stream, RFC 3339 format:        |
 |           |            | ``YYYY-MM-DDTHH:MM:SS:MSZ`` (UTC, no offset).        |
 +-----------+------------+------------------------------------------------------+
 
@@ -40,4 +40,4 @@ Example
 
 .. code-block:: none
 
-   EXTRACT 'chopin.wav' 2023-12-25T22:30:45.123Z 2024-05-27T02:56:16.123Z
+   EXTRACT 'chopin' 2023-12-25T22:30:45.123Z 2024-05-27T02:56:16.123Z

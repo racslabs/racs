@@ -7,3 +7,4 @@ RACS
    syntax
    types
    streaming
+   commands
