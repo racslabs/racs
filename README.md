@@ -14,6 +14,7 @@ Unlike traditional databases, **RACS** is purpose-built for storing, querying, a
 - **Time-Range Queries**: Retrieve precise audio segments by timestamp for efficient slicing, analysis, or playback.
 - **Metadata Management**: Store and query audio-specific metadata such as sample rate, bit depth, and channel count.
 - **Caching & Persistence**: Hybrid memory–disk storage with LRU caching for fast access and durable persistence.
+- **Programmability**: Embedded Guile Scheme interpreter for direct, scriptable interaction with the server. 
 
 ### Storage Engine
 
