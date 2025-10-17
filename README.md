@@ -1,5 +1,5 @@
 <p align="center">
-    <img width="300px" src="logo.svg"  alt=""/>
+    <img width="350px" src="logo.svg"  alt=""/>
 </p>
 
 ## What is RACS?
@@ -36,8 +36,8 @@ Planned enhancements include:
 - **Replication:** Multi-node clustering for distributed storage and redundancy
 - **Compaction:** Offline SSTable compaction to optimize disk usage
 - **TTL Retention Policies:** Cleanup of expired audio data during compaction
-- **Compression:** Reduced on-disk footprint for archived segments
-- **DSP Functions:** Built-in signal processing functions
+- **Compression:** Reduced on-disk footprint for archived segments and bandwidth usage during ingestion
+- **DSP Module:** Extend functionality to include SIMD optimized signal processing functions
 
 
 ## Is RACS Open Source?
@@ -62,11 +62,16 @@ If you do not have docker on your machine, [Install Docker](https://docs.docker.
     docker run --network=host -p 6381:6381 racslabs/racs
 ```
 
-You can now connect to the server on port 6381.
+You can now connect to the server on `localhost:6381`.
 
-Other Build Options
--------------------
+### Other Build Options
 
-- :ref:`Build From Source <BUILD_FROM_SOURCE>`
+- [Build From Source](docs/source/build-from-source.rst)
+
+### Documentation Generation
+
+
+
+
 
 
