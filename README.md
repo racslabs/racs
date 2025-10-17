@@ -12,22 +12,30 @@
 - **Streaming:** Stream raw PCM data with low latency
 - **Format Conversion:** On-the-fly conversion between PCM, MP3, Opus, and WAV formats
 - **Query Engine:** Execute range queries on time-series audio data
-- **Metadata Management:** Manage audio specific metadata attributes
+- **Metadata Management:** Manage audio metadata attributes – i.e., sample rate, channels, etc.
 - **Embedded Scheme Interpreter:** Run programmable Scheme-based audio pipelines
 
 
-## ⚙️ Storage Engine Mechanics
+## ⚙️ Storage Engine
 
 **RACS** uses a multi-tiered architecture inspired by LSM (Log-Structured Merge) trees:
 
-1. **Memtables**
-
-    Incoming audio blocks are written in memory and batched for efficient disk flushes.
-2. **SSTables (Time-Partitioned)**
-
-    When memtables reach capacity, they are flushed as immutable time-partitioned files on disk. This layout enables fast range queries by timestamp.
-3. **LRU Cache**
-
-    Frequently accessed SSTables are cached in memory, minimizing disk I/O and improving response times.
+1. **Memtables**:
+Incoming audio blocks are written in memory and batched for efficient disk flushes.
+2. **SSTables (Time-Partitioned)**:
+When memtables reach capacity, they are flushed as immutable time-partitioned files on disk. This layout enables fast range queries by timestamp.
+3. **LRU Cache**:
+Frequently accessed SSTables are cached in memory, minimizing disk I/O and improving response times.
 
 This architecture ensures a balance between high write performance, query efficiency, and data durability.
+
+## ⚠️ MVP Stage
+
+RACS is currently in **MVP (Minimum Viable Product)** stage.  
+All core features are functional, including audio caching, low-latency streaming, format conversion, range queries, and Scheme-based audio pipelines.
+
+Future enhancements will include:
+- **Replication:** Multi-node support for distributed storage.
+- **Compaction:** Optional offline SSTable compaction for disk efficiency.
+- **DSP Functions:** Built-in signal processing operations.
+
