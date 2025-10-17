@@ -1,7 +1,7 @@
 Quick Start
 ===========
 
-The simplest way to run RACS is using ``docker``.
+The quickest way to run RACS is using ``docker``.
 
 If you do not have docker on your machine, `Install Docker <https://docs.docker.com/get-started/get-docker/>`_ before continuing.
 
