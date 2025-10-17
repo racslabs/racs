@@ -86,4 +86,4 @@ To generate the docs, run the following commands:
 
 Open the `index.html` file under `docs/build/html` in the browser.
 
-> [!NOTE] python 3+ is required for doc generation.
+> [!NOTE]  python 3+ is required for doc generation.
