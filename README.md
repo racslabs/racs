@@ -6,6 +6,7 @@
 
 **RACS (Remote Audio Caching Server)** is an append-only, persistent audio caching server with built-in range queries, format conversion, and low-latency streaming.
 
+
 ## Key Features
 
 - **Storage & Archival:** Cache and persist large volumes of audio data efficiently
@@ -13,10 +14,10 @@
 - **Format Conversion:** On-the-fly conversion between PCM, MP3, Opus, and WAV formats
 - **Query Engine:** Execute range queries on time-series audio data
 - **Metadata Management:** Manage audio metadata attributes – i.e., sample rate, channels, etc.
-- **Embedded Scheme Interpreter:** Run programmable Scheme-based audio pipelines
+- **Programmability:** Execute scheme expressions directly on the server
 
 
-## ⚙️ Storage Engine
+## Storage Engine
 
 **RACS** uses a multi-tiered architecture inspired by LSM (Log-Structured Merge) trees:
 
@@ -29,13 +30,26 @@ Frequently accessed SSTables are cached in memory, minimizing disk I/O and impro
 
 This architecture ensures a balance between high write performance, query efficiency, and data durability.
 
+
+## Is RACS Open Source?
+
+**RACS** is distributed under the RACS Source Available License (RACS-SAL-1.0).
+It is free for personal, educational, and non-commercial use.
+
+Commercial use requires a paid license.
+For licensing or collaboration inquiries, contact sales@racslabs.com
+
+
 ## ⚠️ MVP Stage
 
-RACS is currently in **MVP (Minimum Viable Product)** stage.  
-All core features are functional, including audio caching, low-latency streaming, format conversion, range queries, and Scheme-based audio pipelines.
+**RACS** is currently in the **MVP (Minimum Viable Product)** stage.  
+All core components are functional, including audio caching, low-latency streaming, format conversion, range queries, and Scheme-based audio pipelines.
 
-Future enhancements will include:
-- **Replication:** Multi-node support for distributed storage.
-- **Compaction:** Optional offline SSTable compaction for disk efficiency.
-- **DSP Functions:** Built-in signal processing operations.
+Planned enhancements include:
+- **Replication:** Multi-node clustering for distributed storage and redundancy
+- **Compaction:** Offline SSTable compaction to optimize disk usage
+- **TTL Retention Policies:** Cleanup of expired audio data
+- **Compression:** Reduced on-disk footprint for archived segments
+- **DSP Functions:** Built-in signal processing functions
+
 
