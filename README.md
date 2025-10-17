@@ -70,9 +70,6 @@ You can now connect to the server on `localhost:6381`.
 
 ### Documentation Generation
 
-> [!NOTE]
-> python 3+ is required for doc generation.
-
 To generate the docs, run the following commands:
 
 ```sh
@@ -88,3 +85,5 @@ To generate the docs, run the following commands:
 ```
 
 Open the `index.html` file under `docs/build/html` in the browser.
+
+> [!NOTE] python 3+ is required for doc generation.
