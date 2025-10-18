@@ -29,14 +29,14 @@ extern "C" {
 
 typedef struct {
     char chunk_id[3];
-    racs_uint64 session_id[2];
+    racs_uint8  session_id[16];
     racs_uint64 stream_id;
     racs_uint32 checksum;
     racs_uint16 channels;
     racs_uint32 sample_rate;
     racs_uint16 bit_depth;
     racs_uint16 block_size;
-    racs_uint8 flags;
+    racs_uint8  flags;
 } racs_frame_header;
 
 typedef struct {

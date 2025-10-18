@@ -86,8 +86,6 @@ racs_multi_memtable *racs_multi_memtable_create(int num_tables, int capacity);
 
 void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum);
 
-void racs_multi_memtable_destroy(racs_multi_memtable *mmt);
-
 void racs_multi_memtable_flush(racs_multi_memtable *mmt);
 
 void racs_multi_memtable_move_to_head(racs_multi_memtable *mmt, racs_memtable *mt);

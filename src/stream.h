@@ -41,11 +41,11 @@ int racs_streamopen(racs_streamkv *kv, racs_uint64 stream_id);
 
 int racs_streamclose(racs_streamkv *kv, racs_uint64 stream_id);
 
-racs_uint64 *racs_streamkv_get(racs_streamkv *kv, racs_uint64 stream_id);
+racs_uint8 *racs_streamkv_get(racs_streamkv *kv, racs_uint64 stream_id);
 
 void racs_streamkv_delete(racs_streamkv *kv, racs_uint64 stream_id);
 
-void racs_streamkv_put(racs_streamkv *kv, racs_uint64 stream_id, racs_uint64 session_id[]);
+void racs_streamkv_put(racs_streamkv *kv, racs_uint64 stream_id, racs_uint8 *session_id);
 
 racs_streamkv *racs_streamkv_create(int capacity);
 
@@ -57,6 +57,6 @@ int racs_streamkv_cmp(void *a, void *b);
 
 void racs_streamkv_destroy_entry(void *key, void *value);
 
-int racs_session_cmp(const racs_uint64 *src, const racs_uint64 *dest);
+int racs_session_cmp(const racs_uint8 *src, const racs_uint8 *dest);
 
 #endif //RACS_STREAM_H

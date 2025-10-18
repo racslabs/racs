@@ -49,7 +49,7 @@ int racs_streamappend(racs_cache *mcache, racs_multi_memtable *mmt, racs_streamk
     if (!racs_frame_parse(data, &frame))
         return RACS_STREAM_MALFORMED;
 
-    racs_uint64 *session_id = racs_streamkv_get(kv, frame.header.stream_id);
+    racs_uint8 *session_id = racs_streamkv_get(kv, frame.header.stream_id);
     if (!session_id) return RACS_STREAM_CONFLICT;
 
     if (!racs_session_cmp(frame.header.session_id, session_id))
@@ -85,13 +85,13 @@ int racs_streamappend(racs_cache *mcache, racs_multi_memtable *mmt, racs_streamk
 }
 
 int racs_streamopen(racs_streamkv *kv, racs_uint64 stream_id) {
-    racs_uint64 *session_id = racs_streamkv_get(kv, stream_id);
+    racs_uint8 *session_id = racs_streamkv_get(kv, stream_id);
     if (session_id) {
         racs_log_error("Stream is already open");
         return 0;
     }
 
-    racs_uint64 _session_id[2];
+    racs_uint8 _session_id[16];
     memset(_session_id, 0, 16);
 
     racs_streamkv_put(kv, stream_id, _session_id);
@@ -99,7 +99,7 @@ int racs_streamopen(racs_streamkv *kv, racs_uint64 stream_id) {
 }
 
 int racs_streamclose(racs_streamkv *kv, racs_uint64 stream_id) {
-    racs_uint64 *session_id = racs_streamkv_get(kv, stream_id);
+    racs_uint8 *session_id = racs_streamkv_get(kv, stream_id);
     if (!session_id) {
         racs_log_info("Stream is not open");
         return 0;
@@ -122,18 +122,18 @@ racs_streamkv *racs_streamkv_create(int capacity) {
     return kv;
 }
 
-racs_uint64 *racs_streamkv_get(racs_streamkv *kv, racs_uint64 stream_id) {
+racs_uint8 *racs_streamkv_get(racs_streamkv *kv, racs_uint64 stream_id) {
     pthread_rwlock_rdlock(&kv->rwlock);
 
     racs_uint64 key[2] = {stream_id, 0};
-    racs_uint64 *session_id = racs_kvstore_get(kv->kv, key);
+    racs_uint8 *session_id = racs_kvstore_get(kv->kv, key);
 
     pthread_rwlock_unlock(&kv->rwlock);
 
     return session_id;
 }
 
-void racs_streamkv_put(racs_streamkv *kv, racs_uint64 stream_id, racs_uint64 session_id[]) {
+void racs_streamkv_put(racs_streamkv *kv, racs_uint64 stream_id, racs_uint8 *session_id) {
     pthread_rwlock_wrlock(&kv->rwlock);
 
     racs_uint64 *key = malloc(2 * sizeof(racs_uint64));
@@ -145,7 +145,7 @@ void racs_streamkv_put(racs_streamkv *kv, racs_uint64 stream_id, racs_uint64 ses
     key[0] = stream_id;
     key[1] = 0;
 
-    racs_uint64 *_session_id = malloc(16);
+    racs_uint8 *_session_id = malloc(16);
     if (!_session_id) {
         racs_log_error("Failed to allocate session_id");
         return;
@@ -190,8 +190,8 @@ void racs_streamkv_destroy_entry(void *key, void *value) {
     free(value);
 }
 
-int racs_session_cmp(const racs_uint64 *src, const racs_uint64 *dest) {
-    racs_uint64 _session_id[2];
+int racs_session_cmp(const racs_uint8 *src, const racs_uint8 *dest) {
+    racs_uint8 _session_id[16];
     memset(_session_id, 0, 16);
 
     if (memcmp(dest, _session_id, 16) == 0) return 1;

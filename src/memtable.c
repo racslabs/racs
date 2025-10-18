@@ -66,25 +66,6 @@ void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs
     pthread_mutex_unlock(&mmt->mutex);
 }
 
-void racs_multi_memtable_destroy(racs_multi_memtable *mmt) {
-    if (!mmt) return;
-
-    pthread_mutex_lock(&mmt->mutex);
-    racs_multi_memtable_flush(mmt);
-
-    racs_memtable *mt = mmt->head;
-    while (mt) {
-        racs_memtable *next = (racs_memtable *) mt->next;
-        racs_memtable_destroy(mt);
-        mt = next;
-    }
-
-    pthread_mutex_unlock(&mmt->mutex);
-    pthread_mutex_destroy(&mmt->mutex);
-
-    free(mmt);
-}
-
 void racs_multi_memtable_flush(racs_multi_memtable *mmt) {
     if (!mmt) return;
 
