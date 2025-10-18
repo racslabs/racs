@@ -81,8 +81,8 @@ char *racs_time_range_to_path(racs_time from, racs_time to) {
     char *path1 = NULL;
     char *path2 = NULL;
 
-    racs_time_to_path(from, &path1);
-    racs_time_to_path(to, &path2);
+    racs_time_to_path(from, &path1, false);
+    racs_time_to_path(to, &path2, false);
 
     char* shared_path = racs_resolve_shared_path(path1, path2);
     free(path1);
@@ -91,23 +91,24 @@ char *racs_time_range_to_path(racs_time from, racs_time to) {
     return shared_path;
 }
 
-void racs_time_to_path(racs_time time, char **path) {
+void racs_time_to_path(racs_time time, char **path, int tmp) {
     struct tm info;
     racs_time_to_tm(time, &info);
 
     long rem = time % 1000;
+    const char *ext = tmp ? ".tmp" : "";
 
-    asprintf(path, "%s/.racs/seg/%d/%02d/%02d/%02d/%02d/%02d/%03ld",
+    asprintf(path, "%s/.racs/seg/%d/%02d/%02d/%02d/%02d/%02d/%03ld%s",
             racs_time_dir,
             info.tm_year + 1900, info.tm_mon + 1,
             info.tm_mday, info.tm_hour,
             info.tm_min, info.tm_sec,
-            rem);
+            rem, ext);
 }
 
 void racs_time_create_dirs(racs_time time) {
     char *dir = NULL;
-    racs_time_to_path(time, &dir);
+    racs_time_to_path(time, &dir, true);
 
     char *p = dir;
     while ((p = strchr(p + 1, '/')) != NULL) {

@@ -216,13 +216,13 @@ void racs_streaminfo_flush(racs_uint8 *data, racs_uint32 len, racs_uint64 stream
     free(dir2);
 
     int fd = open(path, O_WRONLY | O_TRUNC | O_CREAT, 0644);
-    if (fd == -1) {
+    if (fd < 0) {
         racs_log_error("Failed to open racs_streaminfo file");
         free(path);
         return;
     }
 
-    if (flock(fd, LOCK_EX) == -1) {
+    if (flock(fd, LOCK_EX) < 0) {
         racs_log_error("Failed to lock racs_streaminfo file");
         close(fd);
         free(path);
@@ -230,7 +230,13 @@ void racs_streaminfo_flush(racs_uint8 *data, racs_uint32 len, racs_uint64 stream
     }
 
     write(fd, data, len);
-    flock(fd, LOCK_UN);
+
+    if (fsync(fd) < 0)
+        racs_log_error("fsync failed on racs_streaminfo file");
+
+    if (flock(fd, LOCK_UN) < 0)
+        racs_log_error("Failed to unlock racs_streaminfo file");
+
     close(fd);
     free(path);
 }

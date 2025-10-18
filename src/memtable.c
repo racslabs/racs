@@ -301,15 +301,26 @@ void racs_memtable_write(racs_memtable *mt) {
         return;
     }
 
-    char *path = NULL;
+    char *tmp_path = NULL;
+    char *final_path = NULL;
+
     racs_uint64 timestamp = mt->entries[0].key[1];
-    racs_sstable_path((racs_int64) timestamp, &path);
+    racs_sstable_path((racs_int64) timestamp, &tmp_path);
 
     sst->num_entries = mt->num_entries;
-    if (racs_sstable_open(path, sst) == -1) {
+    if (racs_sstable_open(tmp_path, sst) < 0) {
+        racs_log_error("Failed to open racs_sstable file");
         racs_sstable_destroy_except_data(sst);
         free(buf);
-        free(path);
+        free(tmp_path);
+        return;
+    }
+
+    if (flock(sst->fd, LOCK_EX) < 0) {
+        racs_log_error("Failed to lock racs_sstable file");
+        racs_sstable_destroy_except_data(sst);
+        free(buf);
+        free(tmp_path);
         return;
     }
 
@@ -319,14 +330,27 @@ void racs_memtable_write(racs_memtable *mt) {
 
     racs_sstable_write(buf, sst, offset);
 
+    if (fsync(sst->fd) < 0)
+        racs_log_error("fsync failed on racs_sstable file");
+
+    if (flock(sst->fd, LOCK_UN) < 0)
+        racs_log_error("Failed to unlock racs_sstable file");
+
+    racs_time_to_path((racs_int64) timestamp, &final_path, false);
+
+    if (rename(tmp_path, final_path) < 0)
+        racs_log_error("Failed to rename racs_sstable file");
+
     free(buf);
-    free(path);
+    free(tmp_path);
+    free(final_path);
+
     racs_sstable_destroy_except_data(sst);
 }
 
 void racs_sstable_path(racs_int64 timestamp, char **path) {
     racs_time_create_dirs(timestamp);
-    racs_time_to_path(timestamp, path);
+    racs_time_to_path(timestamp, path, true);
 }
 
 racs_uint8 *racs_allocate_buffer(size_t size, racs_sstable *sst) {

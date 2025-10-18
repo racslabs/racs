@@ -43,6 +43,8 @@ void racs_list_files_recursive(racs_filelist *list, const char *path);
 
 char *racs_resolve_shared_path(const char *path1, const char *path2);
 
+int racs_is_tmpfile(char *path);
+
 #ifdef __cplusplus
 }
 #endif
