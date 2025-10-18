@@ -20,6 +20,13 @@ extern "C" {
 #include "bytes.h"
 #include "crc32c.h"
 
+#define RACS_FLAG_COMPRESSED 0x01
+
+#define RACS_IS_COMPRESSED(h) ((h).flags & RACS_FLAG_COMPRESSED)
+
+#define RACS_IS_FRAME(d) racs_is_frame(d)
+
+
 typedef struct {
     char chunk_id[3];
     racs_uint64 session_id[2];
@@ -29,6 +36,7 @@ typedef struct {
     racs_uint32 sample_rate;
     racs_uint16 bit_depth;
     racs_uint16 block_size;
+    racs_uint8 flags;
 } racs_frame_header;
 
 typedef struct {

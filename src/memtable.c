@@ -185,6 +185,9 @@ racs_memtable_entry *racs_memtable_entry_read(racs_uint8 *buf, size_t offset) {
     offset = racs_read_uint32(&entry->checksum, buf, (off_t) offset);
     offset = racs_read_uint16(&entry->block_size, buf, (off_t) offset);
 
+    entry->flags = buf[offset];
+    offset += 1;
+
     entry->block = malloc(entry->block_size);
     memcpy(entry->block, buf + offset, entry->block_size);
 
@@ -192,6 +195,7 @@ racs_memtable_entry *racs_memtable_entry_read(racs_uint8 *buf, size_t offset) {
         free(entry->block);
         free(entry);
 
+        racs_log_error("Corrupted read of racs_memtable_entry");
         return NULL;
     }
 
@@ -238,6 +242,8 @@ void racs_memtable_append(racs_memtable *mt, racs_uint64 *key, racs_uint8 *block
 
     mt->entries[mt->num_entries].block_size = block_size;
     mt->entries[mt->num_entries].checksum = checksum;
+    mt->entries[mt->num_entries].flags = 0;
+
     ++mt->num_entries;
 
     pthread_mutex_unlock(&mt->mutex);
@@ -450,6 +456,10 @@ off_t racs_memtable_entry_write(racs_uint8 *buf, const racs_memtable_entry *mt_e
     offset = racs_write_uint64(buf, mt_entry->key[1], offset);
     offset = racs_write_uint32(buf, mt_entry->checksum, offset);
     offset = racs_write_uint16(buf, mt_entry->block_size, offset);
+
+    buf[offset] = mt_entry->flags;
+    offset += 1;
+
     return racs_write_bin(buf, mt_entry->block, mt_entry->block_size, offset);
 }
 

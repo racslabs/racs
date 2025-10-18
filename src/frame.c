@@ -26,7 +26,9 @@ off_t racs_frame_header_parse(racs_uint8 *buf, racs_frame_header *header) {
     racs_read_uint32(&header->sample_rate, buf, 33);
     racs_read_uint16(&header->bit_depth, buf, 37);
     racs_read_uint16(&header->block_size, buf, 39);
-    return 41;
+
+    header->flags = buf[41];
+    return 42;
 }
 
 int racs_is_frame(const char *id) {

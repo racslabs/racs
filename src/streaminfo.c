@@ -77,7 +77,7 @@ int racs_streaminfo_get(racs_cache *mcache, racs_streaminfo *streaminfo, racs_ui
         }
 
         int fd = open(path, O_RDONLY);
-        if (fd == -1) {
+        if (fd < 0) {
             racs_log_error("Failed to open racs_streaminfo file");
             free(path);
             return 0;

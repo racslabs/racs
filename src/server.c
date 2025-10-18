@@ -375,7 +375,7 @@ int main(int argc, char *argv[]) {
                 if (streams[i].in_stream.current_pos > 0) {
                     racs_result res;
 
-                    if (racs_is_frame((const char *) streams[i].in_stream.data)) {
+                    if (RACS_IS_FRAME((const char *) streams[i].in_stream.data)) {
                         res = racs_db_stream(db, streams[i].in_stream.data);
                     } else {
                         res = racs_db_exec(db, (const char *) streams[i].in_stream.data);
