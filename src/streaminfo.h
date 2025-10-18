@@ -66,7 +66,7 @@ size_t racs_streaminfo_filesize(const char *path);
 
 void racs_streaminfo_flush(racs_uint8 *data, racs_uint32 len, racs_uint64 stream_id);
 
-void racs_streaminfo_path(char **path, racs_uint64 stream_id);
+void racs_streaminfo_path(char **path, racs_uint64 stream_id, int tmp);
 
 int racs_streaminfo_exits(racs_uint64 stream_id);
 

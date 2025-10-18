@@ -344,6 +344,7 @@ void racs_memtable_write(racs_memtable *mt) {
     free(buf);
     free(tmp_path);
     free(final_path);
+    close(sst->fd);
 
     racs_sstable_destroy_except_data(sst);
 }
