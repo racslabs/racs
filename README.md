@@ -5,12 +5,12 @@
 ## What is RACS?
 
 **RACS (Remote Audio Caching Server)** is an append-only, persistent audio caching server with built-in range queries, format conversion, and low-latency streaming.
-Unlike traditional databases, **RACS** is purpose-built for storing, querying, and streaming audio data at scale.
+Unlike blob stores and traditional databases, **RACS** is purpose-built for storing, querying, and streaming audio data at scale.
 
 ### Key Features
 
 - **Low-Latency Streaming**: Real-time delivery of audio directly from memory or disk, ideal for edge caches and application servers.
-- **Format Conversion**: On-the-fly transcoding to PCM, MP3, Opus, and WAV formats to adapt to client or bandwidth requirements.
+- **Format Conversion**: On-the-fly transcoding to MP3, Opus, and WAV formats to adapt to client or bandwidth requirements.
 - **Time-Range Queries**: Retrieve precise audio segments by timestamp for efficient slicing, analysis, or playback.
 - **Metadata Management**: Store and query audio-specific metadata such as sample rate, bit depth, and channel count.
 - **Caching & Persistence**: Hybrid memory–disk storage with LRU caching for fast access and durable persistence.

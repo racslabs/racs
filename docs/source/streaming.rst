@@ -25,10 +25,12 @@ The client takes raw PCM samples interleaved by channel and chunks it into frame
 | block_size | Size of PCM encoded block in bytes                          | 2          | 39     | Little    |
 |            | Max block size is 2^16 bytes (64KB)                         |            |        |           |
 +------------+-------------------------------------------------------------+------------+--------+-----------+
-| pcm_block  | Block containing the raw PCM samples interleaved by channel | block_size | 41     | Little    |
+| flags      | Compression flag (0 = uncompressed, 1 = compressed)         | 1          | 41     | N/A       |
++------------+-------------------------------------------------------------+------------+--------+-----------+
+| pcm_block  | Block containing the raw PCM samples interleaved by channel | block_size | 42     | Little    |
 +------------+-------------------------------------------------------------+------------+--------+-----------+
 
 .. note::
 
-   Only 16-bit and 24-bit PCM samples are supported
-
+    Only 16-bit and 24-bit PCM samples are supported.
+    Compression is not yet implemented. Set flags to 0.
