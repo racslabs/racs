@@ -9,7 +9,7 @@ Unlike blob stores and traditional databases, **RACS** is purpose-built for stor
 
 ### Key Features
 
-- **Low-Latency Streaming**: Real-time delivery of audio directly from memory or disk, ideal for edge caches and application servers.
+- **Low-Latency Streaming**: Real-time delivery of audio directly from memory or disk. Ideal for edge caches, Content Delivery Networks (CDN), and application servers.
 - **Format Conversion**: On-the-fly transcoding to MP3, Opus, and WAV formats to adapt to client or bandwidth requirements.
 - **Time-Range Queries**: Retrieve precise audio segments by timestamp for efficient slicing, analysis, or playback.
 - **Metadata Management**: Store and query audio-specific metadata such as sample rate, bit depth, and channel count.
@@ -28,6 +28,15 @@ When memtables reach capacity, they are flushed as immutable time-partitioned fi
 Frequently accessed SSTables are cached in memory, minimizing disk I/O and improving response times.
 
 This architecture ensures a balance between high write performance, query efficiency, and data durability.
+
+## Why Use RACS?
+
+Audio needs more than generic storage.
+
+RACS is built for systems where audio is dynamic, time-indexed, and performance-critical.
+It replaces complex pipelines and slow object stores with a single, purpose-built engine for fast, precise, and reliable audio access.
+
+When you need to handle audio as data — not files — RACS is the right tool.
 
 ## ⚠️ MVP Stage
 
@@ -89,3 +98,14 @@ Open the `index.html` file under `docs/build/html` in the browser.
 
 > [!NOTE]  
 > python 3+ is required for doc generation.
+
+### Client Libraries
+
+RACS provides client libraries for multiple languages:
+
+- [**(Python)** py-racs](https://github.com/racslabs/py-racs) — fully usable
+- [**(Java)** java-racs](https://github.com/racslabs/java-racs) — fully usable
+- [**(Rust)** rust-racs](https://github.com/racslabs/rust-racs) — under development
+- [**(C)** racs-client](https://github.com/racslabs/racs-client) — under development
+
+Python and Java clients are production-ready, while Rust and C clients are still in active development.
