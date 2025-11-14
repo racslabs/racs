@@ -13,7 +13,7 @@
 
 void racs_help() {
     printf("Usage: racs [options...] <file>\n");
-    printf("-c, --config <file>     Run server with conf.yml file\n");
+    printf("-c, --config <file>     Run server with conf.yaml file\n");
     printf("-v, --version           Show version and quit\n");
     printf("-h, --help              Get help for commands\n");
 }
@@ -213,14 +213,15 @@ int racs_send(int fd, racs_conn_stream *stream) {
     signal(SIGPIPE, SIG_IGN);
 
     while (bytes < n) {
-        size_t to_send = (n - bytes < RACS_CHUNK_SIZE) ? n - bytes : RACS_CHUNK_SIZE;
-        rc = send(fd, stream->out_stream.data + bytes, to_send, MSG_NOSIGNAL);
+        size_t rem = n - bytes;
+        size_t to_send = (rem < RACS_CHUNK_SIZE) ? rem : RACS_CHUNK_SIZE;
 
+        rc = send(fd, stream->out_stream.data + bytes, to_send, MSG_NOSIGNAL);
         if (rc < 0) {
             if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 continue;
             } else if (errno == EPIPE) {
-                racs_log_error("peer closed connection (EPIPE)");
+                racs_log_error("peer closed connection: %s", strerror(errno));
                 return -1;
             } else {
                 racs_log_error("send() failed: %s", strerror(errno));
