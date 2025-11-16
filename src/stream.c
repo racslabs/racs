@@ -11,7 +11,7 @@
 
 const char *const racs_stream_status_string[] = {
         "",
-        "Malformed rspt frame.",
+        "Malformed rsp frame.",
         "Stream is closed or currently in use.",
         "Invalid sample rate.",
         "Invalid channels.",
@@ -61,15 +61,6 @@ int racs_streamappend(racs_cache *mcache, racs_multi_memtable *mmt, racs_streamk
 
     if (rc == 0) return RACS_STREAM_NOT_FOUND;
     racs_streamkv_put(kv, frame.header.stream_id, frame.header.session_id);
-
-    if (frame.header.sample_rate != streaminfo.sample_rate)
-        return RACS_STREAM_INVALID_SAMPLE_RATE;
-
-    if (frame.header.channels != streaminfo.channels)
-        return RACS_STREAM_INVALID_CHANNELS;
-
-    if (frame.header.bit_depth != 16 && frame.header.bit_depth != 24)
-        return RACS_STREAM_INVALID_BITDEPTH;
 
     if (streaminfo.ref == 0 && streaminfo.size == 0)
         streaminfo.ref = racs_time_now();

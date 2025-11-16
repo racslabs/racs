@@ -16,18 +16,12 @@ The client takes raw PCM samples interleaved by channel and chunks it into frame
 +------------+-------------------------------------------------------------+------------+--------+-----------+
 | checksum   | 32-bit CRC32C checksum for error detection                  | 4          | 27     | Little    |
 +------------+-------------------------------------------------------------+------------+--------+-----------+
-| channels   | Number of audio channels                                    | 2          | 31     | Little    |
-+------------+-------------------------------------------------------------+------------+--------+-----------+
-| sample_rate| Audio sample rate (samples per second)                      | 4          | 33     | Little    |
-+------------+-------------------------------------------------------------+------------+--------+-----------+
-| bit_depth  | Number of bits per sample                                   | 2          | 37     | Little    |
-+------------+-------------------------------------------------------------+------------+--------+-----------+
-| block_size | Size of PCM encoded block in bytes                          | 2          | 39     | Little    |
+| block_size | Size of PCM encoded block in bytes                          | 2          | 31     | Little    |
 |            | Max block size is 2^16 bytes (64KB)                         |            |        |           |
 +------------+-------------------------------------------------------------+------------+--------+-----------+
-| flags      | Compression flag (0 = uncompressed, 1 = compressed)         | 1          | 41     | N/A       |
+| flags      | Compression flag (0 = uncompressed, 1 = compressed)         | 1          | 33     | N/A       |
 +------------+-------------------------------------------------------------+------------+--------+-----------+
-| pcm_block  | Block containing the raw PCM samples interleaved by channel | block_size | 42     | Little    |
+| pcm_block  | Block containing the raw PCM samples interleaved by channel | block_size | 34     | Little    |
 +------------+-------------------------------------------------------------+------------+--------+-----------+
 
 .. note::
