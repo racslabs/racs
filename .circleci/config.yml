@@ -5,7 +5,7 @@ orbs:
 jobs:
   linux-gcc:
     docker:
-      - image: cimg/base:current-22.04
+      - image: cimg/base:debian-12.1
     environment:
       CC: gcc-12
       CXX: g++-12
@@ -16,7 +16,7 @@ jobs:
           command: |
             sudo apt-get update
             sudo apt-get install ninja-build git unzip cmake g++-12 libstdc++-12-dev
-            sudo apt-get install lame libopus-dev libopusenc-dev opus-tools
+            sudo apt-get install lame libopus-dev libopusenc-dev
             sudo apt install guile-3.0-dev libmsgpack-dev libcyaml-dev
       - run: /bin/bash .ci/build-project.sh
       - run: ctest --output-on-failure --output-junit test-results.xml --test-dir build
