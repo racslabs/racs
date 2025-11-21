@@ -2,7 +2,7 @@
     <img width="350px" src="logo.svg"  alt=""/>
 </p>
 
-[![CircleCI Status](https://circleci.com/gh/racslabs/racs.svg?style=svg)](https://circleci.com/gh/racslabs/racs)
+[![racslabs](https://circleci.com/gh/racslabs/racs.svg?style=svg)](https://circleci.com/gh/racslabs/racs)
 
 
 ## What is RACS?
