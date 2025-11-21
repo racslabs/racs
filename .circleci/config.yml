@@ -17,9 +17,16 @@ jobs:
             sudo apt-get update
             sudo apt-get install ninja-build git unzip cmake g++-12 libstdc++-12-dev
             sudo apt-get install lame libopus-dev guile-3.0-dev libmsgpack-dev libcyaml-dev
-            wget http://ftp.debian.org/debian/pool/main/libo/libopusenc/libopusenc-dev_0.2.1-2_amd64.deb
-            sudo dpkg -i libopusenc-dev_0.2.1-2_amd64.deb
-            sudo apt -f install
+      - run:
+          name: Build libopusenc From Source
+          command: |
+            git clone https://github.com/xiph/libopusenc.git
+            cd libopusenc
+            ./autogen.sh
+            ./configure
+            make -j$(nproc)
+            sudo make install
+
       - run: /bin/bash .ci/build-project.sh
       - run: ctest --output-on-failure --output-junit test-results.xml --test-dir build
       - store_test_results:
