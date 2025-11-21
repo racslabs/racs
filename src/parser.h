@@ -12,11 +12,11 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <bsd/string.h>
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <regex.h>
-#include <bsd/string.h>
 #include "bytes.h"
 #include "time.h"
 #include "log.h"
