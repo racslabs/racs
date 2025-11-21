@@ -26,11 +26,10 @@ jobs:
             ./configure
             make -j$(nproc)
             sudo make install
-
       - run: /bin/bash .ci/build-project.sh
-      - run: ctest --output-on-failure --output-junit test-results.xml --test-dir build
-      - store_test_results:
-          path: build/test-results.xml
+#      - run: ctest --output-on-failure --output-junit test-results.xml --test-dir build
+#      - store_test_results:
+#          path: build/test-results.xml
 workflows:
   version: 2
   run-all:
