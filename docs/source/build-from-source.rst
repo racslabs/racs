@@ -5,6 +5,7 @@ Build from Source
 
 RACS can be built on ``Linux`` and ``macOS``.
 The recommended compiler is ``GCC 7+``.
+Supported CPU Architectures: ``x86/x86_64``, ``arm64`` (Little endian only)
 
 Install Dependencies
 --------------------
