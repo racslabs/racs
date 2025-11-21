@@ -17,10 +17,12 @@ jobs:
             sudo apt-get update
             sudo apt-get install ninja-build git unzip cmake g++-12 libstdc++-12-dev
             sudo apt-get install lame libopus-dev guile-3.0-dev libmsgpack-dev libcyaml-dev
-            wget http://archive.ubuntu.com/ubuntu/pool/universe/libo/libopusenc/libopusenc0_0.2.1-2build1_amd64.deb	
-            sudo apt install ./libopusenc0_0.2.1-2build1_amd64.deb
+            wget http://ftp.debian.org/debian/pool/main/libo/libopusenc/libopusenc-dev_0.2-5_amd64.deb
+            sudo dpkg -i libopusenc-dev_0.2-5_amd64.deb
+            sudo apt -f install  # Fix missing dependencies if any
 
-      - run: /bin/bash .ci/build-project.sh
+
+- run: /bin/bash .ci/build-project.sh
       - run: ctest --output-on-failure --output-junit test-results.xml --test-dir build
       - store_test_results:
           path: build/test-results.xml
