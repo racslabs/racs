@@ -18,6 +18,7 @@ extern "C" {
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include "export.h"
 #include "filelist.h"
 #include "types.h"
@@ -37,7 +38,7 @@ racs_time racs_time_from_rfc3339(const char *buf);
 
 racs_time racs_time_from_path(const char *path);
 
-void racs_time_to_path(racs_time time, char **path);
+void racs_time_to_path(racs_time time, char **path, int tmp);
 
 char *racs_time_range_to_path(racs_time from, racs_time to);
 

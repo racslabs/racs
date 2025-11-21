@@ -86,7 +86,7 @@ racs_token racs_parser_lex_token_time(racs_parser *parser, regmatch_t *match) {
     regoff_t size = match->rm_eo - match->rm_so;
 
     char *time_str = malloc(size + 1);
-    strlcpy(time_str, parser->ptr, size + 1);
+    snprintf(time_str, size + 1, "%s", parser->ptr);
 
     racs_token token;
     token.type = RACS_TOKEN_TYPE_TIME;
@@ -130,7 +130,7 @@ racs_token racs_parser_lex_token_int64(racs_parser *parser, regmatch_t *match) {
     regoff_t size = match->rm_eo - match->rm_so;
 
     char *int_str = malloc(size + 1);
-    strlcpy(int_str, parser->ptr, size + 1);
+    snprintf(int_str, size + 1, "%s", parser->ptr);
 
     racs_token token;
     token.type = RACS_TOKEN_TYPE_INT;
@@ -146,7 +146,7 @@ racs_token racs_parser_lex_token_float64(racs_parser *parser, regmatch_t *match)
     regoff_t size = match->rm_eo - match->rm_so;
 
     char *float_str = malloc(size + 1);
-    strlcpy(float_str, parser->ptr, size + 1);
+    snprintf(float_str, size + 1, "%s", parser->ptr);
 
     racs_token token;
     token.type = RACS_TOKEN_TYPE_FLOAT;

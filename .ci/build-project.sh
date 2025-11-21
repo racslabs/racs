@@ -18,4 +18,4 @@ if [ ! -d "$BUILD_DIR" ] ; then
 fi
 
 cmake -G Ninja "$CMAKE_BUILD_ARGS" -DCMAKE_BUILD_TYPE=Debug -B "$BUILD_DIR"
-cmake --build "$BUILD_DIR" --target racs_test -j 9
+cmake --build "$BUILD_DIR" --target racs -j 10

@@ -18,8 +18,8 @@ extern "C" {
 #include <stdio.h>
 
 #define RACS_VERSION_MAJOR  0
-#define RACS_VERSION_MINOR  0
-#define RACS_VERSION_PATCH  1
+#define RACS_VERSION_MINOR  1
+#define RACS_VERSION_PATCH  0
 
 #define RACS_VERSION ((RACS_VERSION_MAJOR * 10000) + \
                       (RACS_VERSION_MINOR * 100) +  \

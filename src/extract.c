@@ -29,6 +29,9 @@ int racs_extract_pcm(racs_context *ctx, racs_pcm *pcm, const char *stream_id, ra
     for (int i = 0; i < list->num_files; ++i) {
         char *file_path = list->files[i];
 
+        if (racs_is_tmpfile(file_path))
+            continue;
+
         racs_time time = racs_time_from_path(file_path);
         if (time >= from && time <= to) {
             racs_uint8 *data = racs_extract_from_cache_or_sstable(ctx->scache, hash, time, file_path);

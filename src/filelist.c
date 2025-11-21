@@ -122,3 +122,8 @@ void racs_filelist_sort(racs_filelist *list) {
 int racs_path_cmp(const void *path1, const void *path2) {
     return strcmp(*(const char **) path1, *(const char **) path2);
 }
+
+int racs_is_tmpfile(char *path) {
+    const char *ext = strrchr(path, '.');
+    return ext && strcmp(ext, ".tmp") == 0;
+}

@@ -173,7 +173,7 @@ char *racs_unpack_str(msgpack_object *obj, int n) {
     size_t size = obj->via.array.ptr[n].via.str.size + 1;
 
     char *str = malloc(size);
-    strlcpy(str, obj->via.array.ptr[n].via.str.ptr, size);
+    snprintf(str, size, "%s", obj->via.array.ptr[n].via.str.ptr);
 
     return str;
 }

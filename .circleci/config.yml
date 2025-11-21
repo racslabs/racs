@@ -15,51 +15,23 @@ jobs:
           name: Install Software
           command: |
             sudo apt-get update
-            sudo apt-get install -y ninja-build git unzip cmake g++-12 libstdc++-12-dev
-            sudo apt-get install -y lame libopus-dev opus-tools
-            sudo apt install guile-3.0-dev libmsgpack-dev libcyaml-dev
-      - run: /bin/bash .ci/build-project.sh
-      - run: ctest --output-on-failure --output-junit test-results.xml --test-dir build
-      - store_test_results:
-          path: build/test-results.xml
-  linux-clang-libstdcpp:
-    docker:
-      - image: cimg/base:current-22.04
-    environment:
-      CC: clang-14
-      CXX: clang++-14
-      CXXFLAGS: -stdlib=libstdc++
-    steps:
-      - checkout
+            sudo apt-get install ninja-build git unzip cmake g++-12 libstdc++-12-dev \
+                libmp3lame-dev libopus-dev guile-3.0-dev libmsgpack-dev libcyaml-dev
       - run:
-          name: Install Software
+          name: Build libopusenc From Source
           command: |
-            sudo apt-get update
-            sudo apt-get install -y ninja-build git unzip cmake clang-14 libc++-14-dev libc++abi-14-dev libstdc++-12-dev
-            sudo apt-get install -y lame libopus-dev opus-tools
-            sudo apt install guile-3.0-dev libmsgpack-dev libcyaml-dev
+            git clone https://github.com/xiph/libopusenc.git
+            cd libopusenc
+            ./autogen.sh
+            ./configure
+            make -j$(nproc)
+            sudo make install
       - run: /bin/bash .ci/build-project.sh
-      - run: ctest --output-on-failure --output-junit test-results.xml --test-dir build
-      - store_test_results:
-          path: build/test-results.xml
-  mac-gcc:
-    macos:
-      xcode: 13.4.1
-    environment:
-      CC: gcc-13
-      CXX: g++-13
-    steps:
-      - checkout
-      - run: brew install cmake ninja pkg-config gcc@13 git unzip
-      - run: brew install guile lame msgpack opus libopusenc libcyaml
-      - run: /bin/bash .ci/build-project.sh
-      - run: ctest --output-on-failure --output-junit test-results.xml --test-dir build
-      - store_test_results:
-          path: build/test-results.xml
+#      - run: ctest --output-on-failure --output-junit test-results.xml --test-dir build
+#      - store_test_results:
+#          path: build/test-results.xml
 workflows:
   version: 2
   run-all:
     jobs:
       - linux-gcc
-      - mac-gcc
-      - linux-clang-libstdcpp

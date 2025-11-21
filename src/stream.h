@@ -20,9 +20,6 @@ typedef enum {
     RACS_STREAM_OK,
     RACS_STREAM_MALFORMED,
     RACS_STREAM_CONFLICT,
-    RACS_STREAM_INVALID_SAMPLE_RATE,
-    RACS_STREAM_INVALID_CHANNELS,
-    RACS_STREAM_INVALID_BITDEPTH,
     RACS_STREAM_NOT_FOUND
 } racs_stream_status;
 
@@ -41,11 +38,11 @@ int racs_streamopen(racs_streamkv *kv, racs_uint64 stream_id);
 
 int racs_streamclose(racs_streamkv *kv, racs_uint64 stream_id);
 
-racs_uint64 *racs_streamkv_get(racs_streamkv *kv, racs_uint64 stream_id);
+racs_uint8 *racs_streamkv_get(racs_streamkv *kv, racs_uint64 stream_id);
 
 void racs_streamkv_delete(racs_streamkv *kv, racs_uint64 stream_id);
 
-void racs_streamkv_put(racs_streamkv *kv, racs_uint64 stream_id, racs_uint64 session_id[]);
+void racs_streamkv_put(racs_streamkv *kv, racs_uint64 stream_id, racs_uint8 *session_id);
 
 racs_streamkv *racs_streamkv_create(int capacity);
 
@@ -57,6 +54,6 @@ int racs_streamkv_cmp(void *a, void *b);
 
 void racs_streamkv_destroy_entry(void *key, void *value);
 
-int racs_session_cmp(const racs_uint64 *src, const racs_uint64 *dest);
+int racs_session_cmp(const racs_uint8 *src, const racs_uint8 *dest);
 
 #endif //RACS_STREAM_H

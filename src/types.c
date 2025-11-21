@@ -41,7 +41,7 @@ racs_int32 *racs_s24_s32(const racs_int24 *in, size_t n) {
     racs_int32 *out = malloc(sizeof(racs_int32) * n);
 
     for (int i = 0; i < n; ++i) {
-        int32_t s = (in[i]._[0] | (in[i]._[1] << 8) | (in[i]._[2] << 16));
+        racs_int32 s = (in[i]._[0] | (in[i]._[1] << 8) | (in[i]._[2] << 16));
         if (s & 0x800000) s |= ~0xffffff;
         out[i] = s;
     }

@@ -275,7 +275,7 @@ racs_command *racs_command_create(const char *name, racs_command_op op, size_t s
     cmd->max_num_args = 4;
     cmd->op = op;
 
-    strlcpy(cmd->name, name, size);
+    snprintf(cmd->name, size, "%s", name);
     racs_uppercase(cmd->name);
 
     cmd->args = malloc(cmd->max_num_args * sizeof(racs_command_arg *));

@@ -1,9 +1,11 @@
-AUXTS
+RACS
 =====
 .. toctree::
    :caption: Contents
    :maxdepth: 1
 
-   syntax
-   types
+   quick-start
    streaming
+   types
+   commands
+   scheme

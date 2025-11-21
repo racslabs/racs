@@ -66,25 +66,6 @@ void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs
     pthread_mutex_unlock(&mmt->mutex);
 }
 
-void racs_multi_memtable_destroy(racs_multi_memtable *mmt) {
-    if (!mmt) return;
-
-    pthread_mutex_lock(&mmt->mutex);
-    racs_multi_memtable_flush(mmt);
-
-    racs_memtable *mt = mmt->head;
-    while (mt) {
-        racs_memtable *next = (racs_memtable *) mt->next;
-        racs_memtable_destroy(mt);
-        mt = next;
-    }
-
-    pthread_mutex_unlock(&mmt->mutex);
-    pthread_mutex_destroy(&mmt->mutex);
-
-    free(mmt);
-}
-
 void racs_multi_memtable_flush(racs_multi_memtable *mmt) {
     if (!mmt) return;
 
@@ -185,6 +166,9 @@ racs_memtable_entry *racs_memtable_entry_read(racs_uint8 *buf, size_t offset) {
     offset = racs_read_uint32(&entry->checksum, buf, (off_t) offset);
     offset = racs_read_uint16(&entry->block_size, buf, (off_t) offset);
 
+    entry->flags = buf[offset];
+    offset += 1;
+
     entry->block = malloc(entry->block_size);
     memcpy(entry->block, buf + offset, entry->block_size);
 
@@ -192,6 +176,7 @@ racs_memtable_entry *racs_memtable_entry_read(racs_uint8 *buf, size_t offset) {
         free(entry->block);
         free(entry);
 
+        racs_log_error("Corrupted read of racs_memtable_entry");
         return NULL;
     }
 
@@ -238,6 +223,8 @@ void racs_memtable_append(racs_memtable *mt, racs_uint64 *key, racs_uint8 *block
 
     mt->entries[mt->num_entries].block_size = block_size;
     mt->entries[mt->num_entries].checksum = checksum;
+    mt->entries[mt->num_entries].flags = 0;
+
     ++mt->num_entries;
 
     pthread_mutex_unlock(&mt->mutex);
@@ -301,15 +288,26 @@ void racs_memtable_write(racs_memtable *mt) {
         return;
     }
 
-    char *path = NULL;
+    char *tmp_path = NULL;
+    char *final_path = NULL;
+
     racs_uint64 timestamp = mt->entries[0].key[1];
-    racs_sstable_path((racs_int64) timestamp, &path);
+    racs_sstable_path((racs_int64) timestamp, &tmp_path);
 
     sst->num_entries = mt->num_entries;
-    if (racs_sstable_open(path, sst) == -1) {
+    if (racs_sstable_open(tmp_path, sst) < 0) {
+        racs_log_error("Failed to open racs_sstable file");
         racs_sstable_destroy_except_data(sst);
         free(buf);
-        free(path);
+        free(tmp_path);
+        return;
+    }
+
+    if (flock(sst->fd, LOCK_EX) < 0) {
+        racs_log_error("Failed to lock racs_sstable file");
+        racs_sstable_destroy_except_data(sst);
+        free(buf);
+        free(tmp_path);
         return;
     }
 
@@ -319,14 +317,28 @@ void racs_memtable_write(racs_memtable *mt) {
 
     racs_sstable_write(buf, sst, offset);
 
+    if (fsync(sst->fd) < 0)
+        racs_log_error("fsync failed on racs_sstable file");
+
+    if (flock(sst->fd, LOCK_UN) < 0)
+        racs_log_error("Failed to unlock racs_sstable file");
+
+    racs_time_to_path((racs_int64) timestamp, &final_path, false);
+
+    if (rename(tmp_path, final_path) < 0)
+        racs_log_error("Failed to rename racs_sstable file");
+
     free(buf);
-    free(path);
+    free(tmp_path);
+    free(final_path);
+    close(sst->fd);
+
     racs_sstable_destroy_except_data(sst);
 }
 
 void racs_sstable_path(racs_int64 timestamp, char **path) {
     racs_time_create_dirs(timestamp);
-    racs_time_to_path(timestamp, path);
+    racs_time_to_path(timestamp, path, true);
 }
 
 racs_uint8 *racs_allocate_buffer(size_t size, racs_sstable *sst) {
@@ -425,6 +437,10 @@ off_t racs_memtable_entry_write(racs_uint8 *buf, const racs_memtable_entry *mt_e
     offset = racs_write_uint64(buf, mt_entry->key[1], offset);
     offset = racs_write_uint32(buf, mt_entry->checksum, offset);
     offset = racs_write_uint16(buf, mt_entry->block_size, offset);
+
+    buf[offset] = mt_entry->flags;
+    offset += 1;
+
     return racs_write_bin(buf, mt_entry->block, mt_entry->block_size, offset);
 }
 

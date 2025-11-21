@@ -28,10 +28,10 @@ void racs_context_init(racs_context *ctx, const char *path) {
 }
 
 void racs_context_destroy(racs_context *ctx) {
-    racs_multi_memtable_destroy(ctx->mmt);
+    racs_multi_memtable_flush(ctx->mmt);
     racs_streamkv_destroy(ctx->kv);
     racs_cache_destroy(ctx->scache);
     racs_cache_destroy(ctx->mcache);
-    racs_log_destroy(_log);
     racs_config_destroy(ctx->config);
+    racs_log_destroy(_log);
 }

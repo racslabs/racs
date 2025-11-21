@@ -1,27 +1,30 @@
 Streaming
 =========
 
-**AUXTS Streaming Protocol** (ATSP) is used to efficiently transfer audio data over TCP/IP.
+**RACS Streaming Protocol** (RSP) is used to efficiently transfer audio data over TCP/IP.
 
-The format is outlined below:
+The client takes raw PCM samples interleaved by channel and chunks it into frames with the below format:
 
-+---------------+-------------------------------------------------------+-----------+--------+
-|value          |Description                                            | bytes     | offset |
-+===============+=======================================================+===========+========+
-|Chunk ID       | The string ``"atsp"``                                 |4          |0       |
-+---------------+-------------------------------------------------------+-----------+--------+
-|hash           | 64-bit hash of the stream ID.                         |8          |4       |
-+---------------+-------------------------------------------------------+-----------+--------+
-|checksum       | CRC32C checksum for error detection.                  |4          |12      |
-+---------------+-------------------------------------------------------+-----------+--------+
-|channels       | Number of audio channels                              |2          |16      |
-+---------------+-------------------------------------------------------+-----------+--------+
-|sample_rate    | Audio sample rate (samples per second).               |4          |18      |
-+---------------+-------------------------------------------------------+-----------+--------+
-|bit_depth      | Number of bits per sample                             |2          |22      |
-+---------------+-------------------------------------------------------+-----------+--------+
-|block_size     | Size of PCM encoded block in bytes.                   |2          |24      |
-|               | Max block size is 2^16 bytes (64KB).                  |           |        |
-+---------------+-------------------------------------------------------+-----------+--------+
-|PCM block      | Block containing the PCM data.                        |block_size |26      |
-+---------------+-------------------------------------------------------+-----------+--------+
++------------+-------------------------------------------------------------+------------+--------+-----------+
+| Value      | Description                                                 | Bytes      | Offset | Byte Order|
++============+=============================================================+============+========+===========+
+| chunk_id   | The ASCII string ``"rsp"``                                  | 3          | 0      | N/A       |
++------------+-------------------------------------------------------------+------------+--------+-----------+
+| session_id | 128-bit unique session id (UUID)                            | 16         | 3      | Little    |
++------------+-------------------------------------------------------------+------------+--------+-----------+
+| hash       | 64-bit hash of the stream ID                                | 8          | 19     | Little    |
++------------+-------------------------------------------------------------+------------+--------+-----------+
+| checksum   | 32-bit CRC32C checksum for error detection                  | 4          | 27     | Little    |
++------------+-------------------------------------------------------------+------------+--------+-----------+
+| block_size | Size of PCM encoded block in bytes                          | 2          | 31     | Little    |
+|            | Max block size is 2^16 bytes (64KB)                         |            |        |           |
++------------+-------------------------------------------------------------+------------+--------+-----------+
+| flags      | Compression flag (0 = uncompressed, 1 = compressed)         | 1          | 33     | N/A       |
++------------+-------------------------------------------------------------+------------+--------+-----------+
+| pcm_block  | Block containing the raw PCM samples interleaved by channel | block_size | 34     | Little    |
++------------+-------------------------------------------------------------+------------+--------+-----------+
+
+.. note::
+
+    Only 16-bit and 24-bit PCM samples are supported.
+    Compression is not yet implemented. Set flags to 0.

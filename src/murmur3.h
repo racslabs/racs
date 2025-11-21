@@ -23,7 +23,7 @@ extern "C" {
 
 #define racs_getblock(p, i) (p[i])
 
-static RACS_FORCE_INLINE racs_uint64 rotl64(racs_uint64 x, int8_t r) {
+static RACS_FORCE_INLINE racs_uint64 rotl64(racs_uint64 x, racs_int8 r) {
     return (x << r) | (x >> (64 - r));
 }
 

@@ -19,6 +19,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <sys/file.h>
 #include <errno.h>
 #include <pthread.h>
 #include "bytes.h"
@@ -39,7 +40,7 @@ extern "C" {
 
 #define RACS_HEADER_SIZE 16
 
-#define RACS_MEMTABLE_ENTRY_METADATA_SIZE 22
+#define RACS_MEMTABLE_ENTRY_METADATA_SIZE 23
 
 #define RACS_TRAILER_SIZE 2
 
@@ -47,6 +48,7 @@ typedef struct {
     racs_uint64 key[2];
     racs_uint32 checksum;
     racs_uint16 block_size;
+    racs_uint8  flags;
     racs_uint8 *block;
 } racs_memtable_entry;
 
@@ -83,8 +85,6 @@ typedef struct {
 racs_multi_memtable *racs_multi_memtable_create(int num_tables, int capacity);
 
 void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum);
-
-void racs_multi_memtable_destroy(racs_multi_memtable *mmt);
 
 void racs_multi_memtable_flush(racs_multi_memtable *mmt);
 

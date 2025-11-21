@@ -22,11 +22,10 @@ off_t racs_frame_header_parse(racs_uint8 *buf, racs_frame_header *header) {
     memcpy(&header->session_id, buf + 3, 16);
     racs_read_uint64(&header->stream_id, buf, 19);
     racs_read_uint32(&header->checksum, buf, 27);
-    racs_read_uint16(&header->channels, buf, 31);
-    racs_read_uint32(&header->sample_rate, buf, 33);
-    racs_read_uint16(&header->bit_depth, buf, 37);
-    racs_read_uint16(&header->block_size, buf, 39);
-    return 41;
+    racs_read_uint16(&header->block_size, buf, 31);
+
+    header->flags = buf[33];
+    return 34;
 }
 
 int racs_is_frame(const char *id) {

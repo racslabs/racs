@@ -70,14 +70,14 @@ int racs_streaminfo_get(racs_cache *mcache, racs_streaminfo *streaminfo, racs_ui
     if (!data) {
         char *path = NULL;
 
-        racs_streaminfo_path(&path, stream_id);
+        racs_streaminfo_path(&path, stream_id, false);
         if (!racs_streaminfo_exits(stream_id)) {
             free(path);
             return 0;
         }
 
         int fd = open(path, O_RDONLY);
-        if (fd == -1) {
+        if (fd < 0) {
             racs_log_error("Failed to open racs_streaminfo file");
             free(path);
             return 0;
@@ -203,11 +203,13 @@ void racs_streaminfo_flush(racs_uint8 *data, racs_uint32 len, racs_uint64 stream
     char* dir1;
     char* dir2;
 
-    asprintf(&dir1, "%s/.data", racs_streaminfo_dir);
-    asprintf(&dir2, "%s/.data/md", racs_streaminfo_dir);
+    asprintf(&dir1, "%s/.racs", racs_streaminfo_dir);
+    asprintf(&dir2, "%s/.racs/md", racs_streaminfo_dir);
 
-    char *path = NULL;
-    racs_streaminfo_path(&path, stream_id);
+    char *tmp_path = NULL;
+    char *final_path = NULL;
+
+    racs_streaminfo_path(&tmp_path, stream_id, true);
 
     mkdir(dir1, 0777);
     mkdir(dir2, 0777);
@@ -215,29 +217,41 @@ void racs_streaminfo_flush(racs_uint8 *data, racs_uint32 len, racs_uint64 stream
     free(dir1);
     free(dir2);
 
-    int fd = open(path, O_WRONLY | O_TRUNC | O_CREAT, 0644);
-    if (fd == -1) {
+    int fd = open(tmp_path, O_WRONLY | O_TRUNC | O_CREAT, 0644);
+    if (fd < 0) {
         racs_log_error("Failed to open racs_streaminfo file");
-        free(path);
+        free(tmp_path);
         return;
     }
 
-    if (flock(fd, LOCK_EX) == -1) {
+    if (flock(fd, LOCK_EX) < 0) {
         racs_log_error("Failed to lock racs_streaminfo file");
         close(fd);
-        free(path);
+        free(tmp_path);
         return;
     }
 
     write(fd, data, len);
-    flock(fd, LOCK_UN);
+
+    if (fsync(fd) < 0)
+        racs_log_error("fsync failed on racs_streaminfo file");
+
+    if (flock(fd, LOCK_UN) < 0)
+        racs_log_error("Failed to unlock racs_streaminfo file");
+
+    racs_streaminfo_path(&final_path, stream_id, false);
+
+    if (rename(tmp_path, final_path) < 0)
+        racs_log_error("Failed to rename racs_streaminfo file");
+
     close(fd);
-    free(path);
+    free(tmp_path);
+    free(final_path);
 }
 
 int racs_streaminfo_exits(racs_uint64 stream_id) {
     char* path = NULL;
-    racs_streaminfo_path(&path, stream_id);
+    racs_streaminfo_path(&path, stream_id, false);
 
     struct stat buffer;
 
@@ -247,8 +261,9 @@ int racs_streaminfo_exits(racs_uint64 stream_id) {
     return rc;
 }
 
-void racs_streaminfo_path(char **path, racs_uint64 stream_id) {
-    asprintf(path, "%s/.data/md/%llu", racs_streaminfo_dir, stream_id);
+void racs_streaminfo_path(char **path, racs_uint64 stream_id, int tmp) {
+    const char *ext = tmp ? ".tmp" : "";
+    asprintf(path, "%s/.racs/md/%llu%s", racs_streaminfo_dir, stream_id, ext);
 }
 
 racs_uint64 racs_path_to_stream_id(char *path) {
@@ -268,7 +283,7 @@ racs_uint64 racs_path_to_stream_id(char *path) {
 
 void racs_streaminfo_list(racs_cache *mcache, racs_streams *streams, const char* pattern) {
     char *path = NULL;
-    asprintf(&path, "%s/.data/md", racs_streaminfo_dir);
+    asprintf(&path, "%s/.racs/md", racs_streaminfo_dir);
 
     racs_filelist *list = get_sorted_filelist(path);
 
