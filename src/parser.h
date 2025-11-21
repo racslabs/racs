@@ -16,9 +16,11 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <regex.h>
+#include <bsd/string.h>
 #include "bytes.h"
 #include "time.h"
 #include "log.h"
+
 
 #ifdef __cplusplus
 extern "C" {
