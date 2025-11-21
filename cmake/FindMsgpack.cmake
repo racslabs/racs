@@ -1,12 +1,13 @@
 find_path (MSGPACK_INCLUDE_DIR msgpack.h
         PATH_SUFFIXES
         msgpack-c
+        msgpack
         HINTS /opt/local/include
 )
 
 # Look for the library
 find_library (MSGPACK_LIBRARY
-        NAMES msgpack-c
+        NAMES msgpack-c msgpack
         HINTS
         /opt/local/lib
 )
