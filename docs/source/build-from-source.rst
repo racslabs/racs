@@ -20,8 +20,7 @@ Install Dependencies
 
 .. code-block:: bash
 
-    git clone https://github.com/xiph/libopusenc.git
-    cd libopusenc
+    git clone https://github.com/xiph/libopusenc.git && cd libopusenc
     ./autogen.sh
     ./configure
     make -j$(nproc)

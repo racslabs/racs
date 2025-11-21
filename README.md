@@ -46,6 +46,7 @@ When you need to treat audio as data — not files — RACS is the right tool.
 **RACS** is currently in the **MVP (Minimum Viable Product)** stage. All the key features mentioned above are fully functional.
 
 Planned enhancements include:
+- **Batched Streaming:** Stream PCM frames in batches to cutdown on network overhead during bulk ingestion.
 - **Replication:** Multi-node clustering for distributed storage and redundancy
 - **Compaction:** Offline SSTable compaction to optimize disk usage
 - **TTL Retention Policies:** Cleanup of expired audio data during compaction
@@ -59,7 +60,7 @@ Planned enhancements include:
 It is free for personal, educational, and non-commercial use.
 
 Commercial use requires a paid license.
-For licensing or collaboration inquiries, contact sales@racslabs.com
+For licensing inquiries, contact sales@racslabs.com
 
 ## Getting Started
 
