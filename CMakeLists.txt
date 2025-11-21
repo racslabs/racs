@@ -24,7 +24,6 @@ find_package(Lame)
 find_package(Opus)
 find_package(OpusEnc)
 find_package(Yaml)
-find_package(BSD)
 
 include_directories(
         ${OPUS_INCLUDE_DIRS}
