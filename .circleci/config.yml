@@ -16,7 +16,7 @@ jobs:
           command: |
             sudo apt-get update
             sudo apt-get install ninja-build git unzip cmake g++-12 libstdc++-12-dev \
-                libmp3lame-dev libopus-dev guile-3.0-dev libmsgpack-c-dev libcyaml-dev
+                libmp3lame-dev libopus-dev guile-3.0-dev libmsgpack-dev libcyaml-dev
       - run:
           name: Build libopusenc From Source
           command: |
