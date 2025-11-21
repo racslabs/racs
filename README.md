@@ -2,6 +2,9 @@
     <img width="350px" src="logo.svg"  alt=""/>
 </p>
 
+![CircleCI](https://img.shields.io/circleci/build/gh/CorbinMoon/racs)
+
+
 ## What is RACS?
 
 **RACS (Remote Audio Caching Server)** is an append-only, persistent audio caching server with built-in range queries, format conversion, and low-latency streaming.
@@ -104,6 +107,6 @@ Open the `index.html` file under `docs/build/html` in the browser.
 RACS provides client libraries for multiple languages:
 
 - [**(Python)** py-racs](https://github.com/racslabs/py-racs) — fully usable
-- [**(Java)** java-racs](https://github.com/racslabs/java-racs) — fully usable
-- [**(Rust)** rust-racs](https://github.com/racslabs/rust-racs) — under development
+- [**(Java)** java-racs](https://github.com/racslabs/java-racs) — under development
+- [**(Rust)** rust-racs](https://github.com/racslabs/rust-racs) — fully usable
 - [**(C)** racs-client](https://github.com/racslabs/racs-client) — under development

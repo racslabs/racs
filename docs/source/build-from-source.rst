@@ -9,14 +9,25 @@ The recommended compiler is ``GCC 7+``.
 Install Dependencies
 --------------------
 
-Debian/Ubuntu:
+**Debian/Ubuntu:**
 
 .. code-block:: bash
 
-    sudo apt install ninja-build cmake g++ lame libopus-dev libopusenc-dev \
+    sudo apt install ninja-build cmake g++ libmp3lame-dev libopus-dev libopusenc-dev \
         guile-3.0-dev libmsgpack-dev libcyaml-dev
 
-macOS:
+``libopusenc-dev`` is not available on Ubuntu. To install it from source, run the following:
+
+.. code-block:: bash
+
+    git clone https://github.com/xiph/libopusenc.git
+    cd libopusenc
+    ./autogen.sh
+    ./configure
+    make -j$(nproc)
+    sudo make install
+
+**macOS:**
 
 .. code-block:: bash
 
