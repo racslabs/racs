@@ -2,7 +2,7 @@
     <img width="350px" src="logo.svg"  alt=""/>
 </p>
 
-![CircleCI](https://img.shields.io/circleci/build/gh/CorbinMoon/racs)
+[![CircleCI Status](https://circleci.com/gh/racslabs/racs.svg?style=svg)](https://circleci.com/gh/racslabs/racs)
 
 
 ## What is RACS?
