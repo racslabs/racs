@@ -189,7 +189,7 @@ off_t racs_streaminfo_read(racs_streaminfo *streaminfo, racs_uint8 *buf) {
 }
 
 racs_time racs_streaminfo_offset(racs_streaminfo *streaminfo) {
-    double seconds = (streaminfo->size / (double) (streaminfo->channels * streaminfo->sample_rate * 2));
+    double seconds = streaminfo->size / (double) (streaminfo->channels * streaminfo->sample_rate * (streaminfo->bit_depth / 8));
     return (racs_time) (seconds * 1000) + streaminfo->ref;
 }
 
