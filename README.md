@@ -10,8 +10,6 @@
 Unlike blob stores and traditional databases, **RACS** is purpose-built for storing, querying, and streaming audio data at scale.
 
 ### Key Features
-
-- **Low-Latency Streaming**: Real-time delivery of audio directly from memory or disk. Ideal for edge caches, Content Delivery Networks (CDN), and application servers.
 - **Format Conversion**: On-the-fly transcoding to MP3, Opus, and WAV formats to adapt to client or bandwidth requirements.
 - **Time-Range Queries**: Retrieve precise audio segments by timestamp for efficient slicing, analysis, or playback.
 - **Metadata Management**: Store and query audio-specific metadata such as sample rate, bit depth, and channels.
@@ -45,7 +43,6 @@ When you need to treat audio as data — not files — RACS is the right tool.
 **RACS** is currently in the **MVP (Minimum Viable Product)** stage. All the key features mentioned above are fully functional.
 
 Planned enhancements include:
-- **Batched Streaming:** Stream PCM frames in batches to cutdown on network overhead during bulk ingestion.
 - **Replication:** Multi-node clustering for distributed storage and redundancy
 - **Compaction:** Offline SSTable compaction to optimize disk usage
 - **TTL Retention Policies:** Cleanup of expired audio data during compaction
