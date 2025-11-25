@@ -109,7 +109,7 @@ SCM racs_scm_streaminfo(SCM stream_id, SCM attr) {
 
 SCM racs_scm_streamlist(SCM pattern) {
     char *cmd = NULL;
-    asprintf(&cmd, "LS '%s'", scm_to_locale_string(pattern));
+    asprintf(&cmd, "SEARCH '%s'", scm_to_locale_string(pattern));
 
     racs_db *db = racs_db_instance();
     racs_result res = racs_db_exec(db, cmd);
@@ -121,7 +121,7 @@ SCM racs_scm_streamlist(SCM pattern) {
 
     if (msgpack_unpack_next(&msg, (char *) res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
         free(res.data);
-        scm_misc_error("ls", "Deserialization error", SCM_EOL);
+        scm_misc_error("search", "Deserialization error", SCM_EOL);
     }
 
     char *type = racs_unpack_str(&msg.data, 0);
@@ -233,13 +233,13 @@ void racs_scm_init_bindings() {
     scm_c_define_gsubr("create", 4, 0, 0, racs_scm_streamcreate);
     scm_c_define_gsubr("info", 2, 0, 0, racs_scm_streaminfo);
     scm_c_define_gsubr("format", 5, 0, 0, racs_scm_format);
-    scm_c_define_gsubr("ls", 1, 0, 0, racs_scm_streamlist);
+    scm_c_define_gsubr("search", 1, 0, 0, racs_scm_streamlist);
     scm_c_define_gsubr("ping", 0, 0, 0, racs_scm_ping);
     scm_c_define_gsubr("open", 1, 0, 0, racs_scm_streamopen);
     scm_c_define_gsubr("close", 1, 0, 0, racs_scm_streamclose);
     scm_c_define_gsubr("shutdown", 0, 0, 0, racs_scm_shutdown);
 
-    scm_c_export("extract", "create", "info", "format", "ls",
+    scm_c_export("extract", "create", "info", "format", "search",
                  "ping", "open", "close", "shutdown", NULL);
 }
 
