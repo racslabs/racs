@@ -40,7 +40,7 @@ Commands
 
 :ref:`INFO`
 
-:ref:`LS`
+:ref:`SEARCH`
 
 :ref:`OPEN`
 

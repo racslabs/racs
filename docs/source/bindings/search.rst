@@ -1,7 +1,7 @@
-.. _LS:
+.. _SCM_SEARCH:
 
-LS
-==
+SEARCH
+======
 
 **Description:**
 Lists all the stream ids matching wildcard pattern.
@@ -12,12 +12,8 @@ Arguments
 +-------------+------------+---------------------------------------------------------------+
 | Name        | Type       | Description                                                   |
 +=============+============+===============================================================+
-| pattern     | ``string`` | Wildcard pattern to match against.                            |
+| pattern     | ``String`` | Wildcard pattern to match against.                            |
 +-------------+------------+---------------------------------------------------------------+
-
-Dependencies
-------------
-- ``NONE``
 
 Output
 ------
@@ -25,12 +21,19 @@ Output
 +------------+-----------------------------------------------------+
 | Type       | Description                                         |
 +============+=====================================================+
-| ``list``   | List of stream ids that match the wildcard pattern. |
+| ``List``   | List of stream ids that match the wildcard pattern. |
 +------------+-----------------------------------------------------+
 
 Example
 -------
 
+.. code-block:: scheme
+
+    ;; SCM expression
+    (search "*")
+
+Using ``EVAL``:
+
 .. code-block:: none
 
-   LS '*'
+    EVAL '(search \"*\")'

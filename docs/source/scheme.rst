@@ -22,7 +22,7 @@ The following RACS commands are available as Scheme functions:
 
 :ref:`format <SCM_FORMAT>`
 
-:ref:`ls <SCM_LS>`
+:ref:`search <SCM_SEARCH>`
 
 :ref:`ping <SCM_PING>`
 
