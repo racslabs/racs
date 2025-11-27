@@ -6,7 +6,7 @@
 
 ## What is RACS?
 
-**RACS (Remote Audio Caching Server)** is an append-only, persistent audio caching server with built-in range queries and format conversion.
+**RACS (Remote Audio Caching Server)** is an persistent, append-only audio cache with time-indexed range queries and format conversion.
 Unlike blob stores and traditional databases, **RACS** is purpose-built for storing, querying, and streaming audio data at scale.
 
 ### Key Features
@@ -40,15 +40,8 @@ When you need to treat audio as data — not files — RACS is the right tool.
 
 ## ⚠️ MVP Stage
 
-**RACS** is currently in the **MVP (Minimum Viable Product)** stage. All the key features mentioned above are fully functional.
-
-Planned enhancements include:
-- **Replication:** Multi-node clustering for distributed storage and redundancy
-- **Compaction:** Offline SSTable compaction to optimize disk usage
-- **TTL Retention Policies:** Cleanup of expired audio data during compaction
-- **Compression:** Reduced on-disk footprint for archived segments and bandwidth usage during ingestion
-- **DSP Module:** Extend functionality to include SIMD optimized signal processing functions
-
+**RACS** is currently in the **MVP (Minimum Viable Product)** stage. All the key features mentioned above are functional 
+but still undergoing testing. Planed enhancements and new features will be added in the near future. Feedback is welcome!
 
 ## Is RACS Open Source?
 
@@ -104,6 +97,5 @@ Open the `index.html` file under `docs/build/html` in the browser.
 RACS provides client libraries for multiple languages:
 
 - [**(Python)** py-racs](https://github.com/racslabs/py-racs) — fully usable
-- [**(Java)** java-racs](https://github.com/racslabs/java-racs) — under development
 - [**(Rust)** rust-racs](https://github.com/racslabs/rust-racs) — fully usable
-- [**(C)** racs-client](https://github.com/racslabs/racs-client) — under development
+- [**(C)** racs-client](https://github.com/racslabs/racs-client) — usable
