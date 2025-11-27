@@ -98,4 +98,4 @@ RACS provides client libraries for multiple languages:
 
 - [**(Python)** py-racs](https://github.com/racslabs/py-racs) — fully usable
 - [**(Rust)** rust-racs](https://github.com/racslabs/rust-racs) — fully usable
-- [**(C)** racs-client](https://github.com/racslabs/racs-client) — under development
+- [**(C)** racs-client](https://github.com/racslabs/racs-client) — usable
