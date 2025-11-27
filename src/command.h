@@ -41,6 +41,10 @@ typedef enum {
     if ((msg).data.type == MSGPACK_OBJECT_ARRAY && (msg).data.via.array.size != (num_args)) \
         return racs_pack_invalid_num_args(pk, num_args, (msg).data.via.array.size);
 
+#define racs_validate_num_args_al(pk, msg, num_args) \
+    if ((msg).data.type == MSGPACK_OBJECT_ARRAY && (msg).data.via.array.size < (num_args)) \
+    return racs_pack_invalid_num_args_al(pk, num_args, (msg).data.via.array.size);
+
 #define racs_create_command(name) \
     int racs_command_##name(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, racs_context* ctx)
 

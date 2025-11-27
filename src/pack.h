@@ -77,6 +77,8 @@ void racs_pack_type(msgpack_packer *pk, int type);
 
 int racs_pack_invalid_num_args(msgpack_packer *pk, int expected, int actual);
 
+int racs_pack_invalid_num_args_al(msgpack_packer *pk, int expected, int actual);
+
 int racs_pack_streams(msgpack_packer *pk, racs_streams *streams);
 
 char *racs_unpack_str(msgpack_object *obj, int n);

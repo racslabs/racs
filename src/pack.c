@@ -165,6 +165,12 @@ int racs_pack_invalid_num_args(msgpack_packer *pk, int expected, int actual) {
     return racs_pack_error(pk, message);
 }
 
+int racs_pack_invalid_num_args_al(msgpack_packer *pk, int expected, int actual) {
+    char message[255];
+    sprintf(message, "Expected at least %d args, but got %d", expected, actual);
+    return racs_pack_error(pk, message);
+}
+
 int racs_is_object_type(msgpack_object *obj, msgpack_object_type type, int arg_num) {
     return obj->via.array.ptr[arg_num].type == type;
 }
