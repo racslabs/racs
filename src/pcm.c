@@ -35,7 +35,7 @@ size_t racs_pcm_write(racs_pcm *pcm, const void *in, size_t samples) {
     racs_memstream_write(&pcm->out_stream, in, size);
     pcm->samples += samples;
 
-    return pcm->out_stream.current_pos;
+    return pcm->out_stream.pos;
 }
 
 void racs_pcm_destroy(racs_pcm *pcm) {

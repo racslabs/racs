@@ -27,7 +27,7 @@ typedef enum {
 
 typedef struct {
     size_t size;
-    size_t current_pos;
+    size_t pos;
     racs_uint8 *data;
 } racs_memstream;
 

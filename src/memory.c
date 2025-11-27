@@ -18,7 +18,7 @@ void racs_memstream_init(racs_memstream *stream) {
 }
 
 int racs_memstream_write(racs_memstream *stream, const void *data, size_t size) {
-    size_t pos = stream->current_pos + size;
+    size_t pos = stream->pos + size;
 
     if (pos > stream->size) {
         size_t _size = racs_max(pos, stream->size * 2);
@@ -33,8 +33,8 @@ int racs_memstream_write(racs_memstream *stream, const void *data, size_t size) 
         stream->size = _size;
     }
 
-    memcpy(stream->data + stream->current_pos, data, size);
-    stream->current_pos += size;
+    memcpy(stream->data + stream->pos, data, size);
+    stream->pos += size;
 
     return RACS_MEMSTREAM_CONTINUE;
 }

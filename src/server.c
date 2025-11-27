@@ -183,7 +183,7 @@ int racs_recv(int fd, int len, racs_conn_stream *stream) {
     int rc;
     char buf[RACS_CHUNK_SIZE];
 
-    while (stream->in_stream.current_pos < len) {
+    while (stream->in_stream.pos < len) {
         rc = recv(fd, buf, sizeof(buf), 0);
 
         if (rc < 0) {
@@ -202,12 +202,12 @@ int racs_recv(int fd, int len, racs_conn_stream *stream) {
         racs_memstream_write(&stream->in_stream, buf, rc);
     }
 
-    return stream->in_stream.current_pos;
+    return stream->in_stream.pos;
 }
 
 int racs_send(int fd, racs_conn_stream *stream) {
     size_t bytes = 0;
-    size_t n = stream->out_stream.current_pos;
+    size_t n = stream->out_stream.pos;
     ssize_t rc;
 
     signal(SIGPIPE, SIG_IGN);
@@ -218,15 +218,16 @@ int racs_send(int fd, racs_conn_stream *stream) {
 
         rc = send(fd, stream->out_stream.data + bytes, to_send, MSG_NOSIGNAL);
         if (rc < 0) {
-            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
                 continue;
-            } else if (errno == EPIPE) {
+
+            if (errno == EPIPE) {
                 racs_log_error("peer closed connection: %s", strerror(errno));
                 return -1;
-            } else {
-                racs_log_error("send() failed: %s", strerror(errno));
-                return -1;
             }
+
+            racs_log_error("send() failed: %s", strerror(errno));
+            return -1;
         }
 
         if (rc == 0) {
@@ -373,10 +374,10 @@ int main(int argc, char *argv[]) {
                 if (rc < 0) close_conn = true;
 
                 // Echo the data back to the client
-                if (streams[i].in_stream.current_pos > 0) {
+                if (streams[i].in_stream.pos > 0) {
                     racs_result res;
 
-                    if (RACS_IS_FRAME((const char *) streams[i].in_stream.data)) {
+                    if (racs_is_frame((const char *) streams[i].in_stream.data)) {
                         res = racs_db_stream(db, streams[i].in_stream.data);
                     } else {
                         res = racs_db_exec(db, (const char *) streams[i].in_stream.data);
