@@ -286,7 +286,10 @@ int main(int argc, char *argv[]) {
     racs_log_info("Log file: %s/racs.log", racs_log_dir);
 
     // temporarily hard-code for testing/development
-    int slave_fd = racs_slave_open("10.0.0.65", 6382);
+    racs_slaves slaves;
+
+    racs_slaves_init(&slaves);
+    racs_slaves_add(&slaves, "10.0.0.65", 6382);
 
     // Loop waiting for incoming connects or for incoming data
     // on any of the connected sockets.
@@ -378,7 +381,7 @@ int main(int argc, char *argv[]) {
 
                 // Echo the data back to the client
                 if (streams[i].in_stream.pos > 0) {
-                    racs_slave_send(slave_fd, (const char *)streams[i].in_stream.data, length);
+                    racs_slaves_dispatch(&slaves, (char *)streams[i].in_stream.data, length);
 
                     racs_result res;
 

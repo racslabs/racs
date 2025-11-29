@@ -1,5 +1,37 @@
 #include "slave.h"
 
+void racs_slaves_init(racs_slaves *slaves) {
+    memset(slaves, 0, sizeof(racs_slaves));
+}
+
+void racs_slaves_add(racs_slaves *slaves, const char *host, int port) {
+    slaves->fds[slaves->size] = racs_slave_open(host, port);
+    slaves->size++;
+}
+
+void racs_slaves_dispatch(racs_slaves *slaves, char *data, size_t length) {
+    for (int i = 0; i < slaves->size; i++) {
+        pthread_t thread;
+
+        racs_slave_worker_arg *arg = malloc(sizeof(racs_slave_worker_arg));
+        arg->data = data;
+        arg->length = length;
+        arg->fd = slaves->fds[i];
+
+        int rc = pthread_create(&thread, NULL, (void *(*)(void *))racs_slave_worker, arg);
+        if (rc != 0) {
+            racs_log_error("slave: failed to create thread");
+        }
+
+        pthread_detach(thread);
+    }
+}
+
+void racs_slave_worker(racs_slave_worker_arg *arg) {
+    racs_slave_send(arg->fd, arg->data, arg->length);
+    free(arg);
+}
+
 int racs_slave_open(const char *host, int port) {
     int fd = racs_slave_init_socket();
 
@@ -31,6 +63,7 @@ void racs_slave_connect(int fd, const char *host, int port) {
         exit(-1);
     }
 
+    racs_log_info("slave: connected on host=%s port=%u fd=%u", host, port, fd);
     freeaddrinfo(res);
 }
 
@@ -84,14 +117,14 @@ size_t racs_slave_send(int fd, const char *data, size_t size) {
     // len prefix
     ssize_t rc = send(fd, &size, sizeof(size), 0);
     if (rc < 0) {
-        racs_log_error("slave: send() failed");
+        racs_log_error("slave: send() failed: %s", strerror(errno));
         return -1;
     }
 
     while (bytes < size) {
         rc = send(fd, data + bytes, size - bytes, 0);
         if (rc < 0) {
-            racs_log_error("slave: send() failed");
+            racs_log_error("slave: send() failed: %s", strerror(errno));
             return -1;
         }
 
