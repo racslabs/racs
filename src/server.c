@@ -58,7 +58,21 @@ void racs_args(int argc, char *argv[]) {
     exit(-1);
 }
 
-void racs_init_socket(racs_conn *conn) {
+void racs_conn_init(racs_conn *conn, int port) {
+    conn->stop = false;
+    conn->compress = false;
+    conn->timeout = -1;
+
+    racs_conn_init_socket(conn);
+    racs_conn_set_socketopts(conn);
+    racs_conn_set_nonblocking(conn);
+
+    racs_conn_socket_bind(conn, port);
+    racs_conn_socket_listen(conn);
+    racs_conn_init_fds(conn);
+}
+
+void racs_conn_init_socket(racs_conn *conn) {
     // Create an AF_INET6 stream socket to receive incoming
     // connections
     conn->listen_sd = socket(AF_INET6, SOCK_STREAM, 0);
@@ -68,7 +82,7 @@ void racs_init_socket(racs_conn *conn) {
     }
 }
 
-void racs_set_socketopts(racs_conn *conn) {
+void racs_conn_set_socketopts(racs_conn *conn) {
     int on = 1, off = 0, rc;
     int bufsize = 1024*1024; // 1 MB
 
@@ -110,7 +124,7 @@ void racs_set_socketopts(racs_conn *conn) {
     }
 }
 
-void racs_set_nonblocking(racs_conn *conn) {
+void racs_conn_set_nonblocking(racs_conn *conn) {
     int rc, on = 1;
 
     // Set socket to be nonblocking. All the sockets for
@@ -124,7 +138,7 @@ void racs_set_nonblocking(racs_conn *conn) {
     }
 }
 
-void racs_socket_bind(racs_conn *conn, int port) {
+void racs_conn_socket_bind(racs_conn *conn, int port) {
     memset(&conn->addr, 0, sizeof(conn->addr));
     conn->addr.sin6_family = AF_INET6;
     memcpy(&conn->addr.sin6_addr, &in6addr_any, sizeof(in6addr_any));
@@ -138,7 +152,7 @@ void racs_socket_bind(racs_conn *conn, int port) {
     }
 }
 
-void racs_socket_listen(racs_conn *conn) {
+void racs_conn_socket_listen(racs_conn *conn) {
     int rc = listen(conn->listen_sd, 32);
     if (rc < 0) {
         racs_log_fatal("listen() failed");
@@ -214,7 +228,7 @@ int racs_send(int fd, racs_conn_stream *stream) {
 
     while (bytes < n) {
         size_t rem = n - bytes;
-        size_t to_send = (rem < RACS_CHUNK_SIZE) ? rem : RACS_CHUNK_SIZE;
+        size_t to_send = rem < RACS_CHUNK_SIZE ? rem : RACS_CHUNK_SIZE;
 
         rc = send(fd, stream->out_stream.data + bytes, to_send, MSG_NOSIGNAL);
         if (rc < 0) {
@@ -241,21 +255,22 @@ int racs_send(int fd, racs_conn_stream *stream) {
     return 0;
 }
 
+void racs_conn_init_fds(racs_conn *conn) {
+    // Initialize the pollfd structure
+    memset(conn->fds, 0, sizeof(racs_fds));
+
+    // Set up the initial listening socket
+    conn->fds[0].fd = conn->listen_sd;
+    conn->fds[0].events = POLLIN;
+    conn->fds_type[0] = RACS_FD_LISTEN;
+}
+
 int main(int argc, char *argv[]) {
     int rc;
-    int new_sd = -1;
-    int timeout;
-    struct pollfd fds[200];
+
     int nfds = 1, current_size = 0, i, j;
 
     racs_args(argc, argv);
-
-    racs_conn conn;
-    conn.stop = false;
-    conn.compress = false;
-    conn.timeout = -1;
-
-    racs_conn_stream streams[200];
 
     scm_init_guile();
     racs_scm_init_module();
@@ -268,19 +283,10 @@ int main(int argc, char *argv[]) {
     racs_version(ver);
     racs_log_info(ver);
 
-    racs_init_socket(&conn);
-    racs_set_socketopts(&conn);
-    racs_set_nonblocking(&conn);
+    racs_conn conn;
+    racs_conn_init(&conn, db->ctx.config->port);
 
-    racs_socket_bind(&conn, db->ctx.config->port);
-    racs_socket_listen(&conn);
-
-    // Initialize the pollfd structure
-    memset(fds, 0, sizeof(fds));
-
-    // Set up the initial listening socket
-    fds[0].fd = conn.listen_sd;
-    fds[0].events = POLLIN;
+    racs_conn_stream streams[200];
 
     racs_log_info("Listening on port %d ...", db->ctx.config->port);
     racs_log_info("Log file: %s/racs.log", racs_log_dir);
@@ -289,7 +295,7 @@ int main(int argc, char *argv[]) {
     // on any of the connected sockets.
     do {
         // Call poll() and wait for it to complete.
-        rc = poll(fds, nfds, conn.timeout);
+        rc = poll(conn.fds, nfds, conn.timeout);
 
         // Check to see if the poll call failed.
         if (rc < 0) {
@@ -311,30 +317,30 @@ int main(int argc, char *argv[]) {
             // Loop through to find the descriptors that returned
             // POLLIN and determine whether it's the listening
             // or the active connection.
-            if (fds[i].revents == 0)
+            if (conn.fds[i].revents == 0)
                 continue;
 
-            if (fds[i].revents & POLLHUP) {
-                close(fds[i].fd);
-                fds[i].fd = -1;
+            if (conn.fds[i].revents & POLLHUP) {
+                close(conn.fds[i].fd);
+                conn.fds[i].fd = -1;
                 continue;
             }
 
-            if (fds[i].revents & POLLERR) {
-                close(fds[i].fd);
-                fds[i].fd = -1;
+            if (conn.fds[i].revents & POLLERR) {
+                close(conn.fds[i].fd);
+                conn.fds[i].fd = -1;
                 continue;
             }
 
             // If revents is not POLLIN, it's an unexpected result,
             // log and end the server.
-            if (fds[i].revents != POLLIN) {
-                racs_log_fatal("  Error! revents = %d", fds[i].revents);
+            if (conn.fds[i].revents != POLLIN) {
+                racs_log_fatal("  Error! revents = %d", conn.fds[i].revents);
                 conn.stop = true;
                 break;
             }
 
-            if (fds[i].fd == conn.listen_sd) {
+            if (conn.fds[i].fd == conn.listen_sd) {
 
                 // Accept all incoming connections that are
                 // queued up on the listening socket before we
@@ -345,7 +351,7 @@ int main(int argc, char *argv[]) {
                     // have accepted all of them. Any other
                     // failure on accept will cause us to end the
                     // server.
-                    new_sd = accept(conn.listen_sd, NULL, NULL);
+                    int new_sd = accept(conn.listen_sd, NULL, NULL);
                     if (new_sd < 0) {
                         if (errno != EWOULDBLOCK) {
                             racs_log_fatal("  accept() failed");
@@ -356,8 +362,10 @@ int main(int argc, char *argv[]) {
 
                     // Add the new incoming connection to the
                     // pollfd structure
-                    fds[nfds].fd = new_sd;
-                    fds[nfds].events = POLLIN;
+                    conn.fds[nfds].fd = new_sd;
+                    conn.fds[nfds].events = POLLIN;
+                    conn.fds_type[nfds] = RACS_DF_CLIENT;
+
                     racs_conn_stream_init(&streams[nfds]);
                     nfds++;
                 } while (1);
@@ -367,10 +375,10 @@ int main(int argc, char *argv[]) {
                 conn.closed = false;
                 size_t length = 0;
 
-                rc = racs_recv_length_prefix(fds[i].fd, &length);
+                rc = racs_recv_length_prefix(conn.fds[i].fd, &length);
                 if (rc < 0) conn.closed = true;
 
-                rc = racs_recv(fds[i].fd, (int) length, &streams[i]);
+                rc = racs_recv(conn.fds[i].fd, (int) length, &streams[i]);
                 if (rc < 0) conn.closed = true;
 
                 // Echo the data back to the client
@@ -387,7 +395,7 @@ int main(int argc, char *argv[]) {
                     racs_memstream_write(&streams[i].out_stream, res.data, res.size);
                     free(res.data);
 
-                    rc = racs_send(fds[i].fd, &streams[i]);
+                    rc = racs_send(conn.fds[i].fd, &streams[i]);
 
                     if (rc < 0) {
                         racs_conn_stream_reset(&streams[i]);
@@ -403,8 +411,8 @@ int main(int argc, char *argv[]) {
                 // clean up process includes removing the
                 // descriptor.
                 if (conn.closed) {
-                    close(fds[i].fd);
-                    fds[i].fd = -1;
+                    close(conn.fds[i].fd);
+                    conn.fds[i].fd = -1;
                     conn.compress = true;
                 }
             }
@@ -418,9 +426,9 @@ int main(int argc, char *argv[]) {
         if (conn.compress) {
             conn.compress = false;
             for (i = 0; i < nfds; i++) {
-                if (fds[i].fd == -1) {
+                if (conn.fds[i].fd == -1) {
                     for (j = i; j < nfds - 1; j++) {
-                        fds[j].fd = fds[j + 1].fd;
+                        conn.fds[j].fd = conn.fds[j + 1].fd;
                     }
                     i--;
                     nfds--;
@@ -432,7 +440,7 @@ int main(int argc, char *argv[]) {
 
     // Clean up all the sockets that are open
     for (i = 0; i < nfds; i++) {
-        if (fds[i].fd >= 0)
-            close(fds[i].fd);
+        if (conn.fds[i].fd >= 0 && conn.fds_type[i] != RACS_FD_REPLICA)
+            close(conn.fds[i].fd);
     }
 }

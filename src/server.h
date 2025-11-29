@@ -10,7 +10,6 @@
 #ifndef RACS_SERVER_H
 #define RACS_SERVER_H
 
-
 #include <sys/types.h>      // for socket types
 #include <sys/socket.h>     // for socket, connect, send, recv
 #include <sys/ioctl.h>      // for ioctl, FIONBIO
@@ -24,34 +23,49 @@
 #include "log.h"
 #include "version.h"
 
+typedef enum {
+    RACS_FD_LISTEN,
+    RACS_DF_CLIENT,
+    RACS_FD_REPLICA
+} racs_fd_type;
+
 typedef struct {
     int fd;
     racs_memstream in_stream;
     racs_memstream out_stream;
 } racs_conn_stream;
 
+typedef struct pollfd racs_fds[200];
+typedef racs_fd_type racs_fds_type[200];
+
 typedef struct {
-    int listen_sd, new_sd;
     bool closed;
     bool stop;
     bool compress;
     int timeout;
+    int listen_sd;
     struct sockaddr_in6 addr;
+    racs_fds fds;
+    racs_fds_type fds_type;
 } racs_conn;
 
 void racs_help();
 
 void racs_args(int argc, char *argv[]);
 
-void racs_init_socket(racs_conn *conn);
+void racs_conn_init_socket(racs_conn *conn);
 
-void racs_set_socketopts(racs_conn *conn);
+void racs_conn_init_fds(racs_conn *conn);
 
-void racs_set_nonblocking(racs_conn *conn);
+void racs_conn_set_socketopts(racs_conn *conn);
 
-void racs_socket_bind(racs_conn *conn, int port);
+void racs_conn_set_nonblocking(racs_conn *conn);
 
-void racs_socket_listen(racs_conn *conn);
+void racs_conn_socket_bind(racs_conn *conn, int port);
+
+void racs_conn_socket_listen(racs_conn *conn);
+
+void racs_conn_init(racs_conn *conn, int port);
 
 void racs_conn_stream_init(racs_conn_stream *stream);
 
