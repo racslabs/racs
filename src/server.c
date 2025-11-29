@@ -244,8 +244,6 @@ int racs_send(int fd, racs_conn_stream *stream) {
 int main(int argc, char *argv[]) {
     int rc;
     int new_sd = -1;
-    int end = false, compress = false;
-    int close_conn;
     int timeout;
     struct pollfd fds[200];
     int nfds = 1, current_size = 0, i, j;
@@ -253,6 +251,10 @@ int main(int argc, char *argv[]) {
     racs_args(argc, argv);
 
     racs_conn conn;
+    conn.stop = false;
+    conn.compress = false;
+    conn.timeout = -1;
+
     racs_conn_stream streams[200];
 
     scm_init_guile();
@@ -280,22 +282,14 @@ int main(int argc, char *argv[]) {
     fds[0].fd = conn.listen_sd;
     fds[0].events = POLLIN;
 
-    timeout = -1;
-
     racs_log_info("Listening on port %d ...", db->ctx.config->port);
     racs_log_info("Log file: %s/racs.log", racs_log_dir);
-
-    // temporarily hard-code for testing/development
-    racs_slaves slaves;
-
-    racs_slaves_init(&slaves);
-    racs_slaves_add(&slaves, "10.0.0.65", 6382);
 
     // Loop waiting for incoming connects or for incoming data
     // on any of the connected sockets.
     do {
         // Call poll() and wait for it to complete.
-        rc = poll(fds, nfds, timeout);
+        rc = poll(fds, nfds, conn.timeout);
 
         // Check to see if the poll call failed.
         if (rc < 0) {
@@ -336,7 +330,7 @@ int main(int argc, char *argv[]) {
             // log and end the server.
             if (fds[i].revents != POLLIN) {
                 racs_log_fatal("  Error! revents = %d", fds[i].revents);
-                end = true;
+                conn.stop = true;
                 break;
             }
 
@@ -355,7 +349,7 @@ int main(int argc, char *argv[]) {
                     if (new_sd < 0) {
                         if (errno != EWOULDBLOCK) {
                             racs_log_fatal("  accept() failed");
-                            end = true;
+                            conn.stop = true;
                         }
                         break;
                     }
@@ -370,19 +364,17 @@ int main(int argc, char *argv[]) {
             } else {
                 // Receive all incoming data on this socket
                 // before we loop back and call poll again.
-                close_conn = false;
+                conn.closed = false;
                 size_t length = 0;
 
                 rc = racs_recv_length_prefix(fds[i].fd, &length);
-                if (rc < 0) close_conn = true;
+                if (rc < 0) conn.closed = true;
 
                 rc = racs_recv(fds[i].fd, (int) length, &streams[i]);
-                if (rc < 0) close_conn = true;
+                if (rc < 0) conn.closed = true;
 
                 // Echo the data back to the client
                 if (streams[i].in_stream.pos > 0) {
-                    racs_slaves_dispatch(&slaves, (char *)streams[i].in_stream.data, length);
-
                     racs_result res;
 
                     if (racs_is_frame((const char *) streams[i].in_stream.data)) {
@@ -399,7 +391,7 @@ int main(int argc, char *argv[]) {
 
                     if (rc < 0) {
                         racs_conn_stream_reset(&streams[i]);
-                        close_conn = true;
+                        conn.closed = true;
                         break;
                     }
 
@@ -410,10 +402,10 @@ int main(int argc, char *argv[]) {
                 // to clean up this active connection. This
                 // clean up process includes removing the
                 // descriptor.
-                if (close_conn) {
+                if (conn.closed) {
                     close(fds[i].fd);
                     fds[i].fd = -1;
-                    compress = true;
+                    conn.compress = true;
                 }
             }
         }
@@ -423,8 +415,8 @@ int main(int argc, char *argv[]) {
         // of file descriptors. We do not need to move back the
         // events and revents fields because the events will always
         // be POLLIN in this case, and revents is output.
-        if (compress) {
-            compress = false;
+        if (conn.compress) {
+            conn.compress = false;
             for (i = 0; i < nfds; i++) {
                 if (fds[i].fd == -1) {
                     for (j = i; j < nfds - 1; j++) {
@@ -436,7 +428,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
-    } while (end == false);
+    } while (conn.stop == false);
 
     // Clean up all the sockets that are open
     for (i = 0; i < nfds; i++) {

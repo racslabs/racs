@@ -23,7 +23,6 @@
 #include "scm_bindings.h"
 #include "log.h"
 #include "version.h"
-#include "slave.h"
 
 typedef struct {
     int fd;
@@ -33,6 +32,10 @@ typedef struct {
 
 typedef struct {
     int listen_sd, new_sd;
+    bool closed;
+    bool stop;
+    bool compress;
+    int timeout;
     struct sockaddr_in6 addr;
 } racs_conn;
 
