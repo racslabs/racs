@@ -4,7 +4,6 @@ int racs_slave_open(const char *host, int port) {
     int fd = racs_slave_init_socket();
 
     racs_slave_set_socketopts(fd);
-    racs_slave_set_nonblocking(fd);
     racs_slave_connect(fd, host, port);
 
     return fd;
@@ -22,50 +21,24 @@ void racs_slave_connect(int fd, const char *host, int port) {
     int rc = getaddrinfo(host, port_str, &hints, &res);
     if (rc != 0) {
         racs_log_fatal("slave: getaddrinfo() failed: %s", gai_strerror(rc));
-        close(fd);
         exit(-1);
     }
 
     rc = connect(fd, res->ai_addr, res->ai_addrlen);
-    if (rc == 0) {
-        racs_log_info("slave: connected immediately");
-    } else if (rc < 0) {
-        if (errno == EINPROGRESS) {
-            racs_log_info("slave: connect in progress (EINPROGRESS)");
-        } else {
-            racs_log_fatal("slave: connect() failed: %s", strerror(errno));
-            close(fd);
-            freeaddrinfo(res);
-            exit(-1);
-        }
-    }
-
-    freeaddrinfo(res);
-}
-
-void racs_slave_set_nonblocking(int fd) {
-    int on = 1;
-
-    int rc = ioctl(fd, FIONBIO, &on);
     if (rc < 0) {
-        racs_log_fatal("slave: ioctl(FIONBIO) failed: %s", strerror(errno));
+        racs_log_fatal("slave: connect() failed");
         close(fd);
         exit(-1);
     }
+
+    freeaddrinfo(res);
 }
 
 void racs_slave_set_socketopts(int fd) {
     int on = 1, off = 0;
     int bufsize = 1024 * 1024; // 1 MB
 
-    int rc = setsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &off, sizeof(off));
-    if (rc < 0) {
-        racs_log_fatal("slave: setsockopt(IPV6_V6ONLY) failed");
-        close(fd);
-        exit(-1);
-    }
-
-    rc = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on));
+    int rc = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on));
     if (rc < 0) {
         racs_log_fatal("slave: setsockopt TCP_NODELAY failed");
         close(fd);
@@ -96,11 +69,34 @@ void racs_slave_set_socketopts(int fd) {
 }
 
 int racs_slave_init_socket() {
-    int fd = socket(AF_INET6, SOCK_STREAM, 0);
+    int fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) {
         racs_log_fatal("slave: socket() failed");
         exit(-1);
     }
 
     return fd;
+}
+
+size_t racs_slave_send(int fd, const char *data, size_t size) {
+    size_t bytes = 0;
+
+    // len prefix
+    ssize_t rc = send(fd, &size, sizeof(size), 0);
+    if (rc < 0) {
+        racs_log_error("slave: send() failed");
+        return -1;
+    }
+
+    while (bytes < size) {
+        rc = send(fd, data + bytes, size - bytes, 0);
+        if (rc < 0) {
+            racs_log_error("slave: send() failed");
+            return -1;
+        }
+
+        bytes += rc;
+    }
+
+    return bytes;
 }

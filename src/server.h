@@ -23,6 +23,7 @@
 #include "scm_bindings.h"
 #include "log.h"
 #include "version.h"
+#include "slave.h"
 
 typedef struct {
     int fd;
