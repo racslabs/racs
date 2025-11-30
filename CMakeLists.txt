@@ -39,7 +39,9 @@ file(GLOB_RECURSE RACS_SOURCE_FILES CONFIGURE_DEPENDS ${RACS_SOURCE_DIR}/*.h ${R
 
 add_executable(racs ${RACS_SOURCE_FILES}
         src/queue.h
-        src/queue.c)
+        src/queue.c
+        src/slave.h
+        src/slave.c)
 
 target_link_libraries(racs
         ${MSGPACK_LIBRARIES}

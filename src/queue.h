@@ -5,7 +5,7 @@
 #include <pthread.h>
 #include "types.h"
 
-typedef struct {
+typedef struct racs_queue_entry {
     size_t size;
     racs_uint8 *data;
     struct racs_queue_entry *next;
@@ -15,13 +15,15 @@ typedef struct {
     int size;
     racs_queue_entry *head;
     racs_queue_entry *tail;
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
 } racs_queue;
 
-racs_queue *racs_queue_create();
+void racs_queue_init(racs_queue *q);
 
-void enqueue(racs_queue *q, size_t size, racs_uint8 *data);
+void racs_enqueue(racs_queue *q, size_t size, racs_uint8 *data);
 
-racs_queue_entry *dequeue(racs_queue *q);
+racs_queue_entry *racs_dequeue(racs_queue *q);
 
 racs_queue_entry *racs_queue_entry_create(size_t size, racs_uint8 *data);
 
