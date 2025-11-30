@@ -1,19 +1,10 @@
 #include "slave.h"
 
-void racs_slave_run(racs_slave *slave) {
-    pthread_t thread;
-
-    pthread_create(&thread, NULL, racs_slave_worker, slave);
-    pthread_detach(thread);
-}
-
-void racs_slave_send(racs_slave *slave, const char *data, size_t size) {
-    racs_enqueue(&slave->q, size, (racs_uint8 *)data);
-}
+static ssize_t send_all(int fd, const void *buf, size_t len);
 
 racs_slave *racs_slave_open(const char *host, int port) {
     racs_slave *slave = malloc(sizeof(racs_slave));
-    if (slave == NULL) {
+    if (!slave) {
         racs_log_fatal("failed to allocate racs_slave");
         exit(-1);
     }
@@ -23,7 +14,79 @@ racs_slave *racs_slave_open(const char *host, int port) {
     racs_slave_connect(slave, host, port);
 
     racs_queue_init(&slave->q);
+
+    // Start worker immediately (fixes race)
+    pthread_t thread;
+    pthread_create(&thread, NULL, racs_slave_worker, slave);
+    pthread_detach(thread);
+
     return slave;
+}
+
+void racs_slave_send(racs_slave *slave, const char *data, size_t size) {
+    racs_enqueue(&slave->q, size, (racs_uint8 *)data);
+}
+
+static ssize_t send_all(int fd, const void *buf, size_t len) {
+    size_t sent = 0;
+
+    while (sent < len) {
+        ssize_t rc = send(fd, (const char *)buf + sent, len - sent, 0);
+
+        if (rc < 0) {
+            racs_log_error("slave: send() failed: %s", strerror(errno));
+            return -1;
+        }
+
+        if (rc == 0) {
+            // peer closed
+            racs_log_error("slave: send() returned 0 (peer closed)");
+            return -1;
+        }
+
+        sent += rc;
+    }
+
+    return sent;
+}
+
+ssize_t racs_blocking_send(int fd, const char *data, size_t size) {
+
+    // First send the size prefix (reliable)
+    if (send_all(fd, &size, sizeof(size)) < 0) {
+        racs_log_error("slave: failed to send length prefix");
+        return -1;
+    }
+
+    // Then send the payload
+    if (size > 0) {
+        if (send_all(fd, data, size) < 0) {
+            racs_log_error("slave: failed to send payload");
+            return -1;
+        }
+    }
+
+    return size;
+}
+
+void *racs_slave_worker(void *arg) {
+    racs_slave *slave = (racs_slave *)arg;
+
+    for ( ; ; ) {
+        racs_queue_entry *entry = racs_dequeue(&slave->q);
+
+        if (entry == NULL) continue;
+
+        ssize_t rc = racs_blocking_send(slave->fd, (const char *)entry->data, entry->size);
+        racs_queue_entry_destroy(entry);
+
+        if (rc < 0) {
+            racs_log_error("slave: socket failure, worker terminating");
+            break;
+        }
+    }
+
+    return NULL;
 }
 
 void racs_slave_connect(racs_slave *slave, const char *host, int port) {
@@ -48,13 +111,13 @@ void racs_slave_connect(racs_slave *slave, const char *host, int port) {
         exit(-1);
     }
 
-    racs_log_info("slave: connected on address=%s:%u", host, port);
+    racs_log_info("slave: connected to %s:%u", host, port);
     freeaddrinfo(res);
 }
 
 void racs_slave_set_socketopts(racs_slave *slave) {
     int on = 1;
-    int bufsize = 1024 * 1024; // 1 MB
+    int bufsize = 1024 * 1024;
 
     int rc = setsockopt(slave->fd, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on));
     if (rc < 0) {
@@ -78,8 +141,7 @@ void racs_slave_set_socketopts(racs_slave *slave) {
     }
 
     struct linger ling = {0};
-    rc = setsockopt(slave->fd, SOL_SOCKET, SO_LINGER, &ling, sizeof(ling));
-    if (rc < 0) {
+    if (setsockopt(slave->fd, SOL_SOCKET, SO_LINGER, &ling, sizeof(ling)) < 0) {
         racs_log_fatal("slave: setsockopt SO_LINGER failed");
         close(slave->fd);
         exit(-1);
@@ -94,42 +156,4 @@ void racs_slave_init_socket(racs_slave *slave) {
     }
 
     slave->fd = fd;
-}
-
-size_t racs_blocking_send(int fd, const char *data, size_t size) {
-    size_t bytes = 0;
-
-    // len prefix
-    ssize_t rc = send(fd, &size, sizeof(size), 0);
-    if (rc < 0) {
-        racs_log_error("slave: send() failed");
-        return -1;
-    }
-
-    if (rc == 0) {
-        racs_log_error("send() returned 0, connection closed");
-        return -1;
-    }
-
-    while (bytes < size) {
-        rc = send(fd, data + bytes, size - bytes, 0);
-        if (rc < 0) {
-            racs_log_error("slave: send() failed");
-            return -1;
-        }
-
-        bytes += rc;
-    }
-
-    return bytes;
-}
-
-void *racs_slave_worker(void *arg) {
-    racs_slave *slave = (racs_slave *)arg;
-
-    while (1) {
-        racs_queue_entry *entry = racs_dequeue(&slave->q);
-        racs_blocking_send(slave->fd, (const char *)entry->data, entry->size);
-        racs_queue_entry_destroy(entry);
-    }
 }

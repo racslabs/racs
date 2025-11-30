@@ -17,8 +17,6 @@ typedef struct {
     racs_queue q;
 } racs_slave;
 
-void racs_slave_run(racs_slave *slave);
-
 void racs_slave_send(racs_slave *slave, const char *data, size_t size);
 
 void *racs_slave_worker(void *arg);
@@ -31,6 +29,6 @@ void racs_slave_set_socketopts(racs_slave *slave);
 
 void racs_slave_init_socket(racs_slave *slave);
 
-size_t racs_blocking_send(int fd, const char *data, size_t size);
+ssize_t racs_blocking_send(int fd, const char *data, size_t size);
 
 #endif //RACS_SLAVE_H

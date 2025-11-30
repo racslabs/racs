@@ -262,7 +262,6 @@ void racs_conn_init_fds(racs_conn *conn) {
     // Set up the initial listening socket
     conn->fds[0].fd = conn->listen_sd;
     conn->fds[0].events = POLLIN;
-    conn->fds_type[0] = RACS_FD_LISTEN;
 }
 
 int main(int argc, char *argv[]) {
@@ -291,8 +290,7 @@ int main(int argc, char *argv[]) {
     racs_log_info("Listening on port %d ...", db->ctx.config->port);
     racs_log_info("Log file: %s/racs.log", racs_log_dir);
 
-    racs_slave *slave = racs_slave_open("10.0.0.65", 6382);
-    racs_slave_run(slave);
+    racs_slave *slave = racs_slave_open("localhost", 6382);
 
     // Loop waiting for incoming connects or for incoming data
     // on any of the connected sockets.
@@ -367,7 +365,6 @@ int main(int argc, char *argv[]) {
                     // pollfd structure
                     conn.fds[nfds].fd = new_sd;
                     conn.fds[nfds].events = POLLIN;
-                    conn.fds_type[nfds] = RACS_DF_CLIENT;
 
                     racs_conn_stream_init(&streams[nfds]);
                     nfds++;
@@ -445,7 +442,7 @@ int main(int argc, char *argv[]) {
 
     // Clean up all the sockets that are open
     for (i = 0; i < nfds; i++) {
-        if (conn.fds[i].fd >= 0 && conn.fds_type[i] != RACS_FD_REPLICA)
+        if (conn.fds[i].fd >= 0)
             close(conn.fds[i].fd);
     }
 }

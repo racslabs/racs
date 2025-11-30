@@ -56,3 +56,5 @@ The result of a Scheme expression is automatically mapped to the corresponding R
 | Typed arrays      | ``s8v``, ``u8v``, ``s16v``, ``u16v``, ``s32v``, ``u32v``,   |
 |                   | ``f32v``, ``c64v``                                          |
 +-------------------+-------------------------------------------------------------+
+
+If the result of the Scheme expression cannot be serialized to one of the above RACS types, an error message will be returned.

@@ -29,4 +29,6 @@ racs_queue_entry *racs_queue_entry_create(size_t size, racs_uint8 *data);
 
 void racs_queue_entry_destroy(racs_queue_entry *entry);
 
+void racs_queue_destroy(racs_queue *q);
+
 #endif //RACS_QUEUE_H

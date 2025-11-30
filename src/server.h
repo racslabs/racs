@@ -24,12 +24,6 @@
 #include "version.h"
 #include "slave.h"
 
-typedef enum {
-    RACS_FD_LISTEN,
-    RACS_DF_CLIENT,
-    RACS_FD_REPLICA
-} racs_fd_type;
-
 typedef struct {
     int fd;
     racs_memstream in_stream;
@@ -37,7 +31,6 @@ typedef struct {
 } racs_conn_stream;
 
 typedef struct pollfd racs_fds[200];
-typedef racs_fd_type racs_fds_type[200];
 
 typedef struct {
     bool closed;
@@ -47,7 +40,6 @@ typedef struct {
     int listen_sd;
     struct sockaddr_in6 addr;
     racs_fds fds;
-    racs_fds_type fds_type;
 } racs_conn;
 
 void racs_help();
