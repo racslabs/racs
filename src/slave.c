@@ -2,10 +2,29 @@
 
 static ssize_t send_all(int fd, const void *buf, size_t len);
 
+void racs_slaves_init(racs_slaves *slaves) {
+    memset(slaves, 0, sizeof(*slaves));
+}
+
+void racs_slaves_add(racs_slaves *slaves, const char *host, int port) {
+    if (slaves->size < RACS_MAX_SLAVES) {
+        slaves->slaves[slaves->size] = racs_slave_open(host, port);
+        slaves->size++;
+        return;
+    }
+
+    racs_log_error("slave: max number of slaves reached");
+}
+
+void racs_slaves_broadcast(racs_slaves *slaves, const char *data, size_t size) {
+    for (int i = 0; i < slaves->size; ++i)
+        racs_enqueue(&slaves->slaves[i]->q, size, (racs_uint8 *)data);
+}
+
 racs_slave *racs_slave_open(const char *host, int port) {
     racs_slave *slave = malloc(sizeof(racs_slave));
     if (!slave) {
-        racs_log_fatal("failed to allocate racs_slave");
+        racs_log_fatal("slave: failed to allocate racs_slave");
         exit(-1);
     }
 
@@ -15,16 +34,11 @@ racs_slave *racs_slave_open(const char *host, int port) {
 
     racs_queue_init(&slave->q);
 
-    // Start worker immediately (fixes race)
     pthread_t thread;
     pthread_create(&thread, NULL, racs_slave_worker, slave);
     pthread_detach(thread);
 
     return slave;
-}
-
-void racs_slave_send(racs_slave *slave, const char *data, size_t size) {
-    racs_enqueue(&slave->q, size, (racs_uint8 *)data);
 }
 
 static ssize_t send_all(int fd, const void *buf, size_t len) {

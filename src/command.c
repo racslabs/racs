@@ -35,23 +35,19 @@ racs_create_command(streamcreate) {
 
     racs_parse_buf(in_buf, &pk, &msg, "Error parsing args")
 
-    racs_validate_num_args_al(&pk, msg, 4)
+    racs_validate_num_args(&pk, msg, 5)
     racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected: string")
     racs_validate_type(&pk, msg, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: int")
     racs_validate_type(&pk, msg, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: int")
     racs_validate_type(&pk, msg, 3, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 4. Expected: int")
+    racs_validate_type(&pk, msg, 4, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 5. Expected: time")
 
     char *stream_id = racs_unpack_str(&msg.data, 0);
 
     racs_uint32 sample_rate = racs_unpack_uint32(&msg.data, 1);
     racs_uint16 channels = racs_unpack_uint16(&msg.data, 2);
     racs_uint16 bit_depth = racs_unpack_uint16(&msg.data, 3);
-    racs_time ref = 0;
-
-    if (msg.data.via.array.size == 5) {
-        racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 5. Expected: string")
-        ref = racs_unpack_int64(&msg.data, 4);
-    }
+    racs_time ref = racs_unpack_int64(&msg.data, 4);
 
     int rc = racs_streamcreate(ctx->mcache, stream_id, sample_rate, channels, bit_depth, ref);
     free(stream_id);

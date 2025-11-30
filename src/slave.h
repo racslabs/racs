@@ -12,12 +12,23 @@
 #include "log.h"
 #include "queue.h"
 
+#define RACS_MAX_SLAVES 7
+
 typedef struct {
     int fd;
     racs_queue q;
 } racs_slave;
 
-void racs_slave_send(racs_slave *slave, const char *data, size_t size);
+typedef struct {
+    int size;
+    racs_slave *slaves[RACS_MAX_SLAVES];
+} racs_slaves;
+
+void racs_slaves_init(racs_slaves *slaves);
+
+void racs_slaves_add(racs_slaves *slaves, const char *host, int port);
+
+void racs_slaves_broadcast(racs_slaves *slaves, const char *data, size_t size);
 
 void *racs_slave_worker(void *arg);
 

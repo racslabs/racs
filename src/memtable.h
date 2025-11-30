@@ -102,8 +102,6 @@ void racs_memtable_append(racs_memtable *mt, racs_uint64 *key, racs_uint8 *block
 
 void racs_memtable_flush(racs_memtable *mt);
 
-void racs_memtable_flush_async(racs_memtable *mt);
-
 void racs_memtable_destroy(racs_memtable *mt);
 
 void racs_sstable_read_index_entries(racs_sstable *sst);
