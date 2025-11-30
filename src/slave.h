@@ -11,8 +11,9 @@
 #include <errno.h>
 #include "log.h"
 #include "queue.h"
+#include "config.h"
 
-#define RACS_MAX_SLAVES 7
+#define RACS_MAX_SLAVES 5
 
 typedef struct {
     int fd;
@@ -24,9 +25,7 @@ typedef struct {
     racs_slave *slaves[RACS_MAX_SLAVES];
 } racs_slaves;
 
-void racs_slaves_init(racs_slaves *slaves);
-
-void racs_slaves_add(racs_slaves *slaves, const char *host, int port);
+void racs_slaves_init(racs_slaves *slaves, const racs_config *cfg);
 
 void racs_slaves_broadcast(racs_slaves *slaves, const char *data, size_t size);
 

@@ -2,18 +2,18 @@
 
 static ssize_t send_all(int fd, const void *buf, size_t len);
 
-void racs_slaves_init(racs_slaves *slaves) {
-    memset(slaves, 0, sizeof(*slaves));
-}
-
-void racs_slaves_add(racs_slaves *slaves, const char *host, int port) {
-    if (slaves->size < RACS_MAX_SLAVES) {
-        slaves->slaves[slaves->size] = racs_slave_open(host, port);
-        slaves->size++;
-        return;
+void racs_slaves_init(racs_slaves *slaves, const racs_config *cfg) {
+    if (cfg->slaves_count > RACS_MAX_SLAVES) {
+        racs_log_error("slave: max number of slaves reached");
+        exit(-1);
     }
 
-    racs_log_error("slave: max number of slaves reached");
+    memset(slaves, 0, sizeof(*slaves));
+
+    for (int i = 0; i < cfg->slaves_count; ++i) {
+        slaves->slaves[i] = racs_slave_open(cfg->slaves[i].host, cfg->slaves[i].port);
+        slaves->size++;
+    }
 }
 
 void racs_slaves_broadcast(racs_slaves *slaves, const char *data, size_t size) {
