@@ -290,6 +290,13 @@ int main(int argc, char *argv[]) {
     racs_log_info("Listening on port %d ...", db->ctx.config->port);
     racs_log_info("Log file: %s/racs.log", racs_log_dir);
 
+    racs_slaves slaves;
+    racs_slaves_init(&slaves);
+
+    for (int s = 0; s < db->ctx.config->slaves_count; ++s) {
+        racs_slaves_add(&slaves, db->ctx.config->slaves[s].host, db->ctx.config->slaves[s].port);
+    }
+
     // racs_slave *slave = racs_slave_open("localhost", 6382);
 
     // Loop waiting for incoming connects or for incoming data
