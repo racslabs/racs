@@ -290,7 +290,7 @@ int main(int argc, char *argv[]) {
     racs_log_info("Listening on port %d ...", db->ctx.config->port);
     racs_log_info("Log file: %s/racs.log", racs_log_dir);
 
-    racs_slave *slave = racs_slave_open("localhost", 6382);
+    // racs_slave *slave = racs_slave_open("localhost", 6382);
 
     // Loop waiting for incoming connects or for incoming data
     // on any of the connected sockets.
@@ -383,7 +383,7 @@ int main(int argc, char *argv[]) {
 
                 // Echo the data back to the client
                 if (streams[i].in_stream.pos > 0) {
-                    racs_slave_send(slave, (const char *) streams[i].in_stream.data, length);
+                    // racs_slaves_broadcast((const char *) streams[i].in_stream.data, length);
 
                     racs_result res;
 
