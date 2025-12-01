@@ -52,3 +52,4 @@ Where:
 - ``bit_depth`` is the number of bits per sample.
 - ``ref`` is the reference timestamp (milliseconds UTC) established when the first frame is appended.
 
+There is a tradeoff between block size and

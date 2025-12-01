@@ -1,5 +1,7 @@
 #include "slave.h"
 
+#include "bytes.h"
+
 static ssize_t send_all(int fd, const void *buf, size_t len);
 
 void racs_slaves_init(racs_slaves *slaves, const racs_config *cfg) {
@@ -65,9 +67,20 @@ static ssize_t send_all(int fd, const void *buf, size_t len) {
 }
 
 ssize_t racs_blocking_send(int fd, const char *data, size_t size) {
+    uint64_t v = size;
+    uint8_t buf[8] = {
+        (v >> 0)  & 0xff,
+        (v >> 8)  & 0xff,
+        (v >> 16) & 0xff,
+        (v >> 24) & 0xff,
+        (v >> 32) & 0xff,
+        (v >> 40) & 0xff,
+        (v >> 48) & 0xff,
+        (v >> 56) & 0xff
+    };
 
     // First send the size prefix (reliable)
-    if (send_all(fd, &size, sizeof(size)) < 0) {
+    if (send_all(fd, &buf, 8) < 0) {
         racs_log_error("slave: failed to send length prefix");
         return -1;
     }

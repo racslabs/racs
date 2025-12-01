@@ -174,9 +174,9 @@ void racs_conn_stream_reset(racs_conn_stream *stream) {
 }
 
 int racs_recv_length_prefix(int fd, size_t *len) {
-    int rc;
+    char buf[8];
+    int rc = recv(fd, buf, 8, 0);
 
-    rc = recv(fd, len, sizeof(size_t), 0);
     if (rc < 0) {
         if (errno != EWOULDBLOCK) {
             racs_log_fatal("recv() failed: %s", strerror(errno));
@@ -190,10 +190,21 @@ int racs_recv_length_prefix(int fd, size_t *len) {
         return -1;
     }
 
-    if (rc != sizeof(size_t)) return 0;
+    if (rc != 8) return 0;
 
+    racs_uint64 v =
+    ((racs_uint64)buf[0] << 0)  |
+    ((racs_uint64)buf[1] << 8)  |
+    ((racs_uint64)buf[2] << 16) |
+    ((racs_uint64)buf[3] << 24) |
+    ((racs_uint64)buf[4] << 32) |
+    ((racs_uint64)buf[5] << 40) |
+    ((racs_uint64)buf[6] << 48) |
+    ((racs_uint64)buf[7] << 56);
+
+    *len = v;
     racs_log_info("recv size=%zu", *len);
-    return sizeof(size_t);
+    return 8;
 }
 
 int racs_recv(int fd, int len, racs_conn_stream *stream) {
