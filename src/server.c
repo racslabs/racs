@@ -191,18 +191,8 @@ int racs_recv_length_prefix(int fd, size_t *len) {
     }
 
     if (rc != 8) return 0;
+    memcpy(len, buf, 8);
 
-    racs_uint64 v =
-    ((racs_uint64)buf[0] << 0)  |
-    ((racs_uint64)buf[1] << 8)  |
-    ((racs_uint64)buf[2] << 16) |
-    ((racs_uint64)buf[3] << 24) |
-    ((racs_uint64)buf[4] << 32) |
-    ((racs_uint64)buf[5] << 40) |
-    ((racs_uint64)buf[6] << 48) |
-    ((racs_uint64)buf[7] << 56);
-
-    *len = v;
     racs_log_info("recv size=%zu", *len);
     return 8;
 }
