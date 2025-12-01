@@ -19,6 +19,8 @@ extern "C" {
 #include <string.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <arpa/inet.h>
+
 
 RACS_FORCE_INLINE off_t racs_write_bin(racs_uint8 *buf, void *data, int size, off_t offset) {
     memcpy(buf + offset, data, size);
@@ -54,6 +56,22 @@ RACS_FORCE_INLINE off_t racs_read_uint16(racs_uint16 *d, racs_uint8 *buf, off_t 
 
 RACS_FORCE_INLINE void racs_io_read_uint64(racs_uint64 *d, int fd) {
     read(fd, d, sizeof(racs_uint64));
+}
+
+RACS_FORCE_INLINE racs_uint64 racs_htonll(racs_uint64 val) {
+    #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+        return ((racs_uint64)htonl(val & 0xffffffff) << 32) | htonl(val >> 32);
+    #else
+        return val;
+    #endif
+}
+
+RACS_FORCE_INLINE racs_uint64 racs_ntohll(racs_uint64 val) {
+    #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+        return ((racs_uint64)ntohl(val & 0xffffffff) << 32) | ntohl(val >> 32);
+    #else
+        return val;
+    #endif
 }
 
 #ifdef __cplusplus

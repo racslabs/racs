@@ -190,7 +190,10 @@ int racs_recv_length_prefix(int fd, size_t *len) {
         return -1;
     }
 
-    return 8;
+    if (rc != sizeof(size_t)) return 0;
+
+    racs_log_info("recv size=%zu", *len);
+    return sizeof(size_t);
 }
 
 int racs_recv(int fd, int len, racs_conn_stream *stream) {
@@ -229,6 +232,8 @@ int racs_send(int fd, racs_conn_stream *stream) {
     while (bytes < n) {
         size_t rem = n - bytes;
         size_t to_send = rem < RACS_CHUNK_SIZE ? rem : RACS_CHUNK_SIZE;
+
+        racs_log_info("size=%zu", to_send);
 
         rc = send(fd, stream->out_stream.data + bytes, to_send, MSG_NOSIGNAL);
         if (rc < 0) {
@@ -384,7 +389,7 @@ int main(int argc, char *argv[]) {
 
                 // Echo the data back to the client
                 if (streams[i].in_stream.pos > 0) {
-                    racs_slaves_broadcast(&slaves, (const char *) streams[i].in_stream.data, length);
+                    racs_slaves_broadcast(&slaves, (const char *) streams[i].in_stream.data, streams[i].in_stream.pos);
 
                     racs_result res;
 
