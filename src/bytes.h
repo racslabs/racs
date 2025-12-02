@@ -58,22 +58,6 @@ RACS_FORCE_INLINE void racs_io_read_uint64(racs_uint64 *d, int fd) {
     read(fd, d, sizeof(racs_uint64));
 }
 
-RACS_FORCE_INLINE racs_uint64 racs_htonll(racs_uint64 val) {
-    #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-        return ((racs_uint64)htonl(val & 0xffffffff) << 32) | htonl(val >> 32);
-    #else
-        return val;
-    #endif
-}
-
-RACS_FORCE_INLINE racs_uint64 racs_ntohll(racs_uint64 val) {
-    #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-        return ((racs_uint64)ntohl(val & 0xffffffff) << 32) | ntohl(val >> 32);
-    #else
-        return val;
-    #endif
-}
-
 #ifdef __cplusplus
 }
 #endif
