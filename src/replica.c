@@ -18,7 +18,7 @@ void racs_replica_open(racs_replica *replica, const char *host, int port) {
     racs_replica_init_socket(replica);
     racs_replica_set_socketopts(replica);
     racs_replica_connect(replica, host, port);
-    // racs_replica_set_nonblocking(replica);
+    racs_replica_set_nonblocking(replica);
 }
 
 void racs_replica_connect(racs_replica *replica, const char *host, int port) {
