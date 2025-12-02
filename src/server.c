@@ -184,7 +184,7 @@ int racs_recv_length_prefix(int fd, size_t *len, racs_conn_stream *stream) {
         rc = recv(fd, stream->prefix_buf + stream->prefix_pos, 8 - stream->prefix_pos, 0);
         if (rc < 0) {
             if (errno == EAGAIN || errno == EWOULDBLOCK)
-                continue;   // need more data
+                return 0;   // need more data
             return -1;       // real error
         }
 
@@ -240,7 +240,7 @@ int racs_send(int fd, racs_conn_stream *stream) {
         rc = send(fd, stream->out_stream.data + stream->send_pos, to_send, MSG_NOSIGNAL);
         if (rc < 0) {
             if (errno == EAGAIN || errno == EWOULDBLOCK)
-                continue;   // NOT DONE YET
+                return 1;   // NOT DONE YET
             return -1;
         }
 
