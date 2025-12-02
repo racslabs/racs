@@ -70,9 +70,9 @@ cache:
 #   - port: TCP port number
 #
 # If omitted entirely, RACS runs in standalone mode.
-#slaves:
-#  # Example:
-#  # - host: "10.0.2.50"
-#  #   port: 6382
-#  - host: "10.0.0.65"
-#    port: 6382
+slaves:
+  # Example:
+  # - host: "10.0.2.50"
+  #   port: 6382
+  - host: "10.0.0.65"
+    port: 6382

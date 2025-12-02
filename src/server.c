@@ -301,9 +301,6 @@ int main(int argc, char *argv[]) {
     racs_log_info("Listening on port %d ...", db->ctx.config->port);
     racs_log_info("Log file: %s/racs.log", racs_log_dir);
 
-    racs_slaves slaves;
-    racs_slaves_init(&slaves, db->ctx.config);
-
     // Loop waiting for incoming connects or for incoming data
     // on any of the connected sockets.
     do {
@@ -395,8 +392,6 @@ int main(int argc, char *argv[]) {
 
                 // Echo the data back to the client
                 if (streams[i].in_stream.pos > 0) {
-                    racs_slaves_broadcast(&slaves, (const char *) streams[i].in_stream.data, streams[i].in_stream.pos);
-
                     racs_result res;
 
                     if (racs_is_frame((const char *) streams[i].in_stream.data)) {

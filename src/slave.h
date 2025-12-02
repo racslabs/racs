@@ -10,35 +10,22 @@
 #include <netdb.h>
 #include <errno.h>
 #include "log.h"
-#include "queue.h"
 #include "config.h"
 
 #define RACS_MAX_SLAVES 5
 
 typedef struct {
     int fd;
-    racs_queue q;
 } racs_slave;
 
-typedef struct {
-    int size;
-    racs_slave *slaves[RACS_MAX_SLAVES];
-} racs_slaves;
-
-void racs_slaves_init(racs_slaves *slaves, const racs_config *cfg);
-
-void racs_slaves_broadcast(racs_slaves *slaves, const char *data, size_t size);
-
-void *racs_slave_worker(void *arg);
-
-racs_slave *racs_slave_open(const char *host, int port);
+void racs_slave_open(racs_slave *slave, const char *host, int port);
 
 void racs_slave_connect(racs_slave *slave, const char *host, int port);
 
 void racs_slave_set_socketopts(racs_slave *slave);
 
-void racs_slave_init_socket(racs_slave *slave);
+void racs_slave_set_nonblocking(racs_slave *slave);
 
-ssize_t racs_blocking_send(int fd, const char *data, size_t size);
+void racs_slave_init_socket(racs_slave *slave);
 
 #endif //RACS_SLAVE_H
