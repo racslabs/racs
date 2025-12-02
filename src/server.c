@@ -273,6 +273,7 @@ void racs_conn_init_fds(racs_conn *conn) {
     // Set up the initial listening socket
     conn->fds[0].fd = conn->listen_sd;
     conn->fds[0].events = POLLIN;
+    conn->fd_types[0] = RACS_FD_LISTEN;
 }
 
 int main(int argc, char *argv[]) {
@@ -298,8 +299,22 @@ int main(int argc, char *argv[]) {
 
     racs_conn_stream streams[200];
 
+    racs_conn_stream slave_stream;
+    racs_conn_stream_init(&slave_stream);
+
     racs_log_info("Listening on port %d ...", db->ctx.config->port);
     racs_log_info("Log file: %s/racs.log", racs_log_dir);
+
+    racs_replica_set replicas;
+    racs_replica_set_init(&replicas, db->ctx.config);
+
+    for (i = 0; i < replicas.size; i++) {
+        conn.fds[nfds].fd = replicas.replicas[i].fd;
+        conn.fds[nfds].events = 0;
+        conn.fd_types[nfds] = RACS_FD_REPLICA;
+
+        nfds++;
+    }
 
     // Loop waiting for incoming connects or for incoming data
     // on any of the connected sockets.
@@ -374,6 +389,7 @@ int main(int argc, char *argv[]) {
                     // pollfd structure
                     conn.fds[nfds].fd = new_sd;
                     conn.fds[nfds].events = POLLIN;
+                    conn.fd_types[nfds] = RACS_FD_PRIMARY;
 
                     racs_conn_stream_init(&streams[nfds]);
                     nfds++;
@@ -392,6 +408,19 @@ int main(int argc, char *argv[]) {
 
                 // Echo the data back to the client
                 if (streams[i].in_stream.pos > 0) {
+                    if (conn.fd_types[i] != RACS_FD_REPLICA) {
+                        for (int k = 0; k < replicas.size; ++k) {
+                            racs_conn_stream_reset(&slave_stream);
+
+                            racs_memstream_write(&slave_stream.out_stream, &streams[i].in_stream.pos, sizeof(size_t));
+                            racs_memstream_write(&slave_stream.out_stream, streams[i].in_stream.data, streams[i].in_stream.pos);
+
+                            rc = racs_send(replicas.replicas[k].fd, &slave_stream);
+                            racs_log_info("send for fd=%u size=%zu rc=%u", replicas.replicas[k].fd, streams[i].in_stream.pos, rc);
+                            racs_conn_stream_reset(&slave_stream);
+                        }
+                    }
+
                     racs_result res;
 
                     if (racs_is_frame((const char *) streams[i].in_stream.data)) {
