@@ -35,6 +35,8 @@ typedef struct {
     int fd;
     racs_memstream in_stream;
     racs_memstream out_stream;
+    racs_uint8 prefix_buf[8];
+    size_t prefix_pos;
 } racs_conn_stream;
 
 typedef struct pollfd racs_fds[200];
@@ -73,7 +75,7 @@ void racs_conn_stream_init(racs_conn_stream *stream);
 
 void racs_conn_stream_reset(racs_conn_stream *stream);
 
-int racs_recv_length_prefix(int fd, size_t *len);
+int racs_recv_length_prefix(int fd, size_t *len, racs_conn_stream *stream);
 
 int racs_recv(int fd, int len, racs_conn_stream *stream);
 

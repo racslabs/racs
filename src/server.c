@@ -162,6 +162,7 @@ void racs_conn_socket_listen(racs_conn *conn) {
 }
 
 void racs_conn_stream_init(racs_conn_stream *stream) {
+    memset(stream, 0, sizeof(racs_conn_stream));
     racs_memstream_init(&stream->in_stream);
     racs_memstream_init(&stream->out_stream);
 }
@@ -170,35 +171,34 @@ void racs_conn_stream_reset(racs_conn_stream *stream) {
     free(stream->in_stream.data);
     free(stream->out_stream.data);
 
+    stream->prefix_pos = 0;
     racs_conn_stream_init(stream);
 }
 
-int racs_recv_length_prefix(int fd, size_t *len) {
-    uint8_t buf[8];
+int racs_recv_length_prefix(int fd, size_t *len, racs_conn_stream *stream) {
     ssize_t rc;
-    size_t total = 0;
 
-    while (total < 8) {
-        rc = recv(fd, buf + total, 8 - total, 0);
+    while (stream->prefix_pos < 8) {
 
+        rc = recv(fd, stream->prefix_buf + stream->prefix_pos, 8 - stream->prefix_pos, 0);
         if (rc < 0) {
-            if (errno == EWOULDBLOCK || errno == EAGAIN)
-                return 0;  // not enough yet, come back later
-            racs_log_fatal("recv() failed: %s", strerror(errno));
-            return -1;
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+                return 0;   // need more data
+            return -1;       // real error
         }
 
         if (rc == 0) {
-            racs_log_info("Connection closed");
-            return -1;
+            return -1;       // connection closed
         }
 
-        total += rc;
+        stream->prefix_pos += rc;
+        if (stream->prefix_pos < 8)
+            return 0;       // still not enough bytes yet
     }
 
-    memcpy(len, buf, 8);
-    racs_log_info("recv size=%zu", *len);
-
+    // full prefix received
+    memcpy(len, stream->prefix_buf, 8);
+    stream->prefix_pos = 0; // reset for next message
     return 8;
 }
 
@@ -400,7 +400,7 @@ int main(int argc, char *argv[]) {
                 conn.closed = false;
                 size_t length = 0;
 
-                rc = racs_recv_length_prefix(conn.fds[i].fd, &length);
+                rc = racs_recv_length_prefix(conn.fds[i].fd, &length, &streams[i]);
                 if (rc < 0) conn.closed = true;
 
                 rc = racs_recv(conn.fds[i].fd, (int) length, &streams[i]);
