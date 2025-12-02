@@ -183,7 +183,7 @@ int racs_recv_length_prefix(int fd, size_t *len, racs_conn_stream *stream) {
         rc = recv(fd, stream->prefix_buf + stream->prefix_pos, 8 - stream->prefix_pos, 0);
         if (rc < 0) {
             if (errno == EAGAIN || errno == EWOULDBLOCK)
-                return 0;   // need more data
+                continue;   // need more data
             return -1;       // real error
         }
 
