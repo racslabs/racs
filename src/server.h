@@ -37,6 +37,7 @@ typedef struct {
     racs_memstream out_stream;
     racs_uint8 prefix_buf[8];
     size_t prefix_pos;
+    size_t send_pos;
 } racs_conn_stream;
 
 typedef struct pollfd racs_fds[200];

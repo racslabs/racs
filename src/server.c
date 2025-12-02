@@ -172,6 +172,7 @@ void racs_conn_stream_reset(racs_conn_stream *stream) {
     free(stream->out_stream.data);
 
     stream->prefix_pos = 0;
+    stream->send_pos = 0;
     racs_conn_stream_init(stream);
 }
 
@@ -229,40 +230,26 @@ int racs_recv(int fd, int len, racs_conn_stream *stream) {
 }
 
 int racs_send(int fd, racs_conn_stream *stream) {
-    size_t bytes = 0;
     size_t n = stream->out_stream.pos;
     ssize_t rc;
 
-    signal(SIGPIPE, SIG_IGN);
+    while (stream->send_pos < n) {
+        size_t remaining = n - stream->send_pos;
+        size_t to_send = remaining < RACS_CHUNK_SIZE ? remaining : RACS_CHUNK_SIZE;
 
-    while (bytes < n) {
-        size_t rem = n - bytes;
-        size_t to_send = rem < RACS_CHUNK_SIZE ? rem : RACS_CHUNK_SIZE;
-
-        racs_log_info("size=%zu", to_send);
-
-        rc = send(fd, stream->out_stream.data + bytes, to_send, MSG_NOSIGNAL);
+        rc = send(fd, stream->out_stream.data + stream->send_pos, to_send, MSG_NOSIGNAL);
         if (rc < 0) {
             if (errno == EAGAIN || errno == EWOULDBLOCK)
-                continue;
-
-            if (errno == EPIPE) {
-                racs_log_error("peer closed connection: %s", strerror(errno));
-                return -1;
-            }
-
-            racs_log_error("send() failed: %s", strerror(errno));
+                continue;   // NOT DONE YET
             return -1;
         }
 
-        if (rc == 0) {
-            racs_log_error("send() returned 0 (peer closed?)");
-            return -1;
-        }
+        if (rc == 0) return -1;
 
-        bytes += (size_t)rc;
+        stream->send_pos += (size_t)rc;
     }
 
+    stream->send_pos = 0;
     return 0;
 }
 
@@ -417,7 +404,10 @@ int main(int argc, char *argv[]) {
 
                             rc = racs_send(replicas.replicas[k].fd, &slave_stream);
                             racs_log_info("send for fd=%u size=%zu rc=%u", replicas.replicas[k].fd, streams[i].in_stream.pos, rc);
-                            racs_conn_stream_reset(&slave_stream);
+
+                            if (rc == 0) {
+                                racs_conn_stream_reset(&slave_stream);
+                            }
                         }
                     }
 
