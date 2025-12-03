@@ -199,7 +199,7 @@ int racs_recv_length_prefix(int fd, size_t *len, racs_conn_stream *stream) {
 
     // full prefix received
     memcpy(len, stream->prefix_buf, 8);
-    racs_log_info("recv prefix len size=%zu", len);
+    racs_log_info("recv prefix len size=%zu", *len);
     stream->prefix_pos = 0; // reset for next message
     return 8;
 }
