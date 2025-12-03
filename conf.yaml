@@ -15,7 +15,7 @@
 
 # TCP port that the RACS server listens on for incoming client connections.
 # Change this if running multiple RACS instances or if port 6381 is in use.
-port: 6382
+port: 6381
 
 
 # ---------------------------------------------------------------------------
@@ -26,14 +26,14 @@ port: 6382
 #   - Serialized audio blocks flushed from memory
 #   - Metadata files
 # Supports environment variable expansion (e.g., ${HOME}).
-data_dir: "${HOME}/test"
+data_dir: "${HOME}"
 
 # Directory where RACS writes its log files:
 #   - Server startup and shutdown logs
 #   - Cache access logs
 #   - Errors, warnings, and background task messages
 # Must be writable by the user running the RACS process.
-log_dir: "${HOME}/test"
+log_dir: "${HOME}"
 
 
 # ---------------------------------------------------------------------------
@@ -70,9 +70,9 @@ cache:
 #   - port: TCP port number
 #
 # If omitted entirely, RACS runs in standalone mode.
-#replicas:
-#  # Example:
-#  # - host: "10.0.2.50"
-#  #   port: 6382
-#  - host: "localhost"
-#    port: 6382
+replicas:
+  # Example:
+  # - host: "10.0.2.50"
+  #   port: 6382
+  - host: "localhost"
+    port: 6382

@@ -199,6 +199,7 @@ int racs_recv_length_prefix(int fd, size_t *len, racs_conn_stream *stream) {
 
     // full prefix received
     memcpy(len, stream->prefix_buf, 8);
+    racs_log_info("recv prefix len size=%zu", len);
     stream->prefix_pos = 0; // reset for next message
     return 8;
 }
@@ -226,6 +227,8 @@ int racs_recv(int fd, int len, racs_conn_stream *stream) {
         racs_memstream_write(&stream->in_stream, buf, rc);
     }
 
+    racs_log_info("recv size actual=%zu", stream->in_stream.pos);
+
     return stream->in_stream.pos;
 }
 
@@ -248,6 +251,8 @@ int racs_send(int fd, racs_conn_stream *stream) {
 
         stream->send_pos += (size_t)rc;
     }
+
+    racs_log_info("send size=%zu", stream->send_pos);
 
     stream->send_pos = 0;
     return 0;
@@ -297,7 +302,7 @@ int main(int argc, char *argv[]) {
 
     for (i = 0; i < replicas.size; i++) {
         conn.fds[nfds].fd = replicas.replicas[i].fd;
-        conn.fds[nfds].events = POLLOUT;
+        conn.fds[nfds].events = 0;
         conn.fd_types[nfds] = RACS_FD_REPLICA;
 
         nfds++;
