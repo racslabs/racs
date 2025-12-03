@@ -297,7 +297,7 @@ int main(int argc, char *argv[]) {
 
     for (i = 0; i < replicas.size; i++) {
         conn.fds[nfds].fd = replicas.replicas[i].fd;
-        conn.fds[nfds].events = 0;
+        conn.fds[nfds].events = POLLOUT;
         conn.fd_types[nfds] = RACS_FD_REPLICA;
 
         nfds++;
