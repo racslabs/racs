@@ -22,26 +22,15 @@
 #include "scm_bindings.h"
 #include "log.h"
 #include "version.h"
-#include "replica.h"
-
-
-typedef enum {
-    RACS_FD_LISTEN,
-    RACS_FD_PRIMARY,
-    RACS_FD_REPLICA
-} racs_fd_type;
+#include "slave.h"
 
 typedef struct {
     int fd;
     racs_memstream in_stream;
     racs_memstream out_stream;
-    racs_uint8 prefix_buf[8];
-    size_t prefix_pos;
-    size_t send_pos;
 } racs_conn_stream;
 
 typedef struct pollfd racs_fds[200];
-typedef racs_fd_type racs_fd_types[200];
 
 typedef struct {
     bool closed;
@@ -51,7 +40,6 @@ typedef struct {
     int listen_sd;
     struct sockaddr_in6 addr;
     racs_fds fds;
-    racs_fd_types fd_types;
 } racs_conn;
 
 void racs_help();
@@ -76,7 +64,7 @@ void racs_conn_stream_init(racs_conn_stream *stream);
 
 void racs_conn_stream_reset(racs_conn_stream *stream);
 
-int racs_recv_length_prefix(int fd, size_t *len, racs_conn_stream *stream);
+int racs_recv_length_prefix(int fd, size_t *len);
 
 int racs_recv(int fd, int len, racs_conn_stream *stream);
 

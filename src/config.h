@@ -26,7 +26,7 @@ extern "C" {
 typedef struct {
     char *host;
     int port;
-} racs_replica_config;
+} racs_slave_config;
 
 typedef struct {
     int tables;
@@ -43,8 +43,8 @@ typedef struct {
     char*                   log_dir;
     racs_memtable_config    memtable;
     racs_cache_config       cache;
-    racs_replica_config*    replicas;
-    racs_uint32             replica_count;
+    racs_slave_config*      slaves;
+    racs_uint32             slaves_count;
 } racs_config;
 
 static const cyaml_schema_field_t racs_memtables_schema_fields[] = {
@@ -58,14 +58,14 @@ static const cyaml_schema_field_t racs_cache_schema_fields[] = {
         CYAML_FIELD_END
 };
 
-static const cyaml_schema_field_t racs_replica_schema_fields[] = {
-        CYAML_FIELD_STRING_PTR("host", CYAML_FLAG_POINTER, racs_replica_config, host, 0, CYAML_UNLIMITED),
-        CYAML_FIELD_UINT("port", CYAML_FLAG_DEFAULT, racs_replica_config, port),
+static const cyaml_schema_field_t racs_slave_schema_fields[] = {
+        CYAML_FIELD_STRING_PTR("host", CYAML_FLAG_POINTER, racs_slave_config, host, 0, CYAML_UNLIMITED),
+        CYAML_FIELD_UINT("port", CYAML_FLAG_DEFAULT, racs_slave_config, port),
         CYAML_FIELD_END
 };
 
-static const cyaml_schema_value_t racs_replica_entry_mapping = {
-        CYAML_VALUE_MAPPING(CYAML_FLAG_DEFAULT, racs_replica_config, racs_replica_schema_fields),
+static const cyaml_schema_value_t racs_slaves_entry_mapping = {
+        CYAML_VALUE_MAPPING(CYAML_FLAG_DEFAULT, racs_slave_config, racs_slave_schema_fields),
 };
 
 static const cyaml_schema_field_t racs_schema_fields[] = {
@@ -75,12 +75,12 @@ static const cyaml_schema_field_t racs_schema_fields[] = {
         CYAML_FIELD_MAPPING("cache", CYAML_FLAG_DEFAULT, racs_config , cache, racs_cache_schema_fields),
         CYAML_FIELD_STRING_PTR("log_dir", CYAML_FLAG_DEFAULT, racs_config , log_dir, 0, CYAML_UNLIMITED),
         CYAML_FIELD_SEQUENCE_COUNT(
-           "replicas",
+           "slaves",
            CYAML_FLAG_OPTIONAL | CYAML_FLAG_POINTER,
            racs_config,
-           replicas,
-           replica_count,
-           &racs_replica_entry_mapping,
+           slaves,
+           slaves_count,
+           &racs_slaves_entry_mapping,
            0,
            CYAML_UNLIMITED
        ),

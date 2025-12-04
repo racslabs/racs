@@ -162,7 +162,6 @@ void racs_conn_socket_listen(racs_conn *conn) {
 }
 
 void racs_conn_stream_init(racs_conn_stream *stream) {
-    memset(stream, 0, sizeof(racs_conn_stream));
     racs_memstream_init(&stream->in_stream);
     racs_memstream_init(&stream->out_stream);
 }
@@ -171,36 +170,35 @@ void racs_conn_stream_reset(racs_conn_stream *stream) {
     free(stream->in_stream.data);
     free(stream->out_stream.data);
 
-    stream->prefix_pos = 0;
-    stream->send_pos = 0;
     racs_conn_stream_init(stream);
 }
 
-int racs_recv_length_prefix(int fd, size_t *len, racs_conn_stream *stream) {
-    ssize_t rc;
+int racs_recv_length_prefix(int fd, size_t *len) {
+    char buf[8];
+    ssize_t rc = 0;
+    size_t total = 0;
 
-    while (stream->prefix_pos < 8) {
-
-        rc = recv(fd, stream->prefix_buf + stream->prefix_pos, 8 - stream->prefix_pos, 0);
+    while (total < 8) {
+        rc = recv(fd, buf + total, 8 - total, 0);
         if (rc < 0) {
-            if (errno == EAGAIN || errno == EWOULDBLOCK)
-                return 0;   // need more data
-            return -1;       // real error
+            if (errno == EWOULDBLOCK || errno == EAGAIN)
+                continue;
+            racs_log_fatal("recv() failed: %s", strerror(errno));
+            return -1;
         }
 
         if (rc == 0) {
-            return -1;       // connection closed
+            racs_log_info("Connection closed");
+            return -1;
         }
 
-        stream->prefix_pos += rc;
-        if (stream->prefix_pos < 8)
-            return 0;       // still not enough bytes yet
+        total += rc;
     }
 
-    // full prefix received
-    memcpy(len, stream->prefix_buf, 8);
-    racs_log_info("recv prefix len size=%zu", *len);
-    stream->prefix_pos = 0; // reset for next message
+    if (rc != 8) return 0;
+    memcpy(len, buf, 8);
+
+    racs_log_info("recv size=%zu", *len);
     return 8;
 }
 
@@ -227,34 +225,44 @@ int racs_recv(int fd, int len, racs_conn_stream *stream) {
         racs_memstream_write(&stream->in_stream, buf, rc);
     }
 
-    racs_log_info("recv size actual=%zu", stream->in_stream.pos);
-
     return stream->in_stream.pos;
 }
 
 int racs_send(int fd, racs_conn_stream *stream) {
+    size_t bytes = 0;
     size_t n = stream->out_stream.pos;
     ssize_t rc;
 
-    while (stream->send_pos < n) {
-        size_t remaining = n - stream->send_pos;
-        size_t to_send = remaining < RACS_CHUNK_SIZE ? remaining : RACS_CHUNK_SIZE;
+    signal(SIGPIPE, SIG_IGN);
 
-        rc = send(fd, stream->out_stream.data + stream->send_pos, to_send, MSG_NOSIGNAL);
+    while (bytes < n) {
+        size_t rem = n - bytes;
+        size_t to_send = rem < RACS_CHUNK_SIZE ? rem : RACS_CHUNK_SIZE;
+
+        racs_log_info("size=%zu", to_send);
+
+        rc = send(fd, stream->out_stream.data + bytes, to_send, MSG_NOSIGNAL);
         if (rc < 0) {
             if (errno == EAGAIN || errno == EWOULDBLOCK)
-                return 1;   // NOT DONE YET
+                continue;
+
+            if (errno == EPIPE) {
+                racs_log_error("peer closed connection: %s", strerror(errno));
+                return -1;
+            }
+
+            racs_log_error("send() failed: %s", strerror(errno));
             return -1;
         }
 
-        if (rc == 0) return -1;
+        if (rc == 0) {
+            racs_log_error("send() returned 0 (peer closed?)");
+            return -1;
+        }
 
-        stream->send_pos += (size_t)rc;
+        bytes += (size_t)rc;
     }
 
-    racs_log_info("send size=%zu", stream->send_pos);
-
-    stream->send_pos = 0;
     return 0;
 }
 
@@ -265,7 +273,6 @@ void racs_conn_init_fds(racs_conn *conn) {
     // Set up the initial listening socket
     conn->fds[0].fd = conn->listen_sd;
     conn->fds[0].events = POLLIN;
-    conn->fd_types[0] = RACS_FD_LISTEN;
 }
 
 int main(int argc, char *argv[]) {
@@ -291,22 +298,11 @@ int main(int argc, char *argv[]) {
 
     racs_conn_stream streams[200];
 
-    racs_conn_stream slave_stream;
-    racs_conn_stream_init(&slave_stream);
-
     racs_log_info("Listening on port %d ...", db->ctx.config->port);
     racs_log_info("Log file: %s/racs.log", racs_log_dir);
 
-    racs_replica_set replicas;
-    racs_replica_set_init(&replicas, db->ctx.config);
-
-    for (i = 0; i < replicas.size; i++) {
-        conn.fds[nfds].fd = replicas.replicas[i].fd;
-        conn.fds[nfds].events = 0;
-        conn.fd_types[nfds] = RACS_FD_REPLICA;
-
-        nfds++;
-    }
+    racs_slaves slaves;
+    racs_slaves_init(&slaves, db->ctx.config);
 
     // Loop waiting for incoming connects or for incoming data
     // on any of the connected sockets.
@@ -381,7 +377,6 @@ int main(int argc, char *argv[]) {
                     // pollfd structure
                     conn.fds[nfds].fd = new_sd;
                     conn.fds[nfds].events = POLLIN;
-                    conn.fd_types[nfds] = RACS_FD_PRIMARY;
 
                     racs_conn_stream_init(&streams[nfds]);
                     nfds++;
@@ -392,7 +387,7 @@ int main(int argc, char *argv[]) {
                 conn.closed = false;
                 size_t length = 0;
 
-                rc = racs_recv_length_prefix(conn.fds[i].fd, &length, &streams[i]);
+                rc = racs_recv_length_prefix(conn.fds[i].fd, &length);
                 if (rc < 0) conn.closed = true;
 
                 rc = racs_recv(conn.fds[i].fd, (int) length, &streams[i]);
@@ -400,21 +395,7 @@ int main(int argc, char *argv[]) {
 
                 // Echo the data back to the client
                 if (streams[i].in_stream.pos > 0) {
-                    if (conn.fd_types[i] != RACS_FD_REPLICA) {
-                        for (int k = 0; k < replicas.size; ++k) {
-                            racs_conn_stream_reset(&slave_stream);
-
-                            racs_memstream_write(&slave_stream.out_stream, &streams[i].in_stream.pos, sizeof(size_t));
-                            racs_memstream_write(&slave_stream.out_stream, streams[i].in_stream.data, streams[i].in_stream.pos);
-
-                            rc = racs_send(replicas.replicas[k].fd, &slave_stream);
-                            racs_log_info("send for fd=%u size=%zu rc=%u", replicas.replicas[k].fd, streams[i].in_stream.pos, rc);
-
-                            if (rc == 0) {
-                                racs_conn_stream_reset(&slave_stream);
-                            }
-                        }
-                    }
+                    racs_slaves_broadcast(&slaves, (const char *) streams[i].in_stream.data, streams[i].in_stream.pos);
 
                     racs_result res;
 
