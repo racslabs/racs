@@ -195,7 +195,7 @@ int racs_recv_length_prefix(int fd, size_t *len) {
         total += rc;
     }
 
-    if (rc != 8) return 0;
+    if (total != 8) return 0;
     memcpy(len, buf, 8);
 
     racs_log_info("recv size=%zu", *len);
