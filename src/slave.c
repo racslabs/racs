@@ -158,9 +158,10 @@ void racs_slave_set_socketopts(racs_slave *slave) {
         exit(-1);
     }
 
-    struct linger ling = {0};
-    if (setsockopt(slave->fd, SOL_SOCKET, SO_LINGER, &ling, sizeof(ling)) < 0) {
-        racs_log_fatal("slave: setsockopt SO_LINGER failed");
+    struct timeval tv = {5, 0};  // 5 second timeout
+    rc = setsockopt(slave->fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
+    if (rc < 0) {
+        racs_log_fatal("slave: setsockopt SO_SNDTIMEO failed");
         close(slave->fd);
         exit(-1);
     }
