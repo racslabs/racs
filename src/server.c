@@ -64,38 +64,36 @@ void racs_read_callback(struct bufferevent *bev, void *ctx) {
     struct evbuffer *in  = bufferevent_get_input(bev);
     struct evbuffer *out = bufferevent_get_output(bev);
 
-    while (1) {
-        size_t size = evbuffer_get_length(in);
-        if (size < 8) return;
+    size_t size = evbuffer_get_length(in);
+    if (size < 8) return;
 
-        racs_uint8 *header = evbuffer_pullup(in, 8);
+    racs_uint8 *len_buf = evbuffer_pullup(in, 8);
 
-        racs_uint64 payload_len;
-        memcpy(&payload_len, header, 8);
+    racs_uint64 len;
+    memcpy(&len, len_buf, 8);
 
-        if (size < 8 + payload_len) return;
+    if (size < 8 + len) return;
 
-        evbuffer_drain(in, 8);
+    evbuffer_drain(in, 8);
 
-        racs_uint8 *buf = malloc(payload_len);
-        evbuffer_remove(in, buf, payload_len);
+    racs_uint8 *buf = malloc(len);
+    evbuffer_remove(in, buf, len);
 
-        racs_result res;
-        if (racs_is_frame((const char *) buf))
-            res = racs_db_stream(db, buf);
-        else
-            res = racs_db_exec(db, (const char *) buf);
+    racs_result res;
+    if (racs_is_frame((const char *) buf))
+        res = racs_db_stream(db, buf);
+    else
+        res = racs_db_exec(db, (const char *) buf);
 
-        free(buf);
+    free(buf);
 
-        racs_uint8 header_out[8];
-        memcpy(header_out, &res.size, 8);
+    racs_uint8 header_out[8];
+    memcpy(header_out, &res.size, 8);
 
-        evbuffer_add(out, header_out, 8);
-        evbuffer_add(out, res.data, res.size);
+    evbuffer_add(out, header_out, 8);
+    evbuffer_add(out, res.data, res.size);
 
-        free(res.data);
-    }
+    free(res.data);
 }
 
 void racs_event_callback(struct bufferevent *bev, short events, void *ctx) {

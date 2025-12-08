@@ -21,6 +21,8 @@ Arguments
 +-------------+-------------+---------------------------------------------------------------+
 | bit_depth   | ``Integer`` | Bits per sample.                                              |
 +-------------+-------------+---------------------------------------------------------------+
+| ref         | ``Integer`` | Reference timestamp (milliseconds UTC)                        |
++-------------+-------------+---------------------------------------------------------------+
 
 Output
 ------
@@ -37,10 +39,10 @@ Example
 .. code-block:: scheme
 
     ;; SCM expression
-    (create "chopin" 44100 2 16)
+    (create "chopin" 44100 2 16 1765224354485)
 
 Using ``EVAL``:
 
 .. code-block:: none
 
-    EVAL '(create \"chopin\" 44100 2 16)'
+    EVAL '(create \"chopin\" 44100 2 16 1765224354485)'
