@@ -145,20 +145,18 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    /* Listening address */
     struct sockaddr_in sin;
     memset(&sin, 0, sizeof(sin));
     sin.sin_family = AF_INET;
-    sin.sin_addr.s_addr = htonl(0);   /* 0.0.0.0 */
+    sin.sin_addr.s_addr = htonl(0);
     sin.sin_port = htons(db->ctx.config->port);
 
-    /* Create listener */
     struct evconnlistener *listener = evconnlistener_new_bind(
         ctx.base,
-        racs_accept_callback,               /* on new connection */
-        &ctx,                    /* context for callback */
+        racs_accept_callback,
+        &ctx,
         LEV_OPT_REUSEABLE | LEV_OPT_CLOSE_ON_FREE,
-        -1,                      /* backlog */
+        -1,
         (struct sockaddr*)&sin,
         sizeof(sin)
     );
