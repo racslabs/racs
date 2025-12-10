@@ -26,18 +26,18 @@
 #include "log.h"
 #include "version.h"
 
-#define RACS_MAX_REPLICAS 5
+#define RACS_MAX_SLAVES 5
 
 typedef struct {
     struct bufferevent *bev;
     struct sockaddr_in addr;
     int connected;
-} racs_replica_connection;
+} racs_slave_connection;
 
 typedef struct {
     racs_db *db;
     struct event_base *base;
-    racs_replica_connection replicas[RACS_MAX_REPLICAS];
+    racs_slave_connection slaves[RACS_MAX_SLAVES];
     int replica_count;
 } racs_connection_context;
 
@@ -51,12 +51,14 @@ void racs_event_callback(struct bufferevent *bev, short events, void *ctx);
 
 void racs_accept_callback(struct evconnlistener *listener, evutil_socket_t fd, struct sockaddr *addr, int socklen, void *data);
 
-void racs_broadcast_to_replicas(racs_connection_context *ctx, racs_uint8 *buf, size_t len);
+void racs_broadcast_to_slaves(racs_connection_context *ctx, racs_uint8 *buf, size_t len);
 
-void racs_replicas_init(racs_connection_context *ctx);
+void racs_slaves_init_sockets(racs_connection_context *ctx);
+
+void racs_slaves_init_addrs(racs_connection_context *ctx, racs_config *config);
 
 size_t racs_length_prefix(struct evbuffer *in) ;
 
-void racs_handle_replicas(struct evbuffer *in, racs_connection_context *ctx, size_t length);
+void racs_handle_slaves(struct evbuffer *in, racs_connection_context *ctx, size_t length);
 
 #endif //RACS_SERVER_H
