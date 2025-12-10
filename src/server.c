@@ -58,8 +58,8 @@ void racs_args(int argc, char *argv[]) {
     exit(-1);
 }
 
-void racs_read_callback(struct bufferevent *bev, void *ctx) {
-    racs_db *db = ctx;
+void racs_read_callback(struct bufferevent *bev, void *data) {
+    racs_connection_context *ctx = (racs_connection_context *) data;
 
     struct evbuffer *in  = bufferevent_get_input(bev);
     struct evbuffer *out = bufferevent_get_output(bev);
@@ -74,6 +74,19 @@ void racs_read_callback(struct bufferevent *bev, void *ctx) {
 
     if (size < 8 + len) return;
 
+    // --------------------------------------
+    size_t full_len = 8 + len;
+    uint8_t *raw = malloc(full_len);
+
+    // copy raw frame without removing it
+    evbuffer_copyout(in, raw, full_len);
+
+    // forward it verbatim
+    racs_broadcast_to_replicas(ctx, raw, full_len);
+
+    free(raw);
+    // ---------------------------------------
+
     evbuffer_drain(in, 8);
 
     racs_uint8 *buf = malloc(len);
@@ -81,9 +94,9 @@ void racs_read_callback(struct bufferevent *bev, void *ctx) {
 
     racs_result res;
     if (racs_is_frame((const char *) buf))
-        res = racs_db_stream(db, buf);
+        res = racs_db_stream(ctx->db, buf);
     else
-        res = racs_db_exec(db, (const char *) buf);
+        res = racs_db_exec(ctx->db, (const char *) buf);
 
     free(buf);
 
@@ -111,16 +124,18 @@ void racs_accept_callback(struct evconnlistener *listener, evutil_socket_t fd, s
     evutil_make_socket_nonblocking(fd);
 
     struct bufferevent *bev = bufferevent_socket_new(base, fd, BEV_OPT_CLOSE_ON_FREE);
-    bufferevent_setcb(bev, racs_read_callback, NULL, racs_event_callback, ctx->db);
+    bufferevent_setcb(bev, racs_read_callback, NULL, racs_event_callback, ctx);
     bufferevent_enable(bev, EV_READ | EV_WRITE);
 
     racs_log_info("Client connected");
 }
 
 void racs_broadcast_to_replicas(racs_connection_context *ctx, racs_uint8 *buf, size_t len) {
+    racs_log_info("replica count=%z", ctx->replica_count);
     for (int i = 0; i < ctx->replica_count; i++) {
         if (!ctx->replicas[i].connected) continue;
 
+        racs_log_info("send size=%zu", len);
         bufferevent_write(ctx->replicas[i].bev, buf, len);
     }
 }
@@ -170,11 +185,11 @@ int main(int argc, char *argv[]) {
     racs_connection_context ctx;
     ctx.db = db;
     ctx.base = event_base_new();
-    ctx.replica_count = 0;
+    ctx.replica_count = 1;
 
-    // ctx.replicas[0].addr.sin_family = AF_INET;
-    // ctx.replicas[0].addr.sin_port = htons(9001);
-    // inet_pton(AF_INET, "127.0.0.1", &ctx.replicas[0].addr.sin_addr);
+    ctx.replicas[0].addr.sin_family = AF_INET;
+    ctx.replicas[0].addr.sin_port = htons(6382);
+    inet_pton(AF_INET, "locahost", &ctx.replicas[0].addr.sin_addr);
 
     racs_replicas_init(&ctx);
 

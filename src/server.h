@@ -45,11 +45,14 @@ void racs_help();
 
 void racs_args(int argc, char *argv[]);
 
-void racs_read_callback(struct bufferevent *bev, void *ctx);
+void racs_read_callback(struct bufferevent *bev, void *data);
 
 void racs_event_callback(struct bufferevent *bev, short events, void *ctx);
 
 void racs_accept_callback(struct evconnlistener *listener, evutil_socket_t fd, struct sockaddr *addr, int socklen, void *data);
 
+void racs_broadcast_to_replicas(racs_connection_context *ctx, racs_uint8 *buf, size_t len);
+
+void racs_replicas_init(racs_connection_context *ctx);
 
 #endif //RACS_SERVER_H
