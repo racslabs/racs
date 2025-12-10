@@ -26,9 +26,19 @@
 #include "log.h"
 #include "version.h"
 
+#define RACS_MAX_REPLICAS 5
+
 typedef struct {
-    struct event_base *base;
+    struct bufferevent *bev;
+    struct sockaddr_in addr;
+    int connected;
+} racs_replica_connection;
+
+typedef struct {
     racs_db *db;
+    struct event_base *base;
+    racs_replica_connection replicas[RACS_MAX_REPLICAS];
+    int replica_count;
 } racs_connection_context;
 
 void racs_help();

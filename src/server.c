@@ -117,8 +117,41 @@ void racs_accept_callback(struct evconnlistener *listener, evutil_socket_t fd, s
     racs_log_info("Client connected");
 }
 
-int main(int argc, char *argv[]) {
+void racs_broadcast_to_replicas(racs_connection_context *ctx, racs_uint8 *buf, size_t len) {
+    for (int i = 0; i < ctx->replica_count; i++) {
+        if (!ctx->replicas[i].connected) continue;
 
+        bufferevent_write(ctx->replicas[i].bev, buf, len);
+    }
+}
+
+void racs_replicas_init(racs_connection_context *ctx) {
+    for (int i = 0; i < ctx->replica_count; i++) {
+        int sock = socket(AF_INET, SOCK_STREAM, 0);
+        if (sock < 0) {
+            racs_log_error("Failed to create socket for replica");
+            ctx->replicas[i].connected = 0;
+            continue;
+        }
+
+        evutil_make_socket_nonblocking(sock);
+
+        struct bufferevent *bev = bufferevent_socket_new(ctx->base, sock, BEV_OPT_CLOSE_ON_FREE);
+        bufferevent_setcb(bev, NULL, NULL, racs_event_callback, NULL);
+        bufferevent_enable(bev, EV_WRITE);
+
+        int rc = bufferevent_socket_connect(bev, (struct sockaddr*)&ctx->replicas[i].addr, sizeof(ctx->replicas[i].addr));
+        if (rc != 0) {
+            racs_log_error("Failed to initiate connection to replica");
+            ctx->replicas[i].connected = 0;
+        } else {
+            ctx->replicas[i].bev = bev;
+            ctx->replicas[i].connected = 1;
+        }
+    }
+}
+
+int main(int argc, char *argv[]) {
     racs_args(argc, argv);
 
     scm_init_guile();
@@ -137,6 +170,13 @@ int main(int argc, char *argv[]) {
     racs_connection_context ctx;
     ctx.db = db;
     ctx.base = event_base_new();
+    ctx.replica_count = 0;
+
+    // ctx.replicas[0].addr.sin_family = AF_INET;
+    // ctx.replicas[0].addr.sin_port = htons(9001);
+    // inet_pton(AF_INET, "127.0.0.1", &ctx.replicas[0].addr.sin_addr);
+
+    racs_replicas_init(&ctx);
 
     if (!ctx.base) {
         racs_log_fatal("Could not initialize libevent.");
