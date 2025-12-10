@@ -138,7 +138,7 @@ void racs_accept_callback(struct evconnlistener *listener, evutil_socket_t fd, s
 }
 
 void racs_broadcast_to_slaves(racs_connection_context *ctx, racs_uint8 *buf, size_t len) {
-    for (int i = 0; i < ctx->replica_count; i++) {
+    for (int i = 0; i < ctx->slave_count; i++) {
         if (!ctx->slaves[i].connected) continue;
 
         bufferevent_write(ctx->slaves[i].bev, buf, len);
@@ -146,7 +146,7 @@ void racs_broadcast_to_slaves(racs_connection_context *ctx, racs_uint8 *buf, siz
 }
 
 void racs_slaves_init_sockets(racs_connection_context *ctx) {
-    for (int i = 0; i < ctx->replica_count; i++) {
+    for (int i = 0; i < ctx->slave_count; i++) {
         int sock = socket(AF_INET, SOCK_STREAM, 0);
         if (sock < 0) {
             racs_log_error("Failed to create socket for replica");
@@ -172,7 +172,12 @@ void racs_slaves_init_sockets(racs_connection_context *ctx) {
 }
 
 void racs_slaves_init_addrs(racs_connection_context *ctx, racs_config *config) {
-    ctx->replica_count = config->slaves_count;
+    if (config->slaves_count > RACS_MAX_SLAVES) {
+        racs_log_error("Max slave count exceded");
+        return;
+    }
+
+    ctx->slave_count = config->slaves_count;
 
     for (int i = 0; i < config->slaves_count; ++i) {
         ctx->slaves[i].addr.sin_family = AF_INET;

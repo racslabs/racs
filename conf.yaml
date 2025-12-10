@@ -5,7 +5,7 @@
 # ----------------------------------------------------------------------------
 # This file defines runtime parameters for the RACS server.
 # RACS is responsible for caching and serving time-series audio data efficiently.
-# Paths may include environment variables such as ${HOME} or ${XDG_DATA_HOME}.
+# Paths may include environment variables such as ${HOME}.
 # ============================================================================
 
 
@@ -25,7 +25,7 @@ port: 6381
 # Directory where RACS stores persistent data:
 #   - Serialized audio blocks flushed from memory
 #   - Metadata files
-# Supports environment variable expansion (e.g., ${HOME}, ${XDG_DATA_HOME}).
+# Supports environment variable expansion (e.g., ${HOME}).
 data_dir: "${HOME}"
 
 # Directory where RACS writes its log files:
@@ -57,4 +57,22 @@ memtable:
 cache:
   # Number of recently accessed memtables to retain in the in-memory cache.
   # Increasing this value improves read performance but increases memory usage.
-  entries: 4096
+  entries: 1024
+
+
+# ---------------------------------------------------------------------------
+# Slave node configuration (optional)
+# ---------------------------------------------------------------------------
+
+# List of RACS slave nodes used for distributed caching.
+# Each entry must provide:
+#   - host: hostname or IP string
+#   - port: TCP port number
+#
+# If omitted entirely, RACS runs in standalone mode.
+slaves:
+  # Example:
+  # - host: "10.0.2.50"
+  #   port: 6382
+  - host: "localhost"
+    port: 6382

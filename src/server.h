@@ -38,7 +38,7 @@ typedef struct {
     racs_db *db;
     struct event_base *base;
     racs_slave_connection slaves[RACS_MAX_SLAVES];
-    int replica_count;
+    int slave_count;
 } racs_connection_context;
 
 void racs_help();
