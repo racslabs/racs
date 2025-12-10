@@ -58,39 +58,46 @@ void racs_args(int argc, char *argv[]) {
     exit(-1);
 }
 
+size_t racs_length_prefix(struct evbuffer *in) {
+    size_t size = evbuffer_get_length(in);
+    if (size < 8) return 0;
+
+    racs_uint8 *buf = evbuffer_pullup(in, 8);
+
+    racs_uint64 len;
+    memcpy(&len, buf, 8);
+
+    if (size < 8 + len) return 0;
+
+    return len;
+}
+
+void racs_handle_replicas(struct evbuffer *in, racs_connection_context *ctx, size_t length) {
+    size_t size = 8 + length;
+    uint8_t *raw = malloc(size);
+
+    evbuffer_copyout(in, raw, size);
+
+    racs_broadcast_to_replicas(ctx, raw, size);
+
+    free(raw);
+}
+
 void racs_read_callback(struct bufferevent *bev, void *data) {
     racs_connection_context *ctx = (racs_connection_context *) data;
 
     struct evbuffer *in  = bufferevent_get_input(bev);
     struct evbuffer *out = bufferevent_get_output(bev);
 
-    size_t size = evbuffer_get_length(in);
-    if (size < 8) return;
+    size_t length = racs_length_prefix(in);
+    if (length == 0) return;
 
-    racs_uint8 *len_buf = evbuffer_pullup(in, 8);
-
-    racs_uint64 len;
-    memcpy(&len, len_buf, 8);
-
-    if (size < 8 + len) return;
-
-    // --------------------------------------
-    size_t full_len = 8 + len;
-    uint8_t *raw = malloc(full_len);
-
-    // copy raw frame without removing it
-    evbuffer_copyout(in, raw, full_len);
-
-    // forward it verbatim
-    racs_broadcast_to_replicas(ctx, raw, full_len);
-
-    free(raw);
-    // ---------------------------------------
+    racs_handle_replicas(in, ctx, length);
 
     evbuffer_drain(in, 8);
 
-    racs_uint8 *buf = malloc(len);
-    evbuffer_remove(in, buf, len);
+    racs_uint8 *buf = malloc(length);
+    evbuffer_remove(in, buf, length);
 
     racs_result res;
     if (racs_is_frame((const char *) buf))
@@ -131,11 +138,9 @@ void racs_accept_callback(struct evconnlistener *listener, evutil_socket_t fd, s
 }
 
 void racs_broadcast_to_replicas(racs_connection_context *ctx, racs_uint8 *buf, size_t len) {
-    racs_log_info("replica count=%z", ctx->replica_count);
     for (int i = 0; i < ctx->replica_count; i++) {
         if (!ctx->replicas[i].connected) continue;
 
-        racs_log_info("send size=%zu", len);
         bufferevent_write(ctx->replicas[i].bev, buf, len);
     }
 }

@@ -55,4 +55,8 @@ void racs_broadcast_to_replicas(racs_connection_context *ctx, racs_uint8 *buf, s
 
 void racs_replicas_init(racs_connection_context *ctx);
 
+size_t racs_length_prefix(struct evbuffer *in) ;
+
+void racs_handle_replicas(struct evbuffer *in, racs_connection_context *ctx, size_t length);
+
 #endif //RACS_SERVER_H
