@@ -230,17 +230,12 @@ SCM racs_scm_format(SCM data, SCM mime_type, SCM sample_rate, SCM channels, SCM 
 
 void racs_scm_init_bindings() {
     scm_c_define_gsubr("extract", 3, 0, 0, racs_scm_extract);
-    scm_c_define_gsubr("create", 4, 0, 0, racs_scm_streamcreate);
     scm_c_define_gsubr("info", 2, 0, 0, racs_scm_streaminfo);
     scm_c_define_gsubr("format", 5, 0, 0, racs_scm_format);
     scm_c_define_gsubr("search", 1, 0, 0, racs_scm_streamlist);
     scm_c_define_gsubr("ping", 0, 0, 0, racs_scm_ping);
-    scm_c_define_gsubr("open", 1, 0, 0, racs_scm_streamopen);
-    scm_c_define_gsubr("close", 1, 0, 0, racs_scm_streamclose);
-    scm_c_define_gsubr("shutdown", 0, 0, 0, racs_scm_shutdown);
 
-    scm_c_export("extract", "create", "info", "format", "search",
-                 "ping", "open", "close", "shutdown", NULL);
+    scm_c_export("extract", "info", "format", "search", "ping", NULL);
 }
 
 void racs_scm_init_module() {

@@ -202,14 +202,10 @@ SCM racs_scm_safe_eval(void *body) {
 
     SCM racs_module = scm_list_n(scm_list_1(scm_from_locale_symbol("racs")),
                                  scm_from_locale_symbol("extract"),
-                                 scm_from_locale_symbol("create"),
                                  scm_from_locale_symbol("info"),
                                  scm_from_locale_symbol("format"),
-                                 scm_from_locale_symbol("ls"),
+                                 scm_from_locale_symbol("search"),
                                  scm_from_locale_symbol("ping"),
-                                 scm_from_locale_symbol("open"),
-                                 scm_from_locale_symbol("close"),
-                                 scm_from_locale_symbol("shutdown"),
                                  SCM_UNDEFINED);
 
     SCM modules = scm_list_2(base_module, racs_module);

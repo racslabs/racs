@@ -16,8 +16,6 @@ The following RACS commands are available as Scheme functions:
 
 :ref:`extract <SCM_EXTRACT>`
 
-:ref:`create <SCM_CREATE>`
-
 :ref:`info <SCM_INFO>`
 
 :ref:`format <SCM_FORMAT>`
@@ -25,12 +23,6 @@ The following RACS commands are available as Scheme functions:
 :ref:`search <SCM_SEARCH>`
 
 :ref:`ping <SCM_PING>`
-
-:ref:`open <SCM_OPEN>`
-
-:ref:`close <SCM_CLOSE>`
-
-:ref:`shutdown <SCM_SHUTDOWN>`
 
 
 Supported Scheme Data Types
@@ -56,3 +48,5 @@ The result of a Scheme expression is automatically mapped to the corresponding R
 | Typed arrays      | ``s8v``, ``u8v``, ``s16v``, ``u16v``, ``s32v``, ``u32v``,   |
 |                   | ``f32v``, ``c64v``                                          |
 +-------------------+-------------------------------------------------------------+
+
+If the final result of the Scheme expression cannot be serialized to one of the above RACS data types, an error message will be returned.

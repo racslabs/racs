@@ -10,53 +10,55 @@
 #ifndef RACS_SERVER_H
 #define RACS_SERVER_H
 
+#include <event2/event.h>
+#include <event2/bufferevent.h>
+#include <event2/buffer.h>
+#include <event2/listener.h>
+#include <event2/util.h>
 
-#include <sys/types.h>      // for socket types
-#include <sys/socket.h>     // for socket, connect, send, recv
-#include <sys/ioctl.h>      // for ioctl, FIONBIO
-#include <netinet/in.h>     // for sockaddr_in, htons, etc.
-#include <netinet/tcp.h>    // for TCP_FASTOPEN
-#include <arpa/inet.h>      // for inet_pton, inet_ntop
-#include <poll.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
 
 #include "db.h"
 #include "scm_bindings.h"
 #include "log.h"
 #include "version.h"
 
-typedef struct {
-    int fd;
-    racs_memstream in_stream;
-    racs_memstream out_stream;
-} racs_conn_stream;
+#define RACS_MAX_SLAVES 5
 
 typedef struct {
-    int listen_sd, new_sd;
-    struct sockaddr_in6 addr;
-} racs_conn;
+    struct bufferevent *bev;
+    struct sockaddr_in addr;
+    int connected;
+} racs_slave_connection;
+
+typedef struct {
+    racs_db *db;
+    struct event_base *base;
+    racs_slave_connection slaves[RACS_MAX_SLAVES];
+    int slave_count;
+} racs_connection_context;
 
 void racs_help();
 
 void racs_args(int argc, char *argv[]);
 
-void racs_init_socket(racs_conn *conn);
+void racs_read_callback(struct bufferevent *bev, void *data);
 
-void racs_set_socketopts(racs_conn *conn);
+void racs_event_callback(struct bufferevent *bev, short events, void *ctx);
 
-void racs_set_nonblocking(racs_conn *conn);
+void racs_accept_callback(struct evconnlistener *listener, evutil_socket_t fd, struct sockaddr *addr, int socklen, void *data);
 
-void racs_socket_bind(racs_conn *conn, int port);
+void racs_broadcast_to_slaves(racs_connection_context *ctx, racs_uint8 *buf, size_t len);
 
-void racs_socket_listen(racs_conn *conn);
+void racs_slaves_init_sockets(racs_connection_context *ctx);
 
-void racs_conn_stream_init(racs_conn_stream *stream);
+void racs_slaves_init_addrs(racs_connection_context *ctx, racs_config *config);
 
-void racs_conn_stream_reset(racs_conn_stream *stream);
+size_t racs_length_prefix(struct evbuffer *in) ;
 
-int racs_recv_length_prefix(int fd, size_t *len);
-
-int racs_recv(int fd, int len, racs_conn_stream *stream);
-
-int racs_send(int fd, racs_conn_stream *stream);
+void racs_handle_slaves(struct evbuffer *in, racs_connection_context *ctx, size_t length);
 
 #endif //RACS_SERVER_H
