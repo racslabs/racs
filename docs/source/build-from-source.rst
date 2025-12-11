@@ -3,10 +3,14 @@
 Build from Source
 =================
 
-RACS can be built on ``Linux`` and ``macOS``.
-The recommended compiler is ``GCC 7+``.
+**Supported Operating Systems:**
+ ``Linux``, ``macOS``
 
-Supported CPU Architectures: ``x86/x86-64``, ``arm64`` (Little endian only)
+**Supported Compilers:**
+ ``GCC 7+``
+
+**Supported CPU Architectures:**
+ ``x86/x86-64``, ``arm64`` (Little endian only)
 
 Install Dependencies
 --------------------
@@ -16,7 +20,7 @@ Install Dependencies
 .. code-block:: bash
 
     sudo apt install ninja-build cmake g++ libmp3lame-dev libopus-dev libopusenc-dev \
-        guile-3.0-dev libmsgpack-dev libcyaml-dev
+        guile-3.0-dev libmsgpack-dev libcyaml-dev libevent-dev
 
 ``libopusenc-dev`` is not available on Ubuntu. To install it from source, run the following:
 
@@ -33,7 +37,7 @@ Install Dependencies
 .. code-block:: bash
 
     brew install cmake ninja pkg-config gcc@13 guile lame msgpack opus \
-        libopusenc libcyaml
+        libopusenc libcyaml libevent
 
 
 Clone the Repository
