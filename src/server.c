@@ -194,7 +194,9 @@ int main(int argc, char *argv[]) {
 
     racs_db *db = racs_db_instance();
     racs_db_open(db, argv[2]);
+
     racs_log_instance();
+    racs_wal_instance();
 
     char ver[55];
     racs_version(ver);

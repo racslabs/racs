@@ -24,6 +24,7 @@
 #include "db.h"
 #include "scm_bindings.h"
 #include "log.h"
+#include "wal.h"
 #include "version.h"
 
 #define RACS_MAX_SLAVES 5

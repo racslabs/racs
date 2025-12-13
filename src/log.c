@@ -56,6 +56,8 @@ void racs_log_open(racs_log *log) {
         perror("Failed to open log file");
         free(path);
     }
+
+    free(path);
 }
 
 void racs_log_append(racs_log *log, racs_log_level level, const char *fmt, ...) {
