@@ -27,6 +27,7 @@
 #include "murmur3.h"
 #include "crc32c.h"
 #include "version.h"
+#include "wal.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,6 +46,7 @@ extern "C" {
 #define RACS_TRAILER_SIZE 2
 
 typedef struct {
+    racs_uint64 seq;
     racs_uint64 key[2];
     racs_uint32 checksum;
     racs_uint16 block_size;

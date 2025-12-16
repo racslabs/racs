@@ -224,6 +224,7 @@ void racs_memtable_append(racs_memtable *mt, racs_uint64 *key, racs_uint8 *block
     mt->entries[mt->num_entries].block_size = block_size;
     mt->entries[mt->num_entries].checksum = checksum;
     mt->entries[mt->num_entries].flags = 0;
+    mt->entries[mt->num_entries].seq = racs_wal_seq;
 
     ++mt->num_entries;
 
@@ -235,6 +236,9 @@ void racs_memtable_flush(racs_memtable *mt) {
 
     int num_entries = mt->num_entries;
     if (num_entries == 0) return;
+
+    racs_uint64 seq = mt->entries[num_entries - 1].seq;
+    racs_wal_mf(seq);
 
     racs_memtable_write(mt);
     mt->num_entries = 0;

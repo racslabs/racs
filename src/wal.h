@@ -1,3 +1,11 @@
+// RACS - Remote Audio Caching Server
+// Copyright (c) 2025 RACS Labs, LLC. All rights reserved.
+//
+// Licensed under the RACS Source Available License (RACS-SAL-1.0).
+// Non-commercial use only. Commercial use requires a paid license.
+// Contact: sales@racslabs.com
+//
+// SPDX-License-Identifier: RACS-SAL-1.0
 
 #ifndef RACS_WAL_H
 #define RACS_WAL_H
@@ -29,6 +37,7 @@ typedef struct {
 
 typedef struct {
     int         fd;
+    int         mf_fd;
     racs_uint64 seq;
     size_t      size;
     pthread_mutex_t mutex;
@@ -38,11 +47,19 @@ static racs_wal *_wal = NULL;
 
 extern const char *racs_wal_dir;
 
+#define RACS_WAL_FSYNC 50
+
+#define racs_wal_mf(seq) racs_wal_mf_(racs_wal_instance(), seq)
+
 #define racs_wal_append(op_code, size, op) racs_wal_append_(racs_wal_instance(), op_code, size, op)
+
+#define racs_wal_seq _wal->seq
 
 racs_wal *racs_wal_create();
 
 racs_wal *racs_wal_instance();
+
+void racs_wal_mf_(racs_wal *wal, racs_uint64 seq);
 
 void racs_wal_append_(racs_wal *wal, racs_op_code op_code, size_t size, racs_uint8 *op);
 

@@ -63,14 +63,15 @@ int racs_streamappend(racs_cache *mcache, racs_multi_memtable *mmt, racs_streamk
     if (rc == 0) return RACS_STREAM_NOT_FOUND;
     racs_streamkv_put(kv, frame.header.stream_id, frame.header.session_id);
 
-    if (streaminfo.ref == 0 && streaminfo.size == 0)
-        streaminfo.ref = racs_time_now();
-
     racs_time offset = racs_streaminfo_offset(&streaminfo);
     racs_uint64 key[2] = {frame.header.stream_id, offset};
+
+    racs_wal_append(RACS_OP_CODE_APPEND, 34 + frame.header.block_size, data);
     racs_multi_memtable_append(mmt, key, frame.pcm_block, frame.header.block_size, frame.header.checksum);
 
     streaminfo.size += frame.header.block_size;
+
+    racs_wal_append(RACS_OP_CODE_CREATE, 36 + streaminfo.id_size, (racs_uint8 *)&streaminfo);
     racs_streaminfo_put(mcache, &streaminfo, frame.header.stream_id);
 
     return RACS_STREAM_OK;
