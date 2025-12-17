@@ -9,9 +9,15 @@
 
 #include "wal.h"
 
-void racs_wal_mf_(racs_wal *wal, racs_uint64 seq) {
+void racs_wal_mf0_(racs_wal *wal, racs_uint64 seq) {
     pthread_mutex_lock(&wal->mutex);
-    write(wal->mf_fd, &seq, 8);
+    write(wal->mf0_fd, &seq, 8);
+    pthread_mutex_unlock(&wal->mutex);
+}
+
+void racs_wal_mf1_(racs_wal *wal, racs_uint64 seq) {
+    pthread_mutex_lock(&wal->mutex);
+    write(wal->mf1_fd, &seq, 8);
     pthread_mutex_unlock(&wal->mutex);
 }
 
@@ -54,11 +60,13 @@ void racs_wal_append_(racs_wal *wal, racs_op_code op_code, size_t size, racs_uin
 void racs_wal_open(racs_wal *wal) {
     char *path1 = NULL;
     char *path2 = NULL;
+    char *path3 = NULL;
     char *dir  = NULL;
 
     asprintf(&dir, "%s/.racs", racs_wal_dir);
     asprintf(&path1, "%s/wal", dir);
-    asprintf(&path2, "%s/mf", dir);
+    asprintf(&path2, "%s/mf0", dir);
+    asprintf(&path3, "%s/mf1", dir);
 
     mkdir(dir, 0777);
 
@@ -66,12 +74,17 @@ void racs_wal_open(racs_wal *wal) {
     if (wal->fd == -1)
         perror("Failed to open racs_wal");
 
-    wal->mf_fd = open(path2, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    if (wal->mf_fd == -1)
+    wal->mf0_fd = open(path2, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (wal->mf0_fd == -1)
+        perror("Failed to open racs_wal manifest");
+
+    wal->mf1_fd = open(path3, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (wal->mf0_fd == -1)
         perror("Failed to open racs_wal manifest");
 
     free(path1);
     free(path2);
+    free(path3);
     free(dir);
 }
 
@@ -98,7 +111,7 @@ racs_wal *racs_wal_instance() {
 
 void racs_wal_close(racs_wal *wal) {
     close(wal->fd);
-    close(wal->mf_fd);
+    close(wal->mf0_fd);
 }
 
 void racs_wal_destroy(racs_wal *wal) {

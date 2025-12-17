@@ -238,7 +238,7 @@ void racs_memtable_flush(racs_memtable *mt) {
     if (num_entries == 0) return;
 
     racs_uint64 seq = mt->entries[num_entries - 1].seq;
-    racs_wal_mf(seq);
+    racs_wal_mf0(seq);
 
     racs_memtable_write(mt);
     mt->num_entries = 0;
