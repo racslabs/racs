@@ -26,15 +26,6 @@ void racs_wal_append_(racs_wal *wal, racs_op_code op_code, size_t size, racs_uin
     offset += (off_t) size;
     offset = racs_write_uint64(buf, wal->lsn, offset);
 
-    pthread_mutex_lock(&wal->mutex);
-    if (wal->size + offset > RACS_WAL_SIZE_1MB) {
-        if (fsync(wal->fd) < 0)
-            racs_log_error("fsync failed on racs_wal");
-
-        close(wal->fd);
-        racs_wal_open(wal);
-    }
-
     write(wal->fd, buf, offset);
 
     if (wal->lsn % RACS_WAL_FSYNC) {
@@ -47,9 +38,12 @@ void racs_wal_append_(racs_wal *wal, racs_op_code op_code, size_t size, racs_uin
 }
 
 void racs_wal_open(racs_wal *wal) {
+    char *dir1 = NULL;
+    char *dir2 = NULL;
     char *path = NULL;
-    char *dir1  = NULL;
-    char *dir2  = NULL;
+
+    char filename[25];
+    struct stat st;
 
     asprintf(&dir1, "%s/.racs", racs_wal_dir);
     asprintf(&dir2, "%s/wal", dir1);
@@ -57,16 +51,19 @@ void racs_wal_open(racs_wal *wal) {
     mkdir(dir1, 0777);
     mkdir(dir2, 0777);
 
-    racs_uint64 segno = racs_wal_next_segment(dir2);
-
-    char filename[25];
+    racs_uint64 segno = racs_wal_segment(dir2);
     racs_wal_filename(filename, sizeof(filename), segno);
-
     asprintf(&path, "%s/%s", dir2, filename);
 
-    wal->fd = open(path, O_RDONLY | O_WRONLY | O_CREAT | O_APPEND, 0644);
+    if (stat(path, &st) == 0 && st.st_size >= RACS_WAL_SIZE_1MB) {
+        free(path);
+        racs_wal_filename(filename, sizeof(filename), ++segno);
+        asprintf(&path, "%s/%s", dir2, filename);
+    }
+
+    wal->fd = open(path, O_RDWR | O_CREAT | O_APPEND, 0644);
     if (wal->fd == -1)
-        perror("Failed to open racs_wal");
+        racs_log_error("Failed to open racs_wal");
 
     free(path);
     free(dir1);
@@ -84,6 +81,8 @@ racs_wal *racs_wal_create() {
     memset(wal, 0, sizeof(racs_wal));
 
     racs_wal_open(wal);
+    racs_wal_init_lsn(wal);
+
     return wal;
 }
 
@@ -108,12 +107,12 @@ void racs_wal_filename(char *buf, size_t buflen, uint64_t segno) {
     snprintf(buf, buflen, "%08" PRIu64 ".log", segno);
 }
 
-racs_uint64 racs_wal_next_segment(const char *wal_dir) {
+racs_uint64 racs_wal_segment(const char *wal_dir) {
     DIR *dir = opendir(wal_dir);
     if (!dir) return 0;
 
     racs_uint64 max_seg = UINT64_MAX;
-    int found = 0;
+    int found = false;
 
     struct dirent *ent;
     while ((ent = readdir(dir)) != NULL) {
@@ -134,11 +133,38 @@ racs_uint64 racs_wal_next_segment(const char *wal_dir) {
 
         if (!found || seg > max_seg) {
             max_seg = seg;
-            found = 1;
+            found = true;
         }
     }
 
     closedir(dir);
 
-    return found ? max_seg + 1 : 0;
+    return found ? max_seg: 0;
+}
+
+void racs_wal_init_lsn(racs_wal *wal) {
+    struct stat st;
+    uint64_t lsn = 0;
+
+    if (fstat(wal->fd, &st) == -1) {
+        wal->lsn = 0;
+        return;
+    }
+
+    if (st.st_size < sizeof(uint64_t)) {
+        wal->lsn = 0;
+        return;
+    }
+
+    if (lseek(wal->fd, -sizeof(uint64_t), SEEK_END) == -1) {
+        wal->lsn = 0;
+        return;
+    }
+
+    if (read(wal->fd, &lsn, sizeof(uint64_t)) != sizeof(uint64_t)) {
+        wal->lsn = 0;
+        return;
+    }
+
+    wal->lsn = lsn;
 }
