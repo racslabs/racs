@@ -9,83 +9,68 @@
 
 #include "wal.h"
 
-void racs_wal_mf0_(racs_wal *wal, racs_uint64 seq) {
-    pthread_mutex_lock(&wal->mutex);
-    write(wal->mf0_fd, &seq, 8);
-    pthread_mutex_unlock(&wal->mutex);
-}
-
-void racs_wal_mf1_(racs_wal *wal, racs_uint64 seq) {
-    pthread_mutex_lock(&wal->mutex);
-    write(wal->mf1_fd, &seq, 8);
-    pthread_mutex_unlock(&wal->mutex);
-}
-
 void racs_wal_append_(racs_wal *wal, racs_op_code op_code, size_t size, racs_uint8 *op) {
-    racs_wal_entry entry;
-    entry.op_code = op_code;
-    entry.checksum = crc32c(0, op, size);
-    entry.size = size;
-    entry.op = op;
-    entry.seq = wal->seq;
-
-    racs_uint8 *buf = malloc(24 + entry.size);
+    racs_uint8 *buf = malloc(24 + size);
     if (!buf) {
         racs_log_info("Failed to allocate buffer for racs_wal_entry");
         return;
     }
 
     off_t offset = 0;
-    offset = racs_write_uint32(buf, entry.op_code, offset);
-    offset = racs_write_uint32(buf, entry.checksum, offset);
-    offset = racs_write_uint64(buf, entry.size, offset);
+    offset = racs_write_uint32(buf, op_code, offset);
+    offset = racs_write_uint32(buf, crc32c(0, op, size), offset);
+    offset = racs_write_uint64(buf, size, offset);
 
-    memcpy(buf + offset, entry.op, entry.size);
+    memcpy(buf + offset, op, size);
 
-    offset += (off_t) entry.size;
-    offset = racs_write_uint64(buf, entry.seq, offset);
+    offset += (off_t) size;
+    offset = racs_write_uint64(buf, wal->lsn, offset);
 
     pthread_mutex_lock(&wal->mutex);
+    if (wal->size + offset > RACS_WAL_SIZE_1MB) {
+        if (fsync(wal->fd) < 0)
+            racs_log_error("fsync failed on racs_wal");
+
+        close(wal->fd);
+        racs_wal_open(wal);
+    }
+
     write(wal->fd, buf, offset);
 
-    if (wal->seq % RACS_WAL_FSYNC) {
+    if (wal->lsn % RACS_WAL_FSYNC) {
         if (fsync(wal->fd) < 0)
             racs_log_error("fsync failed on racs_wal");
     }
 
-    wal->seq++;
+    wal->lsn++;
     pthread_mutex_unlock(&wal->mutex);
 }
 
 void racs_wal_open(racs_wal *wal) {
-    char *path1 = NULL;
-    char *path2 = NULL;
-    char *path3 = NULL;
-    char *dir  = NULL;
+    char *path = NULL;
+    char *dir1  = NULL;
+    char *dir2  = NULL;
 
-    asprintf(&dir, "%s/.racs", racs_wal_dir);
-    asprintf(&path1, "%s/wal", dir);
-    asprintf(&path2, "%s/mf0", dir);
-    asprintf(&path3, "%s/mf1", dir);
+    asprintf(&dir1, "%s/.racs", racs_wal_dir);
+    asprintf(&dir2, "%s/wal", dir1);
 
-    mkdir(dir, 0777);
+    mkdir(dir1, 0777);
+    mkdir(dir2, 0777);
 
-    wal->fd = open(path1, O_RDONLY | O_WRONLY | O_CREAT | O_APPEND, 0644);
+    racs_uint64 segno = racs_wal_next_segment(dir2);
+
+    char filename[25];
+    racs_wal_filename(filename, sizeof(filename), segno);
+
+    asprintf(&path, "%s/%s", dir2, filename);
+
+    wal->fd = open(path, O_RDONLY | O_WRONLY | O_CREAT | O_APPEND, 0644);
     if (wal->fd == -1)
         perror("Failed to open racs_wal");
 
-    wal->mf0_fd = open(path2, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    if (wal->mf0_fd == -1)
-        perror("Failed to open racs_wal manifest");
-
-    wal->mf1_fd = open(path3, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    if (wal->mf0_fd == -1)
-        perror("Failed to open racs_wal manifest");
-
-    free(path1);
-    free(path2);
-    free(path3);
-    free(dir);
+    free(path);
+    free(dir1);
+    free(dir2);
 }
 
 racs_wal *racs_wal_create() {
@@ -111,11 +96,49 @@ racs_wal *racs_wal_instance() {
 
 void racs_wal_close(racs_wal *wal) {
     close(wal->fd);
-    close(wal->mf0_fd);
 }
 
 void racs_wal_destroy(racs_wal *wal) {
     pthread_mutex_destroy(&wal->mutex);
     racs_wal_close(wal);
     free(wal);
+}
+
+void racs_wal_filename(char *buf, size_t buflen, uint64_t segno) {
+    snprintf(buf, buflen, "%08" PRIu64 ".log", segno);
+}
+
+racs_uint64 racs_wal_next_segment(const char *wal_dir) {
+    DIR *dir = opendir(wal_dir);
+    if (!dir) return 0;
+
+    racs_uint64 max_seg = UINT64_MAX;
+    int found = 0;
+
+    struct dirent *ent;
+    while ((ent = readdir(dir)) != NULL) {
+        if (strlen(ent->d_name) != 12) // "00000000.log"
+            continue;
+
+        if (strcmp(ent->d_name + 8, ".log") != 0)
+            continue;
+
+        char numbuf[9];
+        memcpy(numbuf, ent->d_name, 8);
+        numbuf[8] = '\0';
+
+        char *end;
+        uint64_t seg = strtoull(numbuf, &end, 10);
+        if (*end != '\0')
+            continue;
+
+        if (!found || seg > max_seg) {
+            max_seg = seg;
+            found = 1;
+        }
+    }
+
+    closedir(dir);
+
+    return found ? max_seg + 1 : 0;
 }
