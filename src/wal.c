@@ -26,9 +26,15 @@ void racs_wal_append_(racs_wal *wal, racs_op_code op_code, size_t size, racs_uin
     offset += (off_t) size;
     offset = racs_write_uint64(buf, wal->lsn, offset);
 
-    write(wal->fd, buf, offset);
+    pthread_mutex_lock(&wal->mutex);
+    if (wal->size + offset >= RACS_WAL_SIZE_1MB)
+        racs_wal_rotate(wal);
 
-    if (wal->lsn % RACS_WAL_FSYNC) {
+    write(wal->fd, buf, offset);
+    wal->size += offset;
+    free(buf);
+
+    if (wal->lsn % RACS_WAL_FSYNC == 0) {
         if (fsync(wal->fd) < 0)
             racs_log_error("fsync failed on racs_wal");
     }
@@ -52,11 +58,13 @@ void racs_wal_open(racs_wal *wal) {
     mkdir(dir2, 0777);
 
     racs_uint64 segno = racs_wal_segment(dir2);
+
     racs_wal_filename(filename, sizeof(filename), segno);
     asprintf(&path, "%s/%s", dir2, filename);
 
     if (stat(path, &st) == 0 && st.st_size >= RACS_WAL_SIZE_1MB) {
         free(path);
+
         racs_wal_filename(filename, sizeof(filename), ++segno);
         asprintf(&path, "%s/%s", dir2, filename);
     }
@@ -68,6 +76,33 @@ void racs_wal_open(racs_wal *wal) {
     free(path);
     free(dir1);
     free(dir2);
+}
+
+void racs_wal_rotate(racs_wal *wal) {
+    char *dir = NULL;
+    char *path = NULL;
+
+    char filename[25];
+
+    asprintf(&dir, "%s/.racs/wal", racs_wal_dir);
+
+    racs_uint64 segno = racs_wal_segment(dir);
+    racs_wal_filename(filename, sizeof(filename), ++segno);
+
+    asprintf(&path, "%s/%s", dir, filename);
+
+    if (fsync(wal->fd) < 0)
+        racs_log_error("fsync failed on racs_wal");
+
+    close(wal->fd);
+    wal->size = 0;
+
+    wal->fd = open(path, O_RDWR | O_CREAT | O_APPEND, 0644);
+    if (wal->fd == -1)
+        racs_log_error("Failed to open racs_wal");
+
+    free(dir);
+    free(path);
 }
 
 racs_wal *racs_wal_create() {
@@ -167,4 +202,5 @@ void racs_wal_init_lsn(racs_wal *wal) {
     }
 
     wal->lsn = lsn;
+    racs_log_info("lsn=%zu", lsn);
 }

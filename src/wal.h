@@ -57,6 +57,8 @@ void racs_wal_append_(racs_wal *wal, racs_op_code op_code, size_t size, racs_uin
 
 void racs_wal_open(racs_wal *wal);
 
+void racs_wal_rotate(racs_wal *wal);
+
 void racs_wal_close(racs_wal *wal);
 
 void racs_wal_destroy(racs_wal *wal);
