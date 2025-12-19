@@ -224,6 +224,7 @@ void racs_memtable_append(racs_memtable *mt, racs_uint64 *key, racs_uint8 *block
     mt->entries[mt->num_entries].block_size = block_size;
     mt->entries[mt->num_entries].checksum = checksum;
     mt->entries[mt->num_entries].flags = 0;
+    mt->entries[mt->num_entries].lsn = racs_wal_lsn;
 
     ++mt->num_entries;
 
@@ -235,6 +236,9 @@ void racs_memtable_flush(racs_memtable *mt) {
 
     int num_entries = mt->num_entries;
     if (num_entries == 0) return;
+
+    racs_uint64 max_lsn = mt->entries[mt->num_entries - 1].lsn;
+    racs_memtable_write_lsn(max_lsn);
 
     racs_memtable_write(mt);
     mt->num_entries = 0;
@@ -357,6 +361,24 @@ int racs_sstable_open(const char *path, racs_sstable *sst) {
         return -1;
     }
     return 0;
+}
+
+void racs_memtable_write_lsn(racs_uint64 lsn) {
+    char *path = NULL;
+    asprintf(&path, "%s/.racs/wal/mf-0", racs_wal_dir);
+
+    int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (fd == -1) {
+        racs_log_error("Failed to open mf-0");
+        return;
+    }
+
+    write(fd, &lsn, sizeof(racs_uint64));
+    if (fsync(fd) < 0)
+        racs_log_error("fsync failed on mf-0");
+
+    close(fd);
+    free(path);
 }
 
 void racs_sstable_write(racs_uint8 *buf, racs_sstable *sst, size_t offset) {

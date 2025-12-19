@@ -46,6 +46,7 @@ extern "C" {
 #define RACS_TRAILER_SIZE 2
 
 typedef struct {
+    racs_uint64 lsn;
     racs_uint64 key[2];
     racs_uint32 checksum;
     racs_uint16 block_size;
@@ -110,6 +111,8 @@ void racs_memtable_destroy(racs_memtable *mt);
 void racs_sstable_read_index_entries(racs_sstable *sst);
 
 void racs_memtable_write(racs_memtable *mt);
+
+void racs_memtable_write_lsn(racs_uint64 lsn);
 
 void racs_sstable_read_index_entries_in_memory(racs_sstable *sst, racs_uint8 *data);
 

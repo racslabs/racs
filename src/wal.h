@@ -15,6 +15,7 @@
 #include "crc32c.h"
 #include "log.h"
 #include "streaminfo.h"
+#include "memtable.h"
 
 #include <pthread.h>
 #include <inttypes.h>
@@ -23,7 +24,7 @@
 extern "C" {
 #endif
 
-#define RACS_WAL_SIZE_1MB (1024 * 1024)
+#define RACS_WAL_SIZE_1GB (1024 * 1024 * 1024)
 
 typedef enum {
     RACS_OP_CODE_CREATE,
@@ -45,13 +46,11 @@ extern const char *racs_wal_dir;
 
 #define racs_wal_append(op_code, size, op) racs_wal_append_(racs_wal_instance(), op_code, size, op)
 
-#define racs_wal_lsn _wal->lsn
+#define racs_wal_lsn racs_wal_instance()->lsn
 
 racs_wal *racs_wal_create();
 
 racs_wal *racs_wal_instance();
-
-void racs_wal_mf_(racs_wal *wal, racs_uint64 seq);
 
 void racs_wal_append_(racs_wal *wal, racs_op_code op_code, size_t size, racs_uint8 *op);
 
