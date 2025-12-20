@@ -40,9 +40,6 @@ racs_int64 racs_streaminfo_attr(racs_cache *mcache, racs_uint64 stream_id, const
     if (strcmp(attr, "bit_depth") == 0)
         return streaminfo.bit_depth;
 
-    if (strcmp(attr, "size") == 0)
-        return streaminfo.size;
-
     if (strcmp(attr, "ref") == 0)
         return streaminfo.ref;
 
