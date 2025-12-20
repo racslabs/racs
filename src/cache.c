@@ -55,7 +55,7 @@ void racs_cache_put(racs_cache *cache, const racs_uint64 *key, racs_uint8 *value
 racs_uint8 *racs_cache_get(racs_cache *cache, const racs_uint64 *key) {
     if (!cache) return NULL;
 
-    pthread_rwlock_rdlock(&cache->rwlock);
+    pthread_rwlock_wrlock(&cache->rwlock);
 
     racs_cache_node *node = racs_kvstore_get(cache->kv, key);
     if (!node) {

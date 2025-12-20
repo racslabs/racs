@@ -27,8 +27,7 @@ extern "C" {
 #define RACS_WAL_SIZE_1GB (1024 * 1024)
 
 typedef enum {
-    RACS_OP_CODE_CREATE,
-    RACS_OP_CODE_APPEND,
+    RACS_OP_CODE_APPEND
 } racs_op_code;
 
 typedef struct {

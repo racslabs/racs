@@ -167,7 +167,6 @@ off_t racs_streaminfo_write(racs_uint8 *buf, racs_streaminfo *streaminfo) {
     offset = racs_write_uint16(buf, streaminfo->bit_depth, offset);
     offset = racs_write_uint32(buf, streaminfo->sample_rate, offset);
     offset = racs_write_uint64(buf, streaminfo->size, offset);
-    offset = racs_write_uint64(buf, streaminfo->lsn, offset);
     offset = racs_write_uint64(buf, streaminfo->ref, offset);
     offset = racs_write_uint64(buf, streaminfo->ttl, offset);
     offset = racs_write_uint32(buf, streaminfo->id_size, offset);
@@ -181,7 +180,6 @@ off_t racs_streaminfo_read(racs_streaminfo *streaminfo, racs_uint8 *buf) {
     offset = racs_read_uint16(&streaminfo->bit_depth, buf, offset);
     offset = racs_read_uint32(&streaminfo->sample_rate, buf, offset);
     offset = racs_read_uint64(&streaminfo->size, buf, offset);
-    offset = racs_read_uint64(&streaminfo->lsn, buf, offset);
     offset = racs_read_uint64((racs_uint64 *) &streaminfo->ref, buf, offset);
     offset = racs_read_uint64((racs_uint64 *) &streaminfo->ttl, buf, offset);
     offset = racs_read_uint32(&streaminfo->id_size, buf, offset);
