@@ -303,7 +303,7 @@ int racs_stream(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data) {
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
 
-    int rc = racs_streamappend(ctx->mcache, ctx->mmt, ctx->kv, data);
+    int rc = racs_streamappend(ctx->mcache, ctx->mmt, ctx->offsets, ctx->kv, data);
     if (rc == RACS_STREAM_OK)
         return racs_pack_null_with_status_ok(&pk);
 

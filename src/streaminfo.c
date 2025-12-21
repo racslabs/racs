@@ -185,8 +185,8 @@ off_t racs_streaminfo_read(racs_streaminfo *streaminfo, racs_uint8 *buf) {
     return offset + streaminfo->id_size;
 }
 
-racs_time racs_streaminfo_offset(racs_streaminfo *streaminfo) {
-    double seconds = streaminfo->size / (double) (streaminfo->channels * streaminfo->sample_rate * (streaminfo->bit_depth / 8));
+racs_time racs_streaminfo_timestamp(racs_streaminfo *streaminfo, racs_uint64 offset) {
+    double seconds = offset / (double) (streaminfo->channels * streaminfo->sample_rate * (streaminfo->bit_depth / 8));
     return (racs_time) (seconds * 1000) + streaminfo->ref;
 }
 

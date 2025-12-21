@@ -70,7 +70,7 @@ void racs_streaminfo_path(char **path, racs_uint64 stream_id, int tmp);
 
 int racs_streaminfo_exits(racs_uint64 stream_id);
 
-racs_time racs_streaminfo_offset(racs_streaminfo *streaminfo);
+racs_time racs_streaminfo_timestamp(racs_streaminfo *streaminfo, racs_uint64 offset);
 
 void racs_streams_add(racs_streams *streams, const char *stream);
 

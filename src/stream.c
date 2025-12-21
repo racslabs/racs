@@ -45,7 +45,7 @@ int racs_streamcreate(racs_cache *mcache, const char* stream_id, racs_uint32 sam
     return 1;
 }
 
-int racs_streamappend(racs_cache *mcache, racs_multi_memtable *mmt, racs_streamkv *kv, racs_uint8 *data) {
+int racs_streamappend(racs_cache *mcache, racs_multi_memtable *mmt, racs_offsets *offsets, racs_streamkv *kv, racs_uint8 *data) {
     racs_frame frame;
     if (!racs_frame_parse(data, &frame))
         return RACS_STREAM_MALFORMED;
@@ -63,13 +63,16 @@ int racs_streamappend(racs_cache *mcache, racs_multi_memtable *mmt, racs_streamk
     if (rc == 0) return RACS_STREAM_NOT_FOUND;
     racs_streamkv_put(kv, frame.header.stream_id, frame.header.session_id);
 
-    racs_time offset = racs_streaminfo_offset(&streaminfo);
-    racs_uint64 key[2] = {frame.header.stream_id, offset};
+    racs_uint64 offset = racs_offsets_get(offsets, frame.header.stream_id);
+    racs_time timestamp = racs_streaminfo_timestamp(&streaminfo, offset);
+
+    racs_uint64 key[2] = { frame.header.stream_id, timestamp };
 
     racs_wal_append(RACS_OP_CODE_APPEND, 34 + frame.header.block_size, data);
     racs_multi_memtable_append(mmt, key, frame.pcm_block, frame.header.block_size, frame.header.checksum);
 
-    streaminfo.size += frame.header.block_size;
+    offset += frame.header.block_size;
+    racs_offsets_put(offsets, frame.header.stream_id, offset);
     racs_streaminfo_put(mcache, &streaminfo, frame.header.stream_id);
 
     return RACS_STREAM_OK;
