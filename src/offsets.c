@@ -104,8 +104,11 @@ void racs_offsets_init(racs_offsets *offsets) {
                 racs_memtable_entry *entry = racs_memtable_entry_read(sst->data, offset);
                 if (!entry) continue;
 
-                if (entry->key[0] == stream_id)
-                    racs_offsets_put(offsets, stream_id, entry->offset);
+                if (entry->key[0] == stream_id) {
+                    racs_uint64 _offset = racs_offsets_get(offsets, stream_id);
+                    _offset += entry->block_size;
+                    racs_offsets_put(offsets, stream_id, _offset);
+                }
 
                 free(entry->block);
                 free(entry);

@@ -163,7 +163,6 @@ racs_memtable_entry *racs_memtable_entry_read(racs_uint8 *buf, size_t offset) {
 
     offset = racs_read_uint64(&entry->key[0], buf, (off_t) offset);
     offset = racs_read_uint64(&entry->key[1], buf, (off_t) offset);
-    offset = racs_read_uint64(&entry->offset, buf, (off_t) offset);
     offset = racs_read_uint64(&entry->lsn, buf, (off_t) offset);
     offset = racs_read_uint32(&entry->checksum, buf, (off_t) offset);
     offset = racs_read_uint16(&entry->block_size, buf, (off_t) offset);
@@ -459,7 +458,6 @@ racs_sstable_index_entry_update(racs_sstable_index_entry *index_entry, racs_memt
 off_t racs_memtable_entry_write(racs_uint8 *buf, const racs_memtable_entry *mt_entry, off_t offset) {
     offset = racs_write_uint64(buf, mt_entry->key[0], offset);
     offset = racs_write_uint64(buf, mt_entry->key[1], offset);
-    offset = racs_write_uint64(buf, mt_entry->offset, offset);
     offset = racs_write_uint64(buf, mt_entry->lsn, offset);
     offset = racs_write_uint32(buf, mt_entry->checksum, offset);
     offset = racs_write_uint16(buf, mt_entry->block_size, offset);
