@@ -98,7 +98,7 @@ racs_extract_process_sstable(racs_pcm *pcm, racs_uint8 *data, racs_uint64 stream
         racs_time time = (racs_time) entry->key[1];
         if (entry->key[0] == stream_id && time >= from && time <= to) {
             size_t samples = entry->block_size / (pcm->channels * pcm->bit_depth / 8);
-            racs_pcm_write(pcm, entry->block, samples);
+            racs_pcm_write(pcm, entry->block, samples); // possible memory leak?
         } else {
             free(entry->block);
         }

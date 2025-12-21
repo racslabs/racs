@@ -67,6 +67,52 @@ void racs_offsets_put(racs_offsets *offsets, racs_uint64 stream_id, racs_uint64 
     pthread_rwlock_unlock(&offsets->rwlock);
 }
 
+void racs_offsets_init(racs_offsets *offsets) {
+    char *path1 = NULL;
+    char *path2 = NULL;
+
+    asprintf(&path1, "%s/.racs/md", racs_streaminfo_dir);
+    asprintf(&path2, "%s/.racs/seg", racs_time_dir);
+
+    racs_filelist *list1 = get_sorted_filelist(path1);
+    racs_filelist *list2 = get_sorted_filelist(path2);
+
+    free(path1);
+    free(path2);
+
+    for (int i = 0; i < list1->num_files; ++i) {
+        racs_uint64 stream_id = racs_path_to_stream_id(list1->files[i]);
+
+        for (int j = 0; j < list2->num_files; ++j) {
+            racs_sstable *sst = racs_sstable_read(list2->files[j]); // need to fix!
+            racs_uint8 *data = sst->data;
+            size_t size = sst->size;
+
+            racs_sstable_destroy_except_data(sst);
+            sst = racs_sstable_read_in_memory(data, size);
+
+            for (int k = 0; k < sst->num_entries; ++k) {
+                size_t offset = sst->index_entries[k].offset;
+
+                racs_memtable_entry *entry = racs_memtable_entry_read(sst->data, offset);
+                if (!entry) continue;
+
+                if (entry->key[0] == stream_id)
+                    racs_offsets_put(offsets, stream_id, entry->offset);
+
+                free(entry->block);
+                free(entry);
+            }
+
+            free(sst->data);
+            racs_sstable_destroy_except_data(sst);
+        }
+    }
+
+    racs_filelist_destroy(list1);
+    racs_filelist_destroy(list2);
+}
+
 void racs_offsets_destroy(racs_offsets *offsets) {
     pthread_rwlock_wrlock(&offsets->rwlock);
     racs_kvstore_destroy(offsets->kv);

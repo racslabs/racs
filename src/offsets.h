@@ -8,6 +8,7 @@ extern "C" {
 
 #include "kvstore.h"
 #include "murmur3.h"
+#include "memtable.h"
 
 #define RACS_MAX_OFFSETS 1000000
 
@@ -29,6 +30,8 @@ racs_uint64 racs_offsets_get(racs_offsets *offsets, racs_uint64 stream_id);
 void racs_offsets_put(racs_offsets *offsets, racs_uint64 stream_id, racs_uint64 offset);
 
 void racs_offsets_destroy(racs_offsets *offsets);
+
+void racs_offsets_init(racs_offsets *offsets);
 
 #ifdef __cplusplus
 }
