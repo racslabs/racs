@@ -49,9 +49,7 @@ racs_create_command(streamcreate) {
     racs_uint16 bit_depth = racs_unpack_uint16(&msg.data, 3);
     racs_time ref = racs_unpack_int64(&msg.data, 4);
 
-    int rc = racs_streamcreate(ctx->mcache, stream_id, sample_rate, channels, bit_depth, ref);
-    free(stream_id);
-
+    int rc = racs_streamcreate(stream_id, sample_rate, channels, bit_depth, ref);
     if (rc == 1)
         return racs_pack_null_with_status_ok(&pk);
 
@@ -75,7 +73,7 @@ racs_create_command(streamlist) {
 
     racs_streams streams;
     racs_streams_init(&streams);
-    racs_streaminfo_list(ctx->mcache, &streams, pattern);
+    racs_streaminfo_list(&streams, pattern);
 
     int rc = racs_pack_streams(&pk, &streams);
     racs_streams_destroy(&streams);
@@ -151,7 +149,7 @@ racs_create_command(streaminfo) {
     char *attr = racs_unpack_str(&msg.data, 1);
 
     racs_uint64 hash = racs_hash(stream_id);
-    racs_int64 value = racs_streaminfo_attr(ctx->mcache, hash, attr);
+    racs_int64 value = racs_streaminfo_attr(hash, attr);
 
     free(stream_id);
     free(attr);
@@ -303,7 +301,7 @@ int racs_stream(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data) {
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
 
-    int rc = racs_streamappend(ctx->mcache, ctx->mmt, ctx->offsets, ctx->kv, data);
+    int rc = racs_streamappend(ctx->mmt, ctx->offsets, ctx->kv, data);
     if (rc == RACS_STREAM_OK)
         return racs_pack_null_with_status_ok(&pk);
 

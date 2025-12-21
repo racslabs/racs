@@ -19,18 +19,16 @@ void racs_context_init(racs_context *ctx, const char *path) {
     racs_config_load(&ctx->config, path);
 
     ctx->scache = racs_scache_create(ctx->config->cache.entries);
-    ctx->mcache = racs_mcache_create(ctx->config->cache.entries);
     ctx->kv = racs_streamkv_create(ctx->config->cache.entries);
     ctx->offsets = racs_offsets_create();
-    ctx->mmt = racs_multi_memtable_create(ctx->config->memtable.tables,
-        ctx->config->memtable.entries);
+    ctx->mmt = racs_multi_memtable_create(ctx->config->memtable.tables, ctx->config->memtable.entries);
 
     racs_streaminfo_dir = ctx->config->data_dir;
     racs_time_dir = ctx->config->data_dir;
     racs_wal_dir = ctx->config->data_dir;
     racs_log_dir = ctx->config->log_dir;
-
-    racs_offsets_init(ctx->offsets);
+    //
+    // racs_offsets_init(ctx->offsets);
 }
 
 void racs_context_destroy(racs_context *ctx) {
@@ -38,7 +36,6 @@ void racs_context_destroy(racs_context *ctx) {
     racs_streamkv_destroy(ctx->kv);
     racs_offsets_destroy(ctx->offsets);
     racs_cache_destroy(ctx->scache);
-    racs_cache_destroy(ctx->mcache);
     racs_config_destroy(ctx->config);
 
     racs_log_destroy(_log);

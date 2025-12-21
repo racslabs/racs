@@ -16,13 +16,13 @@ int racs_extract_pcm(racs_context *ctx, racs_pcm *pcm, const char *stream_id, ra
     racs_streaminfo streaminfo;
     racs_uint64 hash = racs_hash(stream_id);
 
-    int rc = racs_streaminfo_get(ctx->mcache, &streaminfo, hash);
-    if (rc == -1) racs_streaminfo_put(ctx->mcache, &streaminfo, hash);
+    int rc = racs_streaminfo_get(&streaminfo, hash);
     if (rc == 0) return RACS_EXTRACT_STATUS_NOT_FOUND;
 
     racs_pcm_set_bit_depth(pcm, streaminfo.bit_depth);
     racs_pcm_set_channels(pcm, streaminfo.channels);
     racs_pcm_set_sample_rate(pcm, streaminfo.sample_rate);
+    racs_streaminfo_destroy(&streaminfo);
 
     racs_pcm_init(pcm);
 

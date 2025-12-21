@@ -24,7 +24,7 @@
 extern "C" {
 #endif
 
-#define RACS_WAL_SIZE_1GB (1024 * 1024)
+#define RACS_WAL_SIZE_1GB (1024 * 1024 * 1024)
 
 typedef enum {
     RACS_OP_CODE_APPEND

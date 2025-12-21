@@ -9,27 +9,9 @@
 
 #include "streaminfo.h"
 
-racs_cache *racs_mcache_create(size_t capacity) {
-    racs_cache *cache = malloc(sizeof(racs_cache));
-    if (!cache) {
-        racs_log_error("Failed to allocate racs_mcache");
-        return NULL;
-    }
-
-    pthread_rwlock_init(&cache->rwlock, NULL);
-
-    cache->size = 0;
-    cache->capacity = capacity;
-    cache->head = NULL;
-    cache->tail = NULL;
-    cache->kv = racs_kvstore_create(capacity, racs_cache_hash, racs_mcache_cmp, racs_mcache_destroy);
-
-    return cache;
-}
-
-racs_int64 racs_streaminfo_attr(racs_cache *mcache, racs_uint64 stream_id, const char *attr) {
+racs_int64 racs_streaminfo_attr(racs_uint64 stream_id, const char *attr) {
     racs_streaminfo streaminfo;
-    if (racs_streaminfo_get(mcache, &streaminfo, stream_id) == 0) return 0;
+    if (racs_streaminfo_get(&streaminfo, stream_id) == 0) return 0;
 
     if (strcmp(attr, "sample_rate") == 0)
         return streaminfo.sample_rate;
@@ -60,95 +42,54 @@ size_t racs_streaminfo_size(racs_streaminfo* streaminfo) {
     return 36 + streaminfo->id_size;
 }
 
-int racs_streaminfo_get(racs_cache *mcache, racs_streaminfo *streaminfo, racs_uint64 stream_id) {
-    racs_uint64 key[2] = {stream_id, 0};
+int racs_streaminfo_get(racs_streaminfo *streaminfo, racs_uint64 stream_id) {
+    char *path = NULL;
 
-    racs_uint8 *data = racs_cache_get(mcache, key);
-    if (!data) {
-        char *path = NULL;
-
-        racs_streaminfo_path(&path, stream_id, false);
-        if (!racs_streaminfo_exits(stream_id)) {
-            free(path);
-            return 0;
-        }
-
-        int fd = open(path, O_RDONLY);
-        if (fd < 0) {
-            racs_log_error("Failed to open racs_streaminfo file");
-            free(path);
-            return 0;
-        }
-
-        size_t len = racs_streaminfo_filesize(path);
-        data = malloc(len);
-        if (read(fd, data, len) != len) {
-            close(fd);
-            free(data);
-            free(path);
-            return 0;
-        }
-
-        if (racs_streaminfo_read(streaminfo, data) == 0) {
-            close(fd);
-            free(data);
-            free(path);
-            return 0;
-        }
-
-        close(fd);
+    racs_streaminfo_path(&path, stream_id, false);
+    if (!racs_streaminfo_exits(stream_id)) {
         free(path);
-
-        racs_uint64 *_key = malloc(2 * sizeof(racs_uint64));
-        _key[0] = stream_id;
-        _key[1] = 0;
-        racs_cache_put(mcache, _key, data);
-
-        return -1;
+        return 0;
     }
 
-    if (racs_streaminfo_read(streaminfo, data) == 0) return 0;
+    int fd = open(path, O_RDONLY);
+    if (fd < 0) {
+        racs_log_error("Failed to open racs_streaminfo file");
+        free(path);
+        return 0;
+    }
+
+    size_t len = racs_streaminfo_filesize(path);
+
+    racs_uint8 *data = malloc(len);
+    if (read(fd, data, len) != len) {
+        close(fd);
+        free(data);
+        free(path);
+        return 0;
+    }
+
+    racs_streaminfo_read(streaminfo, data);
+    close(fd);
+    free(path);
+    free(data);
+
     return 1;
 }
 
-int racs_streaminfo_put(racs_cache *mcache, racs_streaminfo *streaminfo, racs_uint64 stream_id) {
-    racs_uint64 *key = malloc(2 * sizeof(racs_uint64));
-    if (!key) {
-        racs_log_error("Failed to allocate key.");
-        return 0;
-    }
-
-    key[0] = stream_id;
-    key[1] = 0;
-
+int racs_streaminfo_put(racs_streaminfo *streaminfo, racs_uint64 stream_id) {
     racs_streaminfo s;
-    int rc = racs_streaminfo_get(mcache, &s, stream_id);
-
-    if (rc == -1 || rc == 1) {
-        racs_uint8 *data = racs_cache_get(mcache, key);
-        racs_streaminfo_write(data, streaminfo);
-        free(key);
-        return 0;
-    }
+    int rc = racs_streaminfo_get(&s, stream_id);
+    if (rc == 1) return 0;
 
     size_t len = racs_streaminfo_size(streaminfo);
     racs_uint8 *data = malloc(len);
-    if (!data) {
-        free(key);
-        return 0;
-    }
+    if (!data) return 0;
 
     racs_streaminfo_write(data, streaminfo);
-    racs_cache_put(mcache, key, data);
+    racs_streaminfo_flush(data, len, stream_id);
 
+    free(data);
     return 1;
-}
-
-void racs_mcache_destroy(void *key, void *value) {
-    racs_cache_node *node = (racs_cache_node *)value;
-    free(node->entry.value);
-    free(node);
-    free(key);
 }
 
 off_t racs_streaminfo_write(racs_uint8 *buf, racs_streaminfo *streaminfo) {
@@ -172,7 +113,7 @@ off_t racs_streaminfo_read(racs_streaminfo *streaminfo, racs_uint8 *buf) {
     offset = racs_read_uint64((racs_uint64 *) &streaminfo->ttl, buf, offset);
     offset = racs_read_uint32(&streaminfo->id_size, buf, offset);
 
-    streaminfo->id = (char*)buf + offset;
+    streaminfo->id = strdup((char *)buf + offset);
     return offset + streaminfo->id_size;
 }
 
@@ -249,6 +190,10 @@ int racs_streaminfo_exits(racs_uint64 stream_id) {
     return rc;
 }
 
+void racs_streaminfo_destroy(racs_streaminfo *streaminfo) {
+    free(streaminfo->id);
+}
+
 void racs_streaminfo_path(char **path, racs_uint64 stream_id, int tmp) {
     const char *ext = tmp ? ".tmp" : "";
     asprintf(path, "%s/.racs/md/%llu%s", racs_streaminfo_dir, stream_id, ext);
@@ -269,7 +214,7 @@ racs_uint64 racs_path_to_stream_id(char *path) {
     return strtoull(prev, NULL, 10);
 }
 
-void racs_streaminfo_list(racs_cache *mcache, racs_streams *streams, const char* pattern) {
+void racs_streaminfo_list(racs_streams *streams, const char* pattern) {
     char *path = NULL;
     asprintf(&path, "%s/.racs/md", racs_streaminfo_dir);
 
@@ -279,11 +224,12 @@ void racs_streaminfo_list(racs_cache *mcache, racs_streams *streams, const char*
         racs_uint64 stream_id = racs_path_to_stream_id(list->files[i]);
 
         racs_streaminfo streaminfo;
-        int rc = racs_streaminfo_get(mcache, &streaminfo, stream_id);
+        int rc = racs_streaminfo_get(&streaminfo, stream_id);
 
-        if (rc == -1 || rc == 1) {
+        if (rc == 1) {
             rc = fnmatch(pattern, streaminfo.id, FNM_IGNORECASE);
             if (rc == 0) racs_streams_add(streams, streaminfo.id);
+            racs_streaminfo_destroy(&streaminfo);
         }
     }
 
@@ -312,10 +258,9 @@ void racs_streams_init(racs_streams *streams) {
     streams->num_streams = 0;
     streams->max_streams = 2;
     streams->streams = malloc(2 * sizeof(char *));
-    if (!streams->streams) {
+
+    if (!streams->streams)
         racs_log_error("Failed to allocate racs_streams");
-        return;
-    }
 }
 
 void racs_streams_destroy(racs_streams *streams) {
@@ -323,10 +268,4 @@ void racs_streams_destroy(racs_streams *streams) {
         free(streams->streams[i]);
     }
     free(streams->streams);
-}
-
-int racs_mcache_cmp(void *a, void *b) {
-    racs_uint64 *x = (racs_uint64 *) a;
-    racs_uint64 *y = (racs_uint64 *) b;
-    return x[0] == y[0];
 }

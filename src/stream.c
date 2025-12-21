@@ -19,10 +19,8 @@ const char *const racs_stream_status_string[] = {
         "Stream not found."
 };
 
-int racs_streamcreate(racs_cache *mcache, const char* stream_id, racs_uint32 sample_rate, racs_uint16 channels, racs_uint16 bit_depth, racs_time ref) {
+int racs_streamcreate(const char* stream_id, racs_uint32 sample_rate, racs_uint16 channels, racs_uint16 bit_depth, racs_time ref) {
     racs_streaminfo streaminfo;
-    memset(&streaminfo, 0, sizeof(racs_streaminfo));
-
     streaminfo.sample_rate = sample_rate;
     streaminfo.channels = channels;
     streaminfo.bit_depth = bit_depth;
@@ -32,20 +30,26 @@ int racs_streamcreate(racs_cache *mcache, const char* stream_id, racs_uint32 sam
     streaminfo.ref = ref;
 
     racs_uint64 hash = racs_hash(stream_id);
-    if (racs_streaminfo_get(mcache, &streaminfo, hash)) return 0;
+    if (racs_streaminfo_get(&streaminfo, hash)) {
+        racs_streaminfo_destroy(&streaminfo);
+        return 0;
+    }
 
     size_t size = racs_streaminfo_size(&streaminfo);
     racs_uint8 *data = malloc(size);
-    if (!data) return 0;
+    if (!data) {
+        racs_streaminfo_destroy(&streaminfo);
+        return 0;
+    }
 
     racs_streaminfo_write(data, &streaminfo);
-    racs_streaminfo_flush(data, size, hash);
-    racs_streaminfo_put(mcache, &streaminfo, hash);
+    racs_streaminfo_put(&streaminfo, hash);
+    racs_streaminfo_destroy(&streaminfo);
 
     return 1;
 }
 
-int racs_streamappend(racs_cache *mcache, racs_multi_memtable *mmt, racs_offsets *offsets, racs_streamkv *kv, racs_uint8 *data) {
+int racs_streamappend(racs_multi_memtable *mmt, racs_offsets *offsets, racs_streamkv *kv, racs_uint8 *data) {
     racs_frame frame;
     if (!racs_frame_parse(data, &frame))
         return RACS_STREAM_MALFORMED;
@@ -57,8 +61,7 @@ int racs_streamappend(racs_cache *mcache, racs_multi_memtable *mmt, racs_offsets
         return RACS_STREAM_CONFLICT;
 
     racs_streaminfo streaminfo;
-    memset(&streaminfo, 0, sizeof(racs_streaminfo));
-    int rc = racs_streaminfo_get(mcache, &streaminfo, frame.header.stream_id);
+    int rc = racs_streaminfo_get(&streaminfo, frame.header.stream_id);
 
     if (rc == 0) return RACS_STREAM_NOT_FOUND;
     racs_streamkv_put(kv, frame.header.stream_id, frame.header.session_id);
@@ -73,7 +76,6 @@ int racs_streamappend(racs_cache *mcache, racs_multi_memtable *mmt, racs_offsets
 
     offset += frame.header.block_size;
     racs_offsets_put(offsets, frame.header.stream_id, offset);
-    racs_streaminfo_put(mcache, &streaminfo, frame.header.stream_id);
 
     return RACS_STREAM_OK;
 }

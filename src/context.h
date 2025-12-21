@@ -25,7 +25,6 @@ extern "C" {
 typedef struct {
     racs_config *config;
     racs_cache *scache;
-    racs_cache *mcache;
     racs_offsets *offsets;
     racs_streamkv *kv;
     racs_multi_memtable *mmt;
