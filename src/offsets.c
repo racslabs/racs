@@ -68,15 +68,22 @@ void racs_offsets_put(racs_offsets *offsets, racs_uint64 stream_id, racs_uint64 
 }
 
 void racs_offsets_init(racs_offsets *offsets) {
+    char *dir = NULL;
     char *path1 = NULL;
     char *path2 = NULL;
 
+    asprintf(&dir, "%s/.racs", racs_streaminfo_dir);
     asprintf(&path1, "%s/.racs/md", racs_streaminfo_dir);
     asprintf(&path2, "%s/.racs/seg", racs_time_dir);
+
+    mkdir(dir, 0777);
+    mkdir(path1, 0777);
+    mkdir(path2, 0777);
 
     racs_filelist *list1 = get_sorted_filelist(path1);
     racs_filelist *list2 = get_sorted_filelist(path2);
 
+    free(dir);
     free(path1);
     free(path2);
 

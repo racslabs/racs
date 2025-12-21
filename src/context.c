@@ -27,8 +27,8 @@ void racs_context_init(racs_context *ctx, const char *path) {
     racs_time_dir = ctx->config->data_dir;
     racs_wal_dir = ctx->config->data_dir;
     racs_log_dir = ctx->config->log_dir;
-    //
-    // racs_offsets_init(ctx->offsets);
+
+    racs_offsets_init(ctx->offsets);
 }
 
 void racs_context_destroy(racs_context *ctx) {
