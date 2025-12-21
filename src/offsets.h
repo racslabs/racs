@@ -2,6 +2,10 @@
 #ifndef RACS_OFFSETS_H
 #define RACS_OFFSETS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "kvstore.h"
 #include "murmur3.h"
 
@@ -25,5 +29,9 @@ racs_uint64 racs_offsets_get(racs_offsets *offsets, racs_uint64 stream_id);
 void racs_offsets_put(racs_offsets *offsets, racs_uint64 stream_id, racs_uint64 offset);
 
 void racs_offsets_destroy(racs_offsets *offsets);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //RACS_OFFSETS_H

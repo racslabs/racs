@@ -41,12 +41,13 @@ extern "C" {
 
 #define RACS_HEADER_SIZE 16
 
-#define RACS_MEMTABLE_ENTRY_METADATA_SIZE 23
+#define RACS_MEMTABLE_ENTRY_METADATA_SIZE 39
 
 #define RACS_TRAILER_SIZE 2
 
 typedef struct {
     racs_uint64 key[2];
+    racs_uint64 offset;
     racs_uint64 lsn;
     racs_uint32 checksum;
     racs_uint16 block_size;

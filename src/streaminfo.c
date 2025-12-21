@@ -146,13 +146,6 @@ int racs_streaminfo_put(racs_cache *mcache, racs_streaminfo *streaminfo, racs_ui
 
 void racs_mcache_destroy(void *key, void *value) {
     racs_cache_node *node = (racs_cache_node *)value;
-    racs_uint64 stream_id = node->entry.key[0];
-
-    racs_streaminfo streaminfo;
-
-    off_t size = racs_streaminfo_read(&streaminfo, node->entry.value);
-    racs_streaminfo_flush(node->entry.value, size, stream_id);
-
     free(node->entry.value);
     free(node);
     free(key);
@@ -163,7 +156,6 @@ off_t racs_streaminfo_write(racs_uint8 *buf, racs_streaminfo *streaminfo) {
     offset = racs_write_uint16(buf, streaminfo->channels, offset);
     offset = racs_write_uint16(buf, streaminfo->bit_depth, offset);
     offset = racs_write_uint32(buf, streaminfo->sample_rate, offset);
-    offset = racs_write_uint64(buf, streaminfo->size, offset);
     offset = racs_write_uint64(buf, streaminfo->ref, offset);
     offset = racs_write_uint64(buf, streaminfo->ttl, offset);
     offset = racs_write_uint32(buf, streaminfo->id_size, offset);
@@ -176,7 +168,6 @@ off_t racs_streaminfo_read(racs_streaminfo *streaminfo, racs_uint8 *buf) {
     offset = racs_read_uint16(&streaminfo->channels, buf, offset);
     offset = racs_read_uint16(&streaminfo->bit_depth, buf, offset);
     offset = racs_read_uint32(&streaminfo->sample_rate, buf, offset);
-    offset = racs_read_uint64(&streaminfo->size, buf, offset);
     offset = racs_read_uint64((racs_uint64 *) &streaminfo->ref, buf, offset);
     offset = racs_read_uint64((racs_uint64 *) &streaminfo->ttl, buf, offset);
     offset = racs_read_uint32(&streaminfo->id_size, buf, offset);
