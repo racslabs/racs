@@ -3,19 +3,15 @@
 
 void racs_wal_replay(racs_multi_memtable *mmt, racs_offsets *offsets) {
     char *dir = NULL;
-    char *manifest = NULL;
 
     racs_uint64 checkpoint_lsn = racs_wal_checkpoint_lsn();
-
     asprintf(&dir, "%s/.racs/wal", racs_wal_dir);
-    asprintf(&manifest, "%s/manifest", dir);
-
     racs_filelist *list = get_sorted_filelist(dir);
 
     free(dir);
 
     for (int i = 0; i < list->num_files; ++i) {
-        if (strcmp(list->files[i], manifest) == 0) continue;
+        if (strcmp(basename(list->files[i]), "manifest") == 0) continue;
 
         racs_wal_segment *segment = racs_wal_segment_read(list->files[i]);
         if (!segment) continue;
@@ -23,6 +19,11 @@ void racs_wal_replay(racs_multi_memtable *mmt, racs_offsets *offsets) {
         off_t offset = 0;
         while (offset < segment->size) {
             racs_wal_entry *entry = racs_wal_entry_read(segment->data, &offset);
+            if (!entry) {
+                racs_log_error("Corrupted racs_wal_entry");
+                continue;
+            }
+
             racs_uint32 checksum = crc32c(0, entry->op, entry->size);
             if (checksum != entry->checksum || entry->lsn <= checkpoint_lsn) {
                 racs_wal_entry_destroy(entry);
@@ -55,7 +56,6 @@ void racs_wal_replay(racs_multi_memtable *mmt, racs_offsets *offsets) {
         racs_wal_segment_destroy(segment);
     }
 
-    free(manifest);
     racs_filelist_destroy(list);
 }
 
@@ -69,23 +69,32 @@ racs_wal_segment *racs_wal_segment_read(const char *path) {
     segment->fd = open(path, O_RDONLY);
     if (segment->fd == -1) {
         racs_log_error("Failed to open racs_wal_segment");
+        free(segment);
         return NULL;
     }
 
     segment->size = lseek(segment->fd, 0, SEEK_END);
-    if (segment->size == -1) {
+    if (segment->size <= 0) {
         racs_log_error("Failed to read racs_wal_segment size");
         close(segment->fd);
+        free(segment);
         return NULL;
     }
 
     segment->data = malloc(segment->size);
+    if (!segment->data) {
+        racs_log_error("Failed to allocate racs_wal_segment data");
+        close(segment->fd);
+        free(segment);
+        return NULL;
+    }
 
-    int rc = pread(segment->fd, segment->data, segment->size, 0);
+    ssize_t rc = pread(segment->fd, segment->data, segment->size, 0);
     if (rc != segment->size) {
         racs_log_error("Failed to read racs_wal segment data");
         close(segment->fd);
         free(segment->data);
+        free(segment);
         return NULL;
     }
 
@@ -100,6 +109,7 @@ void racs_wal_entry_destroy(racs_wal_entry *entry) {
 void racs_wal_segment_destroy(racs_wal_segment *segment) {
     close(segment->fd);
     free(segment->data);
+    free(segment);
 }
 
 racs_wal_entry *racs_wal_entry_read(racs_uint8 *buf, off_t *offset) {
@@ -114,6 +124,11 @@ racs_wal_entry *racs_wal_entry_read(racs_uint8 *buf, off_t *offset) {
     *offset = racs_read_uint64(&entry->size, buf, *offset);
 
     entry->op = malloc(entry->size);
+    if (!entry->op) {
+        free(entry);
+        return NULL;
+    }
+
     memcpy(entry->op, buf + *offset, entry->size);
 
     *offset += entry->size;
@@ -124,20 +139,20 @@ racs_wal_entry *racs_wal_entry_read(racs_uint8 *buf, off_t *offset) {
 
 racs_uint64 racs_wal_checkpoint_lsn() {
     char *path = NULL;
-    asprintf(&path, "%s/.racs/wal/manifest", racs_wal_dir);
+    if (asprintf(&path, "%s/.racs/wal/manifest", racs_wal_dir) == -1)
+        return 0;
 
     int fd = open(path, O_RDONLY);
     if (fd == -1) {
-        racs_log_error("Failed to open manifest");
         free(path);
         return 0;
     }
 
     racs_uint64 lsn = 0;
-    read(fd, &lsn, sizeof(racs_uint64));
+    ssize_t rc = read(fd, &lsn, sizeof(lsn));
+    if (rc != sizeof(lsn)) lsn = 0;
 
     close(fd);
     free(path);
-
     return lsn;
 }

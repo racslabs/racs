@@ -4,6 +4,9 @@
 
 #include "stream.h"
 #include "wal.h"
+#include <libgen.h>
+#include <string.h>
+#include <stdlib.h>
 
 typedef struct {
     racs_uint32  op_code;

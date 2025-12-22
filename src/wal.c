@@ -27,7 +27,7 @@ void racs_wal_append_(racs_wal *wal, racs_op_code op_code, size_t size, racs_uin
     offset = racs_write_uint64(buf, wal->lsn, offset);
 
     pthread_mutex_lock(&wal->mutex);
-    if (wal->size + offset >= RACS_WAL_SIZE_1GB)
+    if (wal->size + offset >= RACS_WAL_SIZE_64MB)
         racs_wal_rotate(wal);
 
     write(wal->fd, buf, offset);
@@ -62,7 +62,7 @@ void racs_wal_open(racs_wal *wal) {
     racs_wal_filename(filename, sizeof(filename), segno);
     asprintf(&path, "%s/%s", dir2, filename);
 
-    if (stat(path, &st) == 0 && st.st_size >= RACS_WAL_SIZE_1GB) {
+    if (stat(path, &st) == 0 && st.st_size >= RACS_WAL_SIZE_64MB) {
         free(path);
 
         racs_wal_filename(filename, sizeof(filename), ++segno);
