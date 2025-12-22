@@ -9,6 +9,7 @@ extern "C" {
 #include "kvstore.h"
 #include "murmur3.h"
 #include "memtable.h"
+#include "streaminfo.h"
 
 #define RACS_MAX_OFFSETS 1000000
 

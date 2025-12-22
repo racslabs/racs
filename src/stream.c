@@ -76,6 +76,7 @@ int racs_streamappend(racs_multi_memtable *mmt, racs_offsets *offsets, racs_stre
 
     offset += frame.header.block_size;
     racs_offsets_put(offsets, frame.header.stream_id, offset);
+    racs_streaminfo_destroy(&streaminfo);
 
     return RACS_STREAM_OK;
 }

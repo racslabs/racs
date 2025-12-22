@@ -14,8 +14,6 @@
 #include "bytes.h"
 #include "crc32c.h"
 #include "log.h"
-#include "streaminfo.h"
-#include "memtable.h"
 
 #include <pthread.h>
 #include <inttypes.h>
@@ -63,7 +61,7 @@ void racs_wal_destroy(racs_wal *wal);
 
 void racs_wal_filename(char *buf, size_t buflen, uint64_t segno);
 
-racs_uint64 racs_wal_segment(const char *wal_dir);
+racs_uint64 racs_wal_segno(const char *wal_dir);
 
 void racs_wal_init_lsn(racs_wal *wal);
 

@@ -25,6 +25,7 @@
 #include "scm_bindings.h"
 #include "log.h"
 #include "wal.h"
+#include "wal_replay.h"
 #include "version.h"
 
 #define RACS_MAX_SLAVES 5

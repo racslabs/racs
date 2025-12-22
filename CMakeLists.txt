@@ -39,7 +39,9 @@ include_directories(
 file(GLOB_RECURSE RACS_TEST_FILES CONFIGURE_DEPENDS ${RACS_TEST_DIR}/*.hpp ${RACS_TEST_DIR}/*.cpp)
 file(GLOB_RECURSE RACS_SOURCE_FILES CONFIGURE_DEPENDS ${RACS_SOURCE_DIR}/*.h ${RACS_SOURCE_DIR}/*.c)
 
-add_executable(racs ${RACS_SOURCE_FILES})
+add_executable(racs ${RACS_SOURCE_FILES}
+        src/wal_replay.h
+        src/wal_replay.c)
 
 target_link_libraries(racs
         ${MSGPACK_LIBRARIES}

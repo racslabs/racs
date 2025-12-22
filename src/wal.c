@@ -57,7 +57,7 @@ void racs_wal_open(racs_wal *wal) {
     mkdir(dir1, 0777);
     mkdir(dir2, 0777);
 
-    racs_uint64 segno = racs_wal_segment(dir2);
+    racs_uint64 segno = racs_wal_segno(dir2);
 
     racs_wal_filename(filename, sizeof(filename), segno);
     asprintf(&path, "%s/%s", dir2, filename);
@@ -86,7 +86,7 @@ void racs_wal_rotate(racs_wal *wal) {
 
     asprintf(&dir, "%s/.racs/wal", racs_wal_dir);
 
-    racs_uint64 segno = racs_wal_segment(dir);
+    racs_uint64 segno = racs_wal_segno(dir);
     racs_wal_filename(filename, sizeof(filename), ++segno);
 
     asprintf(&path, "%s/%s", dir, filename);
@@ -142,7 +142,7 @@ void racs_wal_filename(char *buf, size_t buflen, uint64_t segno) {
     snprintf(buf, buflen, "%08" PRIu64 ".log", segno);
 }
 
-racs_uint64 racs_wal_segment(const char *wal_dir) {
+racs_uint64 racs_wal_segno(const char *wal_dir) {
     DIR *dir = opendir(wal_dir);
     if (!dir) return 0;
 

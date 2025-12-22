@@ -20,7 +20,6 @@ extern "C" {
 #include "memtable.h"
 #include "offsets.h"
 #include "log.h"
-#include "wal.h"
 
 typedef struct {
     racs_config *config;

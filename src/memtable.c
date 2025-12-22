@@ -366,17 +366,17 @@ int racs_sstable_open(const char *path, racs_sstable *sst) {
 
 void racs_memtable_write_lsn(racs_uint64 lsn) {
     char *path = NULL;
-    asprintf(&path, "%s/.racs/wal/mf-0", racs_wal_dir);
+    asprintf(&path, "%s/.racs/wal/manifest", racs_wal_dir);
 
     int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (fd == -1) {
-        racs_log_error("Failed to open mf-0");
+        racs_log_error("Failed to open manifest");
         return;
     }
 
     write(fd, &lsn, sizeof(racs_uint64));
     if (fsync(fd) < 0)
-        racs_log_error("fsync failed on mf-0");
+        racs_log_error("fsync failed on manifest");
 
     close(fd);
     free(path);
