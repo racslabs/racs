@@ -1,6 +1,18 @@
+// RACS - Remote Audio Caching Server
+// Copyright (c) 2025 RACS Labs, LLC. All rights reserved.
+//
+// Licensed under the RACS Source Available License (RACS-SAL-1.0).
+// Non-commercial use only. Commercial use requires a paid license.
+// Contact: sales@racslabs.com
+//
+// SPDX-License-Identifier: RACS-SAL-1.0
 
 #ifndef RACS_WAL_REPLAY_H
 #define RACS_WAL_REPLAY_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "stream.h"
 #include "wal.h"
@@ -29,5 +41,8 @@ racs_wal_segment *racs_wal_segment_read(const char *path);
 
 void racs_wal_segment_destroy(racs_wal_segment *segment);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif //RACS_WAL_REPLAY_H
