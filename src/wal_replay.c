@@ -75,7 +75,6 @@ racs_wal_segment *racs_wal_segment_read(const char *path) {
 
     segment->size = lseek(segment->fd, 0, SEEK_END);
     if (segment->size <= 0) {
-        racs_log_error("Failed to read racs_wal_segment size");
         close(segment->fd);
         free(segment);
         return NULL;
@@ -135,24 +134,4 @@ racs_wal_entry *racs_wal_entry_read(racs_uint8 *buf, off_t *offset) {
     *offset = racs_read_uint64(&entry->lsn, buf, *offset);
 
     return entry;
-}
-
-racs_uint64 racs_wal_checkpoint_lsn() {
-    char *path = NULL;
-    if (asprintf(&path, "%s/.racs/wal/manifest", racs_wal_dir) == -1)
-        return 0;
-
-    int fd = open(path, O_RDONLY);
-    if (fd == -1) {
-        free(path);
-        return 0;
-    }
-
-    racs_uint64 lsn = 0;
-    ssize_t rc = read(fd, &lsn, sizeof(lsn));
-    if (rc != sizeof(lsn)) lsn = 0;
-
-    close(fd);
-    free(path);
-    return lsn;
 }

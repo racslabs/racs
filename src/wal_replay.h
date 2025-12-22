@@ -4,9 +4,6 @@
 
 #include "stream.h"
 #include "wal.h"
-#include <libgen.h>
-#include <string.h>
-#include <stdlib.h>
 
 typedef struct {
     racs_uint32  op_code;
@@ -32,6 +29,5 @@ racs_wal_segment *racs_wal_segment_read(const char *path);
 
 void racs_wal_segment_destroy(racs_wal_segment *segment);
 
-racs_uint64 racs_wal_checkpoint_lsn();
 
 #endif //RACS_WAL_REPLAY_H

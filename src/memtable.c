@@ -244,6 +244,7 @@ void racs_memtable_flush(racs_memtable *mt) {
     racs_memtable_write(mt);
     mt->num_entries = 0;
 
+    racs_wal_truncate();
     racs_memtable_destroy(mt);
 }
 

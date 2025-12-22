@@ -17,6 +17,9 @@
 
 #include <pthread.h>
 #include <inttypes.h>
+#include <libgen.h>
+#include <string.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,11 +62,17 @@ void racs_wal_close(racs_wal *wal);
 
 void racs_wal_destroy(racs_wal *wal);
 
+void racs_wal_truncate();
+
+racs_uint64 racs_wal_checkpoint_lsn();
+
 void racs_wal_filename(char *buf, size_t buflen, uint64_t segno);
 
 racs_uint64 racs_wal_segno(const char *wal_dir);
 
 void racs_wal_init_lsn(racs_wal *wal);
+
+racs_uint64 racs_wal_segment_max_lsn(int fd);
 
 #ifdef __cplusplus
 }

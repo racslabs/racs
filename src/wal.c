@@ -121,10 +121,67 @@ racs_wal *racs_wal_create() {
     return wal;
 }
 
-racs_wal *racs_wal_instance() {
-    if (!_wal) {
-        _wal = racs_wal_create();
+void racs_wal_truncate() {
+    char *dir = NULL;
+    char *active_wal = NULL;
+
+    char filename[25];
+    asprintf(&dir, "%s/.racs/wal", racs_wal_dir);
+
+    racs_uint64 segno = racs_wal_segno(dir);
+    racs_uint64 checkpoint_lsn = racs_wal_checkpoint_lsn();
+
+    racs_wal_filename(filename, sizeof(filename), segno);
+    asprintf(&active_wal, "%s/%s", dir, filename);
+
+    racs_filelist *list = get_sorted_filelist(dir);
+
+    for (int i = 0; i < list->num_files; ++i) {
+        if (strcmp(list->files[i], active_wal) == 0) continue;
+        if (strcmp(basename(list->files[i]), "manifest") == 0) continue;
+
+        int fd = open(list->files[i], O_RDONLY, 0644);
+        if (fd == -1) {
+            racs_log_error("Failed to open racs_wal_segment");
+            continue;
+        }
+
+        racs_uint64 max_lsn = racs_wal_segment_max_lsn(fd);
+        close(fd);
+
+        if (max_lsn < checkpoint_lsn) {
+            if (remove(list->files[i]) < 0)
+                racs_log_error("Failed to delete racs_wal_segment");
+        }
     }
+
+    free(dir);
+    free(active_wal);
+    racs_filelist_destroy(list);
+}
+
+racs_uint64 racs_wal_checkpoint_lsn() {
+    char *path = NULL;
+    if (asprintf(&path, "%s/.racs/wal/manifest", racs_wal_dir) == -1)
+        return 0;
+
+    int fd = open(path, O_RDONLY);
+    if (fd == -1) {
+        free(path);
+        return 0;
+    }
+
+    racs_uint64 lsn = 0;
+    ssize_t rc = read(fd, &lsn, sizeof(lsn));
+    if (rc != sizeof(lsn)) lsn = 0;
+
+    close(fd);
+    free(path);
+    return lsn;
+}
+
+racs_wal *racs_wal_instance() {
+    if (!_wal) _wal = racs_wal_create();
     return _wal;
 }
 
@@ -178,29 +235,24 @@ racs_uint64 racs_wal_segno(const char *wal_dir) {
 }
 
 void racs_wal_init_lsn(racs_wal *wal) {
+    wal->lsn = racs_wal_segment_max_lsn(wal->fd);
+}
+
+racs_uint64 racs_wal_segment_max_lsn(int fd) {
     struct stat st;
     uint64_t lsn = 0;
 
-    if (fstat(wal->fd, &st) == -1) {
-        wal->lsn = 0;
-        return;
-    }
+    if (fstat(fd, &st) == -1)
+        return 0;
 
-    if (st.st_size < sizeof(uint64_t)) {
-        wal->lsn = 0;
-        return;
-    }
+    if (st.st_size < sizeof(uint64_t))
+        return 0;
 
-    if (lseek(wal->fd, -sizeof(uint64_t), SEEK_END) == -1) {
-        wal->lsn = 0;
-        return;
-    }
+    if (lseek(fd, -sizeof(uint64_t), SEEK_END) == -1)
+        return 0;
 
-    if (read(wal->fd, &lsn, sizeof(uint64_t)) != sizeof(uint64_t)) {
-        wal->lsn = 0;
-        return;
-    }
+    if (read(fd, &lsn, sizeof(uint64_t)) != sizeof(uint64_t))
+        return 0;
 
-    wal->lsn = lsn;
-    racs_log_info("lsn=%zu", lsn);
+    return lsn;
 }
