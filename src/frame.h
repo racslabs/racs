@@ -22,6 +22,8 @@ extern "C" {
 
 #define RACS_FLAG_COMPRESSED 0x01
 
+#define RACS_FLAG_NO_COMPRESSION 0x0
+
 #define RACS_IS_COMPRESSED(h) ((h).flags & RACS_FLAG_COMPRESSED)
 
 #define RACS_IS_FRAME(d) racs_is_frame(d)

@@ -44,11 +44,21 @@ void racs_wal_replay(racs_multi_memtable *mmt, racs_offsets *offsets) {
             racs_time timestamp = racs_streaminfo_timestamp(&streaminfo, offset);
 
             racs_uint64 key[2] = { frame.header.stream_id, timestamp };
-            racs_multi_memtable_append(mmt, key, frame.pcm_block, frame.header.block_size, frame.header.checksum);
+            racs_multi_memtable_append(mmt, key, frame.pcm_block, frame.header.block_size, frame.header.checksum, frame.header.flags);
 
-            _offset += frame.header.block_size;
+            if (frame.header.flags == 1) {
+                size_t decompressed_size;
+
+                racs_uint8 *decompressed_block = racs_zstd_decompress(frame.pcm_block, frame.header.block_size, &decompressed_size);
+                if (decompressed_block) {
+                    _offset += decompressed_size;
+                    free(decompressed_block);
+                }
+            } else {
+                _offset += frame.header.block_size;
+            }
+
             racs_offsets_put(offsets, frame.header.stream_id, _offset);
-
             racs_streaminfo_destroy(&streaminfo);
             racs_wal_entry_destroy(entry);
         }

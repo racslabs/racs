@@ -47,7 +47,7 @@ void racs_multi_memtable_move_to_head(racs_multi_memtable *mmt, racs_memtable *m
     mmt->head = mt;
 }
 
-void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum) {
+void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum, racs_uint8 flags) {
     if (!mmt) return;
 
     pthread_mutex_lock(&mmt->mutex);
@@ -62,7 +62,7 @@ void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs
         racs_multi_memtable_move_to_head(mmt, mt);
     }
 
-    racs_memtable_append(mmt->head, key, block, block_size, checksum);
+    racs_memtable_append(mmt->head, key, block, block_size, checksum, flags);
     pthread_mutex_unlock(&mmt->mutex);
 }
 
@@ -214,7 +214,7 @@ racs_memtable *racs_memtable_create(int capacity) {
     return mt;
 }
 
-void racs_memtable_append(racs_memtable *mt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum) {
+void racs_memtable_append(racs_memtable *mt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum, racs_uint8 flags) {
     if (!mt) return;
 
     pthread_mutex_lock(&mt->mutex);
@@ -226,6 +226,7 @@ void racs_memtable_append(racs_memtable *mt, racs_uint64 *key, racs_uint8 *block
     mt->entries[mt->num_entries].checksum = checksum;
     mt->entries[mt->num_entries].flags = 0;
     mt->entries[mt->num_entries].lsn = racs_wal_lsn;
+    mt->entries[mt->num_entries].flags = flags;
 
     ++mt->num_entries;
 

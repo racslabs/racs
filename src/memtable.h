@@ -86,7 +86,7 @@ typedef struct {
 
 racs_multi_memtable *racs_multi_memtable_create(int num_tables, int capacity);
 
-void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum);
+void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum, racs_uint8 flags);
 
 void racs_multi_memtable_flush(racs_multi_memtable *mmt);
 
@@ -100,7 +100,7 @@ void racs_sstable_destroy_except_data(racs_sstable *sst);
 
 racs_memtable_entry *racs_memtable_entry_read(racs_uint8 *buf, size_t offset);
 
-void racs_memtable_append(racs_memtable *mt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum);
+void racs_memtable_append(racs_memtable *mt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum, racs_uint8 flags);
 
 void racs_memtable_flush(racs_memtable *mt);
 

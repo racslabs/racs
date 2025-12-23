@@ -17,6 +17,7 @@
 #include "result.h"
 #include "log.h"
 #include "wal.h"
+#include "zstd.h"
 
 typedef enum {
     RACS_STREAM_OK,
