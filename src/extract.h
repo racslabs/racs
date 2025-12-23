@@ -27,6 +27,7 @@ extern "C" {
 #include "context.h"
 #include "pcm.h"
 #include "streaminfo.h"
+#include "zstd.h"
 
 typedef enum {
     RACS_EXTRACT_STATUS_OK,

@@ -47,8 +47,21 @@ int racs_extract_pcm(racs_context *ctx, racs_pcm *pcm, const char *stream_id, ra
             racs_time time = (racs_time)entry->key[1];
 
             if (hash == _stream_id && time >= from && time <= to) {
-                size_t samples = entry->block_size / (pcm->channels * pcm->bit_depth / 8);
-                racs_pcm_write(pcm, entry->block, samples);
+                if (entry->flags == 1) {
+                    size_t decompressed_size;
+
+                    racs_uint8 *decompressed_block = racs_zstd_decompress(entry->block, entry->block_size, &decompressed_size);
+                    if (decompressed_block) {
+                        size_t samples = decompressed_size / (pcm->channels * pcm->bit_depth / 8);
+                        racs_pcm_write(pcm, decompressed_block, samples);
+
+                        free(decompressed_block);
+                    }
+
+                } else {
+                    size_t samples = entry->block_size / (pcm->channels * pcm->bit_depth / 8);
+                    racs_pcm_write(pcm, entry->block, samples);
+                }
             }
         }
         mt = (racs_memtable *) mt->next;
@@ -97,8 +110,20 @@ racs_extract_process_sstable(racs_pcm *pcm, racs_uint8 *data, racs_uint64 stream
 
         racs_time time = (racs_time) entry->key[1];
         if (entry->key[0] == stream_id && time >= from && time <= to) {
-            size_t samples = entry->block_size / (pcm->channels * pcm->bit_depth / 8);
-            racs_pcm_write(pcm, entry->block, samples); // possible memory leak?
+            if (entry->flags == 1) {
+                size_t decompressed_size;
+
+                racs_uint8 *decompressed_block = racs_zstd_decompress(entry->block, entry->block_size, &decompressed_size);
+                if (decompressed_block) {
+                    size_t samples = decompressed_size / (pcm->channels * pcm->bit_depth / 8);
+                    racs_pcm_write(pcm, decompressed_block, samples);
+
+                    free(decompressed_block);
+                }
+            } else {
+                size_t samples = entry->block_size / (pcm->channels * pcm->bit_depth / 8);
+                racs_pcm_write(pcm, entry->block, samples); // possible memory leak?
+            }
         } else {
             free(entry->block);
         }
