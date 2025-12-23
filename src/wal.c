@@ -196,7 +196,7 @@ void racs_wal_destroy(racs_wal *wal) {
 }
 
 void racs_wal_filename(char *buf, size_t buflen, uint64_t segno) {
-    snprintf(buf, buflen, "%08" PRIu64 ".log", segno);
+    snprintf(buf, buflen, "%020" PRIu64 ".log", segno);
 }
 
 racs_uint64 racs_wal_segno(const char *wal_dir) {
@@ -208,15 +208,15 @@ racs_uint64 racs_wal_segno(const char *wal_dir) {
 
     struct dirent *ent;
     while ((ent = readdir(dir)) != NULL) {
-        if (strlen(ent->d_name) != 12) // "00000000.log"
+        if (strlen(ent->d_name) != 24) // "00000000000000000000.log"
             continue;
 
-        if (strcmp(ent->d_name + 8, ".log") != 0)
+        if (strcmp(ent->d_name + 20, ".log") != 0)
             continue;
 
-        char numbuf[9];
-        memcpy(numbuf, ent->d_name, 8);
-        numbuf[8] = '\0';
+        char numbuf[21];
+        memcpy(numbuf, ent->d_name, 20);
+        numbuf[20] = '\0';
 
         char *end;
         uint64_t seg = strtoull(numbuf, &end, 10);
