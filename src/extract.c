@@ -122,7 +122,8 @@ racs_extract_process_sstable(racs_pcm *pcm, racs_uint8 *data, racs_uint64 stream
                 }
             } else {
                 size_t samples = entry->block_size / (pcm->channels * pcm->bit_depth / 8);
-                racs_pcm_write(pcm, entry->block, samples); // possible memory leak?
+                racs_pcm_write(pcm, entry->block, samples);
+                free(entry->block);
             }
         } else {
             free(entry->block);
