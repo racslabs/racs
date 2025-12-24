@@ -20,8 +20,12 @@ exclude_patterns = []
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_logo = 'white-logo.svg'
-html_theme = 'piccolo_theme'
+html_theme = 'basic'
+pygments_style = "xcode"
 html_static_path = ['_static']
 html_css_files = [
     'custom.css',
+]
+extensions = [
+    "sphinx_copybutton"
 ]

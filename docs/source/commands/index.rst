@@ -28,22 +28,16 @@ Certain commands, like ``FORMAT``, rely on input from a previous command and can
 Commands
 --------
 
-:ref:`CLOSE`
+.. toctree::
+   :maxdepth: 1
 
-:ref:`CREATE`
-
-:ref:`EVAL`
-
-:ref:`EXTRACT`
-
-:ref:`FORMAT`
-
-:ref:`INFO`
-
-:ref:`SEARCH`
-
-:ref:`OPEN`
-
-:ref:`PING`
-
-:ref:`SHUTDOWN`
+   create
+   open
+   close
+   search
+   ping
+   eval
+   shutdown
+   extract
+   format
+   info

@@ -14,16 +14,14 @@ Supported Command Bindings
 
 The following RACS commands are available as Scheme functions:
 
-:ref:`extract <SCM_EXTRACT>`
+.. toctree::
+   :maxdepth: 1
 
-:ref:`info <SCM_INFO>`
-
-:ref:`format <SCM_FORMAT>`
-
-:ref:`search <SCM_SEARCH>`
-
-:ref:`ping <SCM_PING>`
-
+   extract
+   format
+   info
+   ping
+   search
 
 Supported Scheme Data Types
 ---------------------------

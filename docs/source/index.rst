@@ -1,11 +1,19 @@
 RACS
 =====
+
+Welcome to the RACS documentation.
+
+This documentation covers the streaming protocol, type system,
+and command reference used by RACS clients and servers.
+
+Contents
+--------
+
 .. toctree::
-   :caption: Contents
-   :maxdepth: 1
+   :maxdepth: 2
 
    quick-start
    streaming
    types
-   commands
-   scheme
+   commands/index
+   bindings/index

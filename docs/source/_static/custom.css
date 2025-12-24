@@ -1,4 +1,197 @@
-/*img[src="_static/white-logo.svg"] {*/
-/*    height: 1300px;*/
-/*    width: auto;*/
-/*}*/
+/* =========================
+   Base typography & colors
+   ========================= */
+
+html, body {
+    background-color: #ffffff;
+    color: #333333;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+/* =========================
+   Page layout
+   ========================= */
+
+div.document {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+div.body {
+    padding: 2.5rem 3rem;
+}
+
+/* =========================
+   Header (matches AppBar)
+   ========================= */
+
+div.related {
+    background: #ffffff;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+div.related ul {
+    padding: 0.75rem 2rem;
+}
+
+div.related a {
+    color: #555555;
+    font-weight: 500;
+}
+
+div.related a:hover {
+    color: #1976d2;
+}
+
+/* =========================
+   Sidebar
+   ========================= */
+
+div.sphinxsidebar {
+    background: #ffffff;
+    border-right: 1px solid #e0e0e0;
+}
+
+div.sphinxsidebar h3,
+div.sphinxsidebar h4 {
+    color: #333333;
+    font-weight: 600;
+}
+
+div.sphinxsidebar a {
+    color: #555555;
+}
+
+div.sphinxsidebar a:hover {
+    color: #1976d2;
+}
+
+/* =========================
+   Headings
+   ========================= */
+
+h1, h2, h3, h4 {
+    color: #333333;
+    font-weight: 600;
+}
+
+h1 {
+    font-size: 2.2rem;
+    margin-bottom: 1rem;
+}
+
+h2 {
+    font-size: 1.6rem;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 0.4rem;
+}
+
+h3 {
+    font-size: 1.25rem;
+}
+
+/* =========================
+   Links
+   ========================= */
+
+a {
+    color: #1976d2;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* =========================
+   Code blocks and inline code
+   ========================= */
+
+/* Outer container for block code */
+div.highlight {
+    background: #f7f7f7;
+    border-radius: 6px;
+    padding: 1rem;
+    color: #333333;
+    font-size: 0.85rem;        /* match inline code */
+    line-height: 1.4;
+    font-family: "Fira Code", "Roboto Mono", Menlo, monospace;
+}
+
+/* Inner <pre> styling */
+div.highlight pre {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font-size: inherit;        /* inherit from div.highlight */
+    line-height: inherit;
+}
+
+/* Inline code */
+:not(pre) > code {
+    background: rgba(100, 100, 100, 0.08);
+    border-radius: 4px;
+    padding: 0.15rem 0.35rem;
+    font-size: 0.85rem;        /* same as block code */
+    font-family: "Fira Code", "Roboto Mono", Menlo, monospace;
+}
+
+div.highlight span.p {
+    color: #333 !important;
+}
+/* =========================
+   Tables
+   ========================= */
+
+table {
+    border-collapse: collapse;
+}
+
+table th {
+    background: #fafafa;
+    border-bottom: 1px solid #e0e0e0;
+    font-weight: 600;
+}
+
+table td, table th {
+    border: 1px solid #e0e0e0;
+    padding: 0.6rem 0.8rem;
+}
+
+/* =========================
+   Admonitions (notes, warnings)
+   ========================= */
+
+.admonition {
+    border-left: 4px solid #1976d2;
+    background: rgba(25, 118, 210, 0.05);
+    border-radius: 4px;
+}
+
+.admonition-title {
+    font-weight: 600;
+    color: #1976d2;
+}
+
+div.footer {
+    display: none;
+}
+
+div.documentwrapper {
+    margin-bottom: 0;
+}
+
+table.docutils {
+    width: 100%;
+    table-layout: fixed;
+}
+
+table.docutils th,
+table.docutils td {
+    /*overflow-wrap: break-word;*/
+    white-space: normal;
+}
