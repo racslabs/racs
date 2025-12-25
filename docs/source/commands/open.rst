@@ -34,6 +34,6 @@ Output
 Example
 -------
 
-.. code-block:: none
+.. code-block:: bash
 
    OPEN 'chopin'

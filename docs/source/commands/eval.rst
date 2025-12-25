@@ -31,6 +31,6 @@ Output
 Example
 -------
 
-.. code-block:: none
+.. code-block:: bash
 
    EVAL '(+ 1 2 3)'

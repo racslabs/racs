@@ -5,11 +5,7 @@ FORMAT
 
 **Description:**
 Formats raw PCM data (interleaved by channel) into MP3, Opus, or WAV.
-
-.. note::
-
-   ``FORMAT`` does not perform resampling. The sample rate, channel count,
-   and bit depth must match the input exactly.
+``FORMAT`` does not perform resampling. The sample rate, channel count, and bit depth must match the input exactly.
 
 Arguments
 ---------

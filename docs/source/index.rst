@@ -1,10 +1,10 @@
-RACS
-=====
+Documentation
+=============
 
-Welcome to the RACS documentation.
-
-This documentation covers the streaming protocol, type system,
-and command reference used by RACS clients and servers.
+About RACS
+----------
+RACS (Remote Audio Caching Server) is an persistent, append-only audio cache with time-indexed range queries.
+Unlike blob stores and traditional databases, RACS is purpose-built for storing, querying, and streaming audio data at scale.
 
 Contents
 --------
@@ -12,7 +12,7 @@ Contents
 .. toctree::
    :maxdepth: 2
 
-   quick-start
+   getting-started
    streaming
    types
    commands/index

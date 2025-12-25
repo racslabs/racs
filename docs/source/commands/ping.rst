@@ -22,6 +22,6 @@ Output
 Example
 -------
 
-.. code-block:: none
+.. code-block:: bash
 
    PING

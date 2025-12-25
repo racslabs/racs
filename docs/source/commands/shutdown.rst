@@ -4,11 +4,7 @@ SHUTDOWN
 ========
 
 **Description:**
-Stops the RACS server.
-
-.. note::
-
-   Use ``SHUTDOWN`` to ensure all buffers are flushed before termination. This prevents data loss.
+Stops the RACS server. Used to ensure all buffers are flushed before termination.
 
 Dependencies
 ------------

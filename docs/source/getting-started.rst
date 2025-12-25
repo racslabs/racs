@@ -1,17 +1,17 @@
-Quick Start
-===========
+Getting Started
+===============
 
-The quickest way to run RACS is using ``docker``.
+The quickest way to run RACS is using docker.
 
 If you do not have docker on your machine, `Install Docker <https://docs.docker.com/get-started/get-docker/>`_ before continuing.
 
-.. code-block:: bash
+.. code-block:: shell
 
-    docker build --tag racslabs/racs .
+    docker build --tag docker.racslabs.com/racs .
 
-.. code-block:: bash
+.. code-block:: shell
 
-    docker run --network=host -p 6381:6381 racslabs/racs
+    docker run --network=host -p 6381:6381 docker.racslabs.com/racs
 
 You can now connect to the server on port 6381.
 

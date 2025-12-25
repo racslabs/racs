@@ -24,10 +24,7 @@ The client takes raw PCM samples interleaved by channel and chunks it into frame
 | pcm_block  | Block containing the raw PCM samples interleaved by channel | block_size | 34     | Little    |
 +------------+-------------------------------------------------------------+------------+--------+-----------+
 
-.. note::
-
-    Only 16-bit and 24-bit PCM samples are supported.
-    Compression is not yet implemented. Set flags to 0.
+Only 16-bit and 24-bit PCM samples are supported.
 
 Timestamp Generation
 --------------------

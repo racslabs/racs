@@ -41,6 +41,6 @@ Output
 Example
 -------
 
-.. code-block:: none
+.. code-block:: bash
 
    CREATE 'chopin' 44100 2 16 1765224354485

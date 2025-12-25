@@ -38,6 +38,6 @@ Output
 Example
 -------
 
-.. code-block:: none
+.. code-block:: bash
 
    EXTRACT 'chopin' 2023-12-25T22:30:45.123Z 2024-05-27T02:56:16.123Z
