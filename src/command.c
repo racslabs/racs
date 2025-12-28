@@ -35,25 +35,23 @@ racs_create_command(streamcreate) {
 
     racs_parse_buf(in_buf, &pk, &msg, "Error parsing args")
 
-    racs_validate_num_args(&pk, msg, 5)
+    racs_validate_num_args(&pk, msg, 4)
     racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected: string")
     racs_validate_type(&pk, msg, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: int")
     racs_validate_type(&pk, msg, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: int")
     racs_validate_type(&pk, msg, 3, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 4. Expected: int")
-    racs_validate_type(&pk, msg, 4, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 5. Expected: time")
 
     char *stream_id = racs_unpack_str(&msg.data, 0);
 
     racs_uint32 sample_rate = racs_unpack_uint32(&msg.data, 1);
     racs_uint16 channels = racs_unpack_uint16(&msg.data, 2);
     racs_uint16 bit_depth = racs_unpack_uint16(&msg.data, 3);
-    racs_time ref = racs_unpack_int64(&msg.data, 4);
 
-    int rc = racs_streamcreate(stream_id, sample_rate, channels, bit_depth, ref);
+    int rc = racs_streamcreate(stream_id, sample_rate, channels, bit_depth);
     if (rc == 1)
         return racs_pack_null_with_status_ok(&pk);
 
-    return racs_pack_error(&pk, "Failed to create stream");
+    return racs_pack_error(&pk, "Stream already exist.");
 }
 
 racs_create_command(streamlist) {
@@ -196,16 +194,16 @@ racs_create_command(extract) {
 
     racs_validate_num_args(&pk, msg, 3)
     racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected: string")
-    racs_validate_type(&pk, msg, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: time")
-    racs_validate_type(&pk, msg, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: time")
+    racs_validate_type(&pk, msg, 1, MSGPACK_OBJECT_FLOAT64, "Invalid type at arg 2. Expected: float")
+    racs_validate_type(&pk, msg, 2, MSGPACK_OBJECT_FLOAT64, "Invalid type at arg 3. Expected: float")
 
     char *stream_id = racs_unpack_str(&msg.data, 0);
-    int64_t from = racs_unpack_int64(&msg.data, 1);
-    int64_t to = racs_unpack_int64(&msg.data, 2);
+    double start = racs_unpack_float64(&msg.data, 1);
+    double duration = racs_unpack_float64(&msg.data, 2);
 
     racs_pcm pcm;
 
-    int rc = racs_extract_pcm(ctx, &pcm, stream_id, from, to);
+    int rc = racs_extract(ctx, &pcm, stream_id, start, duration);
     if (rc == RACS_EXTRACT_STATUS_NOT_FOUND) {
         racs_pcm_destroy(&pcm);
         return racs_pack_error(&pk, "The stream-id does not exist");

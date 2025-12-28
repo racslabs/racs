@@ -9,10 +9,7 @@
 
 #include "extract.h"
 
-int racs_extract_pcm(racs_context *ctx, racs_pcm *pcm, const char *stream_id, racs_time from, racs_time to) {
-    char *path = racs_time_range_to_path(from, to);
-    racs_filelist *list = get_sorted_filelist(path);
-
+int racs_extract(racs_context *ctx, racs_pcm *pcm, const char *stream_id, double start, double duration) {
     racs_streaminfo streaminfo;
     racs_uint64 hash = racs_hash(stream_id);
 
@@ -22,9 +19,21 @@ int racs_extract_pcm(racs_context *ctx, racs_pcm *pcm, const char *stream_id, ra
     racs_pcm_set_bit_depth(pcm, streaminfo.bit_depth);
     racs_pcm_set_channels(pcm, streaminfo.channels);
     racs_pcm_set_sample_rate(pcm, streaminfo.sample_rate);
+
+    racs_time ref = streaminfo.ref;
     racs_streaminfo_destroy(&streaminfo);
 
     racs_pcm_init(pcm);
+
+    racs_time from = (racs_time)((double)ref + start * 1000);
+    racs_time to = (racs_time)((double)from + duration * 1000);
+
+    return racs_extract_by_timestamp(ctx, pcm, hash, from, to);
+}
+
+int racs_extract_by_timestamp(racs_context *ctx, racs_pcm *pcm, racs_uint64 hash, racs_time from, racs_time to) {
+    char *path = racs_time_range_to_path(from, to);
+    racs_filelist *list = get_sorted_filelist(path);
 
     for (int i = 0; i < list->num_files; ++i) {
         char *file_path = list->files[i];

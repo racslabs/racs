@@ -12,13 +12,11 @@ Arguments
 +-----------+------------+------------------------------------------------------+
 | Name      | Type       | Description                                          |
 +===========+============+======================================================+
-| stream_id | ``String`` | ASCII ID of the audio stream.                        |
+| stream_id | ``string`` | ASCII ID of the audio stream.                        |
 +-----------+------------+------------------------------------------------------+
-| from      | ``String`` | Start timestamp in the stream, RFC 3339 format:      |
-|           |            | ``YYYY-MM-DDTHH:MM:SS:MSZ`` (UTC, no offset).        |
+| start     | ``float``  | Start time (in seconds) to extract from the stream.  |
 +-----------+------------+------------------------------------------------------+
-| to        | ``String`` | End timestamp in the stream, RFC 3339 format:        |
-|           |            | ``YYYY-MM-DDTHH:MM:SS:MSZ`` (UTC, no offset).        |
+| duration  | ``float``  | Druation of audio segment to extract.                |
 +-----------+------------+------------------------------------------------------+
 
 Output

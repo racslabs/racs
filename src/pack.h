@@ -105,6 +105,8 @@ size_t racs_unpack_s32v_size(msgpack_object *obj, int n);
 
 float racs_unpack_float32(msgpack_object *obj, int n);
 
+double racs_unpack_float64(msgpack_object *obj, int n);
+
 int racs_is_object_type(msgpack_object *obj, msgpack_object_type type, int arg_num);
 
 #endif //RACS_PACK_H

@@ -236,3 +236,7 @@ racs_uint64 racs_unpack_uint64(msgpack_object *obj, int n) {
 float racs_unpack_float32(msgpack_object *obj, int n) {
     return (float)obj->via.array.ptr[n].via.f64;
 }
+
+double racs_unpack_float64(msgpack_object *obj, int n) {
+    return obj->via.array.ptr[n].via.f64;
+}

@@ -4,7 +4,7 @@ EXTRACT
 =======
 
 **Description:**
-Extracts raw PCM data interleaved by channel for the given stream id and timestamp range.
+Extracts raw PCM data interleaved by channel for the given stream id and range.
 
 Arguments
 ---------
@@ -14,11 +14,9 @@ Arguments
 +===========+============+======================================================+
 | stream_id | ``string`` | ASCII ID of the audio stream.                        |
 +-----------+------------+------------------------------------------------------+
-| from      | ``time``   | Start timestamp in the stream, RFC 3339 format:      |
-|           |            | ``YYYY-MM-DDTHH:MM:SS:MSZ`` (UTC, no offset).        |
+| start     | ``float``  | Start time (in seconds) to extract from the stream.  |
 +-----------+------------+------------------------------------------------------+
-| to        | ``time``   | End timestamp in the stream, RFC 3339 format:        |
-|           |            | ``YYYY-MM-DDTHH:MM:SS:MSZ`` (UTC, no offset).        |
+| duration  | ``float``  | Druation of audio segment to extract.                |
 +-----------+------------+------------------------------------------------------+
 
 Dependencies
@@ -40,4 +38,4 @@ Example
 
 .. code-block:: bash
 
-   EXTRACT 'chopin' 2023-12-25T22:30:45.123Z 2024-05-27T02:56:16.123Z
+   EXTRACT 'chopin' 0.0 13.5

@@ -19,8 +19,7 @@ exclude_patterns = []
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_logo = 'white-logo.svg'
-html_theme = 'basic'
+html_theme = 'furo'
 pygments_style = "xcode"
 html_static_path = ['_static']
 html_css_files = [
