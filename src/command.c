@@ -292,6 +292,41 @@ racs_create_command(encode) {
     return racs_pack_error(&pk, "Unsupported format");
 }
 
+racs_create_command(gain) {
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
+
+    msgpack_unpacked msg1;
+    msgpack_unpacked_init(&msg1);
+
+    msgpack_unpacked msg2;
+    msgpack_unpacked_init(&msg2);
+
+    racs_parse_buf(in_buf, &pk, &msg1, "Error parsing args")
+    racs_parse_buf(out_buf, &pk, &msg2, "Error parsing buffer")
+
+    racs_validate_num_args(&pk, msg1, 1)
+    racs_validate_type(&pk, msg1, 0, MSGPACK_OBJECT_FLOAT64, "Invalid type at arg 1. Expected: float")
+
+    double gain = racs_unpack_float64(&msg1.data, 0);
+
+    racs_int32 *in = racs_unpack_s32v(&msg2.data, 1);
+    size_t in_size = racs_unpack_s32v_size(&msg2.data, 1);
+
+    if (!in || in_size == 0) {
+        msgpack_sbuffer_clear(out_buf);
+        return racs_pack_error(&pk, "No data");
+    }
+
+    racs_int32 *out = racs_daw_ops_gain(in, in_size, gain);
+    msgpack_sbuffer_clear(out_buf);
+
+    int rc = racs_pack_s32v(&pk, out, in_size);
+    free(out);
+
+    return rc;
+}
+
 int racs_stream(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data) {
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);

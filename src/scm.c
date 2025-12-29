@@ -205,6 +205,7 @@ SCM racs_scm_safe_eval(void *body) {
                                  scm_from_locale_symbol("encode"),
                                  scm_from_locale_symbol("list"),
                                  scm_from_locale_symbol("mix"),
+                                 scm_from_locale_symbol("gain"),
                                  SCM_UNDEFINED);
 
     SCM modules = scm_list_2(base_module, racs_module);
@@ -214,16 +215,16 @@ SCM racs_scm_safe_eval(void *body) {
     SCM kw_time_limit = scm_from_latin1_keyword("time-limit");
     SCM kw_alloc_limit = scm_from_latin1_keyword("allocation-limit");
 
-    SCM val_time_limit = scm_from_double(10.0);                // 10 seconds
-    SCM val_alloc_limit = scm_from_size_t(50 * 1024 * 1024);    // ~50 MB
+    SCM time_limit = scm_from_double(10.0);                // 10 seconds
+    SCM alloc_limit = scm_from_size_t(50 * 1024 * 1024);    // ~50 MB
 
     SCM expr = scm_c_read_string((char *)body);
 
     return scm_call_7(eval_in_sandbox,
                       expr,
                       kw_module, bindings,
-                      kw_time_limit, val_time_limit,
-                      kw_alloc_limit, val_alloc_limit);
+                      kw_time_limit, time_limit,
+                      kw_alloc_limit, alloc_limit);
 }
 
 

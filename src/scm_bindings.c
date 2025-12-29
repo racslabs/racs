@@ -31,6 +31,21 @@ SCM racs_scm_mix(SCM in_a, SCM in_b) {
     return scm_take_s32vector(out, out_size);
 }
 
+SCM racs_scm_gain(SCM in, SCM gain) {
+    double _gain = scm_to_double(gain);
+
+    scm_t_array_handle handle;
+    scm_array_get_handle(in, &handle);
+
+    const racs_int32 *_in = scm_array_handle_s32_elements(&handle);
+    size_t _in_len = scm_c_array_length(in);
+
+    racs_int32 *out = racs_daw_ops_gain(_in, _in_len, _gain);
+    scm_array_handle_release(&handle);
+
+    return scm_take_s32vector(out, _in_len);
+}
+
 SCM racs_scm_range(SCM stream_id, SCM from, SCM to) {
     char *cmd = NULL;
     asprintf(&cmd, "RANGE '%s' %f %f",
@@ -166,8 +181,9 @@ void racs_scm_init_bindings() {
     scm_c_define_gsubr("encode", 5, 0, 0, racs_scm_encode);
     scm_c_define_gsubr("list", 1, 0, 0, racs_scm_stream_list);
     scm_c_define_gsubr("mix", 2, 0, 0, racs_scm_mix);
+    scm_c_define_gsubr("gain", 2, 0, 0, racs_scm_gain);
 
-    scm_c_export("range", "meta", "encode", "list", "mix", NULL);
+    scm_c_export("range", "meta", "encode", "list", "mix", "gain", NULL);
 }
 
 void racs_scm_init_module() {

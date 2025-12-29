@@ -23,3 +23,19 @@ racs_int32 *racs_daw_ops_mix(
 
     return out;
 }
+
+racs_int32 *racs_daw_ops_gain(
+    const racs_int32 *in,
+    size_t in_len,
+    double gain
+) {
+    if (!in) return NULL;
+
+    racs_int32 *out = calloc(in_len, sizeof(racs_int32));
+    if (!out) return NULL;
+
+    for (size_t i = 0; i < in_len; i++)
+        out[i] = (racs_int32)(gain *in[i]);
+
+    return out;
+}

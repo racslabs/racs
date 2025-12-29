@@ -21,6 +21,7 @@ extern "C" {
 #include "range.h"
 #include "wav.h"
 #include "encode.h"
+#include "daw_ops.h"
 
 typedef enum {
     RACS_STATUS_OK,
@@ -63,6 +64,8 @@ racs_create_command(encode);
 racs_create_command(streamlist);
 
 racs_create_command(shutdown);
+
+racs_create_command(gain);
 
 int racs_stream(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data);
 

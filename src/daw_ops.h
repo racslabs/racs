@@ -13,4 +13,10 @@ racs_int32 *racs_daw_ops_mix(
     size_t *out_len
 );
 
+racs_int32 *racs_daw_ops_gain(
+    const racs_int32 *in,
+    size_t in_len,
+    double gain
+);
+
 #endif //RACS_DAW_OPS_H
