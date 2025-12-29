@@ -77,7 +77,6 @@ void racs_handle_slaves(struct evbuffer *in, racs_connection_context *ctx, size_
     uint8_t *raw = malloc(size);
 
     evbuffer_copyout(in, raw, size);
-
     racs_broadcast_to_slaves(ctx, raw, size);
 
     free(raw);
