@@ -204,7 +204,7 @@ SCM racs_scm_safe_eval(void *body) {
                                  scm_from_locale_symbol("meta"),
                                  scm_from_locale_symbol("encode"),
                                  scm_from_locale_symbol("list"),
-                                 scm_from_locale_symbol("ping"),
+                                 scm_from_locale_symbol("mix"),
                                  SCM_UNDEFINED);
 
     SCM modules = scm_list_2(base_module, racs_module);

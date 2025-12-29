@@ -9,6 +9,31 @@
 
 #include "scm_bindings.h"
 
+SCM racs_scm_mix(SCM in_a, SCM in_b, SCM gain_a, SCM gain_b) {
+    double _gain_a = scm_to_double(gain_a);
+    double _gain_b = scm_to_double(gain_b);
+
+    scm_t_array_handle handle_a;
+    scm_array_get_handle(in_a, &handle_a);
+
+    const racs_int32 *_in_a = scm_array_handle_s32_elements(&handle_a);
+    size_t _in_a_len = scm_c_array_length(in_a);
+
+    scm_t_array_handle handle_b;
+    scm_array_get_handle(in_a, &handle_b);
+
+    const racs_int32 *_in_b = scm_array_handle_s32_elements(&handle_b);
+    size_t _in_b_len = scm_c_array_length(in_b);
+
+    size_t out_size;
+    racs_int32 *out = racs_daw_ops_mix(_in_a, _in_a_len, _in_b, _in_b_len, (float)_gain_a, (float)_gain_b, &out_size);
+
+    scm_array_handle_release(&handle_a);
+    scm_array_handle_release(&handle_b);
+
+    return scm_take_s32vector(out, out_size);
+}
+
 SCM racs_scm_range(SCM stream_id, SCM from, SCM to) {
     char *cmd = NULL;
     asprintf(&cmd, "RANGE '%s' %f %f",
@@ -45,35 +70,6 @@ SCM racs_scm_range(SCM stream_id, SCM from, SCM to) {
     return scm_take_s32vector(data, size);
 }
 
-SCM racs_scm_streamcreate(SCM stream_id, SCM sample_rate, SCM channels, SCM bit_depth) {
-    char *cmd = NULL;
-    asprintf(&cmd, "CREATE '%s' %d %d %d",
-             scm_to_locale_string(stream_id),
-             scm_to_uint32(sample_rate),
-             scm_to_uint32(channels),
-             scm_to_uint32(bit_depth));
-
-    racs_db *db = racs_db_instance();
-    racs_result res = racs_db_exec(db, cmd);
-
-    free(cmd);
-
-    msgpack_unpacked msg;
-    msgpack_unpacked_init(&msg);
-
-    if (msgpack_unpack_next(&msg, (char *) res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
-        free(res.data);
-        scm_misc_error("create", "Deserialization error", SCM_EOL);
-    }
-
-    char *type = racs_unpack_str(&msg.data, 0);
-    if (strcmp(type, "error") == 0) {
-        racs_scm_propagate_error(&msg.data, res.data);
-    }
-
-    return SCM_EOL;
-}
-
 SCM racs_scm_metadata(SCM stream_id, SCM attr) {
     char *cmd = NULL;
     asprintf(&cmd, "META '%s' '%s'",
@@ -107,7 +103,7 @@ SCM racs_scm_metadata(SCM stream_id, SCM attr) {
     return scm_from_int64(value);
 }
 
-SCM racs_scm_streamlist(SCM pattern) {
+SCM racs_scm_stream_list(SCM pattern) {
     char *cmd = NULL;
     asprintf(&cmd, "LIST '%s'", scm_to_locale_string(pattern));
 
@@ -142,67 +138,6 @@ SCM racs_scm_streamlist(SCM pattern) {
     return list;
 }
 
-SCM racs_scm_streamopen(SCM stream_id) {
-    char *cmd = NULL;
-    asprintf(&cmd, "OPEN '%s'", scm_to_locale_string(stream_id));
-
-    racs_db *db = racs_db_instance();
-    racs_result res = racs_db_exec(db, cmd);
-
-    free(cmd);
-
-    msgpack_unpacked msg;
-    msgpack_unpacked_init(&msg);
-
-    if (msgpack_unpack_next(&msg, (char *) res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
-        free(res.data);
-        scm_misc_error("open", "Deserialization error", SCM_EOL);
-    }
-
-    char *type = racs_unpack_str(&msg.data, 0);
-    if (strcmp(type, "error") == 0) {
-        racs_scm_propagate_error(&msg.data, res.data);
-    }
-
-    return SCM_EOL;
-}
-
-SCM racs_scm_streamclose(SCM stream_id) {
-    char *cmd = NULL;
-    asprintf(&cmd, "CLOSE '%s'", scm_to_locale_string(stream_id));
-
-    racs_db *db = racs_db_instance();
-    racs_result res = racs_db_exec(db, cmd);
-
-    free(cmd);
-
-    msgpack_unpacked msg;
-    msgpack_unpacked_init(&msg);
-
-    if (msgpack_unpack_next(&msg, (char *) res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
-        free(res.data);
-        scm_misc_error("close", "Deserialization error", SCM_EOL);
-    }
-
-    char *type = racs_unpack_str(&msg.data, 0);
-    if (strcmp(type, "error") == 0) {
-        racs_scm_propagate_error(&msg.data, res.data);
-    }
-
-    return SCM_EOL;
-}
-
-SCM racs_scm_shutdown() {
-    racs_db *db = racs_db_instance();
-    racs_db_exec(db, "SHUTDOWN");
-
-    return SCM_EOL;
-}
-
-SCM racs_scm_ping() {
-    return scm_from_locale_string("PONG");
-}
-
 SCM racs_scm_encode(SCM data, SCM mime_type, SCM sample_rate, SCM channels, SCM bit_depth) {
     char *_mime_type = scm_to_locale_string(mime_type);
     racs_uint32 _sample_rate = scm_to_uint32(sample_rate);
@@ -232,10 +167,10 @@ void racs_scm_init_bindings() {
     scm_c_define_gsubr("range", 3, 0, 0, racs_scm_range);
     scm_c_define_gsubr("meta", 2, 0, 0, racs_scm_metadata);
     scm_c_define_gsubr("encode", 5, 0, 0, racs_scm_encode);
-    scm_c_define_gsubr("list", 1, 0, 0, racs_scm_streamlist);
-    scm_c_define_gsubr("ping", 0, 0, 0, racs_scm_ping);
+    scm_c_define_gsubr("list", 1, 0, 0, racs_scm_stream_list);
+    scm_c_define_gsubr("mix", 1, 0, 0, racs_scm_stream_list);
 
-    scm_c_export("range", "meta", "encode", "list", "ping", NULL);
+    scm_c_export("range", "meta", "encode", "list", "mix", NULL);
 }
 
 void racs_scm_init_module() {
