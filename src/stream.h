@@ -10,7 +10,7 @@
 #ifndef RACS_STREAM_H
 #define RACS_STREAM_H
 
-#include "streaminfo.h"
+#include "metadata.h"
 #include "memtable.h"
 #include "frame.h"
 #include "offsets.h"

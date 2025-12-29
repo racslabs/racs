@@ -7,8 +7,8 @@
 //
 // SPDX-License-Identifier: RACS-SAL-1.0
 
-#ifndef RACS_STREAMINFO_H
-#define RACS_STREAMINFO_H
+#ifndef RACS_METADATA_H
+#define RACS_METADATA_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,7 +37,7 @@ typedef struct {
     racs_time   ttl;
     racs_uint32 id_size;
     char*       id;
-} racs_streaminfo;
+} racs_metadata;
 
 typedef struct {
     char **streams;
@@ -45,33 +45,33 @@ typedef struct {
     size_t max_streams;
 } racs_streams;
 
-extern const char* racs_streaminfo_dir;
+extern const char* racs_metadata_dir;
 
-racs_int64 racs_streaminfo_attr(racs_uint64 stream_id, const char *attr);
+racs_int64 racs_metadata_attr(racs_uint64 stream_id, const char *attr);
 
-int racs_streaminfo_get(racs_streaminfo *streaminfo, racs_uint64 stream_id);
+int racs_metadata_get(racs_metadata *streaminfo, racs_uint64 stream_id);
 
-int racs_streaminfo_put(racs_streaminfo *streaminfo, racs_uint64 stream_id);
+int racs_metadata_put(racs_metadata *streaminfo, racs_uint64 stream_id);
 
-void racs_streaminfo_list(racs_streams *streams, const char* pattern);
+void racs_streams_list(racs_streams *streams, const char* pattern);
 
-size_t racs_streaminfo_size(racs_streaminfo* streaminfo);
+size_t racs_metadata_size(racs_metadata* streaminfo);
 
-off_t racs_streaminfo_write(racs_uint8 *buf, racs_streaminfo *streaminfo);
+off_t racs_metadata_write(racs_uint8 *buf, racs_metadata *streaminfo);
 
-off_t racs_streaminfo_read(racs_streaminfo *streaminfo, racs_uint8 *buf);
+off_t racs_metadata_read(racs_metadata *streaminfo, racs_uint8 *buf);
 
-size_t racs_streaminfo_filesize(const char *path);
+size_t racs_metadata_filesize(const char *path);
 
-void racs_streaminfo_flush(racs_uint8 *data, racs_uint32 len, racs_uint64 stream_id);
+void racs_metadata_flush(racs_uint8 *data, racs_uint32 len, racs_uint64 stream_id);
 
-void racs_streaminfo_path(char **path, racs_uint64 stream_id, int tmp);
+void racs_metadata_path(char **path, racs_uint64 stream_id, int tmp);
 
-int racs_streaminfo_exits(racs_uint64 stream_id);
+int racs_metadata_exits(racs_uint64 stream_id);
 
-void racs_streaminfo_destroy(racs_streaminfo *streaminfo);
+void racs_metadata_destroy(racs_metadata *streaminfo);
 
-racs_time racs_streaminfo_timestamp(racs_streaminfo *streaminfo, racs_uint64 offset);
+racs_time racs_metadata_timestamp(racs_metadata *streaminfo, racs_uint64 offset);
 
 void racs_streams_add(racs_streams *streams, const char *stream);
 
@@ -87,4 +87,4 @@ racs_uint64 racs_path_to_stream_id(char *path);
 }
 #endif
 
-#endif //RACS_STREAMINFO_H
+#endif //RACS_METADATA_H

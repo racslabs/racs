@@ -50,7 +50,7 @@ racs_create_command(eval);
 
 racs_create_command(streamcreate);
 
-racs_create_command(streaminfo);
+racs_create_command(metadata);
 
 racs_create_command(streamopen);
 

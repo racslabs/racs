@@ -10,10 +10,10 @@
 #include "extract.h"
 
 int racs_extract(racs_context *ctx, racs_pcm *pcm, const char *stream_id, double start, double duration) {
-    racs_streaminfo streaminfo;
+    racs_metadata streaminfo;
     racs_uint64 hash = racs_hash(stream_id);
 
-    int rc = racs_streaminfo_get(&streaminfo, hash);
+    int rc = racs_metadata_get(&streaminfo, hash);
     if (rc == 0) return RACS_EXTRACT_STATUS_NOT_FOUND;
 
     racs_pcm_set_bit_depth(pcm, streaminfo.bit_depth);
@@ -21,7 +21,7 @@ int racs_extract(racs_context *ctx, racs_pcm *pcm, const char *stream_id, double
     racs_pcm_set_sample_rate(pcm, streaminfo.sample_rate);
 
     racs_time ref = streaminfo.ref;
-    racs_streaminfo_destroy(&streaminfo);
+    racs_metadata_destroy(&streaminfo);
 
     racs_pcm_init(pcm);
 

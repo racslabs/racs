@@ -72,8 +72,8 @@ void racs_offsets_init(racs_offsets *offsets) {
     char *path1 = NULL;
     char *path2 = NULL;
 
-    asprintf(&dir, "%s/.racs", racs_streaminfo_dir);
-    asprintf(&path1, "%s/.racs/md", racs_streaminfo_dir);
+    asprintf(&dir, "%s/.racs", racs_metadata_dir);
+    asprintf(&path1, "%s/.racs/md", racs_metadata_dir);
     asprintf(&path2, "%s/.racs/seg", racs_time_dir);
 
     mkdir(dir, 0777);

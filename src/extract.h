@@ -26,7 +26,7 @@ extern "C" {
 #include "result.h"
 #include "context.h"
 #include "pcm.h"
-#include "streaminfo.h"
+#include "metadata.h"
 #include "zstd.h"
 
 typedef enum {

@@ -21,7 +21,7 @@ const char *const racs_stream_status_string[] = {
 };
 
 int racs_stream_create(const char* stream_id, racs_uint32 sample_rate, racs_uint16 channels, racs_uint16 bit_depth) {
-    racs_streaminfo streaminfo;
+    racs_metadata streaminfo;
     streaminfo.sample_rate = sample_rate;
     streaminfo.channels = channels;
     streaminfo.bit_depth = bit_depth;
@@ -31,21 +31,21 @@ int racs_stream_create(const char* stream_id, racs_uint32 sample_rate, racs_uint
     streaminfo.ref = racs_time_now();
 
     racs_uint64 hash = racs_hash(stream_id);
-    if (racs_streaminfo_get(&streaminfo, hash)) {
-        racs_streaminfo_destroy(&streaminfo);
+    if (racs_metadata_get(&streaminfo, hash)) {
+        racs_metadata_destroy(&streaminfo);
         return 0;
     }
 
-    size_t size = racs_streaminfo_size(&streaminfo);
+    size_t size = racs_metadata_size(&streaminfo);
     racs_uint8 *data = malloc(size);
     if (!data) {
-        racs_streaminfo_destroy(&streaminfo);
+        racs_metadata_destroy(&streaminfo);
         return 0;
     }
 
-    racs_streaminfo_write(data, &streaminfo);
-    racs_streaminfo_put(&streaminfo, hash);
-    racs_streaminfo_destroy(&streaminfo);
+    racs_metadata_write(data, &streaminfo);
+    racs_metadata_put(&streaminfo, hash);
+    racs_metadata_destroy(&streaminfo);
 
     return 1;
 }
@@ -76,14 +76,14 @@ int racs_stream_append(racs_multi_memtable *mmt, racs_offsets *offsets, racs_str
     if (!racs_session_cmp(frame.header.session_id, session_id))
         return RACS_STREAM_CONFLICT;
 
-    racs_streaminfo streaminfo;
-    int rc = racs_streaminfo_get(&streaminfo, frame.header.stream_id);
+    racs_metadata streaminfo;
+    int rc = racs_metadata_get(&streaminfo, frame.header.stream_id);
 
     if (rc == 0) return RACS_STREAM_NOT_FOUND;
     racs_streamkv_put(kv, frame.header.stream_id, frame.header.session_id);
 
     racs_uint64 offset = racs_offsets_get(offsets, frame.header.stream_id);
-    racs_time timestamp = racs_streaminfo_timestamp(&streaminfo, offset);
+    racs_time timestamp = racs_metadata_timestamp(&streaminfo, offset);
     racs_uint64 key[2] = { frame.header.stream_id, timestamp };
 
     racs_wal_append(RACS_OP_CODE_APPEND, 34 + frame.header.block_size, data);
@@ -102,7 +102,7 @@ int racs_stream_append(racs_multi_memtable *mmt, racs_offsets *offsets, racs_str
     }
 
     racs_offsets_put(offsets, frame.header.stream_id, offset);
-    racs_streaminfo_destroy(&streaminfo);
+    racs_metadata_destroy(&streaminfo);
 
     return RACS_STREAM_OK;
 }

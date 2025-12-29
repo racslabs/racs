@@ -71,7 +71,7 @@ racs_create_command(streamlist) {
 
     racs_streams streams;
     racs_streams_init(&streams);
-    racs_streaminfo_list(&streams, pattern);
+    racs_streams_list(&streams, pattern);
 
     int rc = racs_pack_streams(&pk, &streams);
     racs_streams_destroy(&streams);
@@ -128,7 +128,7 @@ racs_create_command(streamclose) {
     return racs_pack_error(&pk, "Stream is not open");
 }
 
-racs_create_command(streaminfo) {
+racs_create_command(metadata) {
     msgpack_sbuffer_clear(out_buf);
 
     msgpack_packer pk;
@@ -147,7 +147,7 @@ racs_create_command(streaminfo) {
     char *attr = racs_unpack_str(&msg.data, 1);
 
     racs_uint64 hash = racs_hash(stream_id);
-    racs_int64 value = racs_streaminfo_attr(hash, attr);
+    racs_int64 value = racs_metadata_attr(hash, attr);
 
     free(stream_id);
     free(attr);

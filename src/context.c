@@ -9,7 +9,7 @@
 
 #include "context.h"
 
-const char* racs_streaminfo_dir = NULL;
+const char* racs_metadata_dir = NULL;
 const char* racs_time_dir = NULL;
 const char* racs_log_dir = NULL;
 const char* racs_wal_dir = NULL;
@@ -23,7 +23,7 @@ void racs_context_init(racs_context *ctx, const char *path) {
     ctx->offsets = racs_offsets_create();
     ctx->mmt = racs_multi_memtable_create(ctx->config->memtable.tables, ctx->config->memtable.entries);
 
-    racs_streaminfo_dir = ctx->config->data_dir;
+    racs_metadata_dir = ctx->config->data_dir;
     racs_time_dir = ctx->config->data_dir;
     racs_wal_dir = ctx->config->data_dir;
     racs_log_dir = ctx->config->log_dir;
