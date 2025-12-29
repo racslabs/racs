@@ -47,7 +47,7 @@ racs_create_command(streamcreate) {
     racs_uint16 channels = racs_unpack_uint16(&msg.data, 2);
     racs_uint16 bit_depth = racs_unpack_uint16(&msg.data, 3);
 
-    int rc = racs_streamcreate(stream_id, sample_rate, channels, bit_depth);
+    int rc = racs_stream_create(stream_id, sample_rate, channels, bit_depth);
     if (rc == 1)
         return racs_pack_null_with_status_ok(&pk);
 
@@ -95,7 +95,7 @@ racs_create_command(streamopen) {
     racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
 
     char *stream_id = racs_unpack_str(&msg.data, 0);
-    int rc = racs_streamopen(ctx->kv, racs_hash(stream_id));
+    int rc = racs_stream_open(ctx->kv, racs_hash(stream_id));
     free(stream_id);
 
     if (rc == 1)
@@ -119,7 +119,7 @@ racs_create_command(streamclose) {
     racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
 
     char *stream_id = racs_unpack_str(&msg.data, 0);
-    int rc = racs_streamclose(ctx->kv, racs_hash(stream_id));
+    int rc = racs_stream_close(ctx->kv, racs_hash(stream_id));
     free(stream_id);
 
     if (rc == 1)
@@ -296,12 +296,17 @@ int racs_stream(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data) {
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
 
-    msgpack_unpacked msg;
-    msgpack_unpacked_init(&msg);
-
-    int rc = racs_streamappend(ctx->mmt, ctx->offsets, ctx->kv, data);
+    int rc = racs_stream_append(ctx->mmt, ctx->offsets, ctx->kv, data);
     if (rc == RACS_STREAM_OK)
         return racs_pack_null_with_status_ok(&pk);
 
     return racs_pack_error(&pk, racs_stream_status_string[rc]);
+}
+
+int racs_stream_batch(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data, size_t size) {
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
+
+    racs_stream_batch_append(ctx->mmt, ctx->offsets, ctx->kv, data, size);
+    return racs_pack_null_with_status_ok(&pk);
 }

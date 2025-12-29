@@ -37,3 +37,7 @@ racs_result racs_db_exec(racs_db *db, const char *cmd) {
 racs_result racs_db_stream(racs_db *db, racs_uint8 *data) {
     return racs_exec_stream(&db->ctx, data);
 }
+
+racs_result racs_db_stream_batch(racs_db *db, racs_uint8 *data, size_t size) {
+    return racs_exec_stream_batch(&db->ctx, data, size);
+}

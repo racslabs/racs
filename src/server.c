@@ -93,7 +93,6 @@ void racs_read_callback(struct bufferevent *bev, void *data) {
     if (length == 0) return;
 
     racs_handle_slaves(in, ctx, length);
-
     evbuffer_drain(in, 8);
 
     racs_uint8 *buf = malloc(length);
@@ -102,6 +101,8 @@ void racs_read_callback(struct bufferevent *bev, void *data) {
     racs_result res;
     if (racs_is_frame((const char *) buf))
         res = racs_db_stream(ctx->db, buf);
+    else if (racs_is_batch((const char *) buf))
+        res = racs_db_stream_batch(ctx->db, buf, length);
     else
         res = racs_db_exec(ctx->db, (const char *) buf);
 

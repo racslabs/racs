@@ -19,7 +19,7 @@ const char *const racs_stream_status_string[] = {
         "Stream not found."
 };
 
-int racs_streamcreate(const char* stream_id, racs_uint32 sample_rate, racs_uint16 channels, racs_uint16 bit_depth) {
+int racs_stream_create(const char* stream_id, racs_uint32 sample_rate, racs_uint16 channels, racs_uint16 bit_depth) {
     racs_streaminfo streaminfo;
     streaminfo.sample_rate = sample_rate;
     streaminfo.channels = channels;
@@ -49,7 +49,23 @@ int racs_streamcreate(const char* stream_id, racs_uint32 sample_rate, racs_uint1
     return 1;
 }
 
-int racs_streamappend(racs_multi_memtable *mmt, racs_offsets *offsets, racs_streamkv *kv, racs_uint8 *data) {
+void racs_stream_batch_append(racs_multi_memtable *mmt, racs_offsets *offsets, racs_streamkv *kv, racs_uint8 *data, size_t size) {
+    msgpack_unpacked msg;
+    msgpack_unpacked_init(&msg);
+
+    if (msgpack_unpack_next(&msg, (char *)data, size, 0) == MSGPACK_UNPACK_PARSE_ERROR)
+        perror("Error parsing response");
+
+    size_t num_frames = msg.data.via.array.size;
+
+    for (int i = 0; i < num_frames; ++i) {
+        racs_uint8 *frame = racs_unpack_u8v(&msg.data, i);
+        racs_stream_append(mmt, offsets, kv, frame);
+        free(frame);
+    }
+}
+
+int racs_stream_append(racs_multi_memtable *mmt, racs_offsets *offsets, racs_streamkv *kv, racs_uint8 *data) {
     racs_frame frame;
     if (!racs_frame_parse(data, &frame))
         return RACS_STREAM_MALFORMED;
@@ -68,7 +84,6 @@ int racs_streamappend(racs_multi_memtable *mmt, racs_offsets *offsets, racs_stre
 
     racs_uint64 offset = racs_offsets_get(offsets, frame.header.stream_id);
     racs_time timestamp = racs_streaminfo_timestamp(&streaminfo, offset);
-
     racs_uint64 key[2] = { frame.header.stream_id, timestamp };
 
     racs_wal_append(RACS_OP_CODE_APPEND, 34 + frame.header.block_size, data);
@@ -92,7 +107,7 @@ int racs_streamappend(racs_multi_memtable *mmt, racs_offsets *offsets, racs_stre
     return RACS_STREAM_OK;
 }
 
-int racs_streamopen(racs_streamkv *kv, racs_uint64 stream_id) {
+int racs_stream_open(racs_streamkv *kv, racs_uint64 stream_id) {
     racs_uint8 *session_id = racs_streamkv_get(kv, stream_id);
     if (session_id) {
         racs_log_error("Stream is already open");
@@ -106,7 +121,7 @@ int racs_streamopen(racs_streamkv *kv, racs_uint64 stream_id) {
     return 1;
 }
 
-int racs_streamclose(racs_streamkv *kv, racs_uint64 stream_id) {
+int racs_stream_close(racs_streamkv *kv, racs_uint64 stream_id) {
     racs_uint8 *session_id = racs_streamkv_get(kv, stream_id);
     if (!session_id) {
         racs_log_info("Stream is not open");

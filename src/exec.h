@@ -81,6 +81,8 @@ racs_result racs_exec_exec(racs_exec *exec, racs_context *ctx, const char *cmd);
 
 racs_result racs_exec_stream(racs_context *ctx, racs_uint8 *data);
 
+racs_result racs_exec_stream_batch(racs_context *ctx, racs_uint8 *data, size_t size);
+
 racs_uint64 racs_exec_hash(void *key);
 
 int racs_exec_cmp(void *a, void *b);

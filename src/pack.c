@@ -169,15 +169,6 @@ int racs_is_object_type(msgpack_object *obj, msgpack_object_type type, int arg_n
     return obj->via.array.ptr[arg_num].type == type;
 }
 
-char *racs_unpack_str(msgpack_object *obj, int n) {
-    size_t size = obj->via.array.ptr[n].via.str.size + 1;
-
-    char *str = malloc(size);
-    snprintf(str, size, "%s", obj->via.array.ptr[n].via.str.ptr);
-
-    return str;
-}
-
 int racs_pack_streams(msgpack_packer *pk, racs_streams *streams) {
     msgpack_pack_array(pk, streams->num_streams + 1);
     msgpack_pack_str_with_body(pk, "list", strlen("list"));
@@ -187,6 +178,15 @@ int racs_pack_streams(msgpack_packer *pk, racs_streams *streams) {
     }
 
     return RACS_STATUS_OK;
+}
+
+char *racs_unpack_str(msgpack_object *obj, int n) {
+    size_t size = obj->via.array.ptr[n].via.str.size + 1;
+
+    char *str = malloc(size);
+    snprintf(str, size, "%s", obj->via.array.ptr[n].via.str.ptr);
+
+    return str;
 }
 
 racs_uint8 *racs_unpack_u8v(msgpack_object *obj, int n) {

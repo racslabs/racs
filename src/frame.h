@@ -49,6 +49,8 @@ off_t racs_frame_header_parse(racs_uint8 *buf, racs_frame_header *header);
 
 int racs_is_frame(const char *id);
 
+int racs_is_batch(const char *id);
+
 #ifdef __cplusplus
 }
 #endif
