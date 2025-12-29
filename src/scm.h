@@ -37,7 +37,7 @@ int racs_scm_pack_element(msgpack_packer *pk, msgpack_sbuffer *buf, SCM v);
 
 void racs_scm_propagate_error(msgpack_object *obj, racs_uint8 *data);
 
-SCM racs_scm_safe_eval(void *body);
+SCM racs_scm_safe_eval(void *body_str);
 
 SCM racs_scm_error_handler(void *data, SCM key, SCM args);
 

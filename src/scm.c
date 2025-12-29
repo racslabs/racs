@@ -190,7 +190,7 @@ int racs_scm_pack_list(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x) {
 SCM racs_scm_safe_eval(void *body) {
     scm_c_use_module("ice-9 sandbox");
 
-    SCM eval_in_sandbox = scm_variable_ref(scm_c_lookup( "eval-in-sandbox"));
+    SCM eval_in_sandbox = scm_variable_ref(scm_c_lookup("eval-in-sandbox"));
     SCM make_sandbox_module = scm_variable_ref(scm_c_lookup("make-sandbox-module"));
 
     SCM base_module = scm_list_4(scm_list_2(scm_from_locale_symbol("scheme"),
@@ -209,11 +209,23 @@ SCM racs_scm_safe_eval(void *body) {
 
     SCM modules = scm_list_2(base_module, racs_module);
     SCM bindings = scm_call_1(make_sandbox_module, modules);
-    SCM module_keyword = scm_from_latin1_keyword("module");
+
+    SCM kw_module = scm_from_latin1_keyword("module");
+    SCM kw_time_limit = scm_from_latin1_keyword("time-limit");
+    SCM kw_alloc_limit = scm_from_latin1_keyword("allocation-limit");
+
+    SCM val_time_limit = scm_from_double(10.0);                // 10 seconds
+    SCM val_alloc_limit = scm_from_size_t(50 * 1024 * 1024);    // ~50 MB
 
     SCM expr = scm_c_read_string((char *)body);
-    return scm_call_3(eval_in_sandbox, expr, module_keyword, bindings);
+
+    return scm_call_7(eval_in_sandbox,
+                      expr,
+                      kw_module, bindings,
+                      kw_time_limit, val_time_limit,
+                      kw_alloc_limit, val_alloc_limit);
 }
+
 
 SCM racs_scm_error_handler(void *data, SCM key, SCM args) {
     scm_display(args, data);
