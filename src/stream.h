@@ -18,7 +18,7 @@
 #include "log.h"
 #include "wal.h"
 #include "zstd.h"
-#include "pack.h"
+#include <msgpack.h>
 
 typedef enum {
     RACS_STREAM_OK,

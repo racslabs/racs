@@ -8,6 +8,7 @@
 // SPDX-License-Identifier: RACS-SAL-1.0
 
 #include "stream.h"
+#include "pack.h"
 
 const char *const racs_stream_status_string[] = {
         "",
