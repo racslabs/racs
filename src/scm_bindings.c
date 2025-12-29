@@ -9,10 +9,7 @@
 
 #include "scm_bindings.h"
 
-SCM racs_scm_mix(SCM in_a, SCM in_b, SCM gain_a, SCM gain_b) {
-    double _gain_a = scm_to_double(gain_a);
-    double _gain_b = scm_to_double(gain_b);
-
+SCM racs_scm_mix(SCM in_a, SCM in_b) {
     scm_t_array_handle handle_a;
     scm_array_get_handle(in_a, &handle_a);
 
@@ -20,13 +17,13 @@ SCM racs_scm_mix(SCM in_a, SCM in_b, SCM gain_a, SCM gain_b) {
     size_t _in_a_len = scm_c_array_length(in_a);
 
     scm_t_array_handle handle_b;
-    scm_array_get_handle(in_a, &handle_b);
+    scm_array_get_handle(in_b, &handle_b);
 
     const racs_int32 *_in_b = scm_array_handle_s32_elements(&handle_b);
     size_t _in_b_len = scm_c_array_length(in_b);
 
     size_t out_size;
-    racs_int32 *out = racs_daw_ops_mix(_in_a, _in_a_len, _in_b, _in_b_len, (float)_gain_a, (float)_gain_b, &out_size);
+    racs_int32 *out = racs_daw_ops_mix(_in_a, _in_a_len, _in_b, _in_b_len, &out_size);
 
     scm_array_handle_release(&handle_a);
     scm_array_handle_release(&handle_b);
@@ -168,7 +165,7 @@ void racs_scm_init_bindings() {
     scm_c_define_gsubr("meta", 2, 0, 0, racs_scm_metadata);
     scm_c_define_gsubr("encode", 5, 0, 0, racs_scm_encode);
     scm_c_define_gsubr("list", 1, 0, 0, racs_scm_stream_list);
-    scm_c_define_gsubr("mix", 1, 0, 0, racs_scm_stream_list);
+    scm_c_define_gsubr("mix", 2, 0, 0, racs_scm_mix);
 
     scm_c_export("range", "meta", "encode", "list", "mix", NULL);
 }

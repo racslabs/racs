@@ -14,7 +14,7 @@
 #include "db.h"
 #include "daw_ops.h"
 
-SCM racs_scm_mix(SCM in_a, SCM in_b, SCM gain_a, SCM gain_b);
+SCM racs_scm_mix(SCM in_a, SCM in_b);
 
 SCM racs_scm_range(SCM stream_id, SCM from, SCM to);
 
