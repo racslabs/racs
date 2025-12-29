@@ -49,17 +49,17 @@ extern const char* racs_metadata_dir;
 
 racs_int64 racs_metadata_attr(racs_uint64 stream_id, const char *attr);
 
-int racs_metadata_get(racs_metadata *streaminfo, racs_uint64 stream_id);
+int racs_metadata_get(racs_metadata *metadata, racs_uint64 stream_id);
 
-int racs_metadata_put(racs_metadata *streaminfo, racs_uint64 stream_id);
+int racs_metadata_put(racs_metadata *metadata, racs_uint64 stream_id);
 
 void racs_streams_list(racs_streams *streams, const char* pattern);
 
-size_t racs_metadata_size(racs_metadata* streaminfo);
+size_t racs_metadata_size(racs_metadata* metadata);
 
-off_t racs_metadata_write(racs_uint8 *buf, racs_metadata *streaminfo);
+off_t racs_metadata_write(racs_uint8 *buf, racs_metadata *metadata);
 
-off_t racs_metadata_read(racs_metadata *streaminfo, racs_uint8 *buf);
+off_t racs_metadata_read(racs_metadata *metadata, racs_uint8 *buf);
 
 size_t racs_metadata_filesize(const char *path);
 
@@ -69,9 +69,9 @@ void racs_metadata_path(char **path, racs_uint64 stream_id, int tmp);
 
 int racs_metadata_exits(racs_uint64 stream_id);
 
-void racs_metadata_destroy(racs_metadata *streaminfo);
+void racs_metadata_destroy(racs_metadata *metadata);
 
-racs_time racs_metadata_timestamp(racs_metadata *streaminfo, racs_uint64 offset);
+racs_time racs_metadata_timestamp(racs_metadata *metadata, racs_uint64 offset);
 
 void racs_streams_add(racs_streams *streams, const char *stream);
 

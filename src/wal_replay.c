@@ -33,15 +33,15 @@ void racs_wal_replay(racs_multi_memtable *mmt, racs_offsets *offsets) {
             racs_frame frame;
             racs_frame_parse(entry->op, &frame);
 
-            racs_metadata streaminfo;
-            int rc = racs_metadata_get(&streaminfo, frame.header.stream_id);
+            racs_metadata metadata;
+            int rc = racs_metadata_get(&metadata, frame.header.stream_id);
             if (rc == 0) {
                 racs_wal_entry_destroy(entry);
                 continue;
             }
 
             racs_uint64 _offset = racs_offsets_get(offsets, frame.header.stream_id);
-            racs_time timestamp = racs_metadata_timestamp(&streaminfo, offset);
+            racs_time timestamp = racs_metadata_timestamp(&metadata, offset);
 
             racs_uint64 key[2] = { frame.header.stream_id, timestamp };
             racs_multi_memtable_append(mmt, key, frame.pcm_block, frame.header.block_size, frame.header.checksum, frame.header.flags);
@@ -59,7 +59,7 @@ void racs_wal_replay(racs_multi_memtable *mmt, racs_offsets *offsets) {
             }
 
             racs_offsets_put(offsets, frame.header.stream_id, _offset);
-            racs_metadata_destroy(&streaminfo);
+            racs_metadata_destroy(&metadata);
             racs_wal_entry_destroy(entry);
         }
 

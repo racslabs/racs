@@ -247,13 +247,13 @@ void racs_exec_init(racs_exec *exec) {
     exec->kv = racs_kvstore_create(10, racs_exec_hash, racs_exec_cmp, exec_destroy);
     racs_kvstore_put(exec->kv, strdup("PING"), racs_command_ping);
     racs_kvstore_put(exec->kv, strdup("CREATE"), racs_command_streamcreate);
-    racs_kvstore_put(exec->kv, strdup("INFO"), racs_command_metadata);
+    racs_kvstore_put(exec->kv, strdup("META"), racs_command_metadata);
     racs_kvstore_put(exec->kv, strdup("OPEN"), racs_command_streamopen);
     racs_kvstore_put(exec->kv, strdup("CLOSE"), racs_command_streamclose);
-    racs_kvstore_put(exec->kv, strdup("SEARCH"), racs_command_streamlist);
-    racs_kvstore_put(exec->kv, strdup("EXTRACT"), racs_command_extract);
+    racs_kvstore_put(exec->kv, strdup("LIST"), racs_command_streamlist);
+    racs_kvstore_put(exec->kv, strdup("RANGE"), racs_command_range);
     racs_kvstore_put(exec->kv, strdup("EVAL"), racs_command_eval);
-    racs_kvstore_put(exec->kv, strdup("FORMAT"), racs_command_format);
+    racs_kvstore_put(exec->kv, strdup("ENCODE"), racs_command_encode);
     racs_kvstore_put(exec->kv, strdup("SHUTDOWN"), racs_command_shutdown);
 }
 

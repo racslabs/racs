@@ -181,7 +181,7 @@ racs_create_command(eval) {
     return racs_scm_pack(&pk, out_buf, res);
 }
 
-racs_create_command(extract) {
+racs_create_command(range) {
     msgpack_sbuffer_clear(out_buf);
 
     msgpack_packer pk;
@@ -203,8 +203,8 @@ racs_create_command(extract) {
 
     racs_pcm pcm;
 
-    int rc = racs_extract(ctx, &pcm, stream_id, start, duration);
-    if (rc == RACS_EXTRACT_STATUS_NOT_FOUND) {
+    int rc = racs_range(ctx, &pcm, stream_id, start, duration);
+    if (rc == RACS_RANGE_STATUS_NOT_FOUND) {
         racs_pcm_destroy(&pcm);
         return racs_pack_error(&pk, "The stream-id does not exist");
     }
@@ -229,7 +229,7 @@ racs_create_command(shutdown) {
     exit(0);
 }
 
-racs_create_command(format) {
+racs_create_command(encode) {
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
 
@@ -266,12 +266,12 @@ racs_create_command(format) {
 
     void *out = malloc(size * (bit_depth / 8) + 44);
 
-    racs_format fmt;
+    racs_encode fmt;
     fmt.channels = channels;
     fmt.sample_rate = sample_rate;
     fmt.bit_depth = bit_depth;
 
-    size_t n = racs_format_pcm(&fmt, in, out, size / channels, size * (bit_depth / 8) + 44, mime_type);
+    size_t n = racs_encode_pcm(&fmt, in, out, size / channels, size * (bit_depth / 8) + 44, mime_type);
 
     if (n != 0) {
         msgpack_sbuffer_clear(out_buf);

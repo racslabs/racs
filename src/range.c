@@ -7,31 +7,31 @@
 //
 // SPDX-License-Identifier: RACS-SAL-1.0
 
-#include "extract.h"
+#include "range.h"
 
-int racs_extract(racs_context *ctx, racs_pcm *pcm, const char *stream_id, double start, double duration) {
-    racs_metadata streaminfo;
+int racs_range(racs_context *ctx, racs_pcm *pcm, const char *stream_id, double start, double duration) {
+    racs_metadata metadata;
     racs_uint64 hash = racs_hash(stream_id);
 
-    int rc = racs_metadata_get(&streaminfo, hash);
-    if (rc == 0) return RACS_EXTRACT_STATUS_NOT_FOUND;
+    int rc = racs_metadata_get(&metadata, hash);
+    if (rc == 0) return RACS_RANGE_STATUS_NOT_FOUND;
 
-    racs_pcm_set_bit_depth(pcm, streaminfo.bit_depth);
-    racs_pcm_set_channels(pcm, streaminfo.channels);
-    racs_pcm_set_sample_rate(pcm, streaminfo.sample_rate);
+    racs_pcm_set_bit_depth(pcm, metadata.bit_depth);
+    racs_pcm_set_channels(pcm, metadata.channels);
+    racs_pcm_set_sample_rate(pcm, metadata.sample_rate);
 
-    racs_time ref = streaminfo.ref;
-    racs_metadata_destroy(&streaminfo);
+    racs_time ref = metadata.ref;
+    racs_metadata_destroy(&metadata);
 
     racs_pcm_init(pcm);
 
     racs_time from = (racs_time)((double)ref + start * 1000);
     racs_time to = (racs_time)((double)from + duration * 1000);
 
-    return racs_extract_by_timestamp(ctx, pcm, hash, from, to);
+    return racs_range_as_timestamp(ctx, pcm, hash, from, to);
 }
 
-int racs_extract_by_timestamp(racs_context *ctx, racs_pcm *pcm, racs_uint64 hash, racs_time from, racs_time to) {
+int racs_range_as_timestamp(racs_context *ctx, racs_pcm *pcm, racs_uint64 hash, racs_time from, racs_time to) {
     char *path = racs_time_range_to_path(from, to);
     racs_filelist *list = get_sorted_filelist(path);
 
@@ -43,8 +43,8 @@ int racs_extract_by_timestamp(racs_context *ctx, racs_pcm *pcm, racs_uint64 hash
 
         racs_time time = racs_time_from_path(file_path);
         if (time >= from && time <= to) {
-            racs_uint8 *data = racs_extract_from_cache_or_sstable(ctx->scache, hash, time, file_path);
-            racs_extract_process_sstable(pcm, data, hash, from, to);
+            racs_uint8 *data = racs_range_from_cache_or_sstable(ctx->scache, hash, time, file_path);
+            racs_range_process_sstable(pcm, data, hash, from, to);
         }
     }
 
@@ -79,11 +79,11 @@ int racs_extract_by_timestamp(racs_context *ctx, racs_pcm *pcm, racs_uint64 hash
     free(path);
     racs_filelist_destroy(list);
 
-    return RACS_EXTRACT_STATUS_OK;
+    return RACS_RANGE_STATUS_OK;
 }
 
 racs_uint8 *
-racs_extract_from_cache_or_sstable(racs_cache *cache, racs_uint64 stream_id, racs_time time, const char *path) {
+racs_range_from_cache_or_sstable(racs_cache *cache, racs_uint64 stream_id, racs_time time, const char *path) {
     racs_uint64 key[2] = {stream_id, time};
     racs_uint8 *data = racs_cache_get(cache, key);
 
@@ -104,7 +104,7 @@ racs_extract_from_cache_or_sstable(racs_cache *cache, racs_uint64 stream_id, rac
 }
 
 void
-racs_extract_process_sstable(racs_pcm *pcm, racs_uint8 *data, racs_uint64 stream_id, racs_int64 from, racs_int64 to) {
+racs_range_process_sstable(racs_pcm *pcm, racs_uint8 *data, racs_uint64 stream_id, racs_int64 from, racs_int64 to) {
     size_t size;
     memcpy(&size, data, sizeof(size_t));
 

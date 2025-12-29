@@ -16,7 +16,7 @@ void racs_scm_propagate_error(msgpack_object *obj, racs_uint8 *data) {
     free(data);
     free(message);
 
-    scm_misc_error("extract", "~A", scm_list_1(error));
+    scm_misc_error("", "~A", scm_list_1(error));
 }
 
 int racs_scm_pack_s8vector(msgpack_packer *pk, SCM v) {
@@ -193,18 +193,17 @@ SCM racs_scm_safe_eval(void *body) {
     SCM eval_in_sandbox = scm_variable_ref(scm_c_lookup( "eval-in-sandbox"));
     SCM make_sandbox_module = scm_variable_ref(scm_c_lookup("make-sandbox-module"));
 
-    SCM base_module = scm_list_5(scm_list_2(scm_from_locale_symbol("scheme"),
+    SCM base_module = scm_list_4(scm_list_2(scm_from_locale_symbol("scheme"),
                                             scm_from_locale_symbol("base")),
                                  scm_from_locale_symbol("+"),
                                  scm_from_locale_symbol("-"),
-                                 scm_from_locale_symbol("*"),
-                                 scm_from_locale_symbol("list"));
+                                 scm_from_locale_symbol("*"));
 
     SCM racs_module = scm_list_n(scm_list_1(scm_from_locale_symbol("racs")),
-                                 scm_from_locale_symbol("extract"),
-                                 scm_from_locale_symbol("info"),
-                                 scm_from_locale_symbol("format"),
-                                 scm_from_locale_symbol("search"),
+                                 scm_from_locale_symbol("range"),
+                                 scm_from_locale_symbol("meta"),
+                                 scm_from_locale_symbol("encode"),
+                                 scm_from_locale_symbol("list"),
                                  scm_from_locale_symbol("ping"),
                                  SCM_UNDEFINED);
 

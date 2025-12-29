@@ -18,9 +18,9 @@ extern "C" {
 #include "scm.h"
 #include "pack.h"
 #include "stream.h"
-#include "extract.h"
+#include "range.h"
 #include "wav.h"
-#include "format.h"
+#include "encode.h"
 
 typedef enum {
     RACS_STATUS_OK,
@@ -44,7 +44,7 @@ typedef enum {
 #define racs_create_command(name) \
     int racs_command_##name(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, racs_context* ctx)
 
-racs_create_command(extract);
+racs_create_command(range);
 
 racs_create_command(eval);
 
@@ -58,7 +58,7 @@ racs_create_command(streamclose);
 
 racs_create_command(ping);
 
-racs_create_command(format);
+racs_create_command(encode);
 
 racs_create_command(streamlist);
 

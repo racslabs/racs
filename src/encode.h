@@ -7,8 +7,8 @@
 //
 // SPDX-License-Identifier: RACS-SAL-1.0
 
-#ifndef RACS_FORMAT_H
-#define RACS_FORMAT_H
+#ifndef RACS_ENCODE_H
+#define RACS_ENCODE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,12 +22,12 @@ typedef struct {
     racs_uint16 channels;
     racs_uint32 sample_rate;
     racs_uint16 bit_depth;
-} racs_format;
+} racs_encode;
 
-size_t racs_format_pcm(racs_format *fmt, const void *in, void *out, size_t samples, size_t size, const char *mime_type);
+size_t racs_encode_pcm(racs_encode *encode, const void *in, void *out, size_t samples, size_t size, const char *mime_type);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //RACS_FORMAT_H
+#endif //RACS_ENCODE_H

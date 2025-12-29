@@ -10,20 +10,20 @@
 #include "metadata.h"
 
 racs_int64 racs_metadata_attr(racs_uint64 stream_id, const char *attr) {
-    racs_metadata streaminfo;
-    if (racs_metadata_get(&streaminfo, stream_id) == 0) return 0;
+    racs_metadata metadata;
+    if (racs_metadata_get(&metadata, stream_id) == 0) return 0;
 
     if (strcmp(attr, "sample_rate") == 0)
-        return streaminfo.sample_rate;
+        return metadata.sample_rate;
 
     if (strcmp(attr, "channels") == 0)
-        return streaminfo.channels;
+        return metadata.channels;
 
     if (strcmp(attr, "bit_depth") == 0)
-        return streaminfo.bit_depth;
+        return metadata.bit_depth;
 
     if (strcmp(attr, "ref") == 0)
-        return streaminfo.ref;
+        return metadata.ref;
 
     return 0;
 }
@@ -31,18 +31,18 @@ racs_int64 racs_metadata_attr(racs_uint64 stream_id, const char *attr) {
 size_t racs_metadata_filesize(const char *path) {
     struct stat s;
     if (stat(path, &s) == -1) {
-        racs_log_error("Failed to get racs_streaminfo file size.");
+        racs_log_error("Failed to get racs_metadata file size.");
         return 0;
     }
 
     return s.st_size;
 }
 
-size_t racs_metadata_size(racs_metadata* streaminfo) {
-    return 36 + streaminfo->id_size;
+size_t racs_metadata_size(racs_metadata* metadata) {
+    return 36 + metadata->id_size;
 }
 
-int racs_metadata_get(racs_metadata *streaminfo, racs_uint64 stream_id) {
+int racs_metadata_get(racs_metadata *metadata, racs_uint64 stream_id) {
     char *path = NULL;
 
     racs_metadata_path(&path, stream_id, false);
@@ -53,7 +53,7 @@ int racs_metadata_get(racs_metadata *streaminfo, racs_uint64 stream_id) {
 
     int fd = open(path, O_RDONLY);
     if (fd < 0) {
-        racs_log_error("Failed to open racs_streaminfo file");
+        racs_log_error("Failed to open racs_metadata file");
         free(path);
         return 0;
     }
@@ -68,7 +68,7 @@ int racs_metadata_get(racs_metadata *streaminfo, racs_uint64 stream_id) {
         return 0;
     }
 
-    racs_metadata_read(streaminfo, data);
+    racs_metadata_read(metadata, data);
     close(fd);
     free(path);
     free(data);
@@ -76,50 +76,50 @@ int racs_metadata_get(racs_metadata *streaminfo, racs_uint64 stream_id) {
     return 1;
 }
 
-int racs_metadata_put(racs_metadata *streaminfo, racs_uint64 stream_id) {
+int racs_metadata_put(racs_metadata *metadata, racs_uint64 stream_id) {
     racs_metadata s;
     int rc = racs_metadata_get(&s, stream_id);
     if (rc == 1) return 0;
 
-    size_t len = racs_metadata_size(streaminfo);
+    size_t len = racs_metadata_size(metadata);
     racs_uint8 *data = malloc(len);
     if (!data) return 0;
 
-    racs_metadata_write(data, streaminfo);
+    racs_metadata_write(data, metadata);
     racs_metadata_flush(data, len, stream_id);
 
     free(data);
     return 1;
 }
 
-off_t racs_metadata_write(racs_uint8 *buf, racs_metadata *streaminfo) {
+off_t racs_metadata_write(racs_uint8 *buf, racs_metadata *metadata) {
     off_t offset = 0;
-    offset = racs_write_uint16(buf, streaminfo->channels, offset);
-    offset = racs_write_uint16(buf, streaminfo->bit_depth, offset);
-    offset = racs_write_uint32(buf, streaminfo->sample_rate, offset);
-    offset = racs_write_uint64(buf, streaminfo->ref, offset);
-    offset = racs_write_uint64(buf, streaminfo->ttl, offset);
-    offset = racs_write_uint32(buf, streaminfo->id_size, offset);
-    offset = racs_write_bin(buf, streaminfo->id, streaminfo->id_size, offset);
+    offset = racs_write_uint16(buf, metadata->channels, offset);
+    offset = racs_write_uint16(buf, metadata->bit_depth, offset);
+    offset = racs_write_uint32(buf, metadata->sample_rate, offset);
+    offset = racs_write_uint64(buf, metadata->ref, offset);
+    offset = racs_write_uint64(buf, metadata->ttl, offset);
+    offset = racs_write_uint32(buf, metadata->id_size, offset);
+    offset = racs_write_bin(buf, metadata->id, metadata->id_size, offset);
     return offset;
 }
 
-off_t racs_metadata_read(racs_metadata *streaminfo, racs_uint8 *buf) {
+off_t racs_metadata_read(racs_metadata *metadata, racs_uint8 *buf) {
     off_t offset = 0;
-    offset = racs_read_uint16(&streaminfo->channels, buf, offset);
-    offset = racs_read_uint16(&streaminfo->bit_depth, buf, offset);
-    offset = racs_read_uint32(&streaminfo->sample_rate, buf, offset);
-    offset = racs_read_uint64((racs_uint64 *) &streaminfo->ref, buf, offset);
-    offset = racs_read_uint64((racs_uint64 *) &streaminfo->ttl, buf, offset);
-    offset = racs_read_uint32(&streaminfo->id_size, buf, offset);
+    offset = racs_read_uint16(&metadata->channels, buf, offset);
+    offset = racs_read_uint16(&metadata->bit_depth, buf, offset);
+    offset = racs_read_uint32(&metadata->sample_rate, buf, offset);
+    offset = racs_read_uint64((racs_uint64 *) &metadata->ref, buf, offset);
+    offset = racs_read_uint64((racs_uint64 *) &metadata->ttl, buf, offset);
+    offset = racs_read_uint32(&metadata->id_size, buf, offset);
 
-    streaminfo->id = strdup((char *)buf + offset);
-    return offset + streaminfo->id_size;
+    metadata->id = strdup((char *)buf + offset);
+    return offset + metadata->id_size;
 }
 
-racs_time racs_metadata_timestamp(racs_metadata *streaminfo, racs_uint64 offset) {
-    double seconds = offset / (double) (streaminfo->channels * streaminfo->sample_rate * (streaminfo->bit_depth / 8));
-    return (racs_time) (seconds * 1000) + streaminfo->ref;
+racs_time racs_metadata_timestamp(racs_metadata *metadata, racs_uint64 offset) {
+    double seconds = offset / (double) (metadata->channels * metadata->sample_rate * (metadata->bit_depth / 8));
+    return (racs_time) (seconds * 1000) + metadata->ref;
 }
 
 racs_uint64 racs_hash(const char *stream_id) {
@@ -148,13 +148,13 @@ void racs_metadata_flush(racs_uint8 *data, racs_uint32 len, racs_uint64 stream_i
 
     int fd = open(tmp_path, O_WRONLY | O_TRUNC | O_CREAT, 0644);
     if (fd < 0) {
-        racs_log_error("Failed to open racs_streaminfo file");
+        racs_log_error("Failed to open racs_metadata file");
         free(tmp_path);
         return;
     }
 
     if (flock(fd, LOCK_EX) < 0) {
-        racs_log_error("Failed to lock racs_streaminfo file");
+        racs_log_error("Failed to lock racs_metadata file");
         close(fd);
         free(tmp_path);
         return;
@@ -163,15 +163,15 @@ void racs_metadata_flush(racs_uint8 *data, racs_uint32 len, racs_uint64 stream_i
     write(fd, data, len);
 
     if (fsync(fd) < 0)
-        racs_log_error("fsync failed on racs_streaminfo file");
+        racs_log_error("fsync failed on racs_metadata file");
 
     if (flock(fd, LOCK_UN) < 0)
-        racs_log_error("Failed to unlock racs_streaminfo file");
+        racs_log_error("Failed to unlock racs_metadata file");
 
     racs_metadata_path(&final_path, stream_id, false);
 
     if (rename(tmp_path, final_path) < 0)
-        racs_log_error("Failed to rename racs_streaminfo file");
+        racs_log_error("Failed to rename racs_metadata file");
 
     close(fd);
     free(tmp_path);
@@ -190,8 +190,8 @@ int racs_metadata_exits(racs_uint64 stream_id) {
     return rc;
 }
 
-void racs_metadata_destroy(racs_metadata *streaminfo) {
-    free(streaminfo->id);
+void racs_metadata_destroy(racs_metadata *metadata) {
+    free(metadata->id);
 }
 
 void racs_metadata_path(char **path, racs_uint64 stream_id, int tmp) {
@@ -223,13 +223,13 @@ void racs_streams_list(racs_streams *streams, const char* pattern) {
     for (int i = 0; i < list->num_files; ++i) {
         racs_uint64 stream_id = racs_path_to_stream_id(list->files[i]);
 
-        racs_metadata streaminfo;
-        int rc = racs_metadata_get(&streaminfo, stream_id);
+        racs_metadata metadata;
+        int rc = racs_metadata_get(&metadata, stream_id);
 
         if (rc == 1) {
-            rc = fnmatch(pattern, streaminfo.id, FNM_IGNORECASE);
-            if (rc == 0) racs_streams_add(streams, streaminfo.id);
-            racs_metadata_destroy(&streaminfo);
+            rc = fnmatch(pattern, metadata.id, FNM_IGNORECASE);
+            if (rc == 0) racs_streams_add(streams, metadata.id);
+            racs_metadata_destroy(&metadata);
         }
     }
 
