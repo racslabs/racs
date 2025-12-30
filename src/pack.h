@@ -73,6 +73,8 @@ int racs_pack_f32v(msgpack_packer *pk, float *data, size_t n);
 
 int racs_pack_c64v(msgpack_packer *pk, racs_complex *data, size_t n);
 
+int racs_pack_s32v_without_metadata(msgpack_packer *pk, racs_int32 *data, size_t n);
+
 void racs_pack_type(msgpack_packer *pk, int type);
 
 int racs_pack_invalid_num_args(msgpack_packer *pk, int expected, int actual);

@@ -132,6 +132,15 @@ int racs_pack_s32v(msgpack_packer *pk, racs_int32 *data, size_t n) {
     return RACS_STATUS_OK;
 }
 
+int racs_pack_s32v_without_metadata(msgpack_packer *pk, racs_int32 *data, size_t n) {
+    msgpack_pack_array(pk, 2);
+
+    racs_pack_type(pk, RACS_TYPE_S32VEC);
+    msgpack_pack_bin_with_body(pk, data + 8, n * sizeof(racs_int32) - 8);
+
+    return RACS_STATUS_OK;
+}
+
 int racs_pack_u32v(msgpack_packer *pk, racs_uint32 *data, size_t n) {
     msgpack_pack_array(pk, 2);
 

@@ -41,11 +41,16 @@ racs_result racs_exec_exec(racs_exec *exec, racs_context *ctx, const char *cmd) 
     racs_parser parser;
     racs_parser_init(&parser, cmd);
 
+    racs_result result;
+
     msgpack_sbuffer in_buf;
     msgpack_sbuffer out_buf;
 
     msgpack_sbuffer_init(&in_buf);
     msgpack_sbuffer_init(&out_buf);
+
+    msgpack_unpacked msg;
+    msgpack_unpacked_init(&msg);
 
     racs_exec_plan plan;
     racs_exec_plan_init(&plan);
@@ -56,7 +61,33 @@ racs_result racs_exec_exec(racs_exec *exec, racs_context *ctx, const char *cmd) 
 
     racs_exec_plan_destroy(&plan);
 
-    racs_result result;
+    if (msgpack_unpack_next(&msg, out_buf.data, out_buf.size, 0) != MSGPACK_UNPACK_PARSE_ERROR) {
+        char *type = racs_unpack_str(&msg.data, 0);
+        if (strcmp(type, "s32v") == 0) {
+            free(type);
+
+            msgpack_sbuffer _out_buf;
+            msgpack_sbuffer_init(&_out_buf);
+
+            msgpack_packer pk;
+            msgpack_packer_init(&pk, &_out_buf, msgpack_sbuffer_write);
+
+            racs_int32 *data = racs_unpack_s32v(&msg.data, 1);
+            size_t size = racs_unpack_s32v_size(&msg.data, 1);
+
+            racs_pack_s32v_without_metadata(&pk, data, size);
+
+            racs_result_init(&result, _out_buf.size);
+            memcpy(result.data, _out_buf.data, _out_buf.size);
+
+            msgpack_sbuffer_destroy(&in_buf);
+            msgpack_sbuffer_destroy(&out_buf);
+            msgpack_sbuffer_destroy(&_out_buf);
+
+            return result;
+        }
+    }
+
     racs_result_init(&result, out_buf.size);
     memcpy(result.data, out_buf.data, out_buf.size);
 
