@@ -150,35 +150,33 @@ SCM racs_scm_stream_list(SCM pattern) {
     return list;
 }
 
-SCM racs_scm_encode(SCM data, SCM mime_type, SCM sample_rate, SCM channels, SCM bit_depth) {
+SCM racs_scm_encode(SCM data, SCM mime_type) {
     char *_mime_type = scm_to_locale_string(mime_type);
-    racs_uint32 _sample_rate = scm_to_uint32(sample_rate);
-    racs_uint16 _channels = scm_to_uint16(channels);
-    racs_uint16 _bit_depth = scm_to_uint16(bit_depth);
 
     scm_t_array_handle handle;
     scm_array_get_handle(data, &handle);
 
     const racs_int32 *in = scm_array_handle_s32_elements(&handle);
-    size_t size = scm_c_array_length(data);
+    size_t size = scm_c_array_length(data) - 2;
 
-    void *out = malloc(size * (_bit_depth / 8) + 44);
+    racs_encode encode;
 
-    racs_encode fmt;
-    fmt.channels = _channels;
-    fmt.sample_rate = _sample_rate;
-    fmt.bit_depth = _bit_depth;
+    // get pre-pended sample-rate, channels and bit-depth
+    encode.sample_rate = in[0];
+    encode.channels    = (int16_t)(in[1] >> 16);
+    encode.bit_depth   = (int16_t)(in[1] & 0xffff);
 
-    size_t n = racs_encode_pcm(&fmt, in, out, size / _channels, size * (_bit_depth / 8) + 44, _mime_type);
+    void *out = malloc(size * (encode.bit_depth / 8) + 44);
+    size_t n = racs_encode_pcm(&encode, in + 2, out, size / encode.channels, size * (encode.bit_depth / 8) + 44, _mime_type);
 
     scm_array_handle_release(&handle);
-    return scm_take_u8vector((uint8_t *)out, n);
+    return scm_take_u8vector(out, n);
 }
 
 void racs_scm_init_bindings() {
     scm_c_define_gsubr("range", 3, 0, 0, racs_scm_range);
     scm_c_define_gsubr("meta", 2, 0, 0, racs_scm_metadata);
-    scm_c_define_gsubr("encode", 5, 0, 0, racs_scm_encode);
+    scm_c_define_gsubr("encode", 2, 0, 0, racs_scm_encode);
     scm_c_define_gsubr("list", 1, 0, 0, racs_scm_stream_list);
     scm_c_define_gsubr("mix", 2, 0, 0, racs_scm_mix);
     scm_c_define_gsubr("gain", 2, 0, 0, racs_scm_gain);

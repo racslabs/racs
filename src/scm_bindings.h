@@ -24,7 +24,7 @@ SCM racs_scm_metadata(SCM stream_id, SCM attr);
 
 SCM racs_scm_stream_list(SCM pattern);
 
-SCM racs_scm_encode(SCM data, SCM mime_type, SCM sample_rate, SCM channels, SCM bit_depth);
+SCM racs_scm_encode(SCM data, SCM mime_type);
 
 void racs_scm_init_bindings();
 
