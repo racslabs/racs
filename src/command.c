@@ -209,24 +209,28 @@ racs_create_command(range) {
         return racs_pack_error(&pk, "The stream-id does not exist");
     }
 
-    racs_int32 *out = NULL;
+    racs_int32 *samples = NULL;
+    size_t size = pcm.samples * pcm.channels;
 
     if (pcm.bit_depth == 16)
-        out = racs_s16_s32((const racs_int16 *) pcm.out_stream.data, pcm.samples * pcm.channels);
+        samples = racs_s16_s32((const racs_int16 *) pcm.out_stream.data, size);
     if (pcm.bit_depth == 24)
-        out = racs_s24_s32((const racs_int24 *) pcm.out_stream.data, pcm.samples * pcm.channels);
+        samples = racs_s24_s32((const racs_int24 *) pcm.out_stream.data, size);
 
-    rc = racs_pack_s32v(&pk, out, pcm.samples * pcm.channels);
+    if (!samples) {
+        return racs_pack_error(&pk, "Error ");
+    }
+
+    // pre-pend sample-rate, channels and bit-depth
+    samples[0] = (racs_int32)pcm.sample_rate;
+    samples[1] = (racs_int32)((uint32_t)(uint16_t)(pcm.channels) << 16 | (uint16_t)pcm.bit_depth);
+
+    rc = racs_pack_s32v(&pk, samples, size + 2);
 
     free(pcm.out_stream.data);
-    free(out);
+    free(samples);
 
     return rc;
-}
-
-racs_create_command(shutdown) {
-    racs_context_destroy(ctx);
-    exit(0);
 }
 
 racs_create_command(encode) {
@@ -242,12 +246,9 @@ racs_create_command(encode) {
     racs_parse_buf(in_buf, &pk, &msg1, "Error parsing args")
     racs_parse_buf(out_buf, &pk, &msg2, "Error parsing buffer")
 
-    racs_validate_num_args(&pk, msg1, 4)
-
+    racs_validate_num_args(&pk, msg1, 1)
     racs_validate_type(&pk, msg1, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected: string")
-    racs_validate_type(&pk, msg1, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: int")
-    racs_validate_type(&pk, msg1, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: int")
-    racs_validate_type(&pk, msg1, 3, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 4. Expected: int")
+
 
     char *type = racs_unpack_str(&msg2.data, 0);
     if (strcmp(type, "s32v") != 0) {
@@ -257,22 +258,19 @@ racs_create_command(encode) {
     }
 
     racs_int32 *in = racs_unpack_s32v(&msg2.data, 1);
-    size_t size = racs_unpack_s32v_size(&msg2.data, 1);
-
+    size_t size = racs_unpack_s32v_size(&msg2.data, 1) - 2;
     char *mime_type = racs_unpack_str(&msg1.data, 0);
-    racs_uint32 sample_rate = racs_unpack_uint32(&msg1.data, 1);
-    racs_uint16 channels = racs_unpack_uint16(&msg1.data, 2);
-    racs_uint16 bit_depth = racs_unpack_uint16(&msg1.data, 3);
 
-    void *out = malloc(size * (bit_depth / 8) + 44);
+    racs_encode encode;
 
-    racs_encode fmt;
-    fmt.channels = channels;
-    fmt.sample_rate = sample_rate;
-    fmt.bit_depth = bit_depth;
+    // get pre-pended sample-rate, channels and bit-depth
+    encode.sample_rate = in[0];
+    encode.channels    = (int16_t)(in[1] >> 16);
+    encode.bit_depth   = (int16_t)(in[1] & 0xffff);
 
-    size_t n = racs_encode_pcm(&fmt, in, out, size / channels, size * (bit_depth / 8) + 44, mime_type);
+    void *out = malloc(size * (encode.bit_depth / 8) + 44);
 
+    size_t n = racs_encode_pcm(&encode, in + 2, out, size / encode.channels, size * (encode.bit_depth / 8) + 44, mime_type);
     if (n != 0) {
         msgpack_sbuffer_clear(out_buf);
         int rc = racs_pack_u8v(&pk, out, n);
@@ -290,6 +288,11 @@ racs_create_command(encode) {
 
     msgpack_sbuffer_clear(out_buf);
     return racs_pack_error(&pk, "Unsupported format");
+}
+
+racs_create_command(shutdown) {
+    racs_context_destroy(ctx);
+    exit(0);
 }
 
 racs_create_command(gain) {
