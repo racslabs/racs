@@ -3,6 +3,7 @@
 #define RACS_DAW_OPS_H
 
 #include "types.h"
+#include "log.h"
 #include <stdint.h>
 
 racs_int32 *racs_daw_ops_mix(

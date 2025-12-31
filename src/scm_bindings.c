@@ -60,6 +60,7 @@ SCM racs_scm_trim(SCM in, SCM left_seconds, SCM right_seconds) {
     racs_int32 *out = racs_daw_ops_trim(_in, _in_len, _left_seconds, _right_seconds, &out_size);
 
     scm_array_handle_release(&handle);
+
     return scm_take_s32vector(out, out_size);
 }
 
@@ -95,7 +96,6 @@ SCM racs_scm_range(SCM stream_id, SCM from, SCM to) {
 
     size_t size = racs_unpack_s32v_size(&msg.data, 1);
     racs_int32 *data = racs_unpack_s32v(&msg.data, 1);
-    racs_log_info("sr=%d", data[0]);
 
     return scm_take_s32vector(data, size);
 }

@@ -1,7 +1,5 @@
 #include "daw_ops.h"
 
-#include "log.h"
-
 racs_int32 *racs_daw_ops_mix(
     const racs_int32 *in_a,
     size_t in_a_len,
@@ -68,15 +66,23 @@ racs_int32 *racs_daw_ops_trim(
     size_t left_trim  = (size_t)(left_seconds  * sample_rate * channels);
     size_t right_trim = (size_t)(right_seconds * sample_rate * channels);
 
-    if (left_trim + right_trim >= len)
-        return NULL;
+    if (left_trim + right_trim >= len) {
+        *out_len = 2;
+
+        racs_int32 *out = calloc(*out_len, sizeof(racs_int32));
+        if (!out) return NULL;
+
+        out[0] = in[0];
+        out[1] = in[1];
+
+        return out;
+    }
 
     *out_len = start + (len - left_trim - right_trim);
 
     racs_int32 *out = calloc(*out_len, sizeof(racs_int32));
     if (!out) return NULL;
 
-    // pre-pend sample-rate, channels and bit-depth
     out[0] = in[0];
     out[1] = in[1];
 
@@ -85,4 +91,3 @@ racs_int32 *racs_daw_ops_trim(
 
     return out;
 }
-

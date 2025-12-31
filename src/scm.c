@@ -68,9 +68,12 @@ int racs_scm_pack_s32vector(msgpack_packer *pk, SCM v) {
     size_t n;
 
     const racs_int32 *data = scm_s32vector_elements(v, &handle, &n, NULL);
-    racs_pack_s32v(pk, (racs_int32 *) data, n);
-    scm_array_handle_release(&handle);
+    if (!data)
+        racs_pack_s32v(pk, 0, 0);
+    else
+        racs_pack_s32v(pk, (racs_int32 *) data, n);
 
+    scm_array_handle_release(&handle);
     return RACS_STATUS_OK;
 }
 

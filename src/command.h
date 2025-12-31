@@ -67,6 +67,8 @@ racs_create_command(shutdown);
 
 racs_create_command(gain);
 
+racs_create_command(trim);
+
 int racs_stream(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data);
 
 int racs_stream_batch(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data, size_t size);
