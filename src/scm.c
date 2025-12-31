@@ -206,6 +206,7 @@ SCM racs_scm_safe_eval(void *body) {
                                  scm_from_locale_symbol("list"),
                                  scm_from_locale_symbol("mix"),
                                  scm_from_locale_symbol("gain"),
+                                 scm_from_locale_symbol("trim"),
                                  SCM_UNDEFINED);
 
     SCM modules = scm_list_2(base_module, racs_module);

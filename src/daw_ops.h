@@ -19,4 +19,12 @@ racs_int32 *racs_daw_ops_gain(
     double gain
 );
 
+racs_int32 *racs_daw_ops_trim(
+    const racs_int32 *in,
+    size_t in_len,
+    double left_seconds,
+    double right_seconds,
+    size_t *out_len
+);
+
 #endif //RACS_DAW_OPS_H

@@ -18,6 +18,8 @@ SCM racs_scm_mix(SCM in_a, SCM in_b);
 
 SCM racs_scm_gain(SCM in, SCM gain);
 
+SCM racs_scm_trim(SCM in, SCM left_seconds, SCM right_seconds);
+
 SCM racs_scm_range(SCM stream_id, SCM from, SCM to);
 
 SCM racs_scm_metadata(SCM stream_id, SCM attr);

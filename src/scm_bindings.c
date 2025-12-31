@@ -46,6 +46,23 @@ SCM racs_scm_gain(SCM in, SCM gain) {
     return scm_take_s32vector(out, _in_len);
 }
 
+SCM racs_scm_trim(SCM in, SCM left_seconds, SCM right_seconds) {
+    double _left_seconds = scm_to_double(left_seconds);
+    double _right_seconds = scm_to_double(right_seconds);
+
+    scm_t_array_handle handle;
+    scm_array_get_handle(in, &handle);
+
+    const racs_int32 *_in = scm_array_handle_s32_elements(&handle);
+    size_t _in_len = scm_c_array_length(in);
+
+    size_t out_size;
+    racs_int32 *out = racs_daw_ops_trim(_in, _in_len, _left_seconds, _right_seconds, &out_size);
+
+    scm_array_handle_release(&handle);
+    return scm_take_s32vector(out, out_size);
+}
+
 SCM racs_scm_range(SCM stream_id, SCM from, SCM to) {
     char *cmd = NULL;
     asprintf(&cmd, "RANGE '%s' %f %f",
@@ -78,6 +95,7 @@ SCM racs_scm_range(SCM stream_id, SCM from, SCM to) {
 
     size_t size = racs_unpack_s32v_size(&msg.data, 1);
     racs_int32 *data = racs_unpack_s32v(&msg.data, 1);
+    racs_log_info("sr=%d", data[0]);
 
     return scm_take_s32vector(data, size);
 }
@@ -163,8 +181,8 @@ SCM racs_scm_encode(SCM data, SCM mime_type) {
 
     // get pre-pended sample-rate, channels and bit-depth
     encode.sample_rate = in[0];
-    encode.channels    = (int16_t)(in[1] >> 16);
-    encode.bit_depth   = (int16_t)(in[1] & 0xffff);
+    encode.channels    = (racs_uint16)(in[1] >> 16);
+    encode.bit_depth   = (racs_uint16)(in[1] & 0xffff);
 
     void *out = malloc(size * (encode.bit_depth / 8) + 44);
     size_t n = racs_encode_pcm(&encode, in + 2, out, size / encode.channels, size * (encode.bit_depth / 8) + 44, _mime_type);
@@ -180,8 +198,9 @@ void racs_scm_init_bindings() {
     scm_c_define_gsubr("list", 1, 0, 0, racs_scm_stream_list);
     scm_c_define_gsubr("mix", 2, 0, 0, racs_scm_mix);
     scm_c_define_gsubr("gain", 2, 0, 0, racs_scm_gain);
+    scm_c_define_gsubr("trim", 3, 0, 0, racs_scm_trim);
 
-    scm_c_export("range", "meta", "encode", "list", "mix", "gain", NULL);
+    scm_c_export("range", "meta", "encode", "list", "mix", "gain", "trim", NULL);
 }
 
 void racs_scm_init_module() {

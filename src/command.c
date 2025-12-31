@@ -205,6 +205,7 @@ racs_create_command(range) {
 
     int rc = racs_range(ctx, &pcm, stream_id, start, duration);
     if (rc == RACS_RANGE_STATUS_NOT_FOUND) {
+        free(stream_id);
         racs_pcm_destroy(&pcm);
         return racs_pack_error(&pk, "The stream-id does not exist");
     }
@@ -218,12 +219,13 @@ racs_create_command(range) {
         samples = racs_s24_s32((const racs_int24 *) pcm.out_stream.data, size);
 
     if (!samples) {
+        free(stream_id);
         return racs_pack_error(&pk, "Error ");
     }
 
     // pre-pend sample-rate, channels and bit-depth
     samples[0] = (racs_int32)pcm.sample_rate;
-    samples[1] = (racs_int32)((uint32_t)(uint16_t)(pcm.channels) << 16 | (uint16_t)pcm.bit_depth);
+    samples[1] = (uint16_t)pcm.channels << 16 | (uint16_t)pcm.bit_depth;
 
     rc = racs_pack_s32v(&pk, samples, size + 2);
 
@@ -249,7 +251,6 @@ racs_create_command(encode) {
     racs_validate_num_args(&pk, msg1, 1)
     racs_validate_type(&pk, msg1, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected: string")
 
-
     char *type = racs_unpack_str(&msg2.data, 0);
     if (strcmp(type, "s32v") != 0) {
         free(type);
@@ -265,8 +266,8 @@ racs_create_command(encode) {
 
     // get pre-pended sample-rate, channels and bit-depth
     encode.sample_rate = in[0];
-    encode.channels    = (int16_t)(in[1] >> 16);
-    encode.bit_depth   = (int16_t)(in[1] & 0xffff);
+    encode.channels    = (racs_uint16)(in[1] >> 16);
+    encode.bit_depth   = (racs_uint16)(in[1] & 0xffff);
 
     void *out = malloc(size * (encode.bit_depth / 8) + 44);
 
@@ -315,6 +316,8 @@ racs_create_command(gain) {
 
     racs_int32 *in = racs_unpack_s32v(&msg2.data, 1);
     size_t in_size = racs_unpack_s32v_size(&msg2.data, 1);
+
+    racs_log_info("gain sr=%d", in[0]);
 
     if (!in || in_size == 0) {
         msgpack_sbuffer_clear(out_buf);
