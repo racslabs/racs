@@ -22,6 +22,12 @@ SCM racs_scm_mix(SCM in_a, SCM in_b) {
     const racs_int32 *_in_b = scm_array_handle_s32_elements(&handle_b);
     size_t _in_b_len = scm_c_array_length(in_b);
 
+    if ((ssize_t) _in_a_len < 2 || (ssize_t) _in_b_len < 2) {
+        scm_array_handle_release(&handle_a);
+        scm_array_handle_release(&handle_b);
+        scm_misc_error("trim", "Missing input data.", SCM_EOL);
+    }
+
     size_t out_size;
     racs_int32 *out = racs_daw_ops_mix(_in_a, _in_a_len, _in_b, _in_b_len, &out_size);
 
@@ -40,6 +46,11 @@ SCM racs_scm_gain(SCM in, SCM gain) {
     const racs_int32 *_in = scm_array_handle_s32_elements(&handle);
     size_t _in_len = scm_c_array_length(in);
 
+    if ((ssize_t) _in_len < 2) {
+        scm_array_handle_release(&handle);
+        scm_misc_error("gain", "Missing input data.", SCM_EOL);
+    }
+
     racs_int32 *out = racs_daw_ops_gain(_in, _in_len, _gain);
     scm_array_handle_release(&handle);
 
@@ -55,6 +66,11 @@ SCM racs_scm_trim(SCM in, SCM left_seconds, SCM right_seconds) {
 
     const racs_int32 *_in = scm_array_handle_s32_elements(&handle);
     size_t _in_len = scm_c_array_length(in);
+
+    if ((ssize_t) _in_len < 2) {
+        scm_array_handle_release(&handle);
+        scm_misc_error("trim", "Missing input data.", SCM_EOL);
+    }
 
     size_t out_size;
     racs_int32 *out = racs_daw_ops_trim(_in, _in_len, _left_seconds, _right_seconds, &out_size);
@@ -176,6 +192,11 @@ SCM racs_scm_encode(SCM data, SCM mime_type) {
 
     const racs_int32 *in = scm_array_handle_s32_elements(&handle);
     size_t size = scm_c_array_length(data) - 2;
+
+    if ((ssize_t) size < 2) {
+        scm_array_handle_release(&handle);
+        scm_misc_error("encode", "Missing input data.", SCM_EOL);
+    }
 
     racs_encode encode;
 
