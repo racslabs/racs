@@ -28,4 +28,12 @@ racs_int32 *racs_daw_ops_trim(
     size_t *out_len
 );
 
+racs_int32 *racs_daw_ops_fade(
+    const racs_int32 *in,
+    size_t in_len,
+    double fade_in_seconds,
+    double fade_out_seconds,
+    size_t *out_len
+);
+
 #endif //RACS_DAW_OPS_H

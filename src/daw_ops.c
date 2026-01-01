@@ -66,23 +66,15 @@ racs_int32 *racs_daw_ops_trim(
     size_t left_trim  = (size_t)(left_seconds  * sample_rate * channels);
     size_t right_trim = (size_t)(right_seconds * sample_rate * channels);
 
-    if (left_trim + right_trim >= len) {
-        *out_len = 2;
-
-        racs_int32 *out = calloc(*out_len, sizeof(racs_int32));
-        if (!out) return NULL;
-
-        out[0] = in[0];
-        out[1] = in[1];
-
-        return out;
-    }
+    if (left_trim + right_trim >= len)
+        return NULL;
 
     *out_len = start + (len - left_trim - right_trim);
 
     racs_int32 *out = calloc(*out_len, sizeof(racs_int32));
     if (!out) return NULL;
 
+    // pre-pend sample-rate, channels and bit-depth
     out[0] = in[0];
     out[1] = in[1];
 
@@ -91,3 +83,56 @@ racs_int32 *racs_daw_ops_trim(
 
     return out;
 }
+
+racs_int32 *racs_daw_ops_fade(
+    const racs_int32 *in,
+    size_t in_len,
+    double fade_in_seconds,
+    double fade_out_seconds,
+    size_t *out_len
+) {
+    if (!in || in_len < 2) return NULL;
+
+    racs_uint32 sample_rate = in[0];
+    racs_uint16 channels    = (racs_uint16)(in[1] >> 16);
+
+    *out_len = in_len;
+
+    racs_int32 *out = calloc(*out_len, sizeof(racs_int32));
+    if (!out) return NULL;
+
+    // pre-pend sample-rate, channels and bit-depth
+    out[0] = in[0];
+    out[1] = in[1];
+
+    size_t start = 2;
+    size_t len   = in_len - start;
+
+    size_t fade_in_samples  = (size_t)(fade_in_seconds  * sample_rate * channels);
+    size_t fade_out_samples = (size_t)(fade_out_seconds * sample_rate * channels);
+
+    if (fade_in_samples > len) fade_in_samples = len;
+    if (fade_out_samples > len) fade_out_samples = len;
+
+    for (size_t i = 0; i < len; i++) {
+        double gain = 1.0;
+
+        // Fade in
+        if (i < fade_in_samples) {
+            gain = (double)i / fade_in_samples;
+        }
+
+        // Fade out
+        if (i >= len - fade_out_samples) {
+            size_t fade_out_pos = i - (len - fade_out_samples);
+            double fade_gain = 1.0 - ((double)fade_out_pos / fade_out_samples);
+            if (fade_gain < gain) gain = fade_gain;
+        }
+
+        out[start + i] = (racs_int32)(in[start + i] * gain);
+    }
+
+    return out;
+}
+
+

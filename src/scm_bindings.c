@@ -80,6 +80,29 @@ SCM racs_scm_trim(SCM in, SCM left_seconds, SCM right_seconds) {
     return scm_take_s32vector(out, out_size);
 }
 
+SCM racs_scm_fade(SCM in, SCM fade_in_seconds, SCM fade_out_seconds) {
+    double _fade_in_seconds = scm_to_double(fade_in_seconds);
+    double _fade_out_seconds = scm_to_double(fade_out_seconds);
+
+    scm_t_array_handle handle;
+    scm_array_get_handle(in, &handle);
+
+    const racs_int32 *_in = scm_array_handle_s32_elements(&handle);
+    size_t _in_len = scm_c_array_length(in);
+
+    if ((ssize_t) _in_len < 2) {
+        scm_array_handle_release(&handle);
+        scm_misc_error("fade", "Missing input data.", SCM_EOL);
+    }
+
+    size_t out_size;
+    racs_int32 *out = racs_daw_ops_fade(_in, _in_len, _fade_in_seconds, _fade_out_seconds, &out_size);
+
+    scm_array_handle_release(&handle);
+
+    return scm_take_s32vector(out, out_size);
+}
+
 SCM racs_scm_range(SCM stream_id, SCM from, SCM to) {
     char *cmd = NULL;
     asprintf(&cmd, "RANGE '%s' %f %f",
@@ -220,8 +243,9 @@ void racs_scm_init_bindings() {
     scm_c_define_gsubr("mix", 2, 0, 0, racs_scm_mix);
     scm_c_define_gsubr("gain", 2, 0, 0, racs_scm_gain);
     scm_c_define_gsubr("trim", 3, 0, 0, racs_scm_trim);
+    scm_c_define_gsubr("fade", 3, 0, 0, racs_scm_fade);
 
-    scm_c_export("range", "meta", "encode", "list", "mix", "gain", "trim", NULL);
+    scm_c_export("range", "meta", "encode", "list", "mix", "gain", "trim", "fade", NULL);
 }
 
 void racs_scm_init_module() {
