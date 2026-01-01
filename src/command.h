@@ -73,6 +73,8 @@ racs_create_command(fade);
 
 racs_create_command(pan);
 
+racs_create_command(pad);
+
 int racs_stream(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data);
 
 int racs_stream_batch(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data, size_t size);

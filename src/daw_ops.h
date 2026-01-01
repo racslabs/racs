@@ -43,4 +43,12 @@ racs_int32 *racs_daw_ops_pan(
     size_t *out_len
 );
 
+racs_int32 *racs_daw_ops_pad(
+    const racs_int32 *in,
+    size_t in_len,
+    double left_seconds,
+    double right_seconds,
+    size_t *out_len
+);
+
 #endif //RACS_DAW_OPS_H
