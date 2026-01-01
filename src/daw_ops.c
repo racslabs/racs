@@ -202,3 +202,34 @@ racs_int32 *racs_daw_ops_pad(
 
     return out;
 }
+
+racs_int32 *racs_daw_ops_clip(
+    const racs_int32 *in,
+    size_t in_len,
+    racs_int32 min_val,
+    racs_int32 max_val,
+    size_t *out_len
+) {
+    if (!in || in_len < 2) return NULL;
+    if (min_val > max_val) return NULL;
+
+    *out_len = in_len;
+
+    racs_int32 *out = malloc(in_len * sizeof(racs_int32));
+    if (!out) return NULL;
+
+    // pre-pend sample-rate, channels and bit-depth
+    out[0] = in[0];
+    out[1] = in[1];
+
+    size_t start = 2;
+
+    for (size_t i = start; i < in_len; i++) {
+        racs_int32 x = in[i];
+        if (x < min_val) x = min_val;
+        else if (x > max_val) x = max_val;
+        out[i] = x;
+    }
+
+    return out;
+}

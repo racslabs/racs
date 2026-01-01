@@ -51,4 +51,12 @@ racs_int32 *racs_daw_ops_pad(
     size_t *out_len
 );
 
+racs_int32 *racs_daw_ops_clip(
+    const racs_int32 *in,
+    size_t in_len,
+    racs_int32 min_val,
+    racs_int32 max_val,
+    size_t *out_len
+);
+
 #endif //RACS_DAW_OPS_H
