@@ -69,6 +69,8 @@ racs_create_command(gain);
 
 racs_create_command(trim);
 
+racs_create_command(fade);
+
 int racs_stream(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data);
 
 int racs_stream_batch(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data, size_t size);
