@@ -36,4 +36,11 @@ racs_int32 *racs_daw_ops_fade(
     size_t *out_len
 );
 
+racs_int32 *racs_daw_ops_pan(
+    const racs_int32 *in,
+    size_t in_len,
+    double pan,
+    size_t *out_len
+);
+
 #endif //RACS_DAW_OPS_H

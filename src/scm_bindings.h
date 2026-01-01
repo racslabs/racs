@@ -22,6 +22,8 @@ SCM racs_scm_trim(SCM in, SCM left_seconds, SCM right_seconds);
 
 SCM racs_scm_fade(SCM in, SCM fade_in_seconds, SCM fade_out_seconds);
 
+SCM racs_scm_pan(SCM in, SCM pan);
+
 SCM racs_scm_range(SCM stream_id, SCM from, SCM to);
 
 SCM racs_scm_metadata(SCM stream_id, SCM attr);

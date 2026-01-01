@@ -135,4 +135,38 @@ racs_int32 *racs_daw_ops_fade(
     return out;
 }
 
+racs_int32 *racs_daw_ops_pan(
+    const racs_int32 *in,
+    size_t in_len,
+    double pan,
+    size_t *out_len
+) {
+    if (!in || in_len < 2) return NULL;
 
+    racs_uint16 channels    = (racs_uint16)(in[1] >> 16);
+    if (channels < 2) return NULL;
+
+    *out_len = in_len;
+    racs_int32 *out = calloc(*out_len, sizeof(racs_int32));
+    if (!out) return NULL;
+
+    // pre-pend sample-rate, channels and bit-depth
+    out[0] = in[0];
+    out[1] = in[1];
+
+    size_t start = 2;
+    size_t len   = in_len - start;
+
+    for (size_t i = 0; i < len; i += channels) {
+        racs_int32 left  = in[start + i + 0];
+        racs_int32 right = in[start + i + 1];
+
+        double left_gain  = (pan <= 0) ? 1.0 : 1.0 - pan;
+        double right_gain = (pan >= 0) ? 1.0 : 1.0 + pan;
+
+        out[start + i + 0] = (racs_int32)(left  * left_gain);
+        out[start + i + 1] = (racs_int32)(right * right_gain);
+    }
+
+    return out;
+}

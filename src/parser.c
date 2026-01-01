@@ -26,14 +26,13 @@ racs_token racs_parser_next_token(racs_parser *parser) {
     }
 
     if (*parser->ptr == '+' || *parser->ptr == '-') {
-        if (racs_match_token(parser->ptr, RACS_REGEX_INT, &match)) {
-            return racs_parser_lex_token_int64(parser, &match);
-        }
-
         if (racs_match_token(parser->ptr, RACS_REGEX_FLOAT, &match)) {
             return racs_parser_lex_token_float64(parser, &match);
         }
 
+        if (racs_match_token(parser->ptr, RACS_REGEX_INT, &match)) {
+            return racs_parser_lex_token_int64(parser, &match);
+        }
     }
 
     if (isdigit(*parser->ptr)) {

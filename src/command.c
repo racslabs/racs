@@ -263,12 +263,13 @@ racs_create_command(encode) {
         return racs_pack_error(&pk, "Invalid input type. Expected: int32 array");
     }
 
+    free(type);
+
     racs_int32 *in = racs_unpack_s32v(&msg2.data, 1);
     size_t size = racs_unpack_s32v_size(&msg2.data, 1) - 2;
     char *mime_type = racs_unpack_str(&msg1.data, 0);
 
     if (size == 0 || !in) {
-        free(type);
         free(mime_type);
         msgpack_sbuffer_clear(out_buf);
         return racs_pack_error(&pk, "Missing input data.");
@@ -288,14 +289,12 @@ racs_create_command(encode) {
         msgpack_sbuffer_clear(out_buf);
         int rc = racs_pack_u8v(&pk, out, n);
 
-        free(type);
         free(mime_type);
         free(out);
 
         return rc;
     }
 
-    free(type);
     free(mime_type);
     free(out);
 
@@ -335,6 +334,8 @@ racs_create_command(gain) {
         msgpack_sbuffer_clear(out_buf);
         return racs_pack_error(&pk, "Invalid input type. Expected: int32 array");
     }
+
+    free(type);
 
     double gain = racs_unpack_float64(&msg1.data, 0);
     racs_int32 *in = racs_unpack_s32v(&msg2.data, 1);
@@ -382,6 +383,8 @@ racs_create_command(trim) {
         msgpack_sbuffer_clear(out_buf);
         return racs_pack_error(&pk, "Invalid input type. Expected: int32 array");
     }
+
+    free(type);
 
     double left_seconds = racs_unpack_float64(&msg1.data, 0);
     double right_seconds = racs_unpack_float64(&msg1.data, 1);
@@ -434,6 +437,8 @@ racs_create_command(fade) {
         return racs_pack_error(&pk, "Invalid input type. Expected: int32 array");
     }
 
+    free(type);
+
     double fade_in_seconds = racs_unpack_float64(&msg1.data, 0);
     double fade_out_seconds = racs_unpack_float64(&msg1.data, 1);
 
@@ -447,6 +452,61 @@ racs_create_command(fade) {
 
     size_t out_size;
     racs_int32 *out = racs_daw_ops_fade(in, in_size, fade_in_seconds, fade_out_seconds, &out_size);
+
+    msgpack_sbuffer_clear(out_buf);
+
+    int rc = racs_pack_s32v(&pk, out, out_size);
+    free(out);
+
+    return rc;
+}
+
+racs_create_command(pan) {
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
+
+    msgpack_unpacked msg1;
+    msgpack_unpacked_init(&msg1);
+
+    msgpack_unpacked msg2;
+    msgpack_unpacked_init(&msg2);
+
+    racs_parse_buf(in_buf, &pk, &msg1, "Error parsing args")
+    racs_parse_buf(out_buf, &pk, &msg2, "Error parsing buffer")
+
+    racs_validate_num_args(&pk, msg1, 1)
+    racs_validate_type(&pk, msg1, 0, MSGPACK_OBJECT_FLOAT64, "Invalid type at arg 1. Expected: float")
+
+    if (msg2.data.type == MSGPACK_OBJECT_NIL) {
+        msgpack_sbuffer_clear(out_buf);
+        return racs_pack_error(&pk, "Missing input data.");
+    }
+
+    char *type = racs_unpack_str(&msg2.data, 0);
+    if (strcmp(type, "s32v") != 0) {
+        free(type);
+        msgpack_sbuffer_clear(out_buf);
+        return racs_pack_error(&pk, "Invalid input type. Expected: int32 array");
+    }
+
+    free(type);
+
+    double pan = racs_unpack_float64(&msg1.data, 0);
+    if (pan < -1.0 || pan > 1.0) {
+        msgpack_sbuffer_clear(out_buf);
+        return racs_pack_error(&pk, "Pan must be between -1.0 and +1.0.");
+    }
+
+    racs_int32 *in = racs_unpack_s32v(&msg2.data, 1);
+    size_t in_size = racs_unpack_s32v_size(&msg2.data, 1);
+
+    if (in_size < 2 || !in) {
+        msgpack_sbuffer_clear(out_buf);
+        return racs_pack_error(&pk, "Missing input data.");
+    }
+
+    size_t out_size;
+    racs_int32 *out = racs_daw_ops_pan(in, in_size, pan, &out_size);
 
     msgpack_sbuffer_clear(out_buf);
 
