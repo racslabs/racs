@@ -29,7 +29,7 @@ extern "C" {
 #define RACS_REGEX_STR     "'([^'\\\\]*(\\\\'[^'\\\\]*)*)'"
 #define RACS_REGEX_ID      "^[a-zA-Z_][a-zA-Z0-9_]*"
 #define RACS_REGEX_INT     "^[+-]?[0-9]+"
-#define RACS_REGEX_FLOAT  "^[+-]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)"
+#define RACS_REGEX_FLOAT   "^[+-]?([0-9]*\\.[0-9]+|[0-9]+\\.[0-9]*)"
 #define RACS_REGEX_TIME    "^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})(\\.[0-9]+)?(Z|([+-])([0-9]{2}):([0-9]{2}))"
 
 typedef enum {
