@@ -177,6 +177,38 @@ SCM racs_scm_clip(SCM in, SCM min, SCM max) {
     return scm_take_s32vector(out, out_size);
 }
 
+SCM racs_scm_split(SCM in, SCM channel) {
+    racs_uint16 _channel = scm_to_uint16(channel);
+
+    scm_t_array_handle handle;
+    scm_array_get_handle(in, &handle);
+
+    const racs_int32 *_in = scm_array_handle_s32_elements(&handle);
+    size_t _in_len = scm_c_array_length(in);
+
+    if ((ssize_t) _in_len < 2) {
+        scm_array_handle_release(&handle);
+        scm_misc_error("split", "Missing input data.", SCM_EOL);
+    }
+
+    racs_uint16 channels = (racs_uint16)(_in[1] >> 16);
+    if (channels != 2) {
+        scm_array_handle_release(&handle);
+        scm_misc_error("split", "Invalid number of channels.", SCM_EOL);
+    }
+
+    if (_channel > 1) {
+        scm_array_handle_release(&handle);
+        scm_misc_error("split", "Invalid channel number.", SCM_EOL);
+    }
+
+    size_t out_size;
+    racs_int32 *out = racs_daw_ops_split(_in, _in_len, _channel, &out_size);
+
+    scm_array_handle_release(&handle);
+    return scm_take_s32vector(out, out_size);
+}
+
 SCM racs_scm_range(SCM stream_id, SCM from, SCM to) {
     char *cmd = NULL;
     asprintf(&cmd, "RANGE '%s' %f %f",
@@ -321,8 +353,9 @@ void racs_scm_init_bindings() {
     scm_c_define_gsubr("pan", 2, 0, 0, racs_scm_pan);
     scm_c_define_gsubr("pad", 3, 0, 0, racs_scm_pad);
     scm_c_define_gsubr("clip", 3, 0, 0, racs_scm_clip);
+    scm_c_define_gsubr("split", 2, 0, 0, racs_scm_split);
 
-    scm_c_export("range", "meta", "encode", "list", "mix", "gain", "trim", "fade", "pan", "pad", "clip", NULL);
+    scm_c_export("range", "meta", "encode", "list", "mix", "gain", "trim", "fade", "pan", "pad", "clip", "split", NULL);
 }
 
 void racs_scm_init_module() {

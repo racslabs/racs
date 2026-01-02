@@ -28,6 +28,8 @@ SCM racs_scm_pad(SCM in, SCM left_seconds, SCM right_seconds);
 
 SCM racs_scm_clip(SCM in, SCM min, SCM max);
 
+SCM racs_scm_split(SCM in, SCM channel);
+
 SCM racs_scm_range(SCM stream_id, SCM from, SCM to);
 
 SCM racs_scm_metadata(SCM stream_id, SCM attr);

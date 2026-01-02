@@ -59,4 +59,11 @@ racs_int32 *racs_daw_ops_clip(
     size_t *out_len
 );
 
+racs_int32 *racs_daw_ops_split(
+    const racs_int32 *in,
+    size_t in_len,
+    racs_uint16 channel,
+    size_t *out_len
+);
+
 #endif //RACS_DAW_OPS_H
