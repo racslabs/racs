@@ -263,3 +263,48 @@ racs_int32 *racs_daw_ops_split(
 
     return out;
 }
+
+racs_int32 *racs_daw_ops_merge(
+    const racs_int32 *in_a,
+    size_t in_len_a,
+    const racs_int32 *in_b,
+    size_t in_len_b,
+    size_t *out_len
+) {
+    if (!in_a || !in_b || !out_len) return NULL;
+    if (in_len_a < 2 || in_len_b < 2) return NULL;
+
+    // both must be mono
+    racs_uint16 channel_a = (racs_uint16)(in_a[1] >> 16);
+    racs_uint16 channel_b = (racs_uint16)(in_b[1] >> 16);
+    if (channel_a != 1 || channel_b != 1) return NULL;
+
+    // metadata must match (sample rate + bit depth)
+    if (in_a[0] != in_b[0] || (in_a[1] & 0x0000ffff) != (in_b[1] & 0x0000ffff))
+        return NULL;
+
+    size_t start = 2;
+    size_t frames_a = in_len_a - start;
+    size_t frames_b = in_len_b - start;
+
+    size_t frames = frames_a > frames_b ? frames_a : frames_b;
+    *out_len = start + frames * 2;
+
+    racs_int32 *out = calloc(*out_len, sizeof(racs_int32));
+    if (!out) return NULL;
+
+    // metadata: stereo
+    out[0] = in_a[0];
+    out[1] = (racs_int32)(in_a[1] & 0x0000ffff | 2u << 16);
+
+    for (size_t f = 0; f < frames; f++) {
+        if (f < frames_a)
+            out[start + 2*f + 0] = in_a[start + f];
+        // else zero (calloc)
+
+        if (f < frames_b)
+            out[start + 2*f + 1] = in_b[start + f];
+    }
+
+    return out;
+}

@@ -66,4 +66,12 @@ racs_int32 *racs_daw_ops_split(
     size_t *out_len
 );
 
+racs_int32 *racs_daw_ops_merge(
+    const racs_int32 *in_a,
+    size_t in_len_a,
+    const racs_int32 *in_b,
+    size_t in_len_b,
+    size_t *out_len
+);
+
 #endif //RACS_DAW_OPS_H

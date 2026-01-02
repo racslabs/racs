@@ -215,6 +215,7 @@ SCM racs_scm_safe_eval(void *body) {
                                  scm_from_locale_symbol("pad"),
                                  scm_from_locale_symbol("clip"),
                                  scm_from_locale_symbol("split"),
+                                 scm_from_locale_symbol("merge"),
                                  SCM_UNDEFINED);
 
     SCM modules = scm_list_2(base_module, racs_module);

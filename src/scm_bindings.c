@@ -209,6 +209,55 @@ SCM racs_scm_split(SCM in, SCM channel) {
     return scm_take_s32vector(out, out_size);
 }
 
+SCM racs_scm_merge(SCM in_a, SCM in_b) {
+    scm_t_array_handle handle_a;
+    scm_array_get_handle(in_a, &handle_a);
+
+    const racs_int32 *_in_a = scm_array_handle_s32_elements(&handle_a);
+    size_t _in_a_len = scm_c_array_length(in_a);
+
+    scm_t_array_handle handle_b;
+    scm_array_get_handle(in_b, &handle_b);
+
+    const racs_int32 *_in_b = scm_array_handle_s32_elements(&handle_b);
+    size_t _in_b_len = scm_c_array_length(in_b);
+
+    if ((ssize_t) _in_a_len < 2 || (ssize_t) _in_b_len < 2) {
+        scm_array_handle_release(&handle_a);
+        scm_array_handle_release(&handle_b);
+        scm_misc_error("merge", "Missing input data.", SCM_EOL);
+    }
+
+    racs_uint16 channel_a = (racs_uint16)(_in_a[1] >> 16);
+    racs_uint16 channel_b = (racs_uint16)(_in_b[1] >> 16);
+
+    if (channel_a != 1 || channel_b != 1) {
+        scm_array_handle_release(&handle_a);
+        scm_array_handle_release(&handle_b);
+        scm_misc_error("merge", "Inputs must be mono.", SCM_EOL);
+    }
+
+    if (_in_a[0] != _in_b[0]) {
+        scm_array_handle_release(&handle_a);
+        scm_array_handle_release(&handle_b);
+        scm_misc_error("merge", "Inputs must have the same sample rate.", SCM_EOL);
+    }
+
+    if ((_in_a[1] & 0x0000ffff) != (_in_b[1] & 0x0000ffff)) {
+        scm_array_handle_release(&handle_a);
+        scm_array_handle_release(&handle_b);
+        scm_misc_error("merge", "Inputs must have the same bit depth.", SCM_EOL);
+    }
+
+    size_t out_size;
+    racs_int32 *out = racs_daw_ops_merge(_in_a, _in_a_len, _in_b, _in_b_len, &out_size);
+
+    scm_array_handle_release(&handle_a);
+    scm_array_handle_release(&handle_b);
+
+    return scm_take_s32vector(out, out_size);
+}
+
 SCM racs_scm_range(SCM stream_id, SCM from, SCM to) {
     char *cmd = NULL;
     asprintf(&cmd, "RANGE '%s' %f %f",
@@ -354,8 +403,9 @@ void racs_scm_init_bindings() {
     scm_c_define_gsubr("pad", 3, 0, 0, racs_scm_pad);
     scm_c_define_gsubr("clip", 3, 0, 0, racs_scm_clip);
     scm_c_define_gsubr("split", 2, 0, 0, racs_scm_split);
+    scm_c_define_gsubr("merge", 2, 0, 0, racs_scm_merge);
 
-    scm_c_export("range", "meta", "encode", "list", "mix", "gain", "trim", "fade", "pan", "pad", "clip", "split", NULL);
+    scm_c_export("range", "meta", "encode", "list", "mix", "gain", "trim", "fade", "pan", "pad", "clip", "split", "merge", NULL);
 }
 
 void racs_scm_init_module() {
