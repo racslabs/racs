@@ -45,10 +45,16 @@ int racs_pack_null_with_status_not_found(msgpack_packer *pk) {
     return RACS_STATUS_NOT_FOUND;
 }
 
-int racs_pack_error(msgpack_packer *pk, const char *message) {
+int racs_pack_error(msgpack_packer *pk, const char * command, const char *message) {
     msgpack_pack_array(pk, 2);
     racs_pack_type(pk, RACS_TYPE_ERROR);
-    msgpack_pack_str_with_body(pk, message, strlen(message));
+
+    char *buf = NULL;
+    asprintf(&buf, "%s: %s", command, message);
+
+    msgpack_pack_str_with_body(pk, buf, strlen(buf));
+    free(buf);
+
     return RACS_STATUS_ERROR;
 }
 
@@ -168,10 +174,10 @@ int racs_pack_c64v(msgpack_packer *pk, racs_complex *data, size_t n) {
     return RACS_STATUS_OK;
 }
 
-int racs_pack_invalid_num_args(msgpack_packer *pk, int expected, int actual) {
+int racs_pack_invalid_num_args(msgpack_packer *pk, const char *command, int expected, int actual) {
     char message[255];
     sprintf(message, "Expected %d args, but got %d", expected, actual);
-    return racs_pack_error(pk, message);
+    return racs_pack_error(pk, command, message);
 }
 
 int racs_is_object_type(msgpack_object *obj, msgpack_object_type type, int arg_num) {

@@ -29,18 +29,18 @@ typedef enum {
     RACS_STATUS_ERROR
 } racs_status;
 
-#define racs_validate(pk, condition, error) \
+#define racs_validate(pk, condition, command, error) \
     if (!(condition)) {                      \
         msgpack_sbuffer_clear(out_buf);      \
-        return racs_pack_error(pk, error); \
+        return racs_pack_error(pk, command, error); \
     }
 
-#define racs_validate_type(pk, msg, arg_num, obj_type, error) \
-    racs_validate(pk, obj_type == ((msg).data.via.array.ptr[arg_num].type), error)
+#define racs_validate_arg_type(pk, msg, arg_num, obj_type, command, error) \
+    racs_validate(pk, obj_type == ((msg).data.via.array.ptr[arg_num].type), command, error)
 
-#define racs_validate_num_args(pk, msg, num_args) \
+#define racs_validate_num_args(pk, msg, command, num_args) \
     if ((msg).data.type == MSGPACK_OBJECT_ARRAY && (msg).data.via.array.size != (num_args)) \
-        return racs_pack_invalid_num_args(pk, num_args, (msg).data.via.array.size);
+        return racs_pack_invalid_num_args(pk, command, num_args, (msg).data.via.array.size);
 
 #define racs_create_command(name) \
     int racs_command_##name(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, racs_context* ctx, bool is_final)

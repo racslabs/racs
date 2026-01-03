@@ -34,9 +34,9 @@ typedef enum {
     RACS_TYPE_C64VEC
 } racs_type;
 
-#define racs_parse_buf(buf, pk, msg, message) \
+#define racs_parse_buf(buf, pk, msg, command, message) \
     if (msgpack_unpack_next(msg, (buf)->data, (buf)->size, 0) == MSGPACK_UNPACK_PARSE_ERROR) { \
-        return racs_pack_error((pk), message);\
+        return racs_pack_error((pk), command , message);\
     }
 
 extern const char *const racs_type_string[];
@@ -45,7 +45,7 @@ int racs_pack_null_with_status_ok(msgpack_packer *pk);
 
 int racs_pack_null_with_status_not_found(msgpack_packer *pk);
 
-int racs_pack_error(msgpack_packer *pk, const char *message);
+int racs_pack_error(msgpack_packer *pk, const char * command, const char *message);
 
 int racs_pack_str(msgpack_packer *pk, const char *str);
 
@@ -77,7 +77,7 @@ int racs_pack_s32v_without_metadata(msgpack_packer *pk, racs_int32 *data, size_t
 
 void racs_pack_type(msgpack_packer *pk, int type);
 
-int racs_pack_invalid_num_args(msgpack_packer *pk, int expected, int actual);
+int racs_pack_invalid_num_args(msgpack_packer *pk, const char *command, int expected, int actual);
 
 int racs_pack_streams(msgpack_packer *pk, racs_streams *streams);
 

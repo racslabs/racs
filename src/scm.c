@@ -144,7 +144,7 @@ int racs_scm_pack(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x, bool is_final
         return racs_scm_pack_c32vector(pk, x);
 
     msgpack_sbuffer_clear(buf);
-    return racs_pack_error(pk, "Unsupported SCM type");
+    return racs_pack_error(pk, "EVAL", "Unsupported SCM type");
 }
 
 int racs_scm_pack_element(msgpack_packer *pk, msgpack_sbuffer *buf, SCM v) {
@@ -170,7 +170,7 @@ int racs_scm_pack_element(msgpack_packer *pk, msgpack_sbuffer *buf, SCM v) {
     }
 
     msgpack_sbuffer_clear(buf);
-    racs_pack_error(pk, "Unsupported SCM type");
+    racs_pack_error(pk, "EVAL", "Unsupported SCM type");
 
     return false;
 }

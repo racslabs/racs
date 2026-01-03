@@ -18,8 +18,8 @@ racs_create_command(ping) {
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
 
-    racs_parse_buf(in_buf, &pk, &msg, "Error parsing args")
-    racs_validate_num_args(&pk, msg, 0)
+    racs_parse_buf(in_buf, &pk, &msg, "PING", "Error parsing args")
+    racs_validate_num_args(&pk, msg, "PING", 0)
 
     return racs_pack_str(&pk, "PONG");
 }
@@ -33,13 +33,13 @@ racs_create_command(streamcreate) {
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
 
-    racs_parse_buf(in_buf, &pk, &msg, "Error parsing args")
+    racs_parse_buf(in_buf, &pk, &msg, "CREATE", "Error parsing args")
 
-    racs_validate_num_args(&pk, msg, 4)
-    racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected: string")
-    racs_validate_type(&pk, msg, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: int")
-    racs_validate_type(&pk, msg, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 3. Expected: int")
-    racs_validate_type(&pk, msg, 3, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 4. Expected: int")
+    racs_validate_num_args(&pk, msg, "CREATE", 4)
+    racs_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "CREATE", "Invalid type at arg 1. Expected: string")
+    racs_validate_arg_type(&pk, msg, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "CREATE", "Invalid type at arg 2. Expected: positive int")
+    racs_validate_arg_type(&pk, msg, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "CREATE", "Invalid type at arg 3. Expected: positive int")
+    racs_validate_arg_type(&pk, msg, 3, MSGPACK_OBJECT_POSITIVE_INTEGER, "CREATE", "Invalid type at arg 4. Expected: positive int")
 
     char *stream_id = racs_unpack_str(&msg.data, 0);
 
@@ -51,7 +51,7 @@ racs_create_command(streamcreate) {
     if (rc == 1)
         return racs_pack_null_with_status_ok(&pk);
 
-    return racs_pack_error(&pk, "Stream already exist.");
+    return racs_pack_error(&pk, "CREATE", "Stream already exist.");
 }
 
 racs_create_command(streamlist) {
@@ -63,9 +63,9 @@ racs_create_command(streamlist) {
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
 
-    racs_parse_buf(in_buf, &pk, &msg, "Error parsing args")
-    racs_validate_num_args(&pk, msg, 1)
-    racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
+    racs_parse_buf(in_buf, &pk, &msg, "LIST", "Error parsing args")
+    racs_validate_num_args(&pk, msg, "LIST", 1)
+    racs_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "LIST", "Invalid type at arg 1. Expected string")
 
     char *pattern = racs_unpack_str(&msg.data, 0);
 
@@ -89,10 +89,10 @@ racs_create_command(streamopen) {
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
 
-    racs_parse_buf(in_buf, &pk, &msg, "Error parsing args")
+    racs_parse_buf(in_buf, &pk, &msg, "OPEN", "Error parsing args")
 
-    racs_validate_num_args(&pk, msg, 1)
-    racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
+    racs_validate_num_args(&pk, msg, "OPEN", 1)
+    racs_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "OPEN", "Invalid type at arg 1. Expected string")
 
     char *stream_id = racs_unpack_str(&msg.data, 0);
     int rc = racs_stream_open(ctx->kv, racs_hash(stream_id));
@@ -101,7 +101,7 @@ racs_create_command(streamopen) {
     if (rc == 1)
         return racs_pack_null_with_status_ok(&pk);
 
-    return racs_pack_error(&pk, "Stream is already open");
+    return racs_pack_error(&pk, "OPEN", "Stream is already open");
 }
 
 racs_create_command(streamclose) {
@@ -113,10 +113,10 @@ racs_create_command(streamclose) {
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
 
-    racs_parse_buf(in_buf, &pk, &msg, "Error parsing args")
+    racs_parse_buf(in_buf, &pk, &msg, "CLOSE", "Error parsing args")
 
-    racs_validate_num_args(&pk, msg, 1)
-    racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
+    racs_validate_num_args(&pk, msg, "CLOSE", 1)
+    racs_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "CLOSE", "Invalid type at arg 1. Expected string")
 
     char *stream_id = racs_unpack_str(&msg.data, 0);
     int rc = racs_stream_close(ctx->kv, racs_hash(stream_id));
@@ -125,7 +125,7 @@ racs_create_command(streamclose) {
     if (rc == 1)
         return racs_pack_null_with_status_ok(&pk);
 
-    return racs_pack_error(&pk, "Stream is not open");
+    return racs_pack_error(&pk, "CLOSE", "Stream is not open");
 }
 
 racs_create_command(metadata) {
@@ -137,11 +137,11 @@ racs_create_command(metadata) {
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
 
-    racs_parse_buf(in_buf, &pk, &msg, "Error parsing args")
+    racs_parse_buf(in_buf, &pk, &msg, "META", "Error parsing args")
 
-    racs_validate_num_args(&pk, msg, 2)
-    racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
-    racs_validate_type(&pk, msg, 1, MSGPACK_OBJECT_STR, "Invalid type at arg 2. Expected string")
+    racs_validate_num_args(&pk, msg, "META", 2)
+    racs_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "META", "Invalid type at arg 1. Expected string")
+    racs_validate_arg_type(&pk, msg, 1, MSGPACK_OBJECT_STR, "META", "Invalid type at arg 2. Expected string")
 
     char *stream_id = racs_unpack_str(&msg.data, 0);
     char *attr = racs_unpack_str(&msg.data, 1);
@@ -153,7 +153,7 @@ racs_create_command(metadata) {
     free(attr);
 
     if (value != 0) return racs_pack_int64(&pk, value);
-    return racs_pack_error(&pk, "Failure reading metadata");
+    return racs_pack_error(&pk, "META", "Failure reading metadata");
 }
 
 racs_create_command(eval) {
@@ -165,10 +165,10 @@ racs_create_command(eval) {
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
 
-    racs_parse_buf(in_buf, &pk, &msg, "Error parsing args")
+    racs_parse_buf(in_buf, &pk, &msg, "EVAL", "Error parsing args")
 
-    racs_validate_num_args(&pk, msg, 1)
-    racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected string")
+    racs_validate_num_args(&pk, msg, "EVAL", 1)
+    racs_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "EVAL", "Invalid type at arg 1. Expected string")
 
     char *error = NULL;
     char *expr = racs_unpack_str(&msg.data, 0);
@@ -176,7 +176,7 @@ racs_create_command(eval) {
     SCM res = racs_scm_safe_eval_with_error_handling(expr, &error);
     free(expr);
 
-    if (error) return racs_pack_error(&pk, error);
+    if (error) return racs_pack_error(&pk, "EVAL", error);
 
     return racs_scm_pack(&pk, out_buf, res, is_final);
 }
@@ -190,12 +190,12 @@ racs_create_command(range) {
     msgpack_unpacked msg;
     msgpack_unpacked_init(&msg);
 
-    racs_parse_buf(in_buf, &pk, &msg, "Error parsing args")
+    racs_parse_buf(in_buf, &pk, &msg, "RANGE", "Error parsing args")
 
-    racs_validate_num_args(&pk, msg, 3)
-    racs_validate_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected: string")
-    racs_validate_type(&pk, msg, 1, MSGPACK_OBJECT_FLOAT64, "Invalid type at arg 2. Expected: float")
-    racs_validate_type(&pk, msg, 2, MSGPACK_OBJECT_FLOAT64, "Invalid type at arg 3. Expected: float")
+    racs_validate_num_args(&pk, msg, "RANGE", 3)
+    racs_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "RANGE", "Invalid type at arg 1. Expected: string")
+    racs_validate_arg_type(&pk, msg, 1, MSGPACK_OBJECT_FLOAT64, "RANGE", "Invalid type at arg 2. Expected: float")
+    racs_validate_arg_type(&pk, msg, 2, MSGPACK_OBJECT_FLOAT64, "RANGE", "Invalid type at arg 3. Expected: float")
 
     char *stream_id = racs_unpack_str(&msg.data, 0);
     double start = racs_unpack_float64(&msg.data, 1);
@@ -207,7 +207,7 @@ racs_create_command(range) {
     if (rc == RACS_RANGE_STATUS_NOT_FOUND) {
         free(stream_id);
         racs_pcm_destroy(&pcm);
-        return racs_pack_error(&pk, "The stream-id does not exist");
+        return racs_pack_error(&pk, "RANGE", "The stream-id does not exist");
     }
 
     racs_int32 *samples = NULL;
@@ -221,7 +221,7 @@ racs_create_command(range) {
 
     if (!samples) {
         free(stream_id);
-        return racs_pack_error(&pk, "Unknown error");
+        return racs_pack_error(&pk, "RANGE", "Unknown error");
     }
 
     // pre-pend sample-rate, channels and bit-depth
@@ -247,22 +247,22 @@ racs_create_command(encode) {
     msgpack_unpacked msg2;
     msgpack_unpacked_init(&msg2);
 
-    racs_parse_buf(in_buf, &pk, &msg1, "Error parsing args")
-    racs_parse_buf(out_buf, &pk, &msg2, "Error parsing buffer")
+    racs_parse_buf(in_buf, &pk, &msg1, "ENCODE", "Error parsing args")
+    racs_parse_buf(out_buf, &pk, &msg2, "ENCODE", "Error parsing buffer")
 
-    racs_validate_num_args(&pk, msg1, 1)
-    racs_validate_type(&pk, msg1, 0, MSGPACK_OBJECT_STR, "Invalid type at arg 1. Expected: string")
+    racs_validate_num_args(&pk, msg1, "ENCODE", 1)
+    racs_validate_arg_type(&pk, msg1, 0, MSGPACK_OBJECT_STR, "ENCODE", "Invalid type at arg 1. Expected: string")
 
     if (msg2.data.type == MSGPACK_OBJECT_NIL) {
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Missing input data.");
+        return racs_pack_error(&pk, "ENCODE", "Missing input data.");
     }
 
     char *type = racs_unpack_str(&msg2.data, 0);
     if (strcmp(type, "s32v") != 0) {
         free(type);
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Invalid input type. Expected: int32 array");
+        return racs_pack_error(&pk, "ENCODE", "Invalid input type. Expected: int32 array");
     }
 
     free(type);
@@ -274,7 +274,7 @@ racs_create_command(encode) {
     if (size == 0 || !in) {
         free(mime_type);
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Missing input data.");
+        return racs_pack_error(&pk, "ENCODE", "Missing input data.");
     }
 
     racs_encode encode;
@@ -301,7 +301,7 @@ racs_create_command(encode) {
     free(out);
 
     msgpack_sbuffer_clear(out_buf);
-    return racs_pack_error(&pk, "Unsupported format");
+    return racs_pack_error(&pk, "ENCODE", "Unsupported format");
 }
 
 racs_create_command(shutdown) {
@@ -319,22 +319,22 @@ racs_create_command(gain) {
     msgpack_unpacked msg2;
     msgpack_unpacked_init(&msg2);
 
-    racs_parse_buf(in_buf, &pk, &msg1, "Error parsing args")
-    racs_parse_buf(out_buf, &pk, &msg2, "Error parsing buffer")
+    racs_parse_buf(in_buf, &pk, &msg1, "GAIN", "Error parsing args")
+    racs_parse_buf(out_buf, &pk, &msg2, "GAIN", "Error parsing buffer")
 
-    racs_validate_num_args(&pk, msg1, 1)
-    racs_validate_type(&pk, msg1, 0, MSGPACK_OBJECT_FLOAT64, "Invalid type at arg 1. Expected: float")
+    racs_validate_num_args(&pk, msg1, "GAIN", 1)
+    racs_validate_arg_type(&pk, msg1, 0, MSGPACK_OBJECT_FLOAT64, "GAIN", "Invalid type at arg 1. Expected: float")
 
     if (msg2.data.type == MSGPACK_OBJECT_NIL) {
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Missing input data.");
+        return racs_pack_error(&pk, "GAIN", "Missing input data.");
     }
 
     char *type = racs_unpack_str(&msg2.data, 0);
     if (strcmp(type, "s32v") != 0) {
         free(type);
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Invalid input type. Expected: int32 array");
+        return racs_pack_error(&pk, "GAIN", "Invalid input type. Expected: int32 array");
     }
 
     free(type);
@@ -345,7 +345,7 @@ racs_create_command(gain) {
 
     if (in_size < 2 || !in) {
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Missing input data.");
+        return racs_pack_error(&pk, "GAIN", "Missing input data.");
     }
 
     racs_int32 *out = racs_daw_ops_gain(in, in_size, gain);
@@ -371,23 +371,23 @@ racs_create_command(trim) {
     msgpack_unpacked msg2;
     msgpack_unpacked_init(&msg2);
 
-    racs_parse_buf(in_buf, &pk, &msg1, "Error parsing args")
-    racs_parse_buf(out_buf, &pk, &msg2, "Error parsing buffer")
+    racs_parse_buf(in_buf, &pk, &msg1, "TRIM", "Error parsing args")
+    racs_parse_buf(out_buf, &pk, &msg2, "TRIM", "Error parsing buffer")
 
-    racs_validate_num_args(&pk, msg1, 2)
-    racs_validate_type(&pk, msg1, 0, MSGPACK_OBJECT_FLOAT64, "Invalid type at arg 1. Expected: float")
-    racs_validate_type(&pk, msg1, 1, MSGPACK_OBJECT_FLOAT64, "Invalid type at arg 1. Expected: float")
+    racs_validate_num_args(&pk, msg1, "TRIM", 2)
+    racs_validate_arg_type(&pk, msg1, 0, MSGPACK_OBJECT_FLOAT64, "TRIM", "Invalid type at arg 1. Expected: float")
+    racs_validate_arg_type(&pk, msg1, 1, MSGPACK_OBJECT_FLOAT64, "TRIM", "Invalid type at arg 1. Expected: float")
 
     if (msg2.data.type == MSGPACK_OBJECT_NIL) {
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Missing input data.");
+        return racs_pack_error(&pk, "TRIM", "Missing input data.");
     }
 
     char *type = racs_unpack_str(&msg2.data, 0);
     if (strcmp(type, "s32v") != 0) {
         free(type);
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Invalid input type. Expected: int32 array");
+        return racs_pack_error(&pk, "TRIM", "Invalid input type. Expected: int32 array");
     }
 
     free(type);
@@ -400,7 +400,7 @@ racs_create_command(trim) {
 
     if (in_size < 2 || !in) {
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Missing input data.");
+        return racs_pack_error(&pk, "TRIM", "Missing input data.");
     }
 
     size_t out_size;
@@ -428,23 +428,23 @@ racs_create_command(fade) {
     msgpack_unpacked msg2;
     msgpack_unpacked_init(&msg2);
 
-    racs_parse_buf(in_buf, &pk, &msg1, "Error parsing args")
-    racs_parse_buf(out_buf, &pk, &msg2, "Error parsing buffer")
+    racs_parse_buf(in_buf, &pk, &msg1, "FADE", "Error parsing args")
+    racs_parse_buf(out_buf, &pk, &msg2, "FADE", "Error parsing buffer")
 
-    racs_validate_num_args(&pk, msg1, 2)
-    racs_validate_type(&pk, msg1, 0, MSGPACK_OBJECT_FLOAT64, "Invalid type at arg 1. Expected: float")
-    racs_validate_type(&pk, msg1, 1, MSGPACK_OBJECT_FLOAT64, "Invalid type at arg 1. Expected: float")
+    racs_validate_num_args(&pk, msg1, "FADE", 2)
+    racs_validate_arg_type(&pk, msg1, 0, MSGPACK_OBJECT_FLOAT64, "FADE", "Invalid type at arg 1. Expected: float")
+    racs_validate_arg_type(&pk, msg1, 1, MSGPACK_OBJECT_FLOAT64, "FADE", "Invalid type at arg 1. Expected: float")
 
     if (msg2.data.type == MSGPACK_OBJECT_NIL) {
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Missing input data.");
+        return racs_pack_error(&pk, "FADE", "Missing input data.");
     }
 
     char *type = racs_unpack_str(&msg2.data, 0);
     if (strcmp(type, "s32v") != 0) {
         free(type);
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Invalid input type. Expected: int32 array");
+        return racs_pack_error(&pk, "FADE", "Invalid input type. Expected: int32 array");
     }
 
     free(type);
@@ -457,7 +457,7 @@ racs_create_command(fade) {
 
     if (in_size < 2 || !in) {
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Missing input data.");
+        return racs_pack_error(&pk, "FADE", "Missing input data.");
     }
 
     size_t out_size;
@@ -485,22 +485,22 @@ racs_create_command(pan) {
     msgpack_unpacked msg2;
     msgpack_unpacked_init(&msg2);
 
-    racs_parse_buf(in_buf, &pk, &msg1, "Error parsing args")
-    racs_parse_buf(out_buf, &pk, &msg2, "Error parsing buffer")
+    racs_parse_buf(in_buf, &pk, &msg1, "PAN", "Error parsing args")
+    racs_parse_buf(out_buf, &pk, &msg2, "PAN", "Error parsing buffer")
 
-    racs_validate_num_args(&pk, msg1, 1)
-    racs_validate_type(&pk, msg1, 0, MSGPACK_OBJECT_FLOAT64, "Invalid type at arg 1. Expected: float")
+    racs_validate_num_args(&pk, msg1, "PAN", 1)
+    racs_validate_arg_type(&pk, msg1, 0, MSGPACK_OBJECT_FLOAT64, "PAN", "Invalid type at arg 1. Expected: float")
 
     if (msg2.data.type == MSGPACK_OBJECT_NIL) {
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Missing input data.");
+        return racs_pack_error(&pk, "PAN", "Missing input data.");
     }
 
     char *type = racs_unpack_str(&msg2.data, 0);
     if (strcmp(type, "s32v") != 0) {
         free(type);
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Invalid input type. Expected: int32 array");
+        return racs_pack_error(&pk, "PAN", "Invalid input type. Expected: int32 array");
     }
 
     free(type);
@@ -508,7 +508,7 @@ racs_create_command(pan) {
     double pan = racs_unpack_float64(&msg1.data, 0);
     if (pan < -1.0 || pan > 1.0) {
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Pan must be between -1.0 and +1.0.");
+        return racs_pack_error(&pk, "PAN", "Pan must be between -1.0 and +1.0.");
     }
 
     racs_int32 *in = racs_unpack_s32v(&msg2.data, 1);
@@ -516,7 +516,7 @@ racs_create_command(pan) {
 
     if (in_size < 2 || !in) {
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Missing input data.");
+        return racs_pack_error(&pk, "PAN", "Missing input data.");
     }
 
     size_t out_size;
@@ -544,23 +544,23 @@ racs_create_command(pad) {
     msgpack_unpacked msg2;
     msgpack_unpacked_init(&msg2);
 
-    racs_parse_buf(in_buf, &pk, &msg1, "Error parsing args")
-    racs_parse_buf(out_buf, &pk, &msg2, "Error parsing buffer")
+    racs_parse_buf(in_buf, &pk, &msg1, "PAD", "Error parsing args")
+    racs_parse_buf(out_buf, &pk, &msg2, "PAD", "Error parsing buffer")
 
-    racs_validate_num_args(&pk, msg1, 2)
-    racs_validate_type(&pk, msg1, 0, MSGPACK_OBJECT_FLOAT64, "Invalid type at arg 1. Expected: float")
-    racs_validate_type(&pk, msg1, 1, MSGPACK_OBJECT_FLOAT64, "Invalid type at arg 2. Expected: float")
+    racs_validate_num_args(&pk, msg1, "PAD", 2)
+    racs_validate_arg_type(&pk, msg1, 0, MSGPACK_OBJECT_FLOAT64, "PAD", "Invalid type at arg 1. Expected: float")
+    racs_validate_arg_type(&pk, msg1, 1, MSGPACK_OBJECT_FLOAT64, "PAD", "Invalid type at arg 2. Expected: float")
 
     if (msg2.data.type == MSGPACK_OBJECT_NIL) {
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Missing input data.");
+        return racs_pack_error(&pk, "PAD", "Missing input data.");
     }
 
     char *type = racs_unpack_str(&msg2.data, 0);
     if (strcmp(type, "s32v") != 0) {
         free(type);
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Invalid input type. Expected: int32 array");
+        return racs_pack_error(&pk, "PAD", "Invalid input type. Expected: int32 array");
     }
 
     free(type);
@@ -573,7 +573,7 @@ racs_create_command(pad) {
 
     if (in_size < 2 || !in) {
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Missing input data.");
+        return racs_pack_error(&pk, "PAD", "Missing input data.");
     }
 
     size_t out_size;
@@ -601,23 +601,23 @@ racs_create_command(clip) {
     msgpack_unpacked msg2;
     msgpack_unpacked_init(&msg2);
 
-    racs_parse_buf(in_buf, &pk, &msg1, "Error parsing args")
-    racs_parse_buf(out_buf, &pk, &msg2, "Error parsing buffer")
+    racs_parse_buf(in_buf, &pk, &msg1, "CLIP", "Error parsing args")
+    racs_parse_buf(out_buf, &pk, &msg2, "CLIP", "Error parsing buffer")
 
-    racs_validate_num_args(&pk, msg1, 2)
-    racs_validate_type(&pk, msg1, 0, MSGPACK_OBJECT_NEGATIVE_INTEGER, "Invalid type at arg 1. Expected: negative int")
-    racs_validate_type(&pk, msg1, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: positive int")
+    racs_validate_num_args(&pk, msg1, "CLIP", 2)
+    racs_validate_arg_type(&pk, msg1, 0, MSGPACK_OBJECT_NEGATIVE_INTEGER, "CLIP", "Invalid type at arg 1. Expected: negative int")
+    racs_validate_arg_type(&pk, msg1, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "CLIP", "Invalid type at arg 2. Expected: positive int")
 
     if (msg2.data.type == MSGPACK_OBJECT_NIL) {
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Missing input data.");
+        return racs_pack_error(&pk, "CLIP", "Missing input data.");
     }
 
     char *type = racs_unpack_str(&msg2.data, 0);
     if (strcmp(type, "s32v") != 0) {
         free(type);
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Invalid input type. Expected: int32 array");
+        return racs_pack_error(&pk, "CLIP", "Invalid input type. Expected: int32 array");
     }
 
     free(type);
@@ -630,7 +630,7 @@ racs_create_command(clip) {
 
     if (in_size < 2 || !in) {
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Missing input data.");
+        return racs_pack_error(&pk, "CLIP", "Missing input data.");
     }
 
     size_t out_size;
@@ -658,22 +658,22 @@ racs_create_command(split) {
     msgpack_unpacked msg2;
     msgpack_unpacked_init(&msg2);
 
-    racs_parse_buf(in_buf, &pk, &msg1, "Error parsing args")
-    racs_parse_buf(out_buf, &pk, &msg2, "Error parsing buffer")
+    racs_parse_buf(in_buf, &pk, &msg1, "SPLIT", "Error parsing args")
+    racs_parse_buf(out_buf, &pk, &msg2, "SPLIT", "Error parsing buffer")
 
-    racs_validate_num_args(&pk, msg1, 1)
-    racs_validate_type(&pk, msg1, 0, MSGPACK_OBJECT_POSITIVE_INTEGER, "Invalid type at arg 2. Expected: positive int")
+    racs_validate_num_args(&pk, msg1, "SPLIT", 1)
+    racs_validate_arg_type(&pk, msg1, 0, MSGPACK_OBJECT_POSITIVE_INTEGER, "SPLIT", "Invalid type at arg 2. Expected: positive int")
 
     if (msg2.data.type == MSGPACK_OBJECT_NIL) {
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Missing input data.");
+        return racs_pack_error(&pk, "SPLIT", "Missing input data.");
     }
 
     char *type = racs_unpack_str(&msg2.data, 0);
     if (strcmp(type, "s32v") != 0) {
         free(type);
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Invalid input type. Expected: int32 array");
+        return racs_pack_error(&pk, "SPLIT", "Invalid input type. Expected: int32 array");
     }
 
     free(type);
@@ -685,18 +685,18 @@ racs_create_command(split) {
 
     if (in_size < 2 || !in) {
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Missing input data.");
+        return racs_pack_error(&pk, "SPLIT", "Missing input data.");
     }
 
     racs_uint16 channels = (racs_uint16)(in[1] >> 16);
     if (channels != 2) {
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Invalid number of channels.");
+        return racs_pack_error(&pk, "SPLIT", "Invalid number of channels.");
     }
 
     if (channel > 1) {
         msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "Invalid channel number.");
+        return racs_pack_error(&pk, "SPLIT", "Invalid channel number.");
     }
 
     size_t out_size;
@@ -722,7 +722,7 @@ int racs_stream(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data) {
     if (rc == RACS_STREAM_OK)
         return racs_pack_null_with_status_ok(&pk);
 
-    return racs_pack_error(&pk, racs_stream_status_string[rc]);
+    return racs_pack_error(&pk, "STREAM", racs_stream_status_string[rc]);
 }
 
 int racs_stream_batch(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data, size_t size) {
