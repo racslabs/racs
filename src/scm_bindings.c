@@ -258,40 +258,38 @@ SCM racs_scm_merge(SCM in_a, SCM in_b) {
     return scm_take_s32vector(out, out_size);
 }
 
-SCM racs_scm_range(SCM stream_id, SCM from, SCM to) {
-    char *cmd = NULL;
-    asprintf(&cmd, "RANGE '%s' %f %f",
-             scm_to_locale_string(stream_id),
-             scm_to_double(from),
-             scm_to_double(to));
+SCM racs_scm_range(SCM stream_id, SCM start, SCM duration) {
+    char *_stream_id = scm_to_locale_string(stream_id);
+    double _start = scm_to_double(start);
+    double _duration = scm_to_double(duration);
+
+    racs_pcm pcm;
 
     racs_db *db = racs_db_instance();
-    racs_result res = racs_db_exec(db, cmd);
 
-    free(cmd);
-
-    msgpack_unpacked msg;
-    msgpack_unpacked_init(&msg);
-
-    if (msgpack_unpack_next(&msg, (char *) res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
-        free(res.data);
-        scm_misc_error("range", "Deserialization error", SCM_EOL);
+    int rc = racs_range(&db->ctx, &pcm, _stream_id, _start, _duration);
+    if (rc == RACS_RANGE_STATUS_NOT_FOUND) {
+        racs_pcm_destroy(&pcm);
+        scm_misc_error("range", "The stream-id does not exist", SCM_EOL);
     }
 
-    char *type = racs_unpack_str(&msg.data, 0);
-    if (strcmp(type, "error") == 0) {
-        racs_scm_propagate_error(&msg.data, res.data);
-    }
+    racs_int32 *samples = NULL;
+    size_t size = pcm.samples * pcm.channels;
 
-    if (strcmp(type, "null") == 0) {
-        free(res.data);
-        return SCM_EOL;
-    }
+    if (pcm.bit_depth == 16)
+        samples = racs_s16_s32((const racs_int16 *) pcm.out_stream.data, size);
+    if (pcm.bit_depth == 24)
+        samples = racs_s24_s32((const racs_int24 *) pcm.out_stream.data, size);
+    free(pcm.out_stream.data);
 
-    size_t size = racs_unpack_s32v_size(&msg.data, 1);
-    racs_int32 *data = racs_unpack_s32v(&msg.data, 1);
+    if (!samples)
+        scm_misc_error("range", "Unknown error", SCM_EOL);
 
-    return scm_take_s32vector(data, size);
+    // pre-pend sample-rate, channels and bit-depth
+    samples[0] = (racs_int32)pcm.sample_rate;
+    samples[1] = (uint16_t)pcm.channels << 16 | (uint16_t)pcm.bit_depth;
+
+    return scm_take_s32vector(samples, size + 2);
 }
 
 SCM racs_scm_metadata(SCM stream_id, SCM attr) {

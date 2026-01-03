@@ -61,33 +61,6 @@ racs_result racs_exec_exec(racs_exec *exec, racs_context *ctx, const char *cmd) 
 
     racs_exec_plan_destroy(&plan);
 
-    // if (msgpack_unpack_next(&msg, out_buf.data, out_buf.size, 0) != MSGPACK_UNPACK_PARSE_ERROR) {
-    //     char *type = racs_unpack_str(&msg.data, 0);
-    //     if (strcmp(type, "s32v") == 0) {
-    //         free(type);
-    //
-    //         msgpack_sbuffer _out_buf;
-    //         msgpack_sbuffer_init(&_out_buf);
-    //
-    //         msgpack_packer pk;
-    //         msgpack_packer_init(&pk, &_out_buf, msgpack_sbuffer_write);
-    //
-    //         racs_int32 *data = racs_unpack_s32v(&msg.data, 1);
-    //         size_t size = racs_unpack_s32v_size(&msg.data, 1);
-    //
-    //         racs_pack_s32v_without_metadata(&pk, data, size);
-    //
-    //         racs_result_init(&result, _out_buf.size);
-    //         memcpy(result.data, _out_buf.data, _out_buf.size);
-    //
-    //         msgpack_sbuffer_destroy(&in_buf);
-    //         msgpack_sbuffer_destroy(&out_buf);
-    //         msgpack_sbuffer_destroy(&_out_buf);
-    //
-    //         return result;
-    //     }
-    // }
-
     racs_result_init(&result, out_buf.size);
     memcpy(result.data, out_buf.data, out_buf.size);
 
@@ -164,7 +137,10 @@ void racs_exec_plan_exec(racs_exec_plan *plan, racs_exec *exec, racs_context *ct
 
         msgpack_packer_init(&pk, in_buf, msgpack_sbuffer_write);
         racs_command_serialize_args(cmd, &pk);
-        int rc = func(in_buf, out_buf, ctx);
+
+        bool is_final = i == plan->num_cmd - 1;
+
+        int rc = func(in_buf, out_buf, ctx, is_final);
         msgpack_sbuffer_clear(in_buf);
 
         if (rc != RACS_STATUS_OK) break;

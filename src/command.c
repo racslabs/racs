@@ -178,7 +178,7 @@ racs_create_command(eval) {
 
     if (error) return racs_pack_error(&pk, error);
 
-    return racs_scm_pack(&pk, out_buf, res);
+    return racs_scm_pack(&pk, out_buf, res, is_final);
 }
 
 racs_create_command(range) {
@@ -217,21 +217,23 @@ racs_create_command(range) {
         samples = racs_s16_s32((const racs_int16 *) pcm.out_stream.data, size);
     if (pcm.bit_depth == 24)
         samples = racs_s24_s32((const racs_int24 *) pcm.out_stream.data, size);
+    free(pcm.out_stream.data);
 
     if (!samples) {
         free(stream_id);
-        return racs_pack_error(&pk, "Error ");
+        return racs_pack_error(&pk, "Unknown error");
     }
 
     // pre-pend sample-rate, channels and bit-depth
     samples[0] = (racs_int32)pcm.sample_rate;
     samples[1] = (uint16_t)pcm.channels << 16 | (uint16_t)pcm.bit_depth;
 
-    rc = racs_pack_s32v(&pk, samples, size + 2);
+    if (is_final)
+        rc = racs_pack_s32v(&pk, samples + 2, size);
+    else
+        rc = racs_pack_s32v(&pk, samples, size + 2);
 
-    free(pcm.out_stream.data);
     free(samples);
-
     return rc;
 }
 
@@ -349,9 +351,13 @@ racs_create_command(gain) {
     racs_int32 *out = racs_daw_ops_gain(in, in_size, gain);
     msgpack_sbuffer_clear(out_buf);
 
-    int rc = racs_pack_s32v(&pk, out, in_size);
-    free(out);
+    int rc;
+    if (is_final)
+        rc = racs_pack_s32v(&pk, out + 2, in_size - 2);
+    else
+        rc = racs_pack_s32v(&pk, out, in_size);
 
+    free(out);
     return rc;
 }
 
@@ -402,9 +408,13 @@ racs_create_command(trim) {
 
     msgpack_sbuffer_clear(out_buf);
 
-    int rc = racs_pack_s32v(&pk, out, out_size);
-    free(out);
+    int rc;
+    if (is_final)
+        rc = racs_pack_s32v(&pk, out + 2, out_size - 2);
+    else
+        rc = racs_pack_s32v(&pk, out, out_size);
 
+    free(out);
     return rc;
 }
 
@@ -455,9 +465,13 @@ racs_create_command(fade) {
 
     msgpack_sbuffer_clear(out_buf);
 
-    int rc = racs_pack_s32v(&pk, out, out_size);
-    free(out);
+    int rc;
+    if (is_final)
+        rc = racs_pack_s32v(&pk, out + 2, out_size - 2);
+    else
+        rc = racs_pack_s32v(&pk, out, out_size);
 
+    free(out);
     return rc;
 }
 
@@ -510,9 +524,13 @@ racs_create_command(pan) {
 
     msgpack_sbuffer_clear(out_buf);
 
-    int rc = racs_pack_s32v(&pk, out, out_size);
-    free(out);
+    int rc;
+    if (is_final)
+        rc = racs_pack_s32v(&pk, out + 2, out_size - 2);
+    else
+        rc = racs_pack_s32v(&pk, out, out_size);
 
+    free(out);
     return rc;
 }
 
@@ -563,9 +581,13 @@ racs_create_command(pad) {
 
     msgpack_sbuffer_clear(out_buf);
 
-    int rc = racs_pack_s32v(&pk, out, out_size);
-    free(out);
+    int rc;
+    if (is_final)
+        rc = racs_pack_s32v(&pk, out + 2, out_size - 2);
+    else
+        rc = racs_pack_s32v(&pk, out, out_size);
 
+    free(out);
     return rc;
 }
 
@@ -616,9 +638,13 @@ racs_create_command(clip) {
 
     msgpack_sbuffer_clear(out_buf);
 
-    int rc = racs_pack_s32v(&pk, out, out_size);
-    free(out);
+    int rc;
+    if (is_final)
+        rc = racs_pack_s32v(&pk, out + 2, out_size - 2);
+    else
+        rc = racs_pack_s32v(&pk, out, out_size);
 
+    free(out);
     return rc;
 }
 
@@ -678,9 +704,13 @@ racs_create_command(split) {
 
     msgpack_sbuffer_clear(out_buf);
 
-    int rc = racs_pack_s32v(&pk, out, out_size);
-    free(out);
+    int rc;
+    if (is_final)
+        rc = racs_pack_s32v(&pk, out + 2, out_size - 2);
+    else
+        rc = racs_pack_s32v(&pk, out, out_size);
 
+    free(out);
     return rc;
 }
 

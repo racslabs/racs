@@ -21,7 +21,7 @@ int racs_scm_pack_s16vector(msgpack_packer *pk, SCM v);
 
 int racs_scm_pack_u16vector(msgpack_packer *pk, SCM v);
 
-int racs_scm_pack_s32vector(msgpack_packer *pk, SCM v);
+int racs_scm_pack_s32vector(msgpack_packer *pk, SCM v, bool is_final);
 
 int racs_scm_pack_u32vector(msgpack_packer *pk, SCM v);
 
@@ -29,7 +29,7 @@ int racs_scm_pack_f32vector(msgpack_packer *pk, SCM v);
 
 int racs_scm_pack_c32vector(msgpack_packer *pk, SCM v);
 
-int racs_scm_pack(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x);
+int racs_scm_pack(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x, bool is_final);
 
 int racs_scm_pack_list(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x);
 

@@ -63,7 +63,7 @@ int racs_scm_pack_u16vector(msgpack_packer *pk, SCM v) {
     return RACS_STATUS_OK;
 }
 
-int racs_scm_pack_s32vector(msgpack_packer *pk, SCM v) {
+int racs_scm_pack_s32vector(msgpack_packer *pk, SCM v, bool is_final) {
     scm_t_array_handle handle;
     size_t n;
 
@@ -71,7 +71,10 @@ int racs_scm_pack_s32vector(msgpack_packer *pk, SCM v) {
     if (!data)
         racs_pack_s32v(pk, 0, 0);
     else
-        racs_pack_s32v(pk, (racs_int32 *) data, n);
+        if (is_final)
+            racs_pack_s32v(pk, (racs_int32 *) data + 2, n - 2);
+        else
+            racs_pack_s32v(pk, (racs_int32 *) data, n);
 
     scm_array_handle_release(&handle);
     return RACS_STATUS_OK;
@@ -110,7 +113,7 @@ int racs_scm_pack_c32vector(msgpack_packer *pk, SCM v) {
     return RACS_STATUS_OK;
 }
 
-int racs_scm_pack(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x) {
+int racs_scm_pack(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x, bool is_final) {
     if (scm_is_integer(x))
         return racs_pack_int64(pk, scm_to_int64(x));
     if (scm_is_number(x))
@@ -132,7 +135,7 @@ int racs_scm_pack(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x) {
     if (scm_is_typed_array(x, scm_from_locale_symbol("u16")))
         return racs_scm_pack_u16vector(pk, x);
     if (scm_is_typed_array(x, scm_from_locale_symbol("s32")))
-        return racs_scm_pack_s32vector(pk, x);
+        return racs_scm_pack_s32vector(pk, x, is_final);
     if (scm_is_typed_array(x, scm_from_locale_symbol("u32")))
         return racs_scm_pack_u32vector(pk, x);
     if (scm_is_typed_array(x, scm_from_locale_symbol("f32")))

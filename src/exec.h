@@ -71,7 +71,7 @@ typedef struct {
     racs_command **cmd;
 } racs_exec_plan;
 
-typedef int (*racs_command_func)(msgpack_sbuffer *in_buf, msgpack_sbuffer *out_buf, racs_context *ctx);
+typedef int (*racs_command_func)(msgpack_sbuffer *in_buf, msgpack_sbuffer *out_buf, racs_context *ctx, bool is_final);
 
 void racs_exec_init(racs_exec *exec);
 

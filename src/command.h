@@ -43,7 +43,7 @@ typedef enum {
         return racs_pack_invalid_num_args(pk, num_args, (msg).data.via.array.size);
 
 #define racs_create_command(name) \
-    int racs_command_##name(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, racs_context* ctx)
+    int racs_command_##name(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, racs_context* ctx, bool is_final)
 
 racs_create_command(range);
 
