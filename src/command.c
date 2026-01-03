@@ -253,19 +253,8 @@ racs_create_command(encode) {
     racs_validate_num_args(&pk, msg1, "ENCODE", 1)
     racs_validate_arg_type(&pk, msg1, 0, MSGPACK_OBJECT_STR, "ENCODE", "Invalid type at arg 1. Expected: string")
 
-    if (msg2.data.type == MSGPACK_OBJECT_NIL) {
-        msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "ENCODE", "Missing input data.");
-    }
-
-    char *type = racs_unpack_str(&msg2.data, 0);
-    if (strcmp(type, "s32v") != 0) {
-        free(type);
-        msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "ENCODE", "Invalid input type. Expected: int32 array");
-    }
-
-    free(type);
+    racs_validate_not_null(&pk, msg2, "ENCODE")
+    racs_validate_s32v(&pk, &msg2, "ENCODE")
 
     racs_int32 *in = racs_unpack_s32v(&msg2.data, 1);
     size_t size = racs_unpack_s32v_size(&msg2.data, 1) - 2;
@@ -325,19 +314,8 @@ racs_create_command(gain) {
     racs_validate_num_args(&pk, msg1, "GAIN", 1)
     racs_validate_arg_type(&pk, msg1, 0, MSGPACK_OBJECT_FLOAT64, "GAIN", "Invalid type at arg 1. Expected: float")
 
-    if (msg2.data.type == MSGPACK_OBJECT_NIL) {
-        msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "GAIN", "Missing input data.");
-    }
-
-    char *type = racs_unpack_str(&msg2.data, 0);
-    if (strcmp(type, "s32v") != 0) {
-        free(type);
-        msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "GAIN", "Invalid input type. Expected: int32 array");
-    }
-
-    free(type);
+    racs_validate_not_null(&pk, msg2, "GAIN")
+    racs_validate_s32v(&pk, &msg2, "GAIN")
 
     double gain = racs_unpack_float64(&msg1.data, 0);
     racs_int32 *in = racs_unpack_s32v(&msg2.data, 1);
@@ -378,19 +356,8 @@ racs_create_command(trim) {
     racs_validate_arg_type(&pk, msg1, 0, MSGPACK_OBJECT_FLOAT64, "TRIM", "Invalid type at arg 1. Expected: float")
     racs_validate_arg_type(&pk, msg1, 1, MSGPACK_OBJECT_FLOAT64, "TRIM", "Invalid type at arg 1. Expected: float")
 
-    if (msg2.data.type == MSGPACK_OBJECT_NIL) {
-        msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "TRIM", "Missing input data.");
-    }
-
-    char *type = racs_unpack_str(&msg2.data, 0);
-    if (strcmp(type, "s32v") != 0) {
-        free(type);
-        msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "TRIM", "Invalid input type. Expected: int32 array");
-    }
-
-    free(type);
+    racs_validate_not_null(&pk, msg2, "TRIM")
+    racs_validate_s32v(&pk, &msg2, "TRIM")
 
     double left_seconds = racs_unpack_float64(&msg1.data, 0);
     double right_seconds = racs_unpack_float64(&msg1.data, 1);
@@ -435,19 +402,8 @@ racs_create_command(fade) {
     racs_validate_arg_type(&pk, msg1, 0, MSGPACK_OBJECT_FLOAT64, "FADE", "Invalid type at arg 1. Expected: float")
     racs_validate_arg_type(&pk, msg1, 1, MSGPACK_OBJECT_FLOAT64, "FADE", "Invalid type at arg 1. Expected: float")
 
-    if (msg2.data.type == MSGPACK_OBJECT_NIL) {
-        msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "FADE", "Missing input data.");
-    }
-
-    char *type = racs_unpack_str(&msg2.data, 0);
-    if (strcmp(type, "s32v") != 0) {
-        free(type);
-        msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "FADE", "Invalid input type. Expected: int32 array");
-    }
-
-    free(type);
+    racs_validate_not_null(&pk, msg2, "FADE")
+    racs_validate_s32v(&pk, &msg2, "FADE")
 
     double fade_in_seconds = racs_unpack_float64(&msg1.data, 0);
     double fade_out_seconds = racs_unpack_float64(&msg1.data, 1);
@@ -491,19 +447,8 @@ racs_create_command(pan) {
     racs_validate_num_args(&pk, msg1, "PAN", 1)
     racs_validate_arg_type(&pk, msg1, 0, MSGPACK_OBJECT_FLOAT64, "PAN", "Invalid type at arg 1. Expected: float")
 
-    if (msg2.data.type == MSGPACK_OBJECT_NIL) {
-        msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "PAN", "Missing input data.");
-    }
-
-    char *type = racs_unpack_str(&msg2.data, 0);
-    if (strcmp(type, "s32v") != 0) {
-        free(type);
-        msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "PAN", "Invalid input type. Expected: int32 array");
-    }
-
-    free(type);
+    racs_validate_not_null(&pk, msg2, "PAN")
+    racs_validate_s32v(&pk, &msg2, "PAN")
 
     double pan = racs_unpack_float64(&msg1.data, 0);
     if (pan < -1.0 || pan > 1.0) {
@@ -551,19 +496,8 @@ racs_create_command(pad) {
     racs_validate_arg_type(&pk, msg1, 0, MSGPACK_OBJECT_FLOAT64, "PAD", "Invalid type at arg 1. Expected: float")
     racs_validate_arg_type(&pk, msg1, 1, MSGPACK_OBJECT_FLOAT64, "PAD", "Invalid type at arg 2. Expected: float")
 
-    if (msg2.data.type == MSGPACK_OBJECT_NIL) {
-        msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "PAD", "Missing input data.");
-    }
-
-    char *type = racs_unpack_str(&msg2.data, 0);
-    if (strcmp(type, "s32v") != 0) {
-        free(type);
-        msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "PAD", "Invalid input type. Expected: int32 array");
-    }
-
-    free(type);
+    racs_validate_not_null(&pk, msg2, "PAD")
+    racs_validate_s32v(&pk, &msg2, "PAD")
 
     double left_seconds = racs_unpack_float64(&msg1.data, 0);
     double right_seconds = racs_unpack_float64(&msg1.data, 1);
@@ -608,19 +542,8 @@ racs_create_command(clip) {
     racs_validate_arg_type(&pk, msg1, 0, MSGPACK_OBJECT_NEGATIVE_INTEGER, "CLIP", "Invalid type at arg 1. Expected: negative int")
     racs_validate_arg_type(&pk, msg1, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "CLIP", "Invalid type at arg 2. Expected: positive int")
 
-    if (msg2.data.type == MSGPACK_OBJECT_NIL) {
-        msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "CLIP", "Missing input data.");
-    }
-
-    char *type = racs_unpack_str(&msg2.data, 0);
-    if (strcmp(type, "s32v") != 0) {
-        free(type);
-        msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "CLIP", "Invalid input type. Expected: int32 array");
-    }
-
-    free(type);
+    racs_validate_not_null(&pk, msg2, "CLIP")
+    racs_validate_s32v(&pk, &msg2, "CLIP")
 
     racs_int32 min = racs_unpack_int32(&msg1.data, 0);
     racs_int32 max = racs_unpack_int32(&msg1.data, 1);
@@ -664,10 +587,7 @@ racs_create_command(split) {
     racs_validate_num_args(&pk, msg1, "SPLIT", 1)
     racs_validate_arg_type(&pk, msg1, 0, MSGPACK_OBJECT_POSITIVE_INTEGER, "SPLIT", "Invalid type at arg 2. Expected: positive int")
 
-    if (msg2.data.type == MSGPACK_OBJECT_NIL) {
-        msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "SPLIT", "Missing input data.");
-    }
+    racs_validate_not_null(&pk, msg2, "SPLIT")
 
     char *type = racs_unpack_str(&msg2.data, 0);
     if (strcmp(type, "s32v") != 0) {

@@ -161,8 +161,8 @@ racs_int32 *racs_ops_pan(
         racs_int32 left  = in[start + i + 0];
         racs_int32 right = in[start + i + 1];
 
-        double left_gain  = (pan <= 0) ? 1.0 : 1.0 - pan;
-        double right_gain = (pan >= 0) ? 1.0 : 1.0 + pan;
+        double left_gain  = pan <= 0 ? 1.0 : 1.0 - pan;
+        double right_gain = pan >= 0 ? 1.0 : 1.0 + pan;
 
         out[start + i + 0] = (racs_int32)(left  * left_gain);
         out[start + i + 1] = (racs_int32)(right * right_gain);
@@ -279,7 +279,6 @@ racs_int32 *racs_ops_merge(
     racs_uint16 channel_b = (racs_uint16)(in_b[1] >> 16);
     if (channel_a != 1 || channel_b != 1) return NULL;
 
-    // metadata must match (sample rate + bit depth)
     if (in_a[0] != in_b[0] || (in_a[1] & 0x0000ffff) != (in_b[1] & 0x0000ffff))
         return NULL;
 
@@ -293,7 +292,6 @@ racs_int32 *racs_ops_merge(
     racs_int32 *out = calloc(*out_len, sizeof(racs_int32));
     if (!out) return NULL;
 
-    // metadata: stereo
     out[0] = in_a[0];
     out[1] = (racs_int32)(in_a[1] & 0x0000ffff | 2u << 16);
 

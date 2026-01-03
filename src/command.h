@@ -42,6 +42,22 @@ typedef enum {
     if ((msg).data.type == MSGPACK_OBJECT_ARRAY && (msg).data.via.array.size != (num_args)) \
         return racs_pack_invalid_num_args(pk, command, num_args, (msg).data.via.array.size);
 
+#define racs_validate_not_null(pk, msg, command) \
+    if ((msg).data.type == MSGPACK_OBJECT_NIL) { \
+        msgpack_sbuffer_clear(out_buf); \
+        return racs_pack_error(pk, command, "Missing input data."); \
+    }
+
+#define racs_validate_s32v(pk, msg, command) \
+    char *type = racs_unpack_str(msg.data, 0); \
+    if (strcmp(type, "s32v") != 0) { \
+        free(type); \
+        msgpack_sbuffer_clear(out_buf); \
+        return racs_pack_error(pk, command, "Invalid input type. Expected: int32 array"); \
+    } \
+    free(type);
+
+
 #define racs_create_command(name) \
     int racs_command_##name(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, racs_context* ctx, bool is_final)
 
