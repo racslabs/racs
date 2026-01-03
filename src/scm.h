@@ -10,6 +10,10 @@
 #ifndef RACS_SCM_H
 #define RACS_SCM_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "pack.h"
 #include <libguile.h>
 
@@ -44,5 +48,9 @@ SCM racs_scm_error_handler(void *data, SCM key, SCM args);
 SCM racs_scm_safe_eval_with_error_handling(char *expr, char **error);
 
 void racs_unescape_single_quotes(char *s);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //RACS_SCM_H

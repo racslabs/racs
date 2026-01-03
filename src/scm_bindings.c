@@ -29,7 +29,7 @@ SCM racs_scm_mix(SCM in_a, SCM in_b) {
     }
 
     size_t out_size;
-    racs_int32 *out = racs_daw_ops_mix(_in_a, _in_a_len, _in_b, _in_b_len, &out_size);
+    racs_int32 *out = racs_ops_mix(_in_a, _in_a_len, _in_b, _in_b_len, &out_size);
 
     scm_array_handle_release(&handle_a);
     scm_array_handle_release(&handle_b);
@@ -51,7 +51,7 @@ SCM racs_scm_gain(SCM in, SCM gain) {
         scm_misc_error("gain", "Missing input data.", SCM_EOL);
     }
 
-    racs_int32 *out = racs_daw_ops_gain(_in, _in_len, _gain);
+    racs_int32 *out = racs_ops_gain(_in, _in_len, _gain);
     scm_array_handle_release(&handle);
 
     return scm_take_s32vector(out, _in_len);
@@ -73,7 +73,7 @@ SCM racs_scm_trim(SCM in, SCM left_seconds, SCM right_seconds) {
     }
 
     size_t out_size;
-    racs_int32 *out = racs_daw_ops_trim(_in, _in_len, _left_seconds, _right_seconds, &out_size);
+    racs_int32 *out = racs_ops_trim(_in, _in_len, _left_seconds, _right_seconds, &out_size);
 
     scm_array_handle_release(&handle);
 
@@ -96,7 +96,7 @@ SCM racs_scm_fade(SCM in, SCM fade_in_seconds, SCM fade_out_seconds) {
     }
 
     size_t out_size;
-    racs_int32 *out = racs_daw_ops_fade(_in, _in_len, _fade_in_seconds, _fade_out_seconds, &out_size);
+    racs_int32 *out = racs_ops_fade(_in, _in_len, _fade_in_seconds, _fade_out_seconds, &out_size);
 
     scm_array_handle_release(&handle);
 
@@ -127,7 +127,7 @@ SCM racs_scm_pan(SCM in, SCM pan) {
     }
 
     size_t out_size;
-    racs_int32 *out = racs_daw_ops_pan(_in, _in_len, _pan, &out_size);
+    racs_int32 *out = racs_ops_pan(_in, _in_len, _pan, &out_size);
 
     scm_array_handle_release(&handle);
     return scm_take_s32vector(out, out_size);
@@ -149,7 +149,7 @@ SCM racs_scm_pad(SCM in, SCM left_seconds, SCM right_seconds) {
     }
 
     size_t out_size;
-    racs_int32 *out = racs_daw_ops_pad(_in, _in_len, _left_seconds, _right_seconds, &out_size);
+    racs_int32 *out = racs_ops_pad(_in, _in_len, _left_seconds, _right_seconds, &out_size);
 
     scm_array_handle_release(&handle);
     return scm_take_s32vector(out, out_size);
@@ -171,7 +171,7 @@ SCM racs_scm_clip(SCM in, SCM min, SCM max) {
     }
 
     size_t out_size;
-    racs_int32 *out = racs_daw_ops_clip(_in, _in_len, _min, _max, &out_size);
+    racs_int32 *out = racs_ops_clip(_in, _in_len, _min, _max, &out_size);
 
     scm_array_handle_release(&handle);
     return scm_take_s32vector(out, out_size);
@@ -203,7 +203,7 @@ SCM racs_scm_split(SCM in, SCM channel) {
     }
 
     size_t out_size;
-    racs_int32 *out = racs_daw_ops_split(_in, _in_len, _channel, &out_size);
+    racs_int32 *out = racs_ops_split(_in, _in_len, _channel, &out_size);
 
     scm_array_handle_release(&handle);
     return scm_take_s32vector(out, out_size);
@@ -250,7 +250,7 @@ SCM racs_scm_merge(SCM in_a, SCM in_b) {
     }
 
     size_t out_size;
-    racs_int32 *out = racs_daw_ops_merge(_in_a, _in_a_len, _in_b, _in_b_len, &out_size);
+    racs_int32 *out = racs_ops_merge(_in_a, _in_a_len, _in_b, _in_b_len, &out_size);
 
     scm_array_handle_release(&handle_a);
     scm_array_handle_release(&handle_b);

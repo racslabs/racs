@@ -348,7 +348,7 @@ racs_create_command(gain) {
         return racs_pack_error(&pk, "GAIN", "Missing input data.");
     }
 
-    racs_int32 *out = racs_daw_ops_gain(in, in_size, gain);
+    racs_int32 *out = racs_ops_gain(in, in_size, gain);
     msgpack_sbuffer_clear(out_buf);
 
     int rc;
@@ -404,7 +404,7 @@ racs_create_command(trim) {
     }
 
     size_t out_size;
-    racs_int32 *out = racs_daw_ops_trim(in, in_size, left_seconds, right_seconds, &out_size);
+    racs_int32 *out = racs_ops_trim(in, in_size, left_seconds, right_seconds, &out_size);
 
     msgpack_sbuffer_clear(out_buf);
 
@@ -461,7 +461,7 @@ racs_create_command(fade) {
     }
 
     size_t out_size;
-    racs_int32 *out = racs_daw_ops_fade(in, in_size, fade_in_seconds, fade_out_seconds, &out_size);
+    racs_int32 *out = racs_ops_fade(in, in_size, fade_in_seconds, fade_out_seconds, &out_size);
 
     msgpack_sbuffer_clear(out_buf);
 
@@ -520,7 +520,7 @@ racs_create_command(pan) {
     }
 
     size_t out_size;
-    racs_int32 *out = racs_daw_ops_pan(in, in_size, pan, &out_size);
+    racs_int32 *out = racs_ops_pan(in, in_size, pan, &out_size);
 
     msgpack_sbuffer_clear(out_buf);
 
@@ -577,7 +577,7 @@ racs_create_command(pad) {
     }
 
     size_t out_size;
-    racs_int32 *out = racs_daw_ops_pad(in, in_size, left_seconds, right_seconds, &out_size);
+    racs_int32 *out = racs_ops_pad(in, in_size, left_seconds, right_seconds, &out_size);
 
     msgpack_sbuffer_clear(out_buf);
 
@@ -634,7 +634,7 @@ racs_create_command(clip) {
     }
 
     size_t out_size;
-    racs_int32 *out = racs_daw_ops_clip(in, in_size, min, max, &out_size);
+    racs_int32 *out = racs_ops_clip(in, in_size, min, max, &out_size);
 
     msgpack_sbuffer_clear(out_buf);
 
@@ -700,7 +700,7 @@ racs_create_command(split) {
     }
 
     size_t out_size;
-    racs_int32 *out = racs_daw_ops_split(in, in_size, channel, &out_size);
+    racs_int32 *out = racs_ops_split(in, in_size, channel, &out_size);
 
     msgpack_sbuffer_clear(out_buf);
 

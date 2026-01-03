@@ -10,6 +10,10 @@
 #ifndef RACS_PARSER_H
 #define RACS_PARSER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -19,11 +23,6 @@
 #include "bytes.h"
 #include "time.h"
 #include "log.h"
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #define RACS_REGEX_PIPE    "\\|>"
 #define RACS_REGEX_STR     "'([^'\\\\]*(\\\\'[^'\\\\]*)*)'"

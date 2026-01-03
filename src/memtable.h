@@ -10,6 +10,10 @@
 #ifndef RACS_MEMTABLE_H
 #define RACS_MEMTABLE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
@@ -28,10 +32,6 @@
 #include "crc32c.h"
 #include "version.h"
 #include "wal.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #define RACS_BLOCK_ALIGN 4096
 

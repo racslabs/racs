@@ -10,6 +10,10 @@
 #ifndef RACS_STREAM_H
 #define RACS_STREAM_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "metadata.h"
 #include "memtable.h"
 #include "frame.h"
@@ -61,5 +65,9 @@ int racs_streamkv_cmp(void *a, void *b);
 void racs_streamkv_destroy_entry(void *key, void *value);
 
 int racs_session_cmp(const racs_uint8 *src, const racs_uint8 *dest);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //RACS_STREAM_H

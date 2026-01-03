@@ -10,6 +10,10 @@
 #ifndef RACS_RESULT_H
 #define RACS_RESULT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -25,5 +29,8 @@ void racs_result_init(racs_result *result, size_t size);
 
 void racs_result_destroy(racs_result *result);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif //RACS_RESULT_H

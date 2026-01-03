@@ -10,6 +10,10 @@
 #ifndef RACS_WAL_H
 #define RACS_WAL_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "types.h"
 #include "bytes.h"
 #include "crc32c.h"
@@ -20,10 +24,6 @@
 #include <libgen.h>
 #include <string.h>
 #include <stdlib.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #define RACS_WAL_SIZE_64MB (1024 * 1024 * 64)
 

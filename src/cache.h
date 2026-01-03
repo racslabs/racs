@@ -10,15 +10,15 @@
 #ifndef RACS_CACHE_H
 #define RACS_CACHE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "kvstore.h"
 #include "murmur3.h"
 #include "log.h"
 #include "types.h"
 #include <pthread.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 typedef struct {
     racs_uint64 key[2];

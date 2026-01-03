@@ -10,6 +10,10 @@
 #ifndef RACS_PACK_H
 #define RACS_PACK_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <msgpack.h>
 #include "range.h"
 #include "exec.h"
@@ -110,5 +114,9 @@ float racs_unpack_float32(msgpack_object *obj, int n);
 double racs_unpack_float64(msgpack_object *obj, int n);
 
 int racs_is_object_type(msgpack_object *obj, msgpack_object_type type, int arg_num);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //RACS_PACK_H

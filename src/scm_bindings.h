@@ -10,9 +10,13 @@
 #ifndef RACS_SCM_BINDINGS_H
 #define RACS_SCM_BINDINGS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "scm.h"
 #include "db.h"
-#include "daw_ops.h"
+#include "ops.h"
 
 SCM racs_scm_mix(SCM in_a, SCM in_b);
 
@@ -41,5 +45,9 @@ SCM racs_scm_encode(SCM data, SCM mime_type);
 void racs_scm_init_bindings();
 
 void racs_scm_init_module();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //RACS_SCM_BINDINGS_H

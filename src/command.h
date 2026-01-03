@@ -21,7 +21,7 @@ extern "C" {
 #include "range.h"
 #include "wav.h"
 #include "encode.h"
-#include "daw_ops.h"
+#include "ops.h"
 
 typedef enum {
     RACS_STATUS_OK,

@@ -10,6 +10,10 @@
 #ifndef RACS_SERVER_H
 #define RACS_SERVER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <event2/event.h>
 #include <event2/bufferevent.h>
 #include <event2/buffer.h>
@@ -62,5 +66,9 @@ void racs_slaves_init_addrs(racs_connection_context *ctx, racs_config *config);
 size_t racs_length_prefix(struct evbuffer *in) ;
 
 void racs_handle_slaves(struct evbuffer *in, racs_connection_context *ctx, size_t length);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //RACS_SERVER_H
