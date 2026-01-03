@@ -47,6 +47,12 @@ racs_create_command(streamcreate) {
     racs_uint16 channels = racs_unpack_uint16(&msg.data, 2);
     racs_uint16 bit_depth = racs_unpack_uint16(&msg.data, 3);
 
+    if (bit_depth != 16 && bit_depth != 24)
+        return racs_pack_error(&pk, "CREATE", "Invalid bit-depth. Only 16- and 24-bit are supported.");
+
+    if (channels != 1 && channels != 2)
+        return racs_pack_error(&pk, "CREATE", "Invalid number of channels. Must be mono or stereo.");
+
     int rc = racs_stream_create(stream_id, sample_rate, channels, bit_depth);
     if (rc == 1)
         return racs_pack_null_with_status_ok(&pk);
@@ -588,15 +594,7 @@ racs_create_command(split) {
     racs_validate_arg_type(&pk, msg1, 0, MSGPACK_OBJECT_POSITIVE_INTEGER, "SPLIT", "Invalid type at arg 2. Expected: positive int")
 
     racs_validate_not_null(&pk, msg2, "SPLIT")
-
-    char *type = racs_unpack_str(&msg2.data, 0);
-    if (strcmp(type, "s32v") != 0) {
-        free(type);
-        msgpack_sbuffer_clear(out_buf);
-        return racs_pack_error(&pk, "SPLIT", "Invalid input type. Expected: int32 array");
-    }
-
-    free(type);
+    racs_validate_s32v(&pk, &msg2, "SPLIT")
 
     racs_uint16 channel = racs_unpack_uint16(&msg1.data, 0);
 
