@@ -9,25 +9,11 @@
 
 #include "exec.h"
 
-racs_result racs_exec_stream_batch(racs_context *ctx, racs_uint8 *data, size_t size) {
+racs_result racs_exec_stream(racs_context *ctx, racs_uint8 *data, size_t size) {
     msgpack_sbuffer out_buf;
     msgpack_sbuffer_init(&out_buf);
 
-    racs_stream_batch(&out_buf, ctx, data + 4, size - 4);
-
-    racs_result result;
-    racs_result_init(&result, out_buf.size);
-    memcpy(result.data, out_buf.data, out_buf.size);
-
-    msgpack_sbuffer_destroy(&out_buf);
-    return result;
-}
-
-racs_result racs_exec_stream(racs_context *ctx, racs_uint8 *data) {
-    msgpack_sbuffer out_buf;
-    msgpack_sbuffer_init(&out_buf);
-
-    racs_stream(&out_buf, ctx, data);
+    racs_stream(&out_buf, ctx, data + 3, size - 3);
 
     racs_result result;
     racs_result_init(&result, out_buf.size);

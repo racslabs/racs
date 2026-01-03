@@ -99,8 +99,6 @@ void racs_read_callback(struct bufferevent *bev, void *data) {
 
     racs_result res;
     if (racs_is_frame((const char *) buf))
-        res = racs_db_stream(ctx->db, buf);
-    else if (racs_is_batch((const char *) buf))
         res = racs_db_stream_batch(ctx->db, buf, length);
     else
         res = racs_db_exec(ctx->db, (const char *) buf);

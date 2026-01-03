@@ -32,8 +32,6 @@ void racs_db_close(racs_db *db);
 
 racs_result racs_db_exec(racs_db *db, const char *cmd);
 
-racs_result racs_db_stream(racs_db *db, racs_uint8 *data);
-
 racs_result racs_db_stream_batch(racs_db *db, racs_uint8 *data, size_t size);
 
 #ifdef __cplusplus

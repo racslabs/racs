@@ -637,18 +637,7 @@ racs_create_command(split) {
     return rc;
 }
 
-int racs_stream(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data) {
-    msgpack_packer pk;
-    msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
-
-    int rc = racs_stream_append(ctx->mmt, ctx->offsets, ctx->kv, data);
-    if (rc == RACS_STREAM_OK)
-        return racs_pack_null_with_status_ok(&pk);
-
-    return racs_pack_error(&pk, "STREAM", racs_stream_status_string[rc]);
-}
-
-int racs_stream_batch(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data, size_t size) {
+int racs_stream(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data, size_t size) {
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
 

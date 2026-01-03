@@ -11,7 +11,7 @@ extern "C" {
 #include "memtable.h"
 #include "metadata.h"
 
-#define RACS_MAX_OFFSETS 1000000
+#define RACS_MAX_OFFSETS (1048576)
 
 typedef struct {
     racs_kvstore *kv;

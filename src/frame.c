@@ -32,8 +32,3 @@ int racs_is_frame(const char *id) {
     if (!id) return 0;
     return memcmp(id, "rsp", 3) == 0;
 }
-
-int racs_is_batch(const char *id) {
-    if (!id) return 0;
-    return memcmp(id, "brsp", 4) == 0;
-}

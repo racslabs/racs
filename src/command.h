@@ -94,9 +94,7 @@ racs_create_command(clip);
 
 racs_create_command(split);
 
-int racs_stream(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data);
-
-int racs_stream_batch(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data, size_t size);
+int racs_stream(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data, size_t size);
 
 #ifdef __cplusplus
 }
