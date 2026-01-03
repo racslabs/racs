@@ -158,8 +158,13 @@ racs_create_command(metadata) {
     free(stream_id);
     free(attr);
 
-    if (value != 0) return racs_pack_int64(&pk, value);
-    return racs_pack_error(&pk, "META", "Failure reading metadata");
+    if (value == -1)
+        return racs_pack_error(&pk, "META", "The stream-id does not exist.");
+
+    if (value == 0)
+        return racs_pack_error(&pk, "META", "Invalid metadata attribute.");
+
+    return racs_pack_int64(&pk, value);
 }
 
 racs_create_command(eval) {

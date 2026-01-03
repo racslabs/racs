@@ -293,70 +293,36 @@ SCM racs_scm_range(SCM stream_id, SCM start, SCM duration) {
 }
 
 SCM racs_scm_metadata(SCM stream_id, SCM attr) {
-    char *cmd = NULL;
-    asprintf(&cmd, "META '%s' '%s'",
-             scm_to_locale_string(stream_id),
-             scm_to_locale_string(attr));
+    char *_stream_id = scm_to_locale_string(stream_id);
+    char *_attr = scm_to_locale_string(attr);
 
-    racs_db *db = racs_db_instance();
-    racs_result res = racs_db_exec(db, cmd);
+    racs_uint64 hash = racs_hash(_stream_id);
+    racs_int64 value = racs_metadata_attr(hash, _attr);
 
-    free(cmd);
+    if (value == -1)
+        scm_misc_error("meta", "The stream-id does not exist.", SCM_EOL);
 
-    msgpack_unpacked msg;
-    msgpack_unpacked_init(&msg);
+    if (value == 0)
+        scm_misc_error("meta", "Invalid metadata attribute.", SCM_EOL);
 
-    if (msgpack_unpack_next(&msg, (char *) res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
-        free(res.data);
-        scm_misc_error("meta", "Deserialization error", SCM_EOL);
-    }
-
-    char *type = racs_unpack_str(&msg.data, 0);
-    if (strcmp(type, "error") == 0) {
-        racs_scm_propagate_error(&msg.data, res.data);
-    }
-
-    if (strcmp(type, "null") == 0) {
-        free(res.data);
-        return SCM_EOL;
-    }
-
-    racs_int64 value = racs_unpack_int64(&msg.data, 1);
     return scm_from_int64(value);
 }
 
 SCM racs_scm_stream_list(SCM pattern) {
-    char *cmd = NULL;
-    asprintf(&cmd, "LIST '%s'", scm_to_locale_string(pattern));
+    char *_pattern = scm_to_locale_string(pattern);
 
-    racs_db *db = racs_db_instance();
-    racs_result res = racs_db_exec(db, cmd);
-
-    free(cmd);
-
-    msgpack_unpacked msg;
-    msgpack_unpacked_init(&msg);
-
-    if (msgpack_unpack_next(&msg, (char *) res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
-        free(res.data);
-        scm_misc_error("list", "Deserialization error", SCM_EOL);
-    }
-
-    char *type = racs_unpack_str(&msg.data, 0);
-    if (strcmp(type, "error") == 0) {
-        racs_scm_propagate_error(&msg.data, res.data);
-    }
+    racs_streams streams;
+    racs_streams_init(&streams);
+    racs_streams_list(&streams, _pattern);
 
     SCM list = SCM_EOL;
-    size_t size = msg.data.via.array.size;
 
-    for (int i = 1; i < size; i++) {
-        char *str = racs_unpack_str(&msg.data, i);
-        SCM _str = scm_from_locale_string(str);
-        list = scm_cons(_str, list);
-        free(str);
+    for (int i = 0; i < streams.num_streams; ++i) {
+        SCM stream = scm_from_locale_string(streams.streams[i]);
+        list = scm_cons(stream, list);
     }
 
+    racs_streams_destroy(&streams);
     return list;
 }
 

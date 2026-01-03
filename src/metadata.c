@@ -11,7 +11,7 @@
 
 racs_int64 racs_metadata_attr(racs_uint64 stream_id, const char *attr) {
     racs_metadata metadata;
-    if (racs_metadata_get(&metadata, stream_id) == 0) return 0;
+    if (racs_metadata_get(&metadata, stream_id) == 0) return -1;
 
     if (strcmp(attr, "sample_rate") == 0)
         return metadata.sample_rate;

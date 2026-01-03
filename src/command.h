@@ -57,7 +57,6 @@ typedef enum {
     } \
     free(type);
 
-
 #define racs_create_command(name) \
     int racs_command_##name(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, racs_context* ctx, bool is_final)
 
