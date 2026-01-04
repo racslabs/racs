@@ -153,13 +153,22 @@ racs_create_command(metadata) {
     char *attr = racs_unpack_str(&msg.data, 1);
 
     racs_uint64 hash = racs_hash(stream_id);
-    racs_int64 value = racs_metadata_attr(hash, attr);
+
+    racs_metadata metadata;
+    if (racs_metadata_get(&metadata, hash) == 0) {
+        free(stream_id);
+        free(attr);
+        return racs_pack_error(&pk, "META", "The stream-id does not exist.");
+    }
+
+    racs_int64 value = 0;
+    value = racs_metadata_attr(&metadata, attr);
+
+    if (strcmp(attr, "size") == 0)
+        value = (racs_int64)racs_offsets_get(ctx->offsets, hash);
 
     free(stream_id);
     free(attr);
-
-    if (value == -1)
-        return racs_pack_error(&pk, "META", "The stream-id does not exist.");
 
     if (value == 0)
         return racs_pack_error(&pk, "META", "Invalid metadata attribute.");

@@ -9,21 +9,18 @@
 
 #include "metadata.h"
 
-racs_int64 racs_metadata_attr(racs_uint64 stream_id, const char *attr) {
-    racs_metadata metadata;
-    if (racs_metadata_get(&metadata, stream_id) == 0) return -1;
-
+racs_int64 racs_metadata_attr(racs_metadata *metadata, const char *attr) {
     if (strcmp(attr, "sample_rate") == 0)
-        return metadata.sample_rate;
+        return metadata->sample_rate;
 
     if (strcmp(attr, "channels") == 0)
-        return metadata.channels;
+        return metadata->channels;
 
     if (strcmp(attr, "bit_depth") == 0)
-        return metadata.bit_depth;
+        return metadata->bit_depth;
 
     if (strcmp(attr, "ref") == 0)
-        return metadata.ref;
+        return metadata->ref;
 
     return 0;
 }

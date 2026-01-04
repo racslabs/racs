@@ -297,10 +297,18 @@ SCM racs_scm_metadata(SCM stream_id, SCM attr) {
     char *_attr = scm_to_locale_string(attr);
 
     racs_uint64 hash = racs_hash(_stream_id);
-    racs_int64 value = racs_metadata_attr(hash, _attr);
 
-    if (value == -1)
+    racs_metadata metadata;
+    if (racs_metadata_get(&metadata, hash) == 0)
         scm_misc_error("meta", "The stream-id does not exist.", SCM_EOL);
+
+    racs_int64 value = 0;
+    value = racs_metadata_attr(&metadata, _attr);
+
+    racs_db *db = racs_db_instance();
+
+    if (strcmp(_attr, "size") == 0)
+        value = (racs_int64)racs_offsets_get(db->ctx.offsets, hash);
 
     if (value == 0)
         scm_misc_error("meta", "Invalid metadata attribute.", SCM_EOL);

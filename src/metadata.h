@@ -26,7 +26,7 @@ extern "C" {
 #include "log.h"
 
 #ifndef FNM_IGNORECASE
-#define FNM_IGNORECASE 0x01
+    #define FNM_IGNORECASE 0x01
 #endif
 
 typedef struct {
@@ -47,7 +47,7 @@ typedef struct {
 
 extern const char* racs_metadata_dir;
 
-racs_int64 racs_metadata_attr(racs_uint64 stream_id, const char *attr);
+racs_int64 racs_metadata_attr(racs_metadata *metadata, const char *attr);
 
 int racs_metadata_get(racs_metadata *metadata, racs_uint64 stream_id);
 
