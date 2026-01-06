@@ -139,5 +139,6 @@ racs_range_process_sstable(racs_pcm *pcm, racs_uint8 *data, racs_uint64 stream_i
         free(entry);
     }
 
+    free(data);
     racs_sstable_destroy_except_data(sst);
 }
