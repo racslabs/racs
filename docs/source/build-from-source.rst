@@ -6,8 +6,8 @@ Build from source
 Prerequisites
 -------------
 
-- Minimum 4GB of RAM
-- Minimum 1 CPU Core
+- Minimum 4 GB of RAM
+- Minimum 1 CPU core
 - Linux Kernel 4.19+ or macOS 10.15+
 
 Install dependencies
@@ -32,7 +32,7 @@ On Debian/Ubuntu
     sudo make install
 
 On macOS
-^^^^^
+^^^^^^^^
 
 .. code-block:: bash
 
