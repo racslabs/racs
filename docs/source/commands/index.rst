@@ -46,4 +46,5 @@ Commands
    ping
    range
    shutdown
+   split
    trim

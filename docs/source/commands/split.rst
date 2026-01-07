@@ -1,9 +1,9 @@
-.. _FADE:
+.. _SPLIT:
 
-FADE
-====
+SPLIT
+=====
 
-Applies a linear fade-in at the start of the PCM buffer and a linear fade-out at the end.
+Extracts a single channel from a stereo PCM buffer.
 
 Arguments
 ---------
@@ -11,9 +11,7 @@ Arguments
 +-----------+------------+------------------------------------------------------+
 | Name      | Type       | Description                                          |
 +===========+============+======================================================+
-| left      | ``float``  | Duration (in seconds) of fade-in at the beginning.   |
-+-----------+------------+------------------------------------------------------+
-| right     | ``float``  | Duration (in seconds) of fade-out at the end.        |
+| channel   | ``int``    | Channel to extract.                                  |
 +-----------+------------+------------------------------------------------------+
 
 Input
@@ -22,7 +20,7 @@ Input
 +----------+-------------------------------------------------------------+
 | Type     | Description                                                 |
 +==========+==========+==================================================+
-| ``s32v`` | PCM buffer.                                                 |
+| ``s32v`` | PCM buffer. Stereo only.                                    |
 +----------+-------------------------------------------------------------+
 
 Output
@@ -31,7 +29,7 @@ Output
 +----------+-------------------------------------------------------------+
 | Type     | Description                                                 |
 +==========+==========+==================================================+
-| ``s32v`` | PCM buffer with fade applied.                               |
+| ``s32v`` | Extracted single-channel PCM buffer.                        |
 +----------+-------------------------------------------------------------+
 
 Example
@@ -39,4 +37,4 @@ Example
 
 .. code-block:: bash
 
-   FADE 10.0 30.0
+   SPLIT 0
