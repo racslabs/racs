@@ -1,11 +1,9 @@
-.. _FORMAT:
+.. _ENCODE:
 
-FORMAT
+ENCODE
 ======
 
-**Description:**
-Formats raw PCM data (interleaved by channel) into MP3, Opus, or WAV.
-``FORMAT`` does not perform resampling. The sample rate, channel count, and bit depth must match the input exactly.
+Encodes data in PCM buffer to MP3, Opus, or WAV.
 
 Arguments
 ---------
@@ -15,14 +13,9 @@ Arguments
 +=============+============+===============================================+
 | mime_type   | ``string`` | MIME type of the audio output.                |
 +-------------+------------+-----------------------------------------------+
-| sample_rate | ``int``    | Output sample rate (Hz).                      |
-+-------------+------------+-----------------------------------------------+
-| channels    | ``int``    | Number of output channels.                    |
-+-------------+------------+-----------------------------------------------+
-| bit_depth   | ``int``    | Bits per sample in output.                    |
-+-------------+------------+-----------------------------------------------+
 
-**Supported MIME types**
+Supported MIME types
+^^^^^^^^^^^^^^^^^^^^
 
 +-----------------+---------------------------+
 | MIME type       | Description               |
@@ -36,9 +29,15 @@ Arguments
 | ``audio/ogg``   | Ogg/Opus format           |
 +-----------------+---------------------------+
 
-Dependencies
-------------
-- :ref:`EXTRACT`
+Input
+-----
+
++----------+-------------------------------------------------------------+
+| Type     | Description                                                 |
++==========+==========+==================================================+
+| ``s32v`` | PCM buffer.                                                 |
++----------+-------------------------------------------------------------+
+
 
 Output
 ------
@@ -54,4 +53,4 @@ Example
 
 .. code-block:: none
 
-   FORMAT 'audio/mp3' 44100 2 16
+   ENCODE 'audio/mp3'

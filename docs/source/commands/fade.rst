@@ -1,10 +1,9 @@
-.. _EXTRACT:
+.. _FADE:
 
-EXTRACT
-=======
+FADE
+====
 
-**Description:**
-Extracts raw PCM data interleaved by channel for the given stream id and range.
+Applies a linear fade-in at the start of the PCM buffer and a linear fade-out at the end.
 
 Arguments
 ---------
@@ -12,16 +11,19 @@ Arguments
 +-----------+------------+------------------------------------------------------+
 | Name      | Type       | Description                                          |
 +===========+============+======================================================+
-| stream_id | ``string`` | ASCII ID of the audio stream.                        |
+| left      | ``float``  | Duration (in seconds) of fade-in at the beginning.   |
 +-----------+------------+------------------------------------------------------+
-| start     | ``float``  | Start time (in seconds) to extract from the stream.  |
-+-----------+------------+------------------------------------------------------+
-| duration  | ``float``  | Druation of audio segment to extract.                |
+| right     | ``float``  | Duration (in seconds) of fade-out at the end.        |
 +-----------+------------+------------------------------------------------------+
 
-Dependencies
-------------
-- ``NONE``
+Input
+-----
+
++----------+-------------------------------------------------------------+
+| Type     | Description                                                 |
++==========+==========+==================================================+
+| ``s32v`` | PCM buffer.                                                 |
++----------+-------------------------------------------------------------+
 
 Output
 ------
@@ -29,8 +31,7 @@ Output
 +----------+-------------------------------------------------------------+
 | Type     | Description                                                 |
 +==========+==========+==================================================+
-| ``s32v`` | Raw PCM samples interleaved by channel.                     |
-|          | Both 16-bit and 24-bit samples are stored in ``s32v``.      |
+| ``s32v`` | PCM buffer with fade applied.                               |
 +----------+-------------------------------------------------------------+
 
 Example
@@ -38,4 +39,4 @@ Example
 
 .. code-block:: bash
 
-   EXTRACT 'chopin' 0.0 13.5
+   RANGE 'vocals' 0.0 30.0

@@ -23,7 +23,7 @@ The pipe operator ``|>`` chains multiple commands together, passing the output o
 
     COMMAND1 <arg1> <arg2> ... <argN> |> COMMAND2 <arg1> <arg2> ... <argN> |> ...
 
-Certain commands, like ``FORMAT``, rely on input from a previous command and cannot run independently.
+Certain commands, like ``ENCODE``, rely on input from a previous command and cannot run independently.
 
 Commands
 --------
@@ -31,13 +31,15 @@ Commands
 .. toctree::
    :maxdepth: 1
 
-   create
-   open
    close
-   search
-   ping
+   create
+   encode
    eval
+   gain
+   list
+   meta
+   open
+   ping
+   range
    shutdown
-   extract
-   format
-   info
+   trim

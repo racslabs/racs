@@ -1,9 +1,8 @@
-.. _SEARCH:
+.. _LIST:
 
-SEARCH
-======
+LIST
+====
 
-**Description:**
 Lists all the stream ids matching wildcard pattern.
 
 Arguments
@@ -15,9 +14,14 @@ Arguments
 | pattern     | ``string`` | Wildcard pattern to match against.                            |
 +-------------+------------+---------------------------------------------------------------+
 
-Dependencies
-------------
-- ``NONE``
+Input
+-----
+
++----------+--------------------------------------------+
+| Type     | Description                                |
++==========+============================================+
+| ``null`` | N/A                                        |
++----------+--------------------------------------------+
 
 Output
 ------
@@ -33,4 +37,4 @@ Example
 
 .. code-block:: bash
 
-   SEARCH '*'
+   LIST '*'

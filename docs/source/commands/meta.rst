@@ -1,9 +1,8 @@
-.. _INFO:
+.. _META:
 
-INFO
+META
 ====
 
-**Description:**
 Retrieves metadata attributes of an audio stream.
 
 Arguments
@@ -17,7 +16,8 @@ Arguments
 | attribute   | ``string`` | Name of the metadata attribute to retrieve.                   |
 +-------------+------------+---------------------------------------------------------------+
 
-**Supported Attributes**
+Supported Attributes
+^^^^^^^^^^^^^^^^^^^^
 
 +-----------------+--------------------------------------------+
 | Attribute       | Description                                |
@@ -30,12 +30,17 @@ Arguments
 +-----------------+--------------------------------------------+
 | ``ref``         | Reference timestamp (milliseconds UTC).    |
 +-----------------+--------------------------------------------+
-| ``size``        | Size of audio stream in bytes.             |
+| ``size``        | Size of uncompressed audio stream in bytes.|
 +-----------------+--------------------------------------------+
 
-Dependencies
-------------
-- ``NONE``
+Input
+-----
+
++----------+--------------------------------------------+
+| Type     | Description                                |
++==========+============================================+
+| ``null`` | N/A                                        |
++----------+--------------------------------------------+
 
 Output
 ------
@@ -51,4 +56,4 @@ Example
 
 .. code-block:: none
 
-   INFO 'chopin' 'channels'
+   META 'vocals' 'channels'

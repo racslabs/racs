@@ -3,12 +3,16 @@
 PING
 ====
 
-**Description:**
 Checks the connectivity and responsiveness of the server.
 
-Dependencies
-------------
-- ``NONE``
+Input
+-----
+
++----------+--------------------------------------------+
+| Type     | Description                                |
++==========+============================================+
+| ``null`` | N/A                                        |
++----------+--------------------------------------------+
 
 Output
 ------

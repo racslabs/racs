@@ -3,8 +3,7 @@
 SHUTDOWN
 ========
 
-**Description:**
-Stops the RACS server. Used to ensure all buffers are flushed before termination.
+Gracefully shuts down the RACS server.
 
 Dependencies
 ------------
