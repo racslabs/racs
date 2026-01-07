@@ -1,16 +1,15 @@
-Documentation
+RACS Docs
 =============
 
 About RACS
 ----------
-RACS (Remote Audio Caching Server) is an persistent, append-only audio cache with time-indexed range queries.
-Unlike blob stores and traditional databases, RACS is purpose-built for storing, querying, and streaming audio data at scale.
+RACS is a distributed, persistent audio cache with time-indexed range queries. It uses a hybrid in-memory/disk storage model for low-latency storage and retrieval of time-indexed audio assets, enabling precise range access within large audio collections while minimizing I/O overhead.
 
 Contents
 --------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    getting-started
    streaming

@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'racs'
-copyright = '2025, RACS Labs, LLC.'
+copyright = '2026, RACS Labs, LLC.'
 author = 'RACS Labs'
 
 # -- General configuration ---------------------------------------------------
@@ -20,7 +20,6 @@ exclude_patterns = []
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'furo'
-pygments_style = "xcode"
 html_static_path = ['_static']
 html_css_files = [
     'custom.css',

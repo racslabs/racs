@@ -1,26 +1,25 @@
 .. _BUILD_FROM_SOURCE:
 
-Build from Source
+Build from source
 =================
 
-**Supported Operating Systems:**
- ``Linux``, ``macOS``
+Prerequisites
+-------------
 
-**Supported Compilers:**
- ``GCC 7+``
+- Minimum 4GB of RAM
+- Minimum 1 CPU Core
+- Linux Kernel 4.19+ or macOS 10.15+
 
-**Supported CPU Architectures:**
- ``x86/x86-64``, ``arm64`` (Little endian only)
-
-Install Dependencies
+Install dependencies
 --------------------
 
-**Debian/Ubuntu:**
+On Debian/Ubuntu
+^^^^^^^^^^^^^^^^
 
 .. code-block:: bash
 
     sudo apt install ninja-build cmake g++ libmp3lame-dev libopus-dev libopusenc-dev \
-        guile-3.0-dev libmsgpack-dev libcyaml-dev libevent-dev
+        guile-3.0-dev libmsgpack-dev libcyaml-dev libevent-dev libzstd-dev
 
 ``libopusenc-dev`` is not available on Ubuntu. To install it from source, run the following:
 
@@ -32,7 +31,8 @@ Install Dependencies
     make -j$(nproc)
     sudo make install
 
-**macOS:**
+On macOS
+^^^^^
 
 .. code-block:: bash
 
@@ -40,7 +40,7 @@ Install Dependencies
         libopusenc libcyaml libevent
 
 
-Clone the Repository
+Clone the repository
 --------------------
 
 .. code-block:: bash
@@ -48,7 +48,7 @@ Clone the Repository
     git clone --branch main https://github.com/racslabs/racs.git && cd racs
 
 
-Build the Project
+Build the project
 -----------------
 
 .. code-block:: bash
