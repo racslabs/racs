@@ -1,9 +1,8 @@
 .. _SCM_PING:
 
-PING
+ping
 ====
 
-**Description:**
 Checks the connectivity and responsiveness of the server.
 
 Output

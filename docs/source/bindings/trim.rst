@@ -1,6 +1,6 @@
-.. _TRIM:
+.. _SCM_TRIM:
 
-TRIM
+trim
 ====
 
 Removes audio from the left and/or right sides of a PCM buffer.
@@ -11,19 +11,13 @@ Arguments
 +-----------+------------+---------------------------------------------------------+
 | Name      | Type       | Description                                             |
 +===========+============+=========================================================+
-| left      | ``float``  | Duration (in seconds) of audio to remove from the left. |
+| data      | ``#s32``   | PCM buffer.                                             |
 +-----------+------------+---------------------------------------------------------+
-| right     | ``float``  | Duration (in seconds) of audio to remove from the right.|
+| left      | ``Float``  | Duration (in seconds) of audio to remove from the left. |
++-----------+------------+---------------------------------------------------------+
+| right     | ``Float``  | Duration (in seconds) of audio to remove from the right.|
 +-----------+------------+---------------------------------------------------------+
 
-Input
------
-
-+----------+-------------------------------------------------------------+
-| Type     | Description                                                 |
-+==========+==========+==================================================+
-| ``s32v`` | PCM buffer.                                                 |
-+----------+-------------------------------------------------------------+
 
 Output
 ------
@@ -31,12 +25,19 @@ Output
 +----------+-------------------------------------------------------------+
 | Type     | Description                                                 |
 +==========+==========+==================================================+
-| ``s32v`` | Trimmed PCM buffer.                                         |
+| ``#s32`` | Trimmed PCM buffer.                                         |
 +----------+-------------------------------------------------------------+
 
 Example
 -------
 
-.. code-block:: bash
+.. code-block:: scheme
 
-   TRIM 30.0 30.0
+    ;; SCM expression
+    (trim (range "vocals" 0.0 90.0) 30.0 30.0)
+
+Using ``EVAL``:
+
+.. code-block:: none
+
+   EVAL '(trim (range \"vocals\" 0.0 90.0) 30.0 30.0)'

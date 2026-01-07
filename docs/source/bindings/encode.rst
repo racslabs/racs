@@ -1,9 +1,11 @@
-.. _ENCODE:
+.. _SCM_ENCODE:
 
-ENCODE
+encode
 ======
 
 Encodes PCM buffer to MP3, Opus, or WAV.
+
+**note**: The ``data`` argument must be the result of a RACS command binding. Do not pass custom input using ``#s32()``.
 
 Arguments
 ---------
@@ -11,8 +13,11 @@ Arguments
 +-------------+------------+-----------------------------------------------+
 | Name        | Type       | Description                                   |
 +=============+============+===============================================+
-| mime_type   | ``string`` | MIME type of the encoded audio output.        |
+| data        | ``#s32``   | PCM buffer.                                   |
 +-------------+------------+-----------------------------------------------+
+| mime_type   | ``String`` | MIME type of the encoded audio output.        |
++-------------+------------+-----------------------------------------------+
+
 
 Supported MIME types
 ^^^^^^^^^^^^^^^^^^^^
@@ -29,28 +34,25 @@ Supported MIME types
 | ``audio/ogg``   | Ogg/Opus format           |
 +-----------------+---------------------------+
 
-Input
------
-
-+----------+-------------------------------------------------------------+
-| Type     | Description                                                 |
-+==========+==========+==================================================+
-| ``s32v`` | PCM buffer.                                                 |
-+----------+-------------------------------------------------------------+
-
-
 Output
 ------
 
-+---------+----------------------------------------------------+
-| Type    | Description                                        |
-+=========+====================================================+
-| ``u8v`` | The encoded audio data.                            |
-+---------+----------------------------------------------------+
++--------------+----------------------------------------------------+
+| Type         | Description                                        |
++==============+====================================================+
+| ``#u8``      | The encoded audio data.                            |
++--------------+----------------------------------------------------+
 
 Example
 -------
 
+.. code-block:: scheme
+
+    ;; SCM expression
+    (encode (range "vocals" 0.0 30.0) "audio/wav")
+
+Using ``EVAL``:
+
 .. code-block:: none
 
-   ENCODE 'audio/mp3'
+   EVAL '(encode (range \"vocals\" 0.0 30.0) \"audio/wav\")'

@@ -1,9 +1,8 @@
-.. _SCM_INFO:
+.. _SCM_META:
 
-INFO
+meta
 ====
 
-**Description:**
 Retrieves metadata attributes of an audio stream.
 
 Arguments
@@ -17,7 +16,8 @@ Arguments
 | attribute   | ``String`` | Name of the metadata attribute to retrieve.                   |
 +-------------+------------+---------------------------------------------------------------+
 
-**Supported Attributes**
+Supported Attributes
+^^^^^^^^^^^^^^^^^^^^
 
 +-----------------+--------------------------------------------+
 | Attribute       | Description                                |
@@ -30,7 +30,7 @@ Arguments
 +-----------------+--------------------------------------------+
 | ``ref``         | Reference timestamp (milliseconds UTC).    |
 +-----------------+--------------------------------------------+
-| ``size``        | Size of audio stream in bytes.             |
+| ``size``        | Size of uncompressed audio stream in bytes.|
 +-----------------+--------------------------------------------+
 
 Output
@@ -48,10 +48,10 @@ Example
 .. code-block:: scheme
 
     ;; SCM expression
-    (info "chopin" "channels")
+    (meta "chopin" "channels")
 
 Using ``EVAL``:
 
 .. code-block:: none
 
-    EVAL '(info \"chopin\" \"channels\")'
+    EVAL '(meta \"chopin\" \"channels\")'

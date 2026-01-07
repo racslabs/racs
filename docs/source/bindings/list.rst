@@ -1,9 +1,8 @@
-.. _SCM_SEARCH:
+.. _SCM_LIST:
 
-SEARCH
-======
+list
+====
 
-**Description:**
 Lists all the stream ids matching wildcard pattern.
 
 Arguments
@@ -30,10 +29,10 @@ Example
 .. code-block:: scheme
 
     ;; SCM expression
-    (search "*")
+    (list "*")
 
 Using ``EVAL``:
 
 .. code-block:: none
 
-    EVAL '(search \"*\")'
+    EVAL '(list \"*\")'
