@@ -1,9 +1,9 @@
-.. _TRIM:
+.. _PAD:
 
-TRIM
-====
+PAD
+===
 
-Removes audio from the left and/or right sides of a PCM buffer.
+Adds silence to the beginning and end of a PCM buffer.
 
 Arguments
 ---------
@@ -11,9 +11,9 @@ Arguments
 +-----------+------------+---------------------------------------------------------+
 | Name      | Type       | Description                                             |
 +===========+============+=========================================================+
-| left      | ``float``  | Duration (in seconds) of audio to remove from the left. |
+| left      | ``float``  | Duration (in seconds) of silence added at the beginning.|
 +-----------+------------+---------------------------------------------------------+
-| duration  | ``float``  | Duration (in seconds) of audio to remove from the right.|
+| right     | ``float``  | Duration (in seconds) of silence added at the end.      |
 +-----------+------------+---------------------------------------------------------+
 
 Input
@@ -31,7 +31,7 @@ Output
 +----------+-------------------------------------------------------------+
 | Type     | Description                                                 |
 +==========+==========+==================================================+
-| ``s32v`` | Trimmed PCM buffer.                                         |
+| ``s32v`` | Padded PCM buffer.                                          |
 +----------+-------------------------------------------------------------+
 
 Example
@@ -39,4 +39,4 @@ Example
 
 .. code-block:: bash
 
-   TRIM 30.0 30.0
+   PAD 10.0 15.0

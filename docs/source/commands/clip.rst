@@ -1,9 +1,9 @@
-.. _TRIM:
+.. _CLIP:
 
-TRIM
+CLIP
 ====
 
-Removes audio from the left and/or right sides of a PCM buffer.
+Enforces a hard minimum and maximum amplitude for sample values outside the threshold.
 
 Arguments
 ---------
@@ -11,9 +11,9 @@ Arguments
 +-----------+------------+---------------------------------------------------------+
 | Name      | Type       | Description                                             |
 +===========+============+=========================================================+
-| left      | ``float``  | Duration (in seconds) of audio to remove from the left. |
+| min       | ``int``    | Minimum amplitude.                                      |
 +-----------+------------+---------------------------------------------------------+
-| duration  | ``float``  | Duration (in seconds) of audio to remove from the right.|
+| max       | ``int``    | Maximum amplitude.                                      |
 +-----------+------------+---------------------------------------------------------+
 
 Input
@@ -31,7 +31,7 @@ Output
 +----------+-------------------------------------------------------------+
 | Type     | Description                                                 |
 +==========+==========+==================================================+
-| ``s32v`` | Trimmed PCM buffer.                                         |
+| ``s32v`` | Clipped PCM buffer.                                         |
 +----------+-------------------------------------------------------------+
 
 Example
@@ -39,4 +39,4 @@ Example
 
 .. code-block:: bash
 
-   TRIM 30.0 30.0
+   CLIP -30000 30000

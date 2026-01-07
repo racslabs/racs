@@ -31,14 +31,18 @@ Commands
 .. toctree::
    :maxdepth: 1
 
+   clip
    close
    create
    encode
    eval
+   fade
    gain
    list
    meta
    open
+   pad
+   pan
    ping
    range
    shutdown
