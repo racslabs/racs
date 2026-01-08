@@ -8,7 +8,7 @@ Supported Command Bindings
 --------------------------
 
 The following read-only RACS commands are available as Scheme bindings.
-Some additional Scheme bindings are also provided for handling multiple PCM buffers.
+Additional Scheme bindings are also provided for handling multiple PCM buffers.
 
 .. toctree::
    :maxdepth: 1

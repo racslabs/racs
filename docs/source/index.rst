@@ -13,6 +13,7 @@ Contents
 
    getting-started
    streaming
+   replication
    types
    commands/index
    bindings/index
