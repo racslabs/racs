@@ -12,8 +12,8 @@ Contents
    :maxdepth: 1
 
    getting-started
-   streaming
    replication
+   streaming
    types
    commands/index
    bindings/index
