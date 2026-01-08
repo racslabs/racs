@@ -6,6 +6,7 @@ gain
 Multiplies each sample in the PCM buffer by the specified gain level.
 Values above one boost the signal. Values below one attenuate it.
 
+**note**: The ``data`` argument must be the result of a RACS command binding. Do not pass custom input using ``#s32()``.
 
 Arguments
 ---------

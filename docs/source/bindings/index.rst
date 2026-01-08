@@ -13,13 +13,18 @@ Some additional Scheme bindings are also provided for handling multiple PCM buff
 .. toctree::
    :maxdepth: 1
 
+   clip
    encode
+   fade
    gain
    meta
    mix
+   pad
+   pan
    ping
    range
    list
+   split
    trim
 
 Supported Scheme Data Types

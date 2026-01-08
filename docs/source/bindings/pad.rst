@@ -1,9 +1,9 @@
-.. _SCM_TRIM:
+.. _SCM_PAD:
 
-trim
-====
+pad
+===
 
-Removes audio from the left and/or right sides of a PCM buffer.
+Adds silence to the beginning and end of a PCM buffer.
 
 **note**: The ``data`` argument must be the result of a RACS command binding. Do not pass custom input using ``#s32()``.
 
@@ -15,11 +15,10 @@ Arguments
 +===========+============+=========================================================+
 | data      | ``#s32``   | PCM buffer.                                             |
 +-----------+------------+---------------------------------------------------------+
-| left      | ``Float``  | Duration (in seconds) of audio to remove from the left. |
+| left      | ``Float``  | Duration (in seconds) of silence added at the beginning.|
 +-----------+------------+---------------------------------------------------------+
-| right     | ``Float``  | Duration (in seconds) of audio to remove from the right.|
+| right     | ``Float``  | Duration (in seconds) of silence added at the end.      |
 +-----------+------------+---------------------------------------------------------+
-
 
 Output
 ------
@@ -27,7 +26,7 @@ Output
 +----------+-------------------------------------------------------------+
 | Type     | Description                                                 |
 +==========+==========+==================================================+
-| ``#s32`` | Trimmed PCM buffer.                                         |
+| ``#s32`` | Padded PCM buffer.                                          |
 +----------+-------------------------------------------------------------+
 
 Example
@@ -36,10 +35,10 @@ Example
 .. code-block:: scheme
 
     ;; SCM expression
-    (trim (range "vocals" 0.0 90.0) 30.0 30.0)
+    (pad (range "vocals" 0.0 30.0) 10.0 15.0)
 
 Using ``EVAL``:
 
 .. code-block:: none
 
-   EVAL '(trim (range \"vocals\" 0.0 90.0) 30.0 30.0)'
+    EVAL '(pad (range \"vocals\" 0.0 30.0) 10.0 15.0)'
