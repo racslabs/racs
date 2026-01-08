@@ -24,7 +24,7 @@ RACS is currently in the **Minimum Viable Product (MVP)** stage. It is under act
 ## Licensing
 
 RACS is distributed under the **RACS Source Available License (RACS-SAL-1.0)**.  
-It is free for personal, educational, and non-commercial use. Commercial use requires a paid license. For licensing inquiries, contact `sales@racslabs.com`.
+It is free for personal, educational, and non-commercial use. Commercial use requires a paid license. For licensing inquiries, contact sales@racslabs.com.
 
 ## Generating Documentation
 

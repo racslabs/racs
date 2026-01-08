@@ -1,5 +1,5 @@
                       RACS Source Available License (RACS-SAL-1.0)
-                     Copyright © 2025 RACS Labs, LLC. All rights reserved.
+                     Copyright © 2026 RACS Labs, LLC. All rights reserved.
 --------------------------------------------------------------------------------
 
 1. DEFINITIONS
@@ -44,17 +44,18 @@
 3. COMMERCIAL USE
    -----------------------------------------------------------------------------
 
-   Commercial Use of the Software requires a separate commercial license.
+   Commercial use of RACS requires a separate commercial license. This includes
+   any use in proprietary, for-profit, or revenue-generating systems.
 
-   For commercial licensing, including use in proprietary or for-profit
-   systems, please contact:
+   For commercial licensing, please contact:
 
-       RACS Labs, LLC
-       Email: sales@racslabs.com
-       License Fee: USD $500 per Instance per year (subject to change).
+      RACS Labs, LLC
+      Email: sales@racslabs.com
+      Standard License Fee: USD $700 per instance per year (subject to change)
+      Enterprise Licenses: Custom pricing
 
-   No right to Commercial Use is granted under this License without a separate
-   written agreement.
+   No rights to commercial use are granted under the RACS Source Available
+   License (RACS-SAL-1.0) without a separate written agreement.
 
 
 4. RESTRICTIONS
@@ -115,6 +116,6 @@
 --------------------------------------------------------------------------------
    RACS – Remote Audio Caching Server
    License Version: RACS-SAL-1.0
-   Date: October 12, 2025
-   Copyright © 2025 RACS Labs, LLC
+   Date: January 7, 2026
+   Copyright © 2026 RACS Labs, LLC
 --------------------------------------------------------------------------------
