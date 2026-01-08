@@ -17,6 +17,7 @@ Some additional Scheme bindings are also provided for handling multiple PCM buff
    encode
    fade
    gain
+   merge
    meta
    mix
    pad

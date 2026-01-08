@@ -1,6 +1,6 @@
 .. _SCM_CLIP:
 
-CLIP
+clip
 ====
 
 Enforces a hard minimum and maximum amplitude for sample values outside the threshold.

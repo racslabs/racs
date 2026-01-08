@@ -1,7 +1,7 @@
-.. _SCM_MIX:
+.. _SCM_MERGE:
 
-mix
-===
+merge
+=====
 
 Combines two single-channel PCM buffers into one stereo PCM buffer.
 
@@ -13,9 +13,9 @@ Arguments
 +-------------+------------+-----------------------------------------------+
 | Name        | Type       | Description                                   |
 +=============+============+===============================================+
-| data0       | ``#s32``   | First PCM buffer. Mono only.                  |
+| data0       | ``#s32``   | First mono PCM buffer.                        |
 +-------------+------------+-----------------------------------------------+
-| data1       | ``#s32``   | Second PCM buffer. Mono only.                 |
+| data1       | ``#s32``   | Second mono PCM buffer.                       |
 +-------------+------------+-----------------------------------------------+
 
 Output
