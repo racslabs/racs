@@ -2,8 +2,6 @@
     <img width="350px" src="logo.svg"  alt=""/>
 </p>
 
-[![CircleCI](https://img.shields.io/circleci/build/github/racslabs/racs/main?logo=circleci)](https://circleci.com/gh/racslabs/racs)
-
 ## What is RACS?
 
 RACS (Remote Audio Caching Server) is a distributed, persistent audio cache optimized for time-indexed range queries. It uses a hybrid in-memory and disk-backed storage model for low-latency ingestion and retrieval, enabling fine-grained access to arbitrary time ranges within large audio archives while minimizing disk I/O.
