@@ -59,10 +59,10 @@ cache:
   # Increasing this value improves read performance but increases memory usage.
   entries: 1024
 
+
 # ---------------------------------------------------------------------------
 # WAL configuration
 # ---------------------------------------------------------------------------
-
 
 wal:
   # Forces a fsync after every N records appended to the WAL.
