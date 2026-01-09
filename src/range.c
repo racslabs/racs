@@ -44,6 +44,8 @@ int racs_range_as_timestamp(racs_context *ctx, racs_pcm *pcm, racs_uint64 hash, 
         racs_time time = racs_time_from_path(file_path);
         if (time >= from && time <= to) {
             racs_uint8 *data = racs_range_from_cache_or_sstable(ctx->scache, hash, time, file_path);
+            if (!data) continue;
+
             racs_range_process_sstable(pcm, data, hash, from, to);
         }
     }
@@ -139,6 +141,5 @@ racs_range_process_sstable(racs_pcm *pcm, racs_uint8 *data, racs_uint64 stream_i
         free(entry);
     }
 
-    free(data);
     racs_sstable_destroy_except_data(sst);
 }

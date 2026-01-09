@@ -34,7 +34,7 @@ void racs_wal_append_(racs_wal *wal, racs_op_code op_code, size_t size, racs_uin
     wal->size += offset;
     free(buf);
 
-    if (wal->lsn % RACS_WAL_FSYNC == 0) {
+    if (wal->lsn % racs_wal_fsync == 0) {
         if (fsync(wal->fd) < 0)
             racs_log_error("fsync failed on racs_wal");
     }

@@ -40,9 +40,9 @@ typedef struct {
 
 static racs_wal *_wal = NULL;
 
-extern const char *racs_wal_dir;
+extern int racs_wal_fsync;
 
-#define RACS_WAL_FSYNC 50
+extern const char *racs_wal_dir;
 
 #define racs_wal_append(op_code, size, op) racs_wal_append_(racs_wal_instance(), op_code, size, op)
 

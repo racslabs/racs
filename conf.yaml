@@ -49,7 +49,6 @@ memtable:
   # Once this limit is reached, the memtable is serialized to disk and cleared.
   entries: 40
 
-
 # ---------------------------------------------------------------------------
 # Cache configuration
 # ---------------------------------------------------------------------------
@@ -58,6 +57,15 @@ cache:
   # Number of recently accessed memtables to retain in the in-memory cache.
   # Increasing this value improves read performance but increases memory usage.
   entries: 1024
+
+# ---------------------------------------------------------------------------
+# WAL configuration
+# ---------------------------------------------------------------------------
+
+wal:
+  # Forces a fsync after every N records appended to the WAL.
+  # Lower values improve durability at the cost of higher disk I/O.
+  fsync: 20
 
 
 # ---------------------------------------------------------------------------

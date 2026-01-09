@@ -14,6 +14,8 @@ const char* racs_time_dir = NULL;
 const char* racs_log_dir = NULL;
 const char* racs_wal_dir = NULL;
 
+int racs_wal_fsync;
+
 void racs_context_init(racs_context *ctx, const char *path) {
     ctx->config = NULL;
     racs_config_load(&ctx->config, path);
@@ -27,6 +29,7 @@ void racs_context_init(racs_context *ctx, const char *path) {
     racs_time_dir = ctx->config->data_dir;
     racs_wal_dir = ctx->config->data_dir;
     racs_log_dir = ctx->config->log_dir;
+    racs_wal_fsync = ctx->config->wal.fsync;
 
     racs_offsets_init(ctx->offsets);
 }
