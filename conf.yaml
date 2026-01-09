@@ -49,6 +49,7 @@ memtable:
   # Once this limit is reached, the memtable is serialized to disk and cleared.
   entries: 40
 
+
 # ---------------------------------------------------------------------------
 # Cache configuration
 # ---------------------------------------------------------------------------
@@ -62,10 +63,12 @@ cache:
 # WAL configuration
 # ---------------------------------------------------------------------------
 
+
 wal:
   # Forces a fsync after every N records appended to the WAL.
   # Lower values improve durability at the cost of higher disk I/O.
   fsync: 20
+
 
 # ---------------------------------------------------------------------------
 # Slave node configuration (optional)
