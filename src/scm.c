@@ -16,7 +16,7 @@ void racs_scm_propagate_error(msgpack_object *obj, racs_uint8 *data) {
     free(data);
     free(message);
 
-    scm_misc_error("extract", "~A", scm_list_1(error));
+    scm_misc_error("", "~A", scm_list_1(error));
 }
 
 int racs_scm_pack_s8vector(msgpack_packer *pk, SCM v) {
@@ -63,14 +63,20 @@ int racs_scm_pack_u16vector(msgpack_packer *pk, SCM v) {
     return RACS_STATUS_OK;
 }
 
-int racs_scm_pack_s32vector(msgpack_packer *pk, SCM v) {
+int racs_scm_pack_s32vector(msgpack_packer *pk, SCM v, bool is_final) {
     scm_t_array_handle handle;
     size_t n;
 
     const racs_int32 *data = scm_s32vector_elements(v, &handle, &n, NULL);
-    racs_pack_s32v(pk, (racs_int32 *) data, n);
-    scm_array_handle_release(&handle);
+    if (!data)
+        racs_pack_s32v(pk, 0, 0);
+    else
+        if (is_final)
+            racs_pack_s32v(pk, (racs_int32 *) data + 2, n - 2);
+        else
+            racs_pack_s32v(pk, (racs_int32 *) data, n);
 
+    scm_array_handle_release(&handle);
     return RACS_STATUS_OK;
 }
 
@@ -107,7 +113,7 @@ int racs_scm_pack_c32vector(msgpack_packer *pk, SCM v) {
     return RACS_STATUS_OK;
 }
 
-int racs_scm_pack(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x) {
+int racs_scm_pack(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x, bool is_final) {
     if (scm_is_integer(x))
         return racs_pack_int64(pk, scm_to_int64(x));
     if (scm_is_number(x))
@@ -129,7 +135,7 @@ int racs_scm_pack(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x) {
     if (scm_is_typed_array(x, scm_from_locale_symbol("u16")))
         return racs_scm_pack_u16vector(pk, x);
     if (scm_is_typed_array(x, scm_from_locale_symbol("s32")))
-        return racs_scm_pack_s32vector(pk, x);
+        return racs_scm_pack_s32vector(pk, x, is_final);
     if (scm_is_typed_array(x, scm_from_locale_symbol("u32")))
         return racs_scm_pack_u32vector(pk, x);
     if (scm_is_typed_array(x, scm_from_locale_symbol("f32")))
@@ -138,7 +144,7 @@ int racs_scm_pack(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x) {
         return racs_scm_pack_c32vector(pk, x);
 
     msgpack_sbuffer_clear(buf);
-    return racs_pack_error(pk, "Unsupported SCM type");
+    return racs_pack_error(pk, "EVAL", "Unsupported SCM type");
 }
 
 int racs_scm_pack_element(msgpack_packer *pk, msgpack_sbuffer *buf, SCM v) {
@@ -164,7 +170,7 @@ int racs_scm_pack_element(msgpack_packer *pk, msgpack_sbuffer *buf, SCM v) {
     }
 
     msgpack_sbuffer_clear(buf);
-    racs_pack_error(pk, "Unsupported SCM type");
+    racs_pack_error(pk, "EVAL", "Unsupported SCM type");
 
     return false;
 }
@@ -190,35 +196,50 @@ int racs_scm_pack_list(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x) {
 SCM racs_scm_safe_eval(void *body) {
     scm_c_use_module("ice-9 sandbox");
 
-    SCM eval_in_sandbox = scm_variable_ref(scm_c_lookup( "eval-in-sandbox"));
+    SCM eval_in_sandbox = scm_variable_ref(scm_c_lookup("eval-in-sandbox"));
     SCM make_sandbox_module = scm_variable_ref(scm_c_lookup("make-sandbox-module"));
 
-    SCM base_module = scm_list_5(scm_list_2(scm_from_locale_symbol("scheme"),
+    SCM base_module = scm_list_4(scm_list_2(scm_from_locale_symbol("scheme"),
                                             scm_from_locale_symbol("base")),
                                  scm_from_locale_symbol("+"),
                                  scm_from_locale_symbol("-"),
-                                 scm_from_locale_symbol("*"),
-                                 scm_from_locale_symbol("list"));
+                                 scm_from_locale_symbol("*"));
 
     SCM racs_module = scm_list_n(scm_list_1(scm_from_locale_symbol("racs")),
-                                 scm_from_locale_symbol("extract"),
-                                 scm_from_locale_symbol("create"),
-                                 scm_from_locale_symbol("info"),
-                                 scm_from_locale_symbol("format"),
-                                 scm_from_locale_symbol("ls"),
-                                 scm_from_locale_symbol("ping"),
-                                 scm_from_locale_symbol("open"),
-                                 scm_from_locale_symbol("close"),
-                                 scm_from_locale_symbol("shutdown"),
+                                 scm_from_locale_symbol("range"),
+                                 scm_from_locale_symbol("meta"),
+                                 scm_from_locale_symbol("encode"),
+                                 scm_from_locale_symbol("list"),
+                                 scm_from_locale_symbol("mix"),
+                                 scm_from_locale_symbol("gain"),
+                                 scm_from_locale_symbol("trim"),
+                                 scm_from_locale_symbol("fade"),
+                                 scm_from_locale_symbol("pan"),
+                                 scm_from_locale_symbol("pad"),
+                                 scm_from_locale_symbol("clip"),
+                                 scm_from_locale_symbol("split"),
+                                 scm_from_locale_symbol("merge"),
                                  SCM_UNDEFINED);
 
     SCM modules = scm_list_2(base_module, racs_module);
     SCM bindings = scm_call_1(make_sandbox_module, modules);
-    SCM module_keyword = scm_from_latin1_keyword("module");
+
+    SCM kw_module = scm_from_latin1_keyword("module");
+    SCM kw_time_limit = scm_from_latin1_keyword("time-limit");
+    SCM kw_alloc_limit = scm_from_latin1_keyword("allocation-limit");
+
+    SCM time_limit = scm_from_double(10.0);                // 10 seconds
+    SCM alloc_limit = scm_from_size_t(50 * 1024 * 1024);    // ~50 MB
 
     SCM expr = scm_c_read_string((char *)body);
-    return scm_call_3(eval_in_sandbox, expr, module_keyword, bindings);
+
+    return scm_call_7(eval_in_sandbox,
+                      expr,
+                      kw_module, bindings,
+                      kw_time_limit, time_limit,
+                      kw_alloc_limit, alloc_limit);
 }
+
 
 SCM racs_scm_error_handler(void *data, SCM key, SCM args) {
     scm_display(args, data);

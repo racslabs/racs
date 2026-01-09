@@ -10,6 +10,10 @@
 #ifndef RACS_MP3_H
 #define RACS_MP3_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <lame/lame.h>
 #include "types.h"
 
@@ -37,5 +41,9 @@ size_t racs_mp3_write(racs_mp3 *mp3, const void *in, void *out, size_t samples, 
 size_t racs_mp3_write_s16(racs_mp3 *mp3, const racs_int16 *in, void *out, size_t samples, size_t size);
 
 void racs_mp3_destroy(racs_mp3 *mp3);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //RACS_MP3_H

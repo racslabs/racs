@@ -3,7 +3,6 @@
 CREATE
 ======
 
-**Description:**
 Creates a new audio stream.
 
 
@@ -22,10 +21,14 @@ Arguments
 | bit_depth   | ``int``    | Bits per sample.                                              |
 +-------------+------------+---------------------------------------------------------------+
 
+Input
+-----
 
-Dependencies
-------------
-- ``NONE``
++----------+--------------------------------------------+
+| Type     | Description                                |
++==========+============================================+
+| ``null`` | N/A                                        |
++----------+--------------------------------------------+
 
 
 Output
@@ -40,6 +43,6 @@ Output
 Example
 -------
 
-.. code-block:: none
+.. code-block:: bash
 
-   CREATE 'chopin' 44100 2 16
+   CREATE 'vocals' 44100 2 16

@@ -10,11 +10,19 @@
 #ifndef RACS_STREAM_H
 #define RACS_STREAM_H
 
-#include "streaminfo.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "metadata.h"
 #include "memtable.h"
 #include "frame.h"
+#include "offsets.h"
 #include "result.h"
 #include "log.h"
+#include "wal.h"
+#include "zstd.h"
+#include <msgpack.h>
 
 typedef enum {
     RACS_STREAM_OK,
@@ -30,13 +38,15 @@ typedef struct {
 
 extern const char *const racs_stream_status_string[];
 
-int racs_streamcreate(racs_cache *mcache, const char* stream_id, racs_uint32 sample_rate, racs_uint16 channels, racs_uint16 bit_depth);
+int racs_stream_create(const char* stream_id, racs_uint32 sample_rate, racs_uint16 channels, racs_uint16 bit_depth);
 
-int racs_streamappend(racs_cache *mcache, racs_multi_memtable *mmt, racs_streamkv *kv, racs_uint8 *data);
+int racs_stream_append(racs_multi_memtable *mmt, racs_offsets *offsets, racs_streamkv *kv, racs_uint8 *data);
 
-int racs_streamopen(racs_streamkv *kv, racs_uint64 stream_id);
+void racs_stream_batch_append(racs_multi_memtable *mmt, racs_offsets *offsets, racs_streamkv *kv, racs_uint8 *data, size_t size);
 
-int racs_streamclose(racs_streamkv *kv, racs_uint64 stream_id);
+int racs_stream_open(racs_streamkv *kv, racs_uint64 stream_id);
+
+int racs_stream_close(racs_streamkv *kv, racs_uint64 stream_id);
 
 racs_uint8 *racs_streamkv_get(racs_streamkv *kv, racs_uint64 stream_id);
 
@@ -55,5 +65,9 @@ int racs_streamkv_cmp(void *a, void *b);
 void racs_streamkv_destroy_entry(void *key, void *value);
 
 int racs_session_cmp(const racs_uint8 *src, const racs_uint8 *dest);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //RACS_STREAM_H

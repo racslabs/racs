@@ -1,0 +1,50 @@
+Commands
+========
+
+Command Syntax
+--------------
+
+The command syntax follows this structure:
+
+.. code-block:: none
+
+   COMMAND <arg1> <arg2> ... <argN>
+
+The command name is case-insensitive and arguments are separated by whitespace.
+
+``string`` types must be enclosed in single or double quotes.
+
+Pipe Operator ``|>``
+--------------------
+
+The pipe operator ``|>`` chains multiple commands together, passing the output of one command as input to the next.
+
+.. code-block:: none
+
+    COMMAND1 <arg1> <arg2> ... <argN> |> COMMAND2 <arg1> <arg2> ... <argN> |> ...
+
+Certain commands, like ``ENCODE``, rely on input from a previous command and cannot run independently.
+
+Commands
+--------
+
+.. toctree::
+   :maxdepth: 1
+
+   clip
+   close
+   create
+   encode
+   eval
+   fade
+   gain
+   list
+   meta
+   open
+   pad
+   pan
+   ping
+   range
+   shutdown
+   split
+   trim

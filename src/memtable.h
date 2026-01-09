@@ -10,6 +10,10 @@
 #ifndef RACS_MEMTABLE_H
 #define RACS_MEMTABLE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
@@ -27,10 +31,7 @@
 #include "murmur3.h"
 #include "crc32c.h"
 #include "version.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "wal.h"
 
 #define RACS_BLOCK_ALIGN 4096
 
@@ -40,12 +41,13 @@ extern "C" {
 
 #define RACS_HEADER_SIZE 16
 
-#define RACS_MEMTABLE_ENTRY_METADATA_SIZE 23
+#define RACS_MEMTABLE_ENTRY_METADATA_SIZE 31
 
 #define RACS_TRAILER_SIZE 2
 
 typedef struct {
     racs_uint64 key[2];
+    racs_uint64 lsn;
     racs_uint32 checksum;
     racs_uint16 block_size;
     racs_uint8  flags;
@@ -84,7 +86,7 @@ typedef struct {
 
 racs_multi_memtable *racs_multi_memtable_create(int num_tables, int capacity);
 
-void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum);
+void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum, racs_uint8 flags);
 
 void racs_multi_memtable_flush(racs_multi_memtable *mmt);
 
@@ -98,7 +100,7 @@ void racs_sstable_destroy_except_data(racs_sstable *sst);
 
 racs_memtable_entry *racs_memtable_entry_read(racs_uint8 *buf, size_t offset);
 
-void racs_memtable_append(racs_memtable *mt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum);
+void racs_memtable_append(racs_memtable *mt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum, racs_uint8 flags);
 
 void racs_memtable_flush(racs_memtable *mt);
 
@@ -109,6 +111,8 @@ void racs_memtable_destroy(racs_memtable *mt);
 void racs_sstable_read_index_entries(racs_sstable *sst);
 
 void racs_memtable_write(racs_memtable *mt);
+
+void racs_memtable_write_lsn(racs_uint64 lsn);
 
 void racs_sstable_read_index_entries_in_memory(racs_sstable *sst, racs_uint8 *data);
 

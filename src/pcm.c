@@ -24,6 +24,11 @@ void racs_pcm_set_sample_rate(racs_pcm *pcm, racs_uint32 sample_rate) {
 void racs_pcm_init(racs_pcm *pcm) {
     pcm->samples = 0;
     racs_memstream_init(&pcm->out_stream);
+
+    // sample-rate, channels, and bit-depth will be pre-pended here
+    racs_int32 d = 0;
+    racs_memstream_write(&pcm->out_stream, &d, sizeof(racs_int32));
+    racs_memstream_write(&pcm->out_stream, &d, sizeof(racs_int32));
 }
 
 size_t racs_pcm_write_s16(racs_pcm *pcm, const racs_int16 *in, size_t samples) {

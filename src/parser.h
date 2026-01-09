@@ -10,6 +10,10 @@
 #ifndef RACS_PARSER_H
 #define RACS_PARSER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -20,16 +24,11 @@
 #include "time.h"
 #include "log.h"
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define RACS_REGEX_PIPE    "\\|>"
 #define RACS_REGEX_STR     "'([^'\\\\]*(\\\\'[^'\\\\]*)*)'"
 #define RACS_REGEX_ID      "^[a-zA-Z_][a-zA-Z0-9_]*"
-#define RACS_REGEX_INT     "^[0-9]+"
-#define RACS_REGEX_FLOAT   "^[0-9]+\\.[0-9]*"
+#define RACS_REGEX_INT     "^[+-]?[0-9]+"
+#define RACS_REGEX_FLOAT   "^[+-]?([0-9]*\\.[0-9]+|[0-9]+\\.[0-9]*)"
 #define RACS_REGEX_TIME    "^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})(\\.[0-9]+)?(Z|([+-])([0-9]{2}):([0-9]{2}))"
 
 typedef enum {

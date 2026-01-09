@@ -24,6 +24,8 @@ find_package(Lame)
 find_package(Opus)
 find_package(OpusEnc)
 find_package(Yaml)
+find_package(Event)
+find_package(Zstd)
 
 include_directories(
         ${OPUS_INCLUDE_DIRS}
@@ -32,6 +34,8 @@ include_directories(
         ${GUILE_INCLUDE_DIRS}
         ${YAML_INCLUDE_DIRS}
         ${MSGPACK_INCLUDE_DIRS}
+        ${EVENT_INCLUDE_DIRS}
+        ${ZSTD_INCLUDE_DIRS}
 )
 
 file(GLOB_RECURSE RACS_TEST_FILES CONFIGURE_DEPENDS ${RACS_TEST_DIR}/*.hpp ${RACS_TEST_DIR}/*.cpp)
@@ -46,6 +50,8 @@ target_link_libraries(racs
         ${OPUS_LIBRARIES}
         ${OPUSENC_LIBRARIES}
         ${YAML_LIBRARIES}
+        ${EVENT_LIBRARIES}
+        ${ZSTD_LIBRARIES}
 )
 
 include(FetchContent)

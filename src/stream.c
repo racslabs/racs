@@ -8,6 +8,7 @@
 // SPDX-License-Identifier: RACS-SAL-1.0
 
 #include "stream.h"
+#include "pack.h"
 
 const char *const racs_stream_status_string[] = {
         "",
@@ -19,32 +20,52 @@ const char *const racs_stream_status_string[] = {
         "Stream not found."
 };
 
-int racs_streamcreate(racs_cache *mcache, const char* stream_id, racs_uint32 sample_rate, racs_uint16 channels, racs_uint16 bit_depth) {
-    racs_streaminfo streaminfo;
-    memset(&streaminfo, 0, sizeof(racs_streaminfo));
-
-    streaminfo.sample_rate = sample_rate;
-    streaminfo.channels = channels;
-    streaminfo.bit_depth = bit_depth;
-    streaminfo.id_size = strlen(stream_id) + 1;
-    streaminfo.id = (char*)stream_id;
-    streaminfo.ttl = -1;
+int racs_stream_create(const char* stream_id, racs_uint32 sample_rate, racs_uint16 channels, racs_uint16 bit_depth) {
+    racs_metadata metadata;
+    metadata.sample_rate = sample_rate;
+    metadata.channels = channels;
+    metadata.bit_depth = bit_depth;
+    metadata.id_size = strlen(stream_id) + 1;
+    metadata.id = (char*)stream_id;
+    metadata.ttl = -1;
+    metadata.ref = racs_time_now();
 
     racs_uint64 hash = racs_hash(stream_id);
-    if (racs_streaminfo_get(mcache, &streaminfo, hash)) return 0;
+    if (racs_metadata_get(&metadata, hash)) {
+        racs_metadata_destroy(&metadata);
+        return 0;
+    }
 
-    size_t size = racs_streaminfo_size(&streaminfo);
+    size_t size = racs_metadata_size(&metadata);
     racs_uint8 *data = malloc(size);
-    if (!data) return 0;
+    if (!data) {
+        racs_metadata_destroy(&metadata);
+        return 0;
+    }
 
-    racs_streaminfo_write(data, &streaminfo);
-    racs_streaminfo_flush(data, size, hash);
-    racs_streaminfo_put(mcache, &streaminfo, hash);
+    racs_metadata_write(data, &metadata);
+    racs_metadata_put(&metadata, hash);
+    racs_metadata_destroy(&metadata);
 
     return 1;
 }
 
-int racs_streamappend(racs_cache *mcache, racs_multi_memtable *mmt, racs_streamkv *kv, racs_uint8 *data) {
+void racs_stream_batch_append(racs_multi_memtable *mmt, racs_offsets *offsets, racs_streamkv *kv, racs_uint8 *data, size_t size) {
+    msgpack_unpacked msg;
+    msgpack_unpacked_init(&msg);
+
+    if (msgpack_unpack_next(&msg, (char *)data, size, 0) == MSGPACK_UNPACK_PARSE_ERROR)
+        perror("Error parsing response");
+
+    size_t num_frames = msg.data.via.array.size;
+
+    for (int i = 0; i < num_frames; ++i) {
+        racs_uint8 *frame = racs_unpack_u8v(&msg.data, i);
+        racs_stream_append(mmt, offsets, kv, frame);
+    }
+}
+
+int racs_stream_append(racs_multi_memtable *mmt, racs_offsets *offsets, racs_streamkv *kv, racs_uint8 *data) {
     racs_frame frame;
     if (!racs_frame_parse(data, &frame))
         return RACS_STREAM_MALFORMED;
@@ -55,27 +76,38 @@ int racs_streamappend(racs_cache *mcache, racs_multi_memtable *mmt, racs_streamk
     if (!racs_session_cmp(frame.header.session_id, session_id))
         return RACS_STREAM_CONFLICT;
 
-    racs_streaminfo streaminfo;
-    memset(&streaminfo, 0, sizeof(racs_streaminfo));
-    int rc = racs_streaminfo_get(mcache, &streaminfo, frame.header.stream_id);
+    racs_metadata metadata;
+    int rc = racs_metadata_get(&metadata, frame.header.stream_id);
 
     if (rc == 0) return RACS_STREAM_NOT_FOUND;
     racs_streamkv_put(kv, frame.header.stream_id, frame.header.session_id);
 
-    if (streaminfo.ref == 0 && streaminfo.size == 0)
-        streaminfo.ref = racs_time_now();
+    racs_uint64 offset = racs_offsets_get(offsets, frame.header.stream_id);
+    racs_time timestamp = racs_metadata_timestamp(&metadata, offset);
+    racs_uint64 key[2] = { frame.header.stream_id, timestamp };
 
-    racs_time offset = racs_streaminfo_offset(&streaminfo);
-    racs_uint64 key[2] = {frame.header.stream_id, offset};
-    racs_multi_memtable_append(mmt, key, frame.pcm_block, frame.header.block_size, frame.header.checksum);
+    racs_wal_append(RACS_OP_CODE_APPEND, 34 + frame.header.block_size, data);
+    racs_multi_memtable_append(mmt, key, frame.pcm_block, frame.header.block_size, frame.header.checksum, frame.header.flags);
 
-    streaminfo.size += frame.header.block_size;
-    racs_streaminfo_put(mcache, &streaminfo, frame.header.stream_id);
+    if (frame.header.flags == 1) {
+        size_t decompressed_size;
+
+        racs_uint8 *decompressed_block = racs_zstd_decompress(frame.pcm_block, frame.header.block_size, &decompressed_size);
+        if (decompressed_block) {
+            offset += decompressed_size;
+            free(decompressed_block);
+        }
+    } else {
+        offset += frame.header.block_size;
+    }
+
+    racs_offsets_put(offsets, frame.header.stream_id, offset);
+    racs_metadata_destroy(&metadata);
 
     return RACS_STREAM_OK;
 }
 
-int racs_streamopen(racs_streamkv *kv, racs_uint64 stream_id) {
+int racs_stream_open(racs_streamkv *kv, racs_uint64 stream_id) {
     racs_uint8 *session_id = racs_streamkv_get(kv, stream_id);
     if (session_id) {
         racs_log_error("Stream is already open");
@@ -89,7 +121,7 @@ int racs_streamopen(racs_streamkv *kv, racs_uint64 stream_id) {
     return 1;
 }
 
-int racs_streamclose(racs_streamkv *kv, racs_uint64 stream_id) {
+int racs_stream_close(racs_streamkv *kv, racs_uint64 stream_id) {
     racs_uint8 *session_id = racs_streamkv_get(kv, stream_id);
     if (!session_id) {
         racs_log_info("Stream is not open");

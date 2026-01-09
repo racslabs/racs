@@ -9,238 +9,375 @@
 
 #include "scm_bindings.h"
 
-SCM racs_scm_extract(SCM stream_id, SCM from, SCM to) {
-    char *cmd = NULL;
-    asprintf(&cmd, "EXTRACT '%s' %s %s",
-             scm_to_locale_string(stream_id),
-             scm_to_locale_string(from),
-             scm_to_locale_string(to));
+SCM racs_scm_mix(SCM in_a, SCM in_b) {
+    scm_t_array_handle handle_a;
+    scm_array_get_handle(in_a, &handle_a);
 
-    racs_db *db = racs_db_instance();
-    racs_result res = racs_db_exec(db, cmd);
+    const racs_int32 *_in_a = scm_array_handle_s32_elements(&handle_a);
+    size_t _in_a_len = scm_c_array_length(in_a);
 
-    free(cmd);
+    scm_t_array_handle handle_b;
+    scm_array_get_handle(in_b, &handle_b);
 
-    msgpack_unpacked msg;
-    msgpack_unpacked_init(&msg);
+    const racs_int32 *_in_b = scm_array_handle_s32_elements(&handle_b);
+    size_t _in_b_len = scm_c_array_length(in_b);
 
-    if (msgpack_unpack_next(&msg, (char *) res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
-        free(res.data);
-        scm_misc_error("extract", "Deserialization error", SCM_EOL);
+    if ((ssize_t) _in_a_len < 2 || (ssize_t) _in_b_len < 2) {
+        scm_array_handle_release(&handle_a);
+        scm_array_handle_release(&handle_b);
+        scm_misc_error("trim", "Missing input data.", SCM_EOL);
     }
 
-    char *type = racs_unpack_str(&msg.data, 0);
-    if (strcmp(type, "error") == 0) {
-        racs_scm_propagate_error(&msg.data, res.data);
-    }
+    size_t out_size;
+    racs_int32 *out = racs_ops_mix(_in_a, _in_a_len, _in_b, _in_b_len, &out_size);
 
-    if (strcmp(type, "null") == 0) {
-        free(res.data);
-        return SCM_EOL;
-    }
+    scm_array_handle_release(&handle_a);
+    scm_array_handle_release(&handle_b);
 
-    size_t size = racs_unpack_s32v_size(&msg.data, 1);
-    racs_int32 *data = racs_unpack_s32v(&msg.data, 1);
-
-    return scm_take_s32vector(data, size);
+    return scm_take_s32vector(out, out_size);
 }
 
-SCM racs_scm_streamcreate(SCM stream_id, SCM sample_rate, SCM channels, SCM bit_depth) {
-    char *cmd = NULL;
-    asprintf(&cmd, "CREATE '%s' %d %d %d",
-             scm_to_locale_string(stream_id),
-             scm_to_uint32(sample_rate),
-             scm_to_uint32(channels),
-             scm_to_uint32(bit_depth));
+SCM racs_scm_gain(SCM in, SCM gain) {
+    double _gain = scm_to_double(gain);
 
-    racs_db *db = racs_db_instance();
-    racs_result res = racs_db_exec(db, cmd);
+    scm_t_array_handle handle;
+    scm_array_get_handle(in, &handle);
 
-    free(cmd);
+    const racs_int32 *_in = scm_array_handle_s32_elements(&handle);
+    size_t _in_len = scm_c_array_length(in);
 
-    msgpack_unpacked msg;
-    msgpack_unpacked_init(&msg);
-
-    if (msgpack_unpack_next(&msg, (char *) res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
-        free(res.data);
-        scm_misc_error("create", "Deserialization error", SCM_EOL);
+    if ((ssize_t) _in_len < 2) {
+        scm_array_handle_release(&handle);
+        scm_misc_error("gain", "Missing input data.", SCM_EOL);
     }
 
-    char *type = racs_unpack_str(&msg.data, 0);
-    if (strcmp(type, "error") == 0) {
-        racs_scm_propagate_error(&msg.data, res.data);
-    }
+    racs_int32 *out = racs_ops_gain(_in, _in_len, _gain);
+    scm_array_handle_release(&handle);
 
-    return SCM_EOL;
+    return scm_take_s32vector(out, _in_len);
 }
 
-SCM racs_scm_streaminfo(SCM stream_id, SCM attr) {
-    char *cmd = NULL;
-    asprintf(&cmd, "INFO '%s' '%s'",
-             scm_to_locale_string(stream_id),
-             scm_to_locale_string(attr));
+SCM racs_scm_trim(SCM in, SCM left_seconds, SCM right_seconds) {
+    double _left_seconds = scm_to_double(left_seconds);
+    double _right_seconds = scm_to_double(right_seconds);
+
+    scm_t_array_handle handle;
+    scm_array_get_handle(in, &handle);
+
+    const racs_int32 *_in = scm_array_handle_s32_elements(&handle);
+    size_t _in_len = scm_c_array_length(in);
+
+    if ((ssize_t) _in_len < 2) {
+        scm_array_handle_release(&handle);
+        scm_misc_error("trim", "Missing input data.", SCM_EOL);
+    }
+
+    size_t out_size;
+    racs_int32 *out = racs_ops_trim(_in, _in_len, _left_seconds, _right_seconds, &out_size);
+
+    scm_array_handle_release(&handle);
+
+    return scm_take_s32vector(out, out_size);
+}
+
+SCM racs_scm_fade(SCM in, SCM fade_in_seconds, SCM fade_out_seconds) {
+    double _fade_in_seconds = scm_to_double(fade_in_seconds);
+    double _fade_out_seconds = scm_to_double(fade_out_seconds);
+
+    scm_t_array_handle handle;
+    scm_array_get_handle(in, &handle);
+
+    const racs_int32 *_in = scm_array_handle_s32_elements(&handle);
+    size_t _in_len = scm_c_array_length(in);
+
+    if ((ssize_t) _in_len < 2) {
+        scm_array_handle_release(&handle);
+        scm_misc_error("fade", "Missing input data.", SCM_EOL);
+    }
+
+    size_t out_size;
+    racs_int32 *out = racs_ops_fade(_in, _in_len, _fade_in_seconds, _fade_out_seconds, &out_size);
+
+    scm_array_handle_release(&handle);
+
+    return scm_take_s32vector(out, out_size);
+}
+
+SCM racs_scm_pan(SCM in, SCM pan) {
+    double _pan = scm_to_double(pan);
+
+    if (_pan < -1.0 || _pan > 1.0)
+        scm_misc_error("pan", "Pan must be between -1.0 and +1.0", SCM_EOL);
+
+    scm_t_array_handle handle;
+    scm_array_get_handle(in, &handle);
+
+    const racs_int32 *_in = scm_array_handle_s32_elements(&handle);
+    size_t _in_len = scm_c_array_length(in);
+
+    if ((ssize_t) _in_len < 2) {
+        scm_array_handle_release(&handle);
+        scm_misc_error("pan", "Missing input data.", SCM_EOL);
+    }
+
+    racs_uint32 channels = (racs_uint16)(_in[1] >> 16);
+    if (channels < 2) {
+        scm_array_handle_release(&handle);
+        scm_misc_error("pan", "Invalid number of channels.", SCM_EOL);
+    }
+
+    size_t out_size;
+    racs_int32 *out = racs_ops_pan(_in, _in_len, _pan, &out_size);
+
+    scm_array_handle_release(&handle);
+    return scm_take_s32vector(out, out_size);
+}
+
+SCM racs_scm_pad(SCM in, SCM left_seconds, SCM right_seconds) {
+    double _left_seconds = scm_to_double(left_seconds);
+    double _right_seconds = scm_to_double(right_seconds);
+
+    scm_t_array_handle handle;
+    scm_array_get_handle(in, &handle);
+
+    const racs_int32 *_in = scm_array_handle_s32_elements(&handle);
+    size_t _in_len = scm_c_array_length(in);
+
+    if ((ssize_t) _in_len < 2) {
+        scm_array_handle_release(&handle);
+        scm_misc_error("pad", "Missing input data.", SCM_EOL);
+    }
+
+    size_t out_size;
+    racs_int32 *out = racs_ops_pad(_in, _in_len, _left_seconds, _right_seconds, &out_size);
+
+    scm_array_handle_release(&handle);
+    return scm_take_s32vector(out, out_size);
+}
+
+SCM racs_scm_clip(SCM in, SCM min, SCM max) {
+    racs_int32 _min = scm_to_int32(min);
+    racs_int32 _max = scm_to_int32(max);
+
+    scm_t_array_handle handle;
+    scm_array_get_handle(in, &handle);
+
+    const racs_int32 *_in = scm_array_handle_s32_elements(&handle);
+    size_t _in_len = scm_c_array_length(in);
+
+    if ((ssize_t) _in_len < 2) {
+        scm_array_handle_release(&handle);
+        scm_misc_error("clip", "Missing input data.", SCM_EOL);
+    }
+
+    size_t out_size;
+    racs_int32 *out = racs_ops_clip(_in, _in_len, _min, _max, &out_size);
+
+    scm_array_handle_release(&handle);
+    return scm_take_s32vector(out, out_size);
+}
+
+SCM racs_scm_split(SCM in, SCM channel) {
+    racs_uint16 _channel = scm_to_uint16(channel);
+
+    scm_t_array_handle handle;
+    scm_array_get_handle(in, &handle);
+
+    const racs_int32 *_in = scm_array_handle_s32_elements(&handle);
+    size_t _in_len = scm_c_array_length(in);
+
+    if ((ssize_t) _in_len < 2) {
+        scm_array_handle_release(&handle);
+        scm_misc_error("split", "Missing input data.", SCM_EOL);
+    }
+
+    racs_uint16 channels = (racs_uint16)(_in[1] >> 16);
+    if (channels != 2) {
+        scm_array_handle_release(&handle);
+        scm_misc_error("split", "Invalid number of channels.", SCM_EOL);
+    }
+
+    if (_channel > 1) {
+        scm_array_handle_release(&handle);
+        scm_misc_error("split", "Invalid channel number.", SCM_EOL);
+    }
+
+    size_t out_size;
+    racs_int32 *out = racs_ops_split(_in, _in_len, _channel, &out_size);
+
+    scm_array_handle_release(&handle);
+    return scm_take_s32vector(out, out_size);
+}
+
+SCM racs_scm_merge(SCM in_a, SCM in_b) {
+    scm_t_array_handle handle_a;
+    scm_array_get_handle(in_a, &handle_a);
+
+    const racs_int32 *_in_a = scm_array_handle_s32_elements(&handle_a);
+    size_t _in_a_len = scm_c_array_length(in_a);
+
+    scm_t_array_handle handle_b;
+    scm_array_get_handle(in_b, &handle_b);
+
+    const racs_int32 *_in_b = scm_array_handle_s32_elements(&handle_b);
+    size_t _in_b_len = scm_c_array_length(in_b);
+
+    if ((ssize_t) _in_a_len < 2 || (ssize_t) _in_b_len < 2) {
+        scm_array_handle_release(&handle_a);
+        scm_array_handle_release(&handle_b);
+        scm_misc_error("merge", "Missing input data.", SCM_EOL);
+    }
+
+    racs_uint16 channel_a = (racs_uint16)(_in_a[1] >> 16);
+    racs_uint16 channel_b = (racs_uint16)(_in_b[1] >> 16);
+
+    if (channel_a != 1 || channel_b != 1) {
+        scm_array_handle_release(&handle_a);
+        scm_array_handle_release(&handle_b);
+        scm_misc_error("merge", "Inputs must be mono.", SCM_EOL);
+    }
+
+    if (_in_a[0] != _in_b[0]) {
+        scm_array_handle_release(&handle_a);
+        scm_array_handle_release(&handle_b);
+        scm_misc_error("merge", "Inputs must have the same sample rate.", SCM_EOL);
+    }
+
+    if ((_in_a[1] & 0x0000ffff) != (_in_b[1] & 0x0000ffff)) {
+        scm_array_handle_release(&handle_a);
+        scm_array_handle_release(&handle_b);
+        scm_misc_error("merge", "Inputs must have the same bit depth.", SCM_EOL);
+    }
+
+    size_t out_size;
+    racs_int32 *out = racs_ops_merge(_in_a, _in_a_len, _in_b, _in_b_len, &out_size);
+
+    scm_array_handle_release(&handle_a);
+    scm_array_handle_release(&handle_b);
+
+    return scm_take_s32vector(out, out_size);
+}
+
+SCM racs_scm_range(SCM stream_id, SCM start, SCM duration) {
+    char *_stream_id = scm_to_locale_string(stream_id);
+    double _start = scm_to_double(start);
+    double _duration = scm_to_double(duration);
+
+    racs_pcm pcm;
 
     racs_db *db = racs_db_instance();
-    racs_result res = racs_db_exec(db, cmd);
 
-    free(cmd);
-
-    msgpack_unpacked msg;
-    msgpack_unpacked_init(&msg);
-
-    if (msgpack_unpack_next(&msg, (char *) res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
-        free(res.data);
-        scm_misc_error("info", "Deserialization error", SCM_EOL);
+    int rc = racs_range(&db->ctx, &pcm, _stream_id, _start, _duration);
+    if (rc == RACS_RANGE_STATUS_NOT_FOUND) {
+        racs_pcm_destroy(&pcm);
+        scm_misc_error("range", "The stream-id does not exist", SCM_EOL);
     }
 
-    char *type = racs_unpack_str(&msg.data, 0);
-    if (strcmp(type, "error") == 0) {
-        racs_scm_propagate_error(&msg.data, res.data);
-    }
+    racs_int32 *samples = NULL;
+    size_t size = pcm.samples * pcm.channels;
 
-    if (strcmp(type, "null") == 0) {
-        free(res.data);
-        return SCM_EOL;
-    }
+    if (pcm.bit_depth == 16)
+        samples = racs_s16_s32((const racs_int16 *) pcm.out_stream.data, size);
+    if (pcm.bit_depth == 24)
+        samples = racs_s24_s32((const racs_int24 *) pcm.out_stream.data, size);
+    free(pcm.out_stream.data);
 
-    racs_int64 value = racs_unpack_int64(&msg.data, 1);
+    if (!samples)
+        scm_misc_error("range", "Unknown error", SCM_EOL);
+
+    // pre-pend sample-rate, channels and bit-depth
+    samples[0] = (racs_int32)pcm.sample_rate;
+    samples[1] = (uint16_t)pcm.channels << 16 | (uint16_t)pcm.bit_depth;
+
+    return scm_take_s32vector(samples, size + 2);
+}
+
+SCM racs_scm_metadata(SCM stream_id, SCM attr) {
+    char *_stream_id = scm_to_locale_string(stream_id);
+    char *_attr = scm_to_locale_string(attr);
+
+    racs_uint64 hash = racs_hash(_stream_id);
+
+    racs_metadata metadata;
+    if (racs_metadata_get(&metadata, hash) == 0)
+        scm_misc_error("meta", "The stream-id does not exist.", SCM_EOL);
+
+    racs_int64 value = 0;
+    value = racs_metadata_attr(&metadata, _attr);
+
+    racs_db *db = racs_db_instance();
+
+    if (strcmp(_attr, "size") == 0)
+        value = (racs_int64)racs_offsets_get(db->ctx.offsets, hash);
+
+    if (value == 0)
+        scm_misc_error("meta", "Invalid metadata attribute.", SCM_EOL);
+
     return scm_from_int64(value);
 }
 
-SCM racs_scm_streamlist(SCM pattern) {
-    char *cmd = NULL;
-    asprintf(&cmd, "SEARCH '%s'", scm_to_locale_string(pattern));
+SCM racs_scm_stream_list(SCM pattern) {
+    char *_pattern = scm_to_locale_string(pattern);
 
-    racs_db *db = racs_db_instance();
-    racs_result res = racs_db_exec(db, cmd);
-
-    free(cmd);
-
-    msgpack_unpacked msg;
-    msgpack_unpacked_init(&msg);
-
-    if (msgpack_unpack_next(&msg, (char *) res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
-        free(res.data);
-        scm_misc_error("search", "Deserialization error", SCM_EOL);
-    }
-
-    char *type = racs_unpack_str(&msg.data, 0);
-    if (strcmp(type, "error") == 0) {
-        racs_scm_propagate_error(&msg.data, res.data);
-    }
+    racs_streams streams;
+    racs_streams_init(&streams);
+    racs_streams_list(&streams, _pattern);
 
     SCM list = SCM_EOL;
-    size_t size = msg.data.via.array.size;
 
-    for (int i = 1; i < size; i++) {
-        char *str = racs_unpack_str(&msg.data, i);
-        SCM _str = scm_from_locale_string(str);
-        list = scm_cons(_str, list);
-        free(str);
+    for (int i = 0; i < streams.num_streams; ++i) {
+        SCM stream = scm_from_locale_string(streams.streams[i]);
+        list = scm_cons(stream, list);
     }
 
+    racs_streams_destroy(&streams);
     return list;
 }
 
-SCM racs_scm_streamopen(SCM stream_id) {
-    char *cmd = NULL;
-    asprintf(&cmd, "OPEN '%s'", scm_to_locale_string(stream_id));
-
-    racs_db *db = racs_db_instance();
-    racs_result res = racs_db_exec(db, cmd);
-
-    free(cmd);
-
-    msgpack_unpacked msg;
-    msgpack_unpacked_init(&msg);
-
-    if (msgpack_unpack_next(&msg, (char *) res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
-        free(res.data);
-        scm_misc_error("open", "Deserialization error", SCM_EOL);
-    }
-
-    char *type = racs_unpack_str(&msg.data, 0);
-    if (strcmp(type, "error") == 0) {
-        racs_scm_propagate_error(&msg.data, res.data);
-    }
-
-    return SCM_EOL;
-}
-
-SCM racs_scm_streamclose(SCM stream_id) {
-    char *cmd = NULL;
-    asprintf(&cmd, "CLOSE '%s'", scm_to_locale_string(stream_id));
-
-    racs_db *db = racs_db_instance();
-    racs_result res = racs_db_exec(db, cmd);
-
-    free(cmd);
-
-    msgpack_unpacked msg;
-    msgpack_unpacked_init(&msg);
-
-    if (msgpack_unpack_next(&msg, (char *) res.data, res.size, 0) == MSGPACK_UNPACK_PARSE_ERROR) {
-        free(res.data);
-        scm_misc_error("close", "Deserialization error", SCM_EOL);
-    }
-
-    char *type = racs_unpack_str(&msg.data, 0);
-    if (strcmp(type, "error") == 0) {
-        racs_scm_propagate_error(&msg.data, res.data);
-    }
-
-    return SCM_EOL;
-}
-
-SCM racs_scm_shutdown() {
-    racs_db *db = racs_db_instance();
-    racs_db_exec(db, "SHUTDOWN");
-
-    return SCM_EOL;
-}
-
-SCM racs_scm_ping() {
-    return scm_from_locale_string("PONG");
-}
-
-SCM racs_scm_format(SCM data, SCM mime_type, SCM sample_rate, SCM channels, SCM bit_depth) {
+SCM racs_scm_encode(SCM data, SCM mime_type) {
     char *_mime_type = scm_to_locale_string(mime_type);
-    racs_uint32 _sample_rate = scm_to_uint32(sample_rate);
-    racs_uint16 _channels = scm_to_uint16(channels);
-    racs_uint16 _bit_depth = scm_to_uint16(bit_depth);
 
     scm_t_array_handle handle;
     scm_array_get_handle(data, &handle);
 
     const racs_int32 *in = scm_array_handle_s32_elements(&handle);
-    size_t size = scm_c_array_length(data);
+    size_t size = scm_c_array_length(data) - 2;
 
-    void *out = malloc(size * (_bit_depth / 8) + 44);
+    if ((ssize_t) size < 2) {
+        scm_array_handle_release(&handle);
+        scm_misc_error("encode", "Missing input data.", SCM_EOL);
+    }
 
-    racs_format fmt;
-    fmt.channels = _channels;
-    fmt.sample_rate = _sample_rate;
-    fmt.bit_depth = _bit_depth;
+    racs_encode encode;
 
-    size_t n = racs_format_pcm(&fmt, in, out, size / _channels, size * (_bit_depth / 8) + 44, _mime_type);
+    // get pre-pended sample-rate, channels and bit-depth
+    encode.sample_rate = in[0];
+    encode.channels    = (racs_uint16)(in[1] >> 16);
+    encode.bit_depth   = (racs_uint16)(in[1] & 0xffff);
+
+    void *out = malloc(size * (encode.bit_depth / 8) + 44);
+    size_t n = racs_encode_pcm(&encode, in + 2, out, size / encode.channels, size * (encode.bit_depth / 8) + 44, _mime_type);
 
     scm_array_handle_release(&handle);
-    return scm_take_u8vector((uint8_t *)out, n);
+    return scm_take_u8vector(out, n);
 }
 
 void racs_scm_init_bindings() {
-    scm_c_define_gsubr("extract", 3, 0, 0, racs_scm_extract);
-    scm_c_define_gsubr("create", 4, 0, 0, racs_scm_streamcreate);
-    scm_c_define_gsubr("info", 2, 0, 0, racs_scm_streaminfo);
-    scm_c_define_gsubr("format", 5, 0, 0, racs_scm_format);
-    scm_c_define_gsubr("search", 1, 0, 0, racs_scm_streamlist);
-    scm_c_define_gsubr("ping", 0, 0, 0, racs_scm_ping);
-    scm_c_define_gsubr("open", 1, 0, 0, racs_scm_streamopen);
-    scm_c_define_gsubr("close", 1, 0, 0, racs_scm_streamclose);
-    scm_c_define_gsubr("shutdown", 0, 0, 0, racs_scm_shutdown);
+    scm_c_define_gsubr("range", 3, 0, 0, racs_scm_range);
+    scm_c_define_gsubr("meta", 2, 0, 0, racs_scm_metadata);
+    scm_c_define_gsubr("encode", 2, 0, 0, racs_scm_encode);
+    scm_c_define_gsubr("list", 1, 0, 0, racs_scm_stream_list);
+    scm_c_define_gsubr("mix", 2, 0, 0, racs_scm_mix);
+    scm_c_define_gsubr("gain", 2, 0, 0, racs_scm_gain);
+    scm_c_define_gsubr("trim", 3, 0, 0, racs_scm_trim);
+    scm_c_define_gsubr("fade", 3, 0, 0, racs_scm_fade);
+    scm_c_define_gsubr("pan", 2, 0, 0, racs_scm_pan);
+    scm_c_define_gsubr("pad", 3, 0, 0, racs_scm_pad);
+    scm_c_define_gsubr("clip", 3, 0, 0, racs_scm_clip);
+    scm_c_define_gsubr("split", 2, 0, 0, racs_scm_split);
+    scm_c_define_gsubr("merge", 2, 0, 0, racs_scm_merge);
 
-    scm_c_export("extract", "create", "info", "format", "search",
-                 "ping", "open", "close", "shutdown", NULL);
+    scm_c_export("range", "meta", "encode", "list", "mix", "gain", "trim", "fade", "pan", "pad", "clip", "split", "merge", NULL);
 }
 
 void racs_scm_init_module() {

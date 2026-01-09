@@ -3,7 +3,6 @@
 EVAL
 ====
 
-**Description:**
 Evaluates a Scheme (SCM) expression using the Guile Scheme interpreter.
 
 Arguments
@@ -15,9 +14,14 @@ Arguments
 | scm_expr    | ``string`` | Scheme expression to be evaluated.                            |
 +-------------+------------+---------------------------------------------------------------+
 
-Dependencies
-------------
-- ``NONE``
+Input
+-----
+
++----------+--------------------------------------------+
+| Type     | Description                                |
++==========+============================================+
+| ``null`` | N/A                                        |
++----------+--------------------------------------------+
 
 Output
 ------
@@ -31,6 +35,6 @@ Output
 Example
 -------
 
-.. code-block:: none
+.. code-block:: bash
 
    EVAL '(+ 1 2 3)'

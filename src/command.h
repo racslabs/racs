@@ -18,9 +18,10 @@ extern "C" {
 #include "scm.h"
 #include "pack.h"
 #include "stream.h"
-#include "extract.h"
+#include "range.h"
 #include "wav.h"
-#include "format.h"
+#include "encode.h"
+#include "ops.h"
 
 typedef enum {
     RACS_STATUS_OK,
@@ -28,29 +29,44 @@ typedef enum {
     RACS_STATUS_ERROR
 } racs_status;
 
-#define racs_validate(pk, condition, error) \
+#define racs_validate(pk, condition, command, error) \
     if (!(condition)) {                      \
         msgpack_sbuffer_clear(out_buf);      \
-        return racs_pack_error(pk, error); \
+        return racs_pack_error(pk, command, error); \
     }
 
-#define racs_validate_type(pk, msg, arg_num, obj_type, error) \
-    racs_validate(pk, obj_type == ((msg).data.via.array.ptr[arg_num].type), error)
+#define racs_validate_arg_type(pk, msg, arg_num, obj_type, command, error) \
+    racs_validate(pk, obj_type == ((msg).data.via.array.ptr[arg_num].type), command, error)
 
-#define racs_validate_num_args(pk, msg, num_args) \
+#define racs_validate_num_args(pk, msg, command, num_args) \
     if ((msg).data.type == MSGPACK_OBJECT_ARRAY && (msg).data.via.array.size != (num_args)) \
-        return racs_pack_invalid_num_args(pk, num_args, (msg).data.via.array.size);
+        return racs_pack_invalid_num_args(pk, command, num_args, (msg).data.via.array.size);
+
+#define racs_validate_not_null(pk, msg, command) \
+    if ((msg).data.type == MSGPACK_OBJECT_NIL) { \
+        msgpack_sbuffer_clear(out_buf); \
+        return racs_pack_error(pk, command, "Missing input data."); \
+    }
+
+#define racs_validate_s32v(pk, msg, command) \
+    char *type = racs_unpack_str(msg.data, 0); \
+    if (strcmp(type, "s32v") != 0) { \
+        free(type); \
+        msgpack_sbuffer_clear(out_buf); \
+        return racs_pack_error(pk, command, "Invalid input type. Expected: int32 array"); \
+    } \
+    free(type);
 
 #define racs_create_command(name) \
-    int racs_command_##name(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, racs_context* ctx)
+    int racs_command_##name(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, racs_context* ctx, bool is_final)
 
-racs_create_command(extract);
+racs_create_command(range);
 
 racs_create_command(eval);
 
 racs_create_command(streamcreate);
 
-racs_create_command(streaminfo);
+racs_create_command(metadata);
 
 racs_create_command(streamopen);
 
@@ -58,13 +74,27 @@ racs_create_command(streamclose);
 
 racs_create_command(ping);
 
-racs_create_command(format);
+racs_create_command(encode);
 
 racs_create_command(streamlist);
 
 racs_create_command(shutdown);
 
-int racs_stream(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data);
+racs_create_command(gain);
+
+racs_create_command(trim);
+
+racs_create_command(fade);
+
+racs_create_command(pan);
+
+racs_create_command(pad);
+
+racs_create_command(clip);
+
+racs_create_command(split);
+
+int racs_stream(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data, size_t size);
 
 #ifdef __cplusplus
 }

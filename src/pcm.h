@@ -10,6 +10,10 @@
 #ifndef RACS_PCM_H
 #define RACS_PCM_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "memory.h"
 
 typedef struct {
@@ -33,5 +37,9 @@ size_t racs_pcm_write_s16(racs_pcm *pcm, const racs_int16 *in, size_t samples);
 size_t racs_pcm_write(racs_pcm *pcm, const void *in, size_t samples);
 
 void racs_pcm_destroy(racs_pcm *pcm);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //RACS_PCM_H

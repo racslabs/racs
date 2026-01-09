@@ -10,12 +10,12 @@
 #ifndef RACS_MURMUR3
 #define RACS_MURMUR3
 
-#include "types.h"
-#include "export.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include "types.h"
+#include "export.h"
 
 #define RACS_ROTL64(x,y)	rotl64(x,y)
 

@@ -3,16 +3,17 @@
 SHUTDOWN
 ========
 
-**Description:**
-Stops the RACS server.
+Gracefully shuts down the RACS server.
 
-.. note::
+Input
+-----
 
-   Use ``SHUTDOWN`` to ensure all buffers are flushed before termination. This prevents data loss.
++----------+--------------------------------------------+
+| Type     | Description                                |
++==========+============================================+
+| ``null`` | N/A                                        |
++----------+--------------------------------------------+
 
-Dependencies
-------------
-- ``NONE``
 
 Example
 -------

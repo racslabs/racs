@@ -47,7 +47,7 @@ void racs_multi_memtable_move_to_head(racs_multi_memtable *mmt, racs_memtable *m
     mmt->head = mt;
 }
 
-void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum) {
+void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum, racs_uint8 flags) {
     if (!mmt) return;
 
     pthread_mutex_lock(&mmt->mutex);
@@ -62,7 +62,7 @@ void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs
         racs_multi_memtable_move_to_head(mmt, mt);
     }
 
-    racs_memtable_append(mmt->head, key, block, block_size, checksum);
+    racs_memtable_append(mmt->head, key, block, block_size, checksum, flags);
     pthread_mutex_unlock(&mmt->mutex);
 }
 
@@ -163,6 +163,7 @@ racs_memtable_entry *racs_memtable_entry_read(racs_uint8 *buf, size_t offset) {
 
     offset = racs_read_uint64(&entry->key[0], buf, (off_t) offset);
     offset = racs_read_uint64(&entry->key[1], buf, (off_t) offset);
+    offset = racs_read_uint64(&entry->lsn, buf, (off_t) offset);
     offset = racs_read_uint32(&entry->checksum, buf, (off_t) offset);
     offset = racs_read_uint16(&entry->block_size, buf, (off_t) offset);
 
@@ -213,7 +214,7 @@ racs_memtable *racs_memtable_create(int capacity) {
     return mt;
 }
 
-void racs_memtable_append(racs_memtable *mt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum) {
+void racs_memtable_append(racs_memtable *mt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum, racs_uint8 flags) {
     if (!mt) return;
 
     pthread_mutex_lock(&mt->mutex);
@@ -224,6 +225,8 @@ void racs_memtable_append(racs_memtable *mt, racs_uint64 *key, racs_uint8 *block
     mt->entries[mt->num_entries].block_size = block_size;
     mt->entries[mt->num_entries].checksum = checksum;
     mt->entries[mt->num_entries].flags = 0;
+    mt->entries[mt->num_entries].lsn = racs_wal_lsn;
+    mt->entries[mt->num_entries].flags = flags;
 
     ++mt->num_entries;
 
@@ -236,9 +239,13 @@ void racs_memtable_flush(racs_memtable *mt) {
     int num_entries = mt->num_entries;
     if (num_entries == 0) return;
 
+    racs_uint64 max_lsn = mt->entries[mt->num_entries - 1].lsn;
+    racs_memtable_write_lsn(max_lsn);
+
     racs_memtable_write(mt);
     mt->num_entries = 0;
 
+    racs_wal_truncate();
     racs_memtable_destroy(mt);
 }
 
@@ -359,6 +366,24 @@ int racs_sstable_open(const char *path, racs_sstable *sst) {
     return 0;
 }
 
+void racs_memtable_write_lsn(racs_uint64 lsn) {
+    char *path = NULL;
+    asprintf(&path, "%s/.racs/wal/manifest", racs_wal_dir);
+
+    int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (fd == -1) {
+        racs_log_error("Failed to open manifest");
+        return;
+    }
+
+    write(fd, &lsn, sizeof(racs_uint64));
+    if (fsync(fd) < 0)
+        racs_log_error("fsync failed on manifest");
+
+    close(fd);
+    free(path);
+}
+
 void racs_sstable_write(racs_uint8 *buf, racs_sstable *sst, size_t offset) {
     racs_write_uint64(buf, offset, 0);
     racs_write_uint32(buf, RACS_VERSION, 8);
@@ -435,6 +460,7 @@ racs_sstable_index_entry_update(racs_sstable_index_entry *index_entry, racs_memt
 off_t racs_memtable_entry_write(racs_uint8 *buf, const racs_memtable_entry *mt_entry, off_t offset) {
     offset = racs_write_uint64(buf, mt_entry->key[0], offset);
     offset = racs_write_uint64(buf, mt_entry->key[1], offset);
+    offset = racs_write_uint64(buf, mt_entry->lsn, offset);
     offset = racs_write_uint32(buf, mt_entry->checksum, offset);
     offset = racs_write_uint16(buf, mt_entry->block_size, offset);
 

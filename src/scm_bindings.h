@@ -10,29 +10,44 @@
 #ifndef RACS_SCM_BINDINGS_H
 #define RACS_SCM_BINDINGS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "scm.h"
 #include "db.h"
+#include "ops.h"
 
-SCM racs_scm_extract(SCM stream_id, SCM from, SCM to);
+SCM racs_scm_mix(SCM in_a, SCM in_b);
 
-SCM racs_scm_streamcreate(SCM stream_id, SCM sample_rate, SCM channels, SCM bit_depth);
+SCM racs_scm_gain(SCM in, SCM gain);
 
-SCM racs_scm_streaminfo(SCM stream_id, SCM attr);
+SCM racs_scm_trim(SCM in, SCM left_seconds, SCM right_seconds);
 
-SCM racs_scm_streamopen(SCM stream_id);
+SCM racs_scm_fade(SCM in, SCM fade_in_seconds, SCM fade_out_seconds);
 
-SCM racs_scm_streamclose(SCM stream_id);
+SCM racs_scm_pan(SCM in, SCM pan);
 
-SCM racs_scm_streamlist(SCM pattern);
+SCM racs_scm_pad(SCM in, SCM left_seconds, SCM right_seconds);
 
-SCM racs_scm_shutdown();
+SCM racs_scm_clip(SCM in, SCM min, SCM max);
 
-SCM racs_scm_ping();
+SCM racs_scm_split(SCM in, SCM channel);
 
-SCM racs_scm_format(SCM data, SCM mime_type, SCM sample_rate, SCM channels, SCM bit_depth);
+SCM racs_scm_range(SCM stream_id, SCM from, SCM to);
+
+SCM racs_scm_metadata(SCM stream_id, SCM attr);
+
+SCM racs_scm_stream_list(SCM pattern);
+
+SCM racs_scm_encode(SCM data, SCM mime_type);
 
 void racs_scm_init_bindings();
 
 void racs_scm_init_module();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //RACS_SCM_BINDINGS_H

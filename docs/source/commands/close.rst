@@ -3,7 +3,6 @@
 CLOSE
 =====
 
-**Description:**
 Closes an existing audio stream.
 
 
@@ -16,10 +15,14 @@ Arguments
 | stream_id   | ``string`` | ASCII ID of the audio stream.                                 |
 +-------------+------------+---------------------------------------------------------------+
 
+Input
+-----
 
-Dependencies
-------------
-- ``NONE``
++----------+--------------------------------------------+
+| Type     | Description                                |
++==========+============================================+
+| ``null`` | N/A                                        |
++----------+--------------------------------------------+
 
 
 Output
@@ -34,6 +37,6 @@ Output
 Example
 -------
 
-.. code-block:: none
+.. code-block:: bash
 
-   CLOSE 'chopin'
+   CLOSE 'vocals'

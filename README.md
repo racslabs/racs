@@ -6,96 +6,40 @@
 
 ## What is RACS?
 
-**RACS (Remote Audio Caching Server)** is an persistent, append-only audio cache with time-indexed range queries and format conversion.
-Unlike blob stores and traditional databases, **RACS** is purpose-built for storing, querying, and streaming audio data at scale.
+RACS (Remote Audio Caching Server) is a distributed, persistent audio cache optimized for time-indexed range queries. It uses a hybrid in-memory and disk-backed storage model for low-latency ingestion and retrieval, enabling fine-grained access to arbitrary time ranges within large audio archives while minimizing disk I/O.
 
-### Key Features
-- **Format Conversion**: On-the-fly transcoding to MP3, Opus, and WAV formats to adapt to client or bandwidth requirements.
-- **Time-Range Queries**: Retrieve precise audio segments by timestamp for efficient slicing, analysis, or playback.
-- **Metadata Management**: Store and query audio-specific metadata such as sample rate, bit depth, and channels.
-- **Caching & Persistence**: Hybrid memory–disk storage with LRU caching for fast access and durable persistence.
-- **Programmability**: Embedded Guile Scheme interpreter for direct, scriptable interaction with the server. 
+## Features
 
-### Storage Engine
-
-**RACS** uses a multi-tiered architecture inspired by LSM (Log-Structured Merge) trees:
-
-1. **Memtables**:
-Incoming audio blocks are written in memory and batched for efficient disk flushes.
-2. **SSTables (Time-Partitioned)**:
-When memtables reach capacity, they are flushed as immutable time-partitioned files on disk. This layout enables fast range queries by timestamp.
-3. **LRU Cache**:
-Frequently accessed SSTables are cached in memory, minimizing disk I/O and improving response times.
-
-This architecture ensures a balance between high write performance, query efficiency, and data durability.
-
-## Why Use RACS?
-
-Audio deserves more than generic storage.
-
-RACS is built for systems where audio is dynamic, time-indexed, and performance-critical.
-It replaces complex pipelines and slow object stores with a single, purpose-built engine for fast, precise, and reliable audio access.
-
-When you need to treat audio as data — not files — RACS is the right tool.
+- **Format Conversion** — Transcode audio to MP3, Opus, and WAV.
+- **Time-Range Queries** — Retrieve precise audio segments from large archives.
+- **Caching & Persistence** — Hybrid memory–disk storage with LRU caching.
+- **Programmability** — Embedded Guile Scheme interpreter for scriptable server interaction.
+- **Replication** — Basic master-slave replication.
+- **WAL** — Write-ahead log for crash recovery.
 
 ## ⚠️ MVP Stage
 
-**RACS** is currently in the **MVP (Minimum Viable Product)** stage. All the key features mentioned above are functional 
-but still undergoing testing. Planed enhancements and new features will be added in the near future. Feedback is welcome!
+RACS is currently in the **Minimum Viable Product (MVP)** stage. It is under active testing. New features and enhancements will be added in future releases. Feedback is welcome!
 
-## Is RACS Open Source?
+## Licensing
 
-**RACS** is distributed under the RACS Source Available License (RACS-SAL-1.0).
-It is free for personal, educational, and non-commercial use.
+RACS is distributed under the **RACS Source Available License (RACS-SAL-1.0)**.  
+It is free for personal, educational, and non-commercial use. Commercial use requires a paid license. For licensing inquiries, contact sales@racslabs.com.
 
-Commercial use requires a paid license.
-For licensing inquiries, contact sales@racslabs.com
+## Generating Documentation
 
-## Getting Started
-
-The quickest way to run RACS is using ``docker``.
-
-If you do not have docker on your machine, [Install Docker](https://docs.docker.com/get-started/get-docker/)  before continuing.
+Install dependencies and build HTML docs with:
 
 ```sh
-    docker build --tag racslabs/racs .
+pip install sphinx Pygments sphinx-copybutton
+cd docs && make html
 ```
 
-```sh
-    docker run --network=host -p 6381:6381 racslabs/racs
-```
+Open `docs/build/html/index.html` in a browser to view the documentation.
 
-You can now connect to the server on `localhost:6381`.
-
-### Other Build Options
-
-- [Build From Source](docs/source/build-from-source.rst)
-
-### Documentation Generation
-
-To generate the docs, run the following commands:
-
-```sh
-    pip install -U sphinx
-```
-
-```sh
-    pip install piccolo-theme
-```
-
-```sh
-    cd docs && make html
-```
-
-Open the `index.html` file under `docs/build/html` in the browser.
-
-> [!NOTE]  
-> python 3+ is required for doc generation.
-
-### Client Libraries
+## Client Libraries
 
 RACS provides client libraries for multiple languages:
 
 - [**(Python)** py-racs](https://github.com/racslabs/py-racs) — fully usable
 - [**(Rust)** rust-racs](https://github.com/racslabs/rust-racs) — fully usable
-- [**(C)** racs-client](https://github.com/racslabs/racs-client) — usable

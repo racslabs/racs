@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'racs'
-copyright = '2025, RACS Labs, LLC.'
+copyright = '2026, RACS Labs, LLC.'
 author = 'RACS Labs'
 
 # -- General configuration ---------------------------------------------------
@@ -19,9 +19,12 @@ exclude_patterns = []
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_logo = 'white-logo.svg'
-html_theme = 'piccolo_theme'
+html_theme = 'basic'
+pygments_style = 'friendly'
 html_static_path = ['_static']
 html_css_files = [
     'custom.css',
+]
+extensions = [
+    "sphinx_copybutton"
 ]

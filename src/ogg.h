@@ -10,6 +10,10 @@
 #ifndef RACS_OGG_H
 #define RACS_OGG_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <opus/opusenc.h>
 #include "memory.h"
 #include "log.h"
@@ -46,5 +50,9 @@ size_t racs_ogg_write(racs_ogg *ogg, const void *in, void *out, size_t samples);
 size_t racs_ogg_write_s16(racs_ogg *ogg, const racs_int16 *in, void *out, size_t samples);
 
 void racs_ogg_destroy(racs_ogg *ogg);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //RACS_OGG_H

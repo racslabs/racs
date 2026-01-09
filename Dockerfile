@@ -20,6 +20,8 @@ RUN apk add \
 RUN apk add \
     guile-dev \
     msgpack-c-dev \
+    libevent-dev \
+    zstd-dev \
     yaml-dev
 
 RUN git clone https://github.com/tlsa/libcyaml.git /tmp/libcyaml \

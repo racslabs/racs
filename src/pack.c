@@ -45,10 +45,16 @@ int racs_pack_null_with_status_not_found(msgpack_packer *pk) {
     return RACS_STATUS_NOT_FOUND;
 }
 
-int racs_pack_error(msgpack_packer *pk, const char *message) {
+int racs_pack_error(msgpack_packer *pk, const char * command, const char *message) {
     msgpack_pack_array(pk, 2);
     racs_pack_type(pk, RACS_TYPE_ERROR);
-    msgpack_pack_str_with_body(pk, message, strlen(message));
+
+    char *buf = NULL;
+    asprintf(&buf, "%s: %s", command, message);
+
+    msgpack_pack_str_with_body(pk, buf, strlen(buf));
+    free(buf);
+
     return RACS_STATUS_ERROR;
 }
 
@@ -132,6 +138,15 @@ int racs_pack_s32v(msgpack_packer *pk, racs_int32 *data, size_t n) {
     return RACS_STATUS_OK;
 }
 
+int racs_pack_s32v_without_metadata(msgpack_packer *pk, racs_int32 *data, size_t n) {
+    msgpack_pack_array(pk, 2);
+
+    racs_pack_type(pk, RACS_TYPE_S32VEC);
+    msgpack_pack_bin_with_body(pk, data + 8, n * sizeof(racs_int32) - 8);
+
+    return RACS_STATUS_OK;
+}
+
 int racs_pack_u32v(msgpack_packer *pk, racs_uint32 *data, size_t n) {
     msgpack_pack_array(pk, 2);
 
@@ -159,23 +174,14 @@ int racs_pack_c64v(msgpack_packer *pk, racs_complex *data, size_t n) {
     return RACS_STATUS_OK;
 }
 
-int racs_pack_invalid_num_args(msgpack_packer *pk, int expected, int actual) {
+int racs_pack_invalid_num_args(msgpack_packer *pk, const char *command, int expected, int actual) {
     char message[255];
     sprintf(message, "Expected %d args, but got %d", expected, actual);
-    return racs_pack_error(pk, message);
+    return racs_pack_error(pk, command, message);
 }
 
 int racs_is_object_type(msgpack_object *obj, msgpack_object_type type, int arg_num) {
     return obj->via.array.ptr[arg_num].type == type;
-}
-
-char *racs_unpack_str(msgpack_object *obj, int n) {
-    size_t size = obj->via.array.ptr[n].via.str.size + 1;
-
-    char *str = malloc(size);
-    snprintf(str, size, "%s", obj->via.array.ptr[n].via.str.ptr);
-
-    return str;
 }
 
 int racs_pack_streams(msgpack_packer *pk, racs_streams *streams) {
@@ -187,6 +193,15 @@ int racs_pack_streams(msgpack_packer *pk, racs_streams *streams) {
     }
 
     return RACS_STATUS_OK;
+}
+
+char *racs_unpack_str(msgpack_object *obj, int n) {
+    size_t size = obj->via.array.ptr[n].via.str.size + 1;
+
+    char *str = malloc(size);
+    snprintf(str, size, "%s", obj->via.array.ptr[n].via.str.ptr);
+
+    return str;
 }
 
 racs_uint8 *racs_unpack_u8v(msgpack_object *obj, int n) {
@@ -235,4 +250,8 @@ racs_uint64 racs_unpack_uint64(msgpack_object *obj, int n) {
 
 float racs_unpack_float32(msgpack_object *obj, int n) {
     return (float)obj->via.array.ptr[n].via.f64;
+}
+
+double racs_unpack_float64(msgpack_object *obj, int n) {
+    return obj->via.array.ptr[n].via.f64;
 }

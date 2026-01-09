@@ -1,9 +1,15 @@
 Streaming
 =========
 
+RACS Streaming Protocol
+-----------------------
+
 **RACS Streaming Protocol** (RSP) is used to efficiently transfer audio data over TCP/IP.
 
-The client takes raw PCM samples interleaved by channel and chunks it into frames with the below format:
+Clients send PCM samples interleaved by channel in frames, batching multiple frames per TCP transmission. Only 16-bit and 24-bit PCM samples are supported.
+
+Frame Format
+^^^^^^^^^^^^
 
 +------------+-------------------------------------------------------------+------------+--------+-----------+
 | Value      | Description                                                 | Bytes      | Offset | Byte Order|
@@ -24,31 +30,13 @@ The client takes raw PCM samples interleaved by channel and chunks it into frame
 | pcm_block  | Block containing the raw PCM samples interleaved by channel | block_size | 34     | Little    |
 +------------+-------------------------------------------------------------+------------+--------+-----------+
 
-.. note::
+Block Sizes
+-----------
 
-    Only 16-bit and 24-bit PCM samples are supported.
-    Compression is not yet implemented. Set flags to 0.
+The minimum uncompressed block size is 1024 bytes (1 KB). All uncompressed block sizes must be a power of two. Smaller block sizes result in slower ingestion but provide more precise time-range queries. Larger block sizes allow faster ingestion at the cost of lower time-range precision.
 
 Timestamp Generation
 --------------------
 
-When a new stream is created, a reference timestamp is generated when the first
-frame is appended to the stream.
-The timestamp for each subsequent frame is computed as an offset from this
-reference timestamp using the following formula:
-
-.. math::
-
-    t = \left(
-        \frac{\text{size}}
-        {\text{channels} \times \text{sample_rate} \times \left(\frac{\text{bit_depth}}{8}\right)}
-        \right) \times 1000 \;+\; \text{ref}
-
-Where:
-
-- ``size`` is the current size of the stream in bytes.
-- ``channels`` is the number of channels.
-- ``sample_rate`` is the sample rate of the stream.
-- ``bit_depth`` is the number of bits per sample.
-- ``ref`` is the reference timestamp (milliseconds UTC) established when the first frame is appended.
+When a new stream is created, a reference timestamp is generated when the first frame is appended. The timestamp for each subsequent frame is calculated as an offset from this reference based on the number of PCM samples per block, the sample rate, and the number of channels. This ensures accurate alignment for time-range queries.
 

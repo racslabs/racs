@@ -9,11 +9,11 @@
 
 #include "exec.h"
 
-racs_result racs_exec_stream(racs_context *ctx, racs_uint8 *data) {
+racs_result racs_exec_stream(racs_context *ctx, racs_uint8 *data, size_t size) {
     msgpack_sbuffer out_buf;
     msgpack_sbuffer_init(&out_buf);
 
-    racs_stream(&out_buf, ctx, data);
+    racs_stream(&out_buf, ctx, data + 3, size - 3);
 
     racs_result result;
     racs_result_init(&result, out_buf.size);
@@ -27,11 +27,16 @@ racs_result racs_exec_exec(racs_exec *exec, racs_context *ctx, const char *cmd) 
     racs_parser parser;
     racs_parser_init(&parser, cmd);
 
+    racs_result result;
+
     msgpack_sbuffer in_buf;
     msgpack_sbuffer out_buf;
 
     msgpack_sbuffer_init(&in_buf);
     msgpack_sbuffer_init(&out_buf);
+
+    msgpack_unpacked msg;
+    msgpack_unpacked_init(&msg);
 
     racs_exec_plan plan;
     racs_exec_plan_init(&plan);
@@ -42,7 +47,6 @@ racs_result racs_exec_exec(racs_exec *exec, racs_context *ctx, const char *cmd) 
 
     racs_exec_plan_destroy(&plan);
 
-    racs_result result;
     racs_result_init(&result, out_buf.size);
     memcpy(result.data, out_buf.data, out_buf.size);
 
@@ -119,7 +123,10 @@ void racs_exec_plan_exec(racs_exec_plan *plan, racs_exec *exec, racs_context *ct
 
         msgpack_packer_init(&pk, in_buf, msgpack_sbuffer_write);
         racs_command_serialize_args(cmd, &pk);
-        int rc = func(in_buf, out_buf, ctx);
+
+        bool is_final = i == plan->num_cmd - 1;
+
+        int rc = func(in_buf, out_buf, ctx, is_final);
         msgpack_sbuffer_clear(in_buf);
 
         if (rc != RACS_STATUS_OK) break;
@@ -230,17 +237,24 @@ int racs_command_handle_float64(racs_command *cmd, msgpack_sbuffer *out_buf, rac
 }
 
 void racs_exec_init(racs_exec *exec) {
-    exec->kv = racs_kvstore_create(10, racs_exec_hash, racs_exec_cmp, exec_destroy);
+    exec->kv = racs_kvstore_create(17, racs_exec_hash, racs_exec_cmp, exec_destroy);
     racs_kvstore_put(exec->kv, strdup("PING"), racs_command_ping);
     racs_kvstore_put(exec->kv, strdup("CREATE"), racs_command_streamcreate);
-    racs_kvstore_put(exec->kv, strdup("INFO"), racs_command_streaminfo);
+    racs_kvstore_put(exec->kv, strdup("META"), racs_command_metadata);
     racs_kvstore_put(exec->kv, strdup("OPEN"), racs_command_streamopen);
     racs_kvstore_put(exec->kv, strdup("CLOSE"), racs_command_streamclose);
-    racs_kvstore_put(exec->kv, strdup("SEARCH"), racs_command_streamlist);
-    racs_kvstore_put(exec->kv, strdup("EXTRACT"), racs_command_extract);
+    racs_kvstore_put(exec->kv, strdup("LIST"), racs_command_streamlist);
+    racs_kvstore_put(exec->kv, strdup("RANGE"), racs_command_range);
     racs_kvstore_put(exec->kv, strdup("EVAL"), racs_command_eval);
-    racs_kvstore_put(exec->kv, strdup("FORMAT"), racs_command_format);
+    racs_kvstore_put(exec->kv, strdup("ENCODE"), racs_command_encode);
     racs_kvstore_put(exec->kv, strdup("SHUTDOWN"), racs_command_shutdown);
+    racs_kvstore_put(exec->kv, strdup("GAIN"), racs_command_gain);
+    racs_kvstore_put(exec->kv, strdup("TRIM"), racs_command_trim);
+    racs_kvstore_put(exec->kv, strdup("FADE"), racs_command_fade);
+    racs_kvstore_put(exec->kv, strdup("PAN"), racs_command_pan);
+    racs_kvstore_put(exec->kv, strdup("PAD"), racs_command_pad);
+    racs_kvstore_put(exec->kv, strdup("CLIP"), racs_command_clip);
+    racs_kvstore_put(exec->kv, strdup("SPLIT"), racs_command_split);
 }
 
 void racs_exec_destroy(racs_exec *exec) {
@@ -250,7 +264,7 @@ void racs_exec_destroy(racs_exec *exec) {
 void racs_handle_error(const char *message, msgpack_sbuffer *out_buf) {
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
-    racs_pack_error(&pk, message);
+    racs_pack_error(&pk, "exec", message);
 }
 
 void racs_handle_unknown_command(racs_command *cmd, msgpack_sbuffer *out_buf) {
@@ -259,7 +273,7 @@ void racs_handle_unknown_command(racs_command *cmd, msgpack_sbuffer *out_buf) {
 
     char *message = NULL;
     asprintf(&message, "Unknown command: %s", cmd->name);
-    racs_pack_error(&pk, message);
+    racs_pack_error(&pk, "exec", message);
 
     free(message);
 }
