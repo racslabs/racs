@@ -67,7 +67,6 @@ wal:
   # Lower values improve durability at the cost of higher disk I/O.
   fsync: 20
 
-
 # ---------------------------------------------------------------------------
 # Slave node configuration (optional)
 # ---------------------------------------------------------------------------
