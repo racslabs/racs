@@ -29,7 +29,7 @@ RUN git clone https://github.com/tlsa/libcyaml.git /tmp/libcyaml \
     && make \
     && make install
 
-RUN git clone --branch main --single-branch https://github.com/racslabs/racs.git \
+RUN git clone --branch v0.1.0 --single-branch https://github.com/racslabs/racs.git \
     && rm -rf /racs/.git
 
 WORKDIR /racs
