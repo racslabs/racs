@@ -17,11 +17,11 @@ RACS (Remote Audio Caching Server) is a distributed, persistent audio cache opti
 
 ## ⚠️ MVP Stage
 
-RACS is currently in the **Minimum Viable Product (MVP)** stage. It is under active testing. New features and enhancements will be added in future releases. Feedback is welcome!
+RACS is currently in the Minimum Viable Product (MVP) stage. It is under active testing. New features and enhancements will be added in future releases. Feedback is welcome!
 
 ## Licensing
 
-RACS is distributed under the **RACS Source Available License (RACS-SAL-1.0)**.  
+RACS is distributed under the RACS Source Available License (RACS-SAL-1.0).  
 It is free for personal, educational, and non-commercial use. Commercial use requires a paid license. For licensing inquiries, contact sales@racslabs.com.
 
 ## Generating Documentation
