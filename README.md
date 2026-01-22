@@ -39,5 +39,6 @@ Open `docs/build/html/index.html` in a browser to view the documentation.
 
 RACS provides client libraries for multiple languages:
 
-- [**(Python)** py-racs](https://github.com/racslabs/py-racs) — fully usable
-- [**(Rust)** rust-racs](https://github.com/racslabs/rust-racs) — fully usable
+- [**(Python)** py-racs](https://github.com/racslabs/py-racs)
+- [**(Rust)** rust-racs](https://github.com/racslabs/rust-racs)
+- [**(Java)** java-racs](https://github.com/racslabs/java-racs)
