@@ -224,7 +224,6 @@ void racs_memtable_append(racs_memtable *mt, racs_uint64 *key, racs_uint8 *block
 
     mt->entries[mt->num_entries].block_size = block_size;
     mt->entries[mt->num_entries].checksum = checksum;
-    mt->entries[mt->num_entries].flags = 0;
     mt->entries[mt->num_entries].lsn = racs_wal_lsn;
     mt->entries[mt->num_entries].flags = flags;
 
@@ -242,8 +241,9 @@ void racs_memtable_flush(racs_memtable *mt) {
     racs_uint64 max_lsn = mt->entries[mt->num_entries - 1].lsn;
     racs_memtable_write_lsn(max_lsn);
 
-    racs_memtable_write(mt);
-    mt->num_entries = 0;
+    racs_memtable_kv *kv = racs_memtable_kv_create(mt->capacity);
+    racs_memtable_split(kv, mt);
+    racs_memtable_kv_flush(kv);
 
     racs_wal_truncate();
     racs_memtable_destroy(mt);
@@ -298,8 +298,10 @@ void racs_memtable_write(racs_memtable *mt) {
     char *tmp_path = NULL;
     char *final_path = NULL;
 
-    racs_uint64 timestamp = mt->entries[0].key[1];
-    racs_sstable_path((racs_int64) timestamp, &tmp_path);
+    racs_uint64 stream_id = mt->entries[0].key[0];
+    racs_time timestamp = (racs_time)mt->entries[0].key[1];
+
+    racs_sstable_path(stream_id, timestamp, &tmp_path);
 
     sst->num_entries = mt->num_entries;
     if (racs_sstable_open(tmp_path, sst) < 0) {
@@ -330,7 +332,7 @@ void racs_memtable_write(racs_memtable *mt) {
     if (flock(sst->fd, LOCK_UN) < 0)
         racs_log_error("Failed to unlock racs_sstable file");
 
-    racs_time_to_path((racs_int64) timestamp, &final_path, false);
+    racs_time_to_path(stream_id, timestamp, &final_path, false);
 
     if (rename(tmp_path, final_path) < 0)
         racs_log_error("Failed to rename racs_sstable file");
@@ -343,9 +345,9 @@ void racs_memtable_write(racs_memtable *mt) {
     racs_sstable_destroy_except_data(sst);
 }
 
-void racs_sstable_path(racs_int64 timestamp, char **path) {
-    racs_time_create_dirs(timestamp);
-    racs_time_to_path(timestamp, path, true);
+void racs_sstable_path(racs_uint64 stream_id, racs_time timestamp, char **path) {
+    racs_time_create_dirs(stream_id, timestamp);
+    racs_time_to_path(stream_id, timestamp, path, true);
 }
 
 racs_uint8 *racs_allocate_buffer(size_t size, racs_sstable *sst) {
@@ -474,4 +476,91 @@ off_t racs_write_index_entry(racs_uint8 *buf, racs_sstable_index_entry *index_en
     offset = racs_write_uint64(buf, index_entry->key[0], offset);
     offset = racs_write_uint64(buf, index_entry->key[1], offset);
     return racs_write_uint64(buf, index_entry->offset, offset);
+}
+
+racs_uint64 racs_memtable_hash(void *key) {
+    racs_uint64 hash[2];
+    murmur3_x64_128(key, 2 * sizeof(racs_uint64), 0, hash);
+    return hash[0];
+}
+
+int racs_memtable_cmp(void *a, void *b) {
+    racs_uint64 *x = (racs_uint64 *) a;
+    racs_uint64 *y = (racs_uint64 *) b;
+    return x[0] == y[0];
+}
+
+void racs_memtable_destroy_entry(void *key, void *value) {
+    free(key);
+    racs_memtable_destroy(value);
+}
+
+racs_memtable_kv *racs_memtable_kv_create(int capacity) {
+    racs_memtable_kv *kv = malloc(sizeof(racs_memtable_kv));
+    if (!kv) {
+        racs_log_error("Failed to allocate racs_memtable_kv");
+        return NULL;
+    }
+
+    kv->capacity = capacity;
+    kv->kv = racs_kvstore_create(capacity, racs_memtable_hash, racs_memtable_cmp, racs_memtable_destroy_entry);
+    pthread_rwlock_init(&kv->rwlock, NULL);
+
+    return kv;
+}
+
+void racs_memtable_kv_append(racs_memtable_kv *kv, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum, racs_uint8 flags) {
+    if (!kv) return;
+
+    racs_uint64 *_key = malloc(2 * sizeof(racs_uint64));
+    if (!_key) {
+        racs_log_error("Failed to allocate key.");
+        return;
+    }
+
+    _key[0] = key[0]; // stream-id
+    _key[1] = 0;
+
+    racs_memtable *mt = racs_kvstore_get(kv->kv, _key);
+
+    if (!mt) {
+        mt = racs_memtable_create(kv->capacity);
+        racs_kvstore_put(kv->kv, _key, mt);
+    } else {
+        free(_key);
+    }
+
+    racs_memtable_append(mt, key, block, block_size, checksum, flags);
+}
+
+void racs_memtable_split(racs_memtable_kv *kv, racs_memtable *mt) {
+    for (int i = 0; i < mt->num_entries; ++i) {
+        racs_memtable_entry *entry = &mt->entries[i];
+        racs_memtable_kv_append(kv, entry->key, entry->block, entry->block_size, entry->checksum, entry->flags);
+    }
+}
+
+void racs_memtable_kv_flush(racs_memtable_kv *kv) {
+    if (!kv) return;
+    racs_kvstore *_kv = kv->kv;
+
+    for (int i = 0; i < _kv->capacity; ++i) {
+        racs_kvstore_bin *bin = &_kv->bins[i];
+        racs_kvstore_entry *curr = bin->node;
+
+        while (curr) {
+            racs_kvstore_entry *next = (racs_kvstore_entry *) curr->next;
+            racs_memtable *mt = curr->value;
+            racs_memtable_write(mt);
+
+            _kv->ops.destroy(curr->key, curr->value);
+
+            free(curr);
+            curr = next;
+        }
+    }
+
+    free(_kv->bins);
+    free(_kv);
+    free(kv);
 }

@@ -32,6 +32,7 @@ extern "C" {
 #include "crc32c.h"
 #include "version.h"
 #include "wal.h"
+#include "kvstore.h"
 
 #define RACS_BLOCK_ALIGN 4096
 
@@ -84,6 +85,12 @@ typedef struct {
     pthread_mutex_t mutex;
 } racs_multi_memtable;
 
+typedef struct {
+    int capacity;
+    racs_kvstore *kv;
+    pthread_rwlock_t rwlock;
+} racs_memtable_kv;
+
 racs_multi_memtable *racs_multi_memtable_create(int num_tables, int capacity);
 
 void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum, racs_uint8 flags);
@@ -121,7 +128,7 @@ void racs_sstable_write(racs_uint8 *buf, racs_sstable *sst, size_t offset);
 void
 racs_sstable_index_entry_update(racs_sstable_index_entry *index_entry, racs_memtable_entry *mt_entry, off_t offset);
 
-void racs_sstable_path(racs_int64 timestamp, char **path);
+void racs_sstable_path(racs_uint64 stream_id, racs_time timestamp, char **path);
 
 racs_sstable *racs_sstable_create(int num_entries);
 
@@ -138,6 +145,20 @@ off_t racs_write_index_entry(racs_uint8 *buf, racs_sstable_index_entry *index_en
 racs_uint8 *racs_allocate_buffer(size_t size, racs_sstable *sst);
 
 int racs_sstable_open(const char *path, racs_sstable *sst);
+
+racs_uint64 racs_memtable_hash(void *key);
+
+int racs_memtable_cmp(void *a, void *b);
+
+void racs_memtable_destroy_entry(void *key, void *value);
+
+racs_memtable_kv *racs_memtable_kv_create(int capacity);
+
+void racs_memtable_kv_append(racs_memtable_kv *kv, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum, racs_uint8 flags);
+
+void racs_memtable_split(racs_memtable_kv *kv, racs_memtable *mt);
+
+void racs_memtable_kv_flush(racs_memtable_kv *kv);
 
 #ifdef __cplusplus
 }

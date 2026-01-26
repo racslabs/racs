@@ -38,11 +38,11 @@ racs_time racs_time_from_rfc3339(const char *buf);
 
 racs_time racs_time_from_path(const char *path);
 
-void racs_time_to_path(racs_time time, char **path, int tmp);
+void racs_time_to_path(racs_uint64 stream_id, racs_time time, char **path, int tmp);
 
-char *racs_time_range_to_path(racs_time from, racs_time to);
+char *racs_time_range_to_path(racs_uint64 stream_id, racs_time from, racs_time to);
 
-void racs_time_create_dirs(racs_time time);
+void racs_time_create_dirs(racs_uint64 stream_id, racs_time time);
 
 #ifdef __cplusplus
 }

@@ -120,6 +120,7 @@ void racs_kvstore_destroy(racs_kvstore *kv) {
     }
 
     free(kv->bins);
+    free(kv);
 }
 
 void racs_kvstore_bin_append(racs_kvstore_bin *bin, void *key, void *value) {
