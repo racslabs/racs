@@ -31,6 +31,7 @@ extern "C" {
 #include "wal.h"
 #include "wal_replay.h"
 #include "version.h"
+#include "ttl.h"
 
 #define RACS_MAX_SLAVES 5
 

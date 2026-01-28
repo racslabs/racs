@@ -25,6 +25,19 @@ void racs_ttl() {
     free(path);
 }
 
+void racs_ttl_async() {
+    pthread_t thread;
+    pthread_create(&thread, NULL, racs_ttl_worker, NULL);
+    pthread_detach(thread);
+}
+
+void *racs_ttl_worker(void *arg) {
+    while (1) {
+        racs_ttl();
+        sleep(10);
+    }
+}
+
 int racs_ttl_is_expired(racs_time ttl) {
     if (ttl == -1) return 0;
     return ttl < racs_time_now();

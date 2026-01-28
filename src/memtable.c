@@ -56,7 +56,7 @@ void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs
     int capacity = mt->capacity;
 
     if (mt->num_entries >= capacity) {
-        racs_memtable_flush_async(mmt->tail);
+        racs_memtable_flush(mmt->tail);
 
         mt = racs_memtable_create(capacity);
         racs_multi_memtable_move_to_head(mmt, mt);
@@ -247,17 +247,6 @@ void racs_memtable_flush(racs_memtable *mt) {
 
     racs_wal_truncate();
     racs_memtable_destroy(mt);
-}
-
-void racs_memtable_flush_async(racs_memtable *mt) {
-    pthread_t thread;
-
-    if (pthread_create(&thread, NULL, (void *(*)(void *))racs_memtable_flush, mt) != 0) {
-        racs_log_error("pthread_create failed");
-        return;
-    }
-
-    pthread_detach(thread);
 }
 
 void racs_memtable_destroy(racs_memtable *mt) {
