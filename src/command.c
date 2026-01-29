@@ -176,6 +176,33 @@ racs_create_command(metadata) {
     return racs_pack_int64(&pk, value);
 }
 
+racs_create_command(expire) {
+    msgpack_sbuffer_clear(out_buf);
+
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
+
+    msgpack_unpacked msg;
+    msgpack_unpacked_init(&msg);
+
+    racs_parse_buf(in_buf, &pk, &msg, "EXPIRE", "Error parsing args")
+
+    racs_validate_num_args(&pk, msg, "EXPIRE", 2)
+    racs_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "EXPIRE", "Invalid type at arg 1. Expected string")
+    racs_validate_arg_type(&pk, msg, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "EXPIRE", "Invalid type at arg 2. Expected: positive int")
+
+    char *stream_id = racs_unpack_str(&msg.data, 0);
+    racs_time ttl = racs_unpack_int64(&msg.data, 1);
+
+    racs_uint64 hash = racs_hash(stream_id);
+    free(stream_id);
+
+    int rc = racs_ttl_expire(hash, ttl);
+    if (rc == 0) racs_pack_error(&pk, "EXPIRE", "The stream-id does not exist");
+
+    return racs_pack_null_with_status_ok(&pk);
+}
+
 racs_create_command(eval) {
     msgpack_sbuffer_clear(out_buf);
 

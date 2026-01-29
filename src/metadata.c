@@ -74,10 +74,6 @@ int racs_metadata_get(racs_metadata *metadata, racs_uint64 stream_id) {
 }
 
 int racs_metadata_put(racs_metadata *metadata, racs_uint64 stream_id) {
-    racs_metadata s;
-    int rc = racs_metadata_get(&s, stream_id);
-    if (rc == 1) return 0;
-
     size_t len = racs_metadata_size(metadata);
     racs_uint8 *data = malloc(len);
     if (!data) return 0;

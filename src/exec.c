@@ -237,7 +237,7 @@ int racs_command_handle_float64(racs_command *cmd, msgpack_sbuffer *out_buf, rac
 }
 
 void racs_exec_init(racs_exec *exec) {
-    exec->kv = racs_kvstore_create(17, racs_exec_hash, racs_exec_cmp, exec_destroy);
+    exec->kv = racs_kvstore_create(18, racs_exec_hash, racs_exec_cmp, exec_destroy);
     racs_kvstore_put(exec->kv, strdup("PING"), racs_command_ping);
     racs_kvstore_put(exec->kv, strdup("CREATE"), racs_command_streamcreate);
     racs_kvstore_put(exec->kv, strdup("META"), racs_command_metadata);
@@ -255,6 +255,7 @@ void racs_exec_init(racs_exec *exec) {
     racs_kvstore_put(exec->kv, strdup("PAD"), racs_command_pad);
     racs_kvstore_put(exec->kv, strdup("CLIP"), racs_command_clip);
     racs_kvstore_put(exec->kv, strdup("SPLIT"), racs_command_split);
+    racs_kvstore_put(exec->kv, strdup("EXPIRE"), racs_command_expire);
 }
 
 void racs_exec_destroy(racs_exec *exec) {

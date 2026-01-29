@@ -22,6 +22,7 @@ extern "C" {
 #include "wav.h"
 #include "encode.h"
 #include "ops.h"
+#include "ttl.h"
 
 typedef enum {
     RACS_STATUS_OK,
@@ -67,6 +68,8 @@ racs_create_command(eval);
 racs_create_command(streamcreate);
 
 racs_create_command(metadata);
+
+racs_create_command(expire);
 
 racs_create_command(streamopen);
 
