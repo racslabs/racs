@@ -261,9 +261,9 @@ racs_create_command(range) {
     size_t size = pcm.samples * pcm.channels;
 
     if (pcm.bit_depth == 16)
-        samples = racs_s16_s32((const racs_int16 *) pcm.out_stream.data, size);
+        samples = racs_s16_s32((const racs_int16 *) pcm.out_stream.data, size + 2);
     if (pcm.bit_depth == 24)
-        samples = racs_s24_s32((const racs_int24 *) pcm.out_stream.data, size);
+        samples = racs_s24_s32((const racs_int24 *) pcm.out_stream.data, size + 2);
     free(pcm.out_stream.data);
 
     if (!samples) {

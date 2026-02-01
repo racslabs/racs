@@ -9,6 +9,8 @@
 
 #include "types.h"
 
+#include "log.h"
+
 float *racs_s16_f32(const racs_int16 *in, size_t n) {
     float *out = NULL;
     posix_memalign((void **)&out, RACS_ALIGN, sizeof(float) * n);
@@ -31,7 +33,7 @@ racs_int16 *racs_f32_s16(const float *in, size_t n) {
 racs_int32 *racs_s16_s32(const racs_int16 *in, size_t n) {
     racs_int32 *out = malloc(sizeof(racs_int32) * n);
 
-    for (int i = 0; i < n; ++i)
+    for (size_t i = 0; i < n; ++i)
         out[i] = in[i];
 
     return out;

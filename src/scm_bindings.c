@@ -277,9 +277,9 @@ SCM racs_scm_range(SCM stream_id, SCM start, SCM duration) {
     size_t size = pcm.samples * pcm.channels;
 
     if (pcm.bit_depth == 16)
-        samples = racs_s16_s32((const racs_int16 *) pcm.out_stream.data, size);
+        samples = racs_s16_s32((const racs_int16 *) pcm.out_stream.data, size + 2);
     if (pcm.bit_depth == 24)
-        samples = racs_s24_s32((const racs_int24 *) pcm.out_stream.data, size);
+        samples = racs_s24_s32((const racs_int24 *) pcm.out_stream.data, size + 2);
     free(pcm.out_stream.data);
 
     if (!samples)
@@ -342,6 +342,7 @@ SCM racs_scm_encode(SCM data, SCM mime_type) {
 
     const racs_int32 *in = scm_array_handle_s32_elements(&handle);
     size_t size = scm_c_array_length(data) - 2;
+    racs_log_info("in size %zu", size);
 
     if ((ssize_t) size < 2) {
         scm_array_handle_release(&handle);
