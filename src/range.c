@@ -50,7 +50,7 @@ int racs_range_as_timestamp(racs_context *ctx, racs_pcm *pcm, racs_uint64 hash, 
         }
     }
 
-    racs_memtable *mt = ctx->mmt->head;
+    racs_memtable *mt = ctx->mmt->tail;
     while (mt) {
         for (int i = 0; i < mt->num_entries; ++i) {
             racs_memtable_entry *entry = &mt->entries[i];
@@ -75,7 +75,7 @@ int racs_range_as_timestamp(racs_context *ctx, racs_pcm *pcm, racs_uint64 hash, 
                 }
             }
         }
-        mt = (racs_memtable *) mt->next;
+        mt = mt->prev;
     }
 
     free(path);

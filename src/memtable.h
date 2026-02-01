@@ -55,7 +55,7 @@ typedef struct {
     racs_uint8 *block;
 } racs_memtable_entry;
 
-typedef struct {
+typedef struct racs_memtable {
     racs_memtable_entry *entries;
     racs_uint16 num_entries;
     racs_uint16 capacity;
@@ -97,7 +97,7 @@ void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs
 
 void racs_multi_memtable_flush(racs_multi_memtable *mmt);
 
-void racs_multi_memtable_move_to_head(racs_multi_memtable *mmt, racs_memtable *mt);
+void racs_multi_memtable_append_to_head(racs_multi_memtable *mmt, racs_memtable *mt);
 
 racs_sstable *racs_sstable_read(const char *filename);
 

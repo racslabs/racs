@@ -64,9 +64,12 @@ racs_int24 *racs_s32_s24(const racs_int32 *in, size_t n) {
 }
 
 racs_int16 *racs_s32_s16(const racs_int32 *in, size_t n) {
-    racs_int16 *out = malloc(sizeof(racs_int16) * n);
+    if (!in || n == 0) return NULL;
 
-    for (int i = 0; i < n; ++i)
+    racs_int16 *out = malloc(sizeof(racs_int16) * n);
+    if (!out) return NULL;
+
+    for (size_t i = 0; i < n; ++i)
         out[i] = (racs_int16)in[i];
 
     return out;

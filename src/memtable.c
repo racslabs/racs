@@ -10,7 +10,7 @@
 #include "memtable.h"
 
 racs_multi_memtable *racs_multi_memtable_create(int num_tables, int capacity) {
-    racs_multi_memtable *mmt = malloc(sizeof(racs_multi_memtable));
+    racs_multi_memtable *mmt = calloc(1, sizeof(racs_multi_memtable));
     if (!mmt) {
         racs_log_fatal("Failed to allocate racs_multi_memtable");
         return NULL;
@@ -22,29 +22,26 @@ racs_multi_memtable *racs_multi_memtable_create(int num_tables, int capacity) {
     mmt->tail = NULL;
     pthread_mutex_init(&mmt->mutex, NULL);
 
-    for (int i = 0; i < num_tables; ++i) {
-        racs_memtable *mt = racs_memtable_create(capacity);
-        racs_multi_memtable_move_to_head(mmt, mt);
-    }
+    racs_memtable *mt = racs_memtable_create(capacity);
+    racs_multi_memtable_append_to_head(mmt, mt);
 
     return mmt;
 }
 
-void racs_multi_memtable_move_to_head(racs_multi_memtable *mmt, racs_memtable *mt) {
-    if (!mt) return;
+void racs_multi_memtable_append_to_head(racs_multi_memtable *mmt, racs_memtable *mt) {
+    if (!mt || !mmt) return;
 
     mt->prev = NULL;
-    mt->next = (struct racs_memtable *) mmt->head;
+    mt->next = mmt->head;
 
     if (mmt->head) {
-        mmt->head->prev = (struct racs_memtable *) mt;
-        mmt->tail = (racs_memtable *) mmt->tail->prev;
-        mmt->tail->next = NULL;
+        mmt->head->prev = mt;
     } else {
         mmt->tail = mt;
     }
 
     mmt->head = mt;
+    ++mmt->index;
 }
 
 void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum, racs_uint8 flags) {
@@ -56,10 +53,16 @@ void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs
     int capacity = mt->capacity;
 
     if (mt->num_entries >= capacity) {
-        racs_memtable_flush(mmt->tail);
+        if (mmt->index >= mmt->num_tables) {
+            racs_memtable *tail = mmt->tail;
+            mmt->tail = tail->prev;
+
+            racs_memtable_flush(tail);
+            --mmt->index;
+        }
 
         mt = racs_memtable_create(capacity);
-        racs_multi_memtable_move_to_head(mmt, mt);
+        racs_multi_memtable_append_to_head(mmt, mt);
     }
 
     racs_memtable_append(mmt->head, key, block, block_size, checksum, flags);
@@ -73,8 +76,8 @@ void racs_multi_memtable_flush(racs_multi_memtable *mmt) {
 
     racs_memtable *mt = mmt->head;
     while (mt) {
-        racs_memtable *next = (racs_memtable *) mt->next;
-        racs_memtable_flush(next);
+        racs_memtable *next = mt->next;
+        racs_memtable_flush(mt);
         mt = next;
     }
 
@@ -185,7 +188,7 @@ racs_memtable_entry *racs_memtable_entry_read(racs_uint8 *buf, size_t offset) {
 }
 
 racs_memtable *racs_memtable_create(int capacity) {
-    racs_memtable *mt = malloc(sizeof(racs_memtable));
+    racs_memtable *mt = calloc(1, sizeof(racs_memtable));
     if (!mt) {
         racs_log_error("Failed to allocate racs_memtable");
         return NULL;
@@ -194,7 +197,7 @@ racs_memtable *racs_memtable_create(int capacity) {
     mt->num_entries = 0;
     mt->capacity = capacity;
 
-    mt->entries = malloc(sizeof(racs_memtable_entry) * mt->capacity);
+    mt->entries = calloc(mt->capacity, sizeof(racs_memtable_entry));
     if (!mt->entries) {
         racs_log_error("Failed to allocate racs_memtable_entry to racs_memtable");
         free(mt);

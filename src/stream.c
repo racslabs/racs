@@ -76,6 +76,7 @@ int racs_stream_append(racs_multi_memtable *mmt, racs_offsets *offsets, racs_str
     if (!racs_session_cmp(frame.header.session_id, session_id))
         return RACS_STREAM_CONFLICT;
 
+    racs_log_info("yo!");
     racs_metadata metadata;
     int rc = racs_metadata_get(&metadata, frame.header.stream_id);
 
