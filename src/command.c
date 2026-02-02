@@ -201,6 +201,9 @@ racs_create_command(ttl) {
     racs_time ttl = metadata.ttl;
     racs_metadata_destroy(&metadata);
 
+    if (ttl == -1)
+        return racs_pack_int64(&pk, ttl);
+
     return racs_pack_int64(&pk,  (ttl - racs_time_now()) / 1000);
 }
 

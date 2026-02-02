@@ -197,7 +197,7 @@ int main(int argc, char *argv[]) {
 
     racs_wal_instance();
     racs_wal_replay(db->ctx.mmt, db->ctx.offsets);
-    racs_ttl_async();
+    racs_ttl_async(db->ctx.offsets);
 
     char ver[55];
     racs_version(ver);

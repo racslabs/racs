@@ -342,7 +342,6 @@ SCM racs_scm_encode(SCM data, SCM mime_type) {
 
     const racs_int32 *in = scm_array_handle_s32_elements(&handle);
     size_t size = scm_c_array_length(data) - 2;
-    racs_log_info("in size %zu", size);
 
     if ((ssize_t) size < 2) {
         scm_array_handle_release(&handle);
@@ -363,6 +362,24 @@ SCM racs_scm_encode(SCM data, SCM mime_type) {
     return scm_take_u8vector(out, n);
 }
 
+SCM racs_scm_ttl(SCM stream_id) {
+    char *_stream_id = scm_to_locale_string(stream_id);
+
+    racs_uint64 hash = racs_hash(_stream_id);
+
+    racs_metadata metadata;
+    int rc = racs_metadata_get(&metadata, hash);
+    if (rc == 0) scm_misc_error( "ttl", "The stream-id does not exist", SCM_EOL);
+
+    racs_time ttl = metadata.ttl;
+    racs_metadata_destroy(&metadata);
+
+    if (ttl == -1)
+        return scm_from_int64(ttl);
+
+    return scm_from_int64( (ttl - racs_time_now()) / 1000);
+}
+
 void racs_scm_init_bindings() {
     scm_c_define_gsubr("range", 3, 0, 0, racs_scm_range);
     scm_c_define_gsubr("meta", 2, 0, 0, racs_scm_metadata);
@@ -377,8 +394,9 @@ void racs_scm_init_bindings() {
     scm_c_define_gsubr("clip", 3, 0, 0, racs_scm_clip);
     scm_c_define_gsubr("split", 2, 0, 0, racs_scm_split);
     scm_c_define_gsubr("merge", 2, 0, 0, racs_scm_merge);
+    scm_c_define_gsubr("ttl", 1, 0, 0, racs_scm_ttl);
 
-    scm_c_export("range", "meta", "encode", "list", "mix", "gain", "trim", "fade", "pan", "pad", "clip", "split", "merge", NULL);
+    scm_c_export("range", "meta", "encode", "list", "mix", "gain", "trim", "fade", "pan", "pad", "clip", "split", "merge", "ttl", NULL);
 }
 
 void racs_scm_init_module() {

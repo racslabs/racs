@@ -1,6 +1,6 @@
 #include "ttl.h"
 
-void racs_ttl() {
+void racs_ttl(racs_offsets *offsets) {
     char *path = NULL;
     asprintf(&path, "%s/.racs/md", racs_metadata_dir);
 
@@ -15,7 +15,7 @@ void racs_ttl() {
         if (rc == 1) {
             racs_time ttl = metadata.ttl;
             if (racs_ttl_is_expired(ttl))
-                racs_ttl_delete_stream(stream_id);
+                racs_ttl_delete_stream(offsets, stream_id);
 
             racs_metadata_destroy(&metadata);
         }
@@ -25,15 +25,16 @@ void racs_ttl() {
     free(path);
 }
 
-void racs_ttl_async() {
+void racs_ttl_async(racs_offsets *offsets) {
     pthread_t thread;
-    pthread_create(&thread, NULL, racs_ttl_worker, NULL);
+    pthread_create(&thread, NULL, racs_ttl_worker, offsets);
     pthread_detach(thread);
 }
 
 void *racs_ttl_worker(void *arg) {
     while (1) {
-        racs_ttl();
+        racs_offsets *offsets = (racs_offsets *)arg;
+        racs_ttl(offsets);
         usleep(1000);
     }
 }
@@ -57,7 +58,7 @@ int racs_ttl_is_expired(racs_time ttl) {
     return ttl < racs_time_now();
 }
 
-void racs_ttl_delete_stream(racs_uint64 stream_id) {
+void racs_ttl_delete_stream(racs_offsets *offsets, racs_uint64 stream_id) {
     char *path = NULL;
 
     asprintf(&path, "%s/.racs/md/%llu", racs_metadata_dir, stream_id);
@@ -67,6 +68,8 @@ void racs_ttl_delete_stream(racs_uint64 stream_id) {
     asprintf(&path, "%s/.racs/seg/%llu", racs_metadata_dir, stream_id);
     racs_log_info("deleting files in %s", path);
     racs_remove(path);
+
+    racs_offsets_put(offsets, stream_id, 0);
 
     free(path);
 }
