@@ -35,7 +35,7 @@ void racs_filelist_destroy(racs_filelist *list);
 
 racs_filelist *racs_filelist_create();
 
-racs_filelist *get_sorted_filelist(const char *path);
+racs_filelist *racs_sorted_filelist(const char *path);
 
 int racs_path_cmp(const void *path1, const void *path2);
 

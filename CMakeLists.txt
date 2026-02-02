@@ -30,7 +30,6 @@ if(ENABLE_ASAN)
     add_link_options(-fsanitize=address)
 endif()
 
-
 find_package(Guile REQUIRED)
 find_package(Msgpack)
 find_package(Lame)

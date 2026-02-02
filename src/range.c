@@ -33,7 +33,7 @@ int racs_range(racs_context *ctx, racs_pcm *pcm, const char *stream_id, double s
 
 int racs_range_as_timestamp(racs_context *ctx, racs_pcm *pcm, racs_uint64 hash, racs_time from, racs_time to) {
     char *path = racs_time_range_to_path(hash, from, to);
-    racs_filelist *list = get_sorted_filelist(path);
+    racs_filelist *list = racs_sorted_filelist(path);
 
     for (int i = 0; i < list->num_files; ++i) {
         char *file_path = list->files[i];

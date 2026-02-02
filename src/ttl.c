@@ -4,7 +4,7 @@ void racs_ttl() {
     char *path = NULL;
     asprintf(&path, "%s/.racs/md", racs_metadata_dir);
 
-    racs_filelist *list = get_sorted_filelist(path);
+    racs_filelist *list = racs_sorted_filelist(path);
 
     for (int i = 0; i < list->num_files; ++i) {
         racs_uint64 stream_id = racs_path_to_stream_id(list->files[i]);
@@ -14,10 +14,8 @@ void racs_ttl() {
 
         if (rc == 1) {
             racs_time ttl = metadata.ttl;
-            if (racs_ttl_is_expired(ttl)) {
-                racs_remove(path);
+            if (racs_ttl_is_expired(ttl))
                 racs_ttl_delete_stream(stream_id);
-            }
 
             racs_metadata_destroy(&metadata);
         }
@@ -44,7 +42,7 @@ int racs_ttl_expire(racs_uint64 stream_id, racs_time ttl) {
     racs_metadata metadata;
     int rc = racs_metadata_get(&metadata, stream_id);
     if (rc == 1) {
-        metadata.ttl = racs_time_now() + ttl;
+        metadata.ttl = racs_time_now() + (ttl * 1000);
         racs_metadata_put(&metadata, stream_id);
         racs_metadata_destroy(&metadata);
 
@@ -61,8 +59,12 @@ int racs_ttl_is_expired(racs_time ttl) {
 
 void racs_ttl_delete_stream(racs_uint64 stream_id) {
     char *path = NULL;
-    asprintf(&path, "%s/.racs/seg/%llu", racs_metadata_dir, stream_id);
 
+    asprintf(&path, "%s/.racs/md/%llu", racs_metadata_dir, stream_id);
+    racs_remove(path);
+    free(path);
+
+    asprintf(&path, "%s/.racs/seg/%llu", racs_metadata_dir, stream_id);
     racs_log_info("deleting files in %s", path);
     racs_remove(path);
 

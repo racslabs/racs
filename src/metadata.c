@@ -211,7 +211,7 @@ void racs_streams_list(racs_streams *streams, const char* pattern) {
     char *path = NULL;
     asprintf(&path, "%s/.racs/md", racs_metadata_dir);
 
-    racs_filelist *list = get_sorted_filelist(path);
+    racs_filelist *list = racs_sorted_filelist(path);
 
     for (int i = 0; i < list->num_files; ++i) {
         racs_uint64 stream_id = racs_path_to_stream_id(list->files[i]);

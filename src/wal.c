@@ -134,7 +134,7 @@ void racs_wal_truncate() {
     racs_wal_filename(filename, sizeof(filename), segno);
     asprintf(&active_wal, "%s/%s", dir, filename);
 
-    racs_filelist *list = get_sorted_filelist(dir);
+    racs_filelist *list = racs_sorted_filelist(dir);
 
     for (int i = 0; i < list->num_files; ++i) {
         if (strcmp(list->files[i], active_wal) == 0) continue;

@@ -6,7 +6,7 @@ void racs_wal_replay(racs_multi_memtable *mmt, racs_offsets *offsets) {
 
     racs_uint64 checkpoint_lsn = racs_wal_checkpoint_lsn();
     asprintf(&dir, "%s/.racs/wal", racs_wal_dir);
-    racs_filelist *list = get_sorted_filelist(dir);
+    racs_filelist *list = racs_sorted_filelist(dir);
 
     free(dir);
 

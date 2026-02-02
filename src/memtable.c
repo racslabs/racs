@@ -400,6 +400,7 @@ racs_sstable *racs_sstable_create(int num_entries) {
         return NULL;
     }
 
+    sst->data = NULL;
     return sst;
 }
 

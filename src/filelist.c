@@ -83,7 +83,7 @@ void racs_filelist_destroy(racs_filelist *list) {
     free(list);
 }
 
-racs_filelist *get_sorted_filelist(const char *path) {
+racs_filelist *racs_sorted_filelist(const char *path) {
     racs_filelist *list = racs_filelist_create();
     racs_list_files_recursive(list, path);
     racs_filelist_sort(list);

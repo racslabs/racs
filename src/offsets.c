@@ -80,8 +80,8 @@ void racs_offsets_init(racs_offsets *offsets) {
     mkdir(path1, 0777);
     mkdir(path2, 0777);
 
-    racs_filelist *list1 = get_sorted_filelist(path1);
-    racs_filelist *list2 = get_sorted_filelist(path2);
+    racs_filelist *list1 = racs_sorted_filelist(path1);
+    racs_filelist *list2 = racs_sorted_filelist(path2);
 
     free(dir);
     free(path1);
@@ -91,12 +91,22 @@ void racs_offsets_init(racs_offsets *offsets) {
         racs_uint64 stream_id = racs_path_to_stream_id(list1->files[i]);
 
         for (int j = 0; j < list2->num_files; ++j) {
-            racs_sstable *sst = racs_sstable_read(list2->files[j]); // need to fix!
+            racs_sstable *sst = racs_sstable_read(list2->files[j]);
+            if (!sst) continue;
+
             racs_uint8 *data = sst->data;
+            if (!data) {
+                racs_sstable_destroy_except_data(sst);
+                continue;
+            }
+
             size_t size = sst->size;
 
             racs_sstable_destroy_except_data(sst);
             sst = racs_sstable_read_in_memory(data, size);
+            free(data);
+
+            if (!sst->data) continue;
 
             for (int k = 0; k < sst->num_entries; ++k) {
                 size_t offset = sst->index_entries[k].offset;
