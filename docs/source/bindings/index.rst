@@ -27,6 +27,7 @@ Additional Scheme bindings are also provided for handling multiple PCM buffers.
    list
    split
    trim
+   ttl
 
 Supported Scheme Data Types
 ---------------------------

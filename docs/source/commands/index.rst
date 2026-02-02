@@ -36,6 +36,7 @@ Commands
    create
    encode
    eval
+   expire
    fade
    gain
    list
@@ -48,3 +49,4 @@ Commands
    shutdown
    split
    trim
+   ttl
