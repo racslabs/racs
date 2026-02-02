@@ -198,7 +198,7 @@ racs_create_command(expire) {
     free(stream_id);
 
     int rc = racs_ttl_expire(hash, ttl);
-    if (rc == 0) racs_pack_error(&pk, "EXPIRE", "The stream-id does not exist");
+    if (rc == 0) return racs_pack_error(&pk, "EXPIRE", "The stream-id does not exist");
 
     return racs_pack_null_with_status_ok(&pk);
 }
