@@ -176,6 +176,34 @@ racs_create_command(metadata) {
     return racs_pack_int64(&pk, value);
 }
 
+racs_create_command(ttl) {
+    msgpack_sbuffer_clear(out_buf);
+
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
+
+    msgpack_unpacked msg;
+    msgpack_unpacked_init(&msg);
+
+    racs_parse_buf(in_buf, &pk, &msg, "TTL", "Error parsing args")
+
+    racs_validate_num_args(&pk, msg, "TTL", 1)
+    racs_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "EXPIRE", "Invalid type at arg 1. Expected string")
+
+    char *stream_id = racs_unpack_str(&msg.data, 0);
+    racs_uint64 hash = racs_hash(stream_id);
+    free(stream_id);
+
+    racs_metadata metadata;
+    int rc = racs_metadata_get(&metadata, hash);
+    if (rc == 0) return racs_pack_error(&pk, "TTL", "The stream-id does not exist");
+
+    racs_time ttl = metadata.ttl;
+    racs_metadata_destroy(&metadata);
+
+    return racs_pack_int64(&pk,  (ttl - racs_time_now()) / 1000);
+}
+
 racs_create_command(expire) {
     msgpack_sbuffer_clear(out_buf);
 

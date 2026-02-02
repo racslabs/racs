@@ -34,7 +34,7 @@ void racs_ttl_async() {
 void *racs_ttl_worker(void *arg) {
     while (1) {
         racs_ttl();
-        sleep(10);
+        usleep(1000);
     }
 }
 

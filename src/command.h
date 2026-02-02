@@ -71,6 +71,8 @@ racs_create_command(metadata);
 
 racs_create_command(expire);
 
+racs_create_command(ttl);
+
 racs_create_command(streamopen);
 
 racs_create_command(streamclose);
