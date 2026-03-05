@@ -92,6 +92,7 @@ off_t racs_metadata_write(racs_uint8 *buf, racs_metadata *metadata) {
     offset = racs_write_uint32(buf, metadata->sample_rate, offset);
     offset = racs_write_uint64(buf, metadata->ref, offset);
     offset = racs_write_uint64(buf, metadata->ttl, offset);
+    offset = racs_write_uint64(buf, metadata->version, offset);
     offset = racs_write_uint32(buf, metadata->id_size, offset);
     offset = racs_write_bin(buf, metadata->id, metadata->id_size, offset);
     return offset;
@@ -104,6 +105,7 @@ off_t racs_metadata_read(racs_metadata *metadata, racs_uint8 *buf) {
     offset = racs_read_uint32(&metadata->sample_rate, buf, offset);
     offset = racs_read_uint64((racs_uint64 *) &metadata->ref, buf, offset);
     offset = racs_read_uint64((racs_uint64 *) &metadata->ttl, buf, offset);
+    offset = racs_read_uint64(&metadata->version, buf, offset);
     offset = racs_read_uint32(&metadata->id_size, buf, offset);
 
     metadata->id = strdup((char *)buf + offset);

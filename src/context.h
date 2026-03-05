@@ -19,12 +19,14 @@ extern "C" {
 #include "stream.h"
 #include "memtable.h"
 #include "offsets.h"
+#include "version.h"
 #include "log.h"
 
 typedef struct {
     racs_config *config;
     racs_cache *scache;
     racs_offsets *offsets;
+    racs_versions *versions;
     racs_streamkv *kv;
     racs_multi_memtable *mmt;
 } racs_context;

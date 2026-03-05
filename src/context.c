@@ -23,6 +23,7 @@ void racs_context_init(racs_context *ctx, const char *path) {
     ctx->scache = racs_scache_create(ctx->config->cache.entries);
     ctx->kv = racs_streamkv_create(ctx->config->cache.entries);
     ctx->offsets = racs_offsets_create();
+    ctx->versions = racs_versions_create();
     ctx->mmt = racs_multi_memtable_create(ctx->config->memtable.tables, ctx->config->memtable.entries);
 
     racs_metadata_dir = ctx->config->data_dir;
@@ -32,6 +33,7 @@ void racs_context_init(racs_context *ctx, const char *path) {
     racs_wal_fsync = ctx->config->wal.fsync;
 
     racs_offsets_init(ctx->offsets);
+    racs_versions_init(ctx->versions);
 }
 
 void racs_context_destroy(racs_context *ctx) {

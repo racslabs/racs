@@ -35,6 +35,7 @@ typedef struct {
     racs_uint32 sample_rate;
     racs_time   ref;
     racs_time   ttl;
+    racs_uint64 version;
     racs_uint32 id_size;
     char*       id;
 } racs_metadata;
