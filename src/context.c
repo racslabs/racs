@@ -40,6 +40,7 @@ void racs_context_destroy(racs_context *ctx) {
     racs_multi_memtable_flush(ctx->mmt);
     racs_streamkv_destroy(ctx->kv);
     racs_offsets_destroy(ctx->offsets);
+    racs_versions_destroy(ctx->versions);
     racs_cache_destroy(ctx->scache);
     racs_config_destroy(ctx->config);
 

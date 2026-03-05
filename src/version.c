@@ -86,3 +86,11 @@ void racs_versions_init(racs_versions *versions) {
     racs_filelist_destroy(list);
     free(path);
 }
+
+void racs_versions_destroy(racs_versions *versions) {
+    pthread_rwlock_wrlock(&versions->rwlock);
+    racs_kvstore_destroy(versions->kv);
+    pthread_rwlock_unlock(&versions->rwlock);
+
+    pthread_rwlock_destroy(&versions->rwlock);
+}
