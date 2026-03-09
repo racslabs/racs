@@ -38,16 +38,16 @@ extern "C" {
 
 #define RACS_MAX_BLOCK_SIZE 65536
 
-#define RACS_INDEX_ENTRY_SIZE 24
+#define RACS_INDEX_ENTRY_SIZE 32
 
 #define RACS_HEADER_SIZE 16
 
-#define RACS_MEMTABLE_ENTRY_METADATA_SIZE 31
+#define RACS_MEMTABLE_ENTRY_METADATA_SIZE 39
 
 #define RACS_TRAILER_SIZE 2
 
 typedef struct {
-    racs_uint64 key[2];
+    racs_uint64 key[3];
     racs_uint64 lsn;
     racs_uint32 checksum;
     racs_uint16 block_size;
@@ -65,7 +65,7 @@ typedef struct racs_memtable {
 } racs_memtable;
 
 typedef struct {
-    racs_uint64 key[2];
+    racs_uint64 key[3];
     size_t offset;
 } racs_sstable_index_entry;
 

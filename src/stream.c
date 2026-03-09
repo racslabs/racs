@@ -28,6 +28,7 @@ int racs_stream_create(const char* stream_id, racs_uint32 sample_rate, racs_uint
     metadata.id_size = strlen(stream_id) + 1;
     metadata.id = (char*)stream_id;
     metadata.ttl = -1;
+    metadata.version = 0;
     metadata.ref = racs_time_now();
 
     racs_uint64 hash = racs_hash(stream_id);

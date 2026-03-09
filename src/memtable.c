@@ -411,6 +411,7 @@ void racs_sstable_read_index_entries_in_memory(racs_sstable *sst, racs_uint8 *da
         racs_sstable_index_entry *index_entry = &sst->index_entries[entry];
         offset = racs_read_uint64(&index_entry->key[0], data, offset);
         offset = racs_read_uint64(&index_entry->key[1], data, offset);
+        offset = racs_read_uint64(&index_entry->key[2], data, offset);
         offset = racs_read_uint64((racs_uint64 *) &index_entry->offset, data, offset);
     }
 }
@@ -421,6 +422,7 @@ void racs_sstable_read_index_entries(racs_sstable *sst) {
 
         racs_io_read_uint64(&index_entry->key[0], sst->fd);
         racs_io_read_uint64(&index_entry->key[1], sst->fd);
+        racs_io_read_uint64(&index_entry->key[2], sst->fd);
         racs_io_read_uint64((racs_uint64 *) &index_entry->offset, sst->fd);
     }
 }
@@ -450,11 +452,13 @@ racs_sstable_index_entry_update(racs_sstable_index_entry *index_entry, racs_memt
     index_entry->offset = offset;
     index_entry->key[0] = mt_entry->key[0];
     index_entry->key[1] = mt_entry->key[1];
+    index_entry->key[2] = mt_entry->key[2];
 }
 
 off_t racs_memtable_entry_write(racs_uint8 *buf, const racs_memtable_entry *mt_entry, off_t offset) {
     offset = racs_write_uint64(buf, mt_entry->key[0], offset);
     offset = racs_write_uint64(buf, mt_entry->key[1], offset);
+    offset = racs_write_uint64(buf, mt_entry->key[2], offset);
     offset = racs_write_uint64(buf, mt_entry->lsn, offset);
     offset = racs_write_uint32(buf, mt_entry->checksum, offset);
     offset = racs_write_uint16(buf, mt_entry->block_size, offset);
@@ -468,6 +472,7 @@ off_t racs_memtable_entry_write(racs_uint8 *buf, const racs_memtable_entry *mt_e
 off_t racs_write_index_entry(racs_uint8 *buf, racs_sstable_index_entry *index_entry, off_t offset) {
     offset = racs_write_uint64(buf, index_entry->key[0], offset);
     offset = racs_write_uint64(buf, index_entry->key[1], offset);
+    offset = racs_write_uint64(buf, index_entry->key[2], offset);
     return racs_write_uint64(buf, index_entry->offset, offset);
 }
 
