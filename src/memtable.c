@@ -44,7 +44,7 @@ void racs_multi_memtable_append_to_head(racs_multi_memtable *mmt, racs_memtable 
     ++mmt->index;
 }
 
-void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum, racs_uint8 flags) {
+void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_versions *versions, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum, racs_uint8 flags) {
     if (!mmt) return;
 
     pthread_mutex_lock(&mmt->mutex);
@@ -57,7 +57,7 @@ void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs
             racs_memtable *tail = mmt->tail;
             mmt->tail = tail->prev;
 
-            racs_memtable_flush(tail);
+            racs_memtable_flush(tail, versions);
             --mmt->index;
         }
 
@@ -69,7 +69,7 @@ void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs
     pthread_mutex_unlock(&mmt->mutex);
 }
 
-void racs_multi_memtable_flush(racs_multi_memtable *mmt) {
+void racs_multi_memtable_flush(racs_multi_memtable *mmt, racs_versions *versions) {
     if (!mmt) return;
 
     pthread_mutex_lock(&mmt->mutex);
@@ -77,7 +77,7 @@ void racs_multi_memtable_flush(racs_multi_memtable *mmt) {
     racs_memtable *mt = mmt->head;
     while (mt) {
         racs_memtable *next = mt->next;
-        racs_memtable_flush(mt);
+        racs_memtable_flush(mt, versions);
         mt = next;
     }
 
@@ -166,6 +166,7 @@ racs_memtable_entry *racs_memtable_entry_read(racs_uint8 *buf, size_t offset) {
 
     offset = racs_read_uint64(&entry->key[0], buf, (off_t) offset);
     offset = racs_read_uint64(&entry->key[1], buf, (off_t) offset);
+    offset = racs_read_uint64(&entry->key[2], buf, (off_t) offset);
     offset = racs_read_uint64(&entry->lsn, buf, (off_t) offset);
     offset = racs_read_uint32(&entry->checksum, buf, (off_t) offset);
     offset = racs_read_uint16(&entry->block_size, buf, (off_t) offset);
@@ -222,7 +223,7 @@ void racs_memtable_append(racs_memtable *mt, racs_uint64 *key, racs_uint8 *block
 
     pthread_mutex_lock(&mt->mutex);
 
-    memcpy(mt->entries[mt->num_entries].key, key, sizeof(racs_uint64) * 2);
+    memcpy(mt->entries[mt->num_entries].key, key, sizeof(racs_uint64) * 3);
     memcpy(mt->entries[mt->num_entries].block, block, block_size);
 
     mt->entries[mt->num_entries].block_size = block_size;
@@ -235,7 +236,7 @@ void racs_memtable_append(racs_memtable *mt, racs_uint64 *key, racs_uint8 *block
     pthread_mutex_unlock(&mt->mutex);
 }
 
-void racs_memtable_flush(racs_memtable *mt) {
+void racs_memtable_flush(racs_memtable *mt, racs_versions *versions) {
     if (!mt) return;
 
     int num_entries = mt->num_entries;
@@ -245,7 +246,7 @@ void racs_memtable_flush(racs_memtable *mt) {
     racs_memtable_write_lsn(max_lsn);
 
     racs_memtable_kv *kv = racs_memtable_kv_create(mt->capacity);
-    racs_memtable_split(kv, mt);
+    racs_memtable_split(kv, mt, versions);
     racs_memtable_kv_flush(kv);
 
     racs_wal_truncate();
@@ -485,7 +486,7 @@ racs_uint64 racs_memtable_hash(void *key) {
 int racs_memtable_cmp(void *a, void *b) {
     racs_uint64 *x = (racs_uint64 *) a;
     racs_uint64 *y = (racs_uint64 *) b;
-    return x[0] == y[0];
+    return x[0] == y[0] && x[1] == y[1];
 }
 
 void racs_memtable_destroy_entry(void *key, void *value) {
@@ -517,7 +518,7 @@ void racs_memtable_kv_append(racs_memtable_kv *kv, racs_uint64 *key, racs_uint8 
     }
 
     _key[0] = key[0]; // stream-id
-    _key[1] = 0;
+    _key[1] = key[2]; // version
 
     racs_memtable *mt = racs_kvstore_get(kv->kv, _key);
 
@@ -531,9 +532,13 @@ void racs_memtable_kv_append(racs_memtable_kv *kv, racs_uint64 *key, racs_uint8 
     racs_memtable_append(mt, key, block, block_size, checksum, flags);
 }
 
-void racs_memtable_split(racs_memtable_kv *kv, racs_memtable *mt) {
+void racs_memtable_split(racs_memtable_kv *kv, racs_memtable *mt, racs_versions *versions) {
     for (int i = 0; i < mt->num_entries; ++i) {
         racs_memtable_entry *entry = &mt->entries[i];
+
+        racs_uint64 version = racs_versions_get(versions, entry->key[0]);
+        if (entry->key[2] != version) continue;
+
         racs_memtable_kv_append(kv, entry->key, entry->block, entry->block_size, entry->checksum, entry->flags);
     }
 }

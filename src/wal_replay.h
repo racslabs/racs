@@ -16,6 +16,7 @@ extern "C" {
 
 #include "stream.h"
 #include "wal.h"
+#include "ttl.h"
 
 typedef struct {
     racs_uint32  op_code;
@@ -31,7 +32,17 @@ typedef struct {
     racs_uint8 *data;
 } racs_wal_segment;
 
-void racs_wal_replay(racs_multi_memtable *mmt, racs_offsets *offset);
+void racs_wal_replay(racs_multi_memtable *mmt, racs_offsets *offsets, racs_versions *versions, racs_sessions *sessions);
+
+void racs_wal_replay_append(racs_wal_entry *entry, racs_multi_memtable *mmt, racs_offsets *offsets, racs_versions *versions, racs_sessions *sessions);
+
+void racs_wal_replay_expire(racs_wal_entry *entry, racs_offsets *offsets, racs_versions *versions);
+
+void racs_wal_replay_create(racs_wal_entry *entry);
+
+void racs_wal_replay_open(racs_wal_entry *entry, racs_sessions *sessions);
+
+void racs_wal_replay_close(racs_wal_entry *entry, racs_sessions *sessions);
 
 racs_wal_entry *racs_wal_entry_read(racs_uint8 *buf, off_t *offset);
 

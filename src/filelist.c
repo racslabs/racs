@@ -49,10 +49,7 @@ void racs_filelist_add(racs_filelist *list, const char *file_path) {
 
 void racs_list_files_recursive(racs_filelist *list, const char *path) {
     DIR *dir = opendir(path);
-    if (!dir) {
-        racs_log_error("Failed to open directory");
-        return;
-    }
+    if (!dir) return;
 
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL) {

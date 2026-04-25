@@ -64,6 +64,7 @@ target_link_libraries(racs
         ${YAML_LIBRARIES}
         ${EVENT_LIBRARIES}
         ${ZSTD_LIBRARIES}
+        uuid
 )
 
 include(FetchContent)

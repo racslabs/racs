@@ -93,9 +93,9 @@ typedef struct {
 
 racs_multi_memtable *racs_multi_memtable_create(int num_tables, int capacity);
 
-void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum, racs_uint8 flags);
+void racs_multi_memtable_append(racs_multi_memtable *mmt, racs_versions *versions, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum, racs_uint8 flags);
 
-void racs_multi_memtable_flush(racs_multi_memtable *mmt);
+void racs_multi_memtable_flush(racs_multi_memtable *mmt, racs_versions *versions);
 
 void racs_multi_memtable_append_to_head(racs_multi_memtable *mmt, racs_memtable *mt);
 
@@ -109,7 +109,7 @@ racs_memtable_entry *racs_memtable_entry_read(racs_uint8 *buf, size_t offset);
 
 void racs_memtable_append(racs_memtable *mt, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum, racs_uint8 flags);
 
-void racs_memtable_flush(racs_memtable *mt);
+void racs_memtable_flush(racs_memtable *mt, racs_versions *versions);
 
 void racs_memtable_destroy(racs_memtable *mt);
 
@@ -154,7 +154,7 @@ racs_memtable_kv *racs_memtable_kv_create(int capacity);
 
 void racs_memtable_kv_append(racs_memtable_kv *kv, racs_uint64 *key, racs_uint8 *block, racs_uint16 block_size, racs_uint32 checksum, racs_uint8 flags);
 
-void racs_memtable_split(racs_memtable_kv *kv, racs_memtable *mt);
+void racs_memtable_split(racs_memtable_kv *kv, racs_memtable *mt, racs_versions *versions);
 
 void racs_memtable_kv_flush(racs_memtable_kv *kv);
 

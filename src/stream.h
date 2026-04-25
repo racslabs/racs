@@ -32,39 +32,52 @@ typedef enum {
 } racs_stream_status;
 
 typedef struct {
+    racs_uint8  id[16];
+    racs_uint16 channels;
+    racs_uint16 bit_depth;
+    racs_uint32 sample_rate;
+    racs_time   ref;
+    racs_uint64 stream_id;
+} racs_session;
+
+typedef struct {
     racs_kvstore *kv;
     pthread_rwlock_t rwlock;
-} racs_streamkv;
+} racs_sessions;
 
 extern const char *const racs_stream_status_string[];
 
-int racs_stream_create(const char* stream_id, racs_uint32 sample_rate, racs_uint16 channels, racs_uint16 bit_depth);
+int racs_stream_create(racs_versions *versions, const char* stream_id, racs_uint32 sample_rate, racs_uint16 channels, racs_uint16 bit_depth);
 
-int racs_stream_append(racs_multi_memtable *mmt, racs_offsets *offsets, racs_streamkv *kv, racs_uint8 *data);
+int racs_stream_append(racs_multi_memtable *mmt, racs_offsets *offsets, racs_versions *versions, racs_sessions *sessions, racs_uint8 *data);
 
-void racs_stream_batch_append(racs_multi_memtable *mmt, racs_offsets *offsets, racs_streamkv *kv, racs_uint8 *data, size_t size);
+void racs_stream_batch_append(racs_multi_memtable *mmt, racs_offsets *offsets, racs_versions *versions, racs_sessions *kv, racs_uint8 *data, size_t size);
 
-int racs_stream_open(racs_streamkv *kv, racs_uint64 stream_id);
+int racs_stream_open(racs_sessions *sessions, racs_uint64 stream_id, racs_uint8 *session_id);
 
-int racs_stream_close(racs_streamkv *kv, racs_uint64 stream_id);
+int racs_stream_close(racs_sessions *sessions, racs_uint64 stream_id);
 
-racs_uint8 *racs_streamkv_get(racs_streamkv *kv, racs_uint64 stream_id);
+racs_uint8 *racs_sessions_get(racs_sessions *sessions, racs_uint64 stream_id);
 
-void racs_streamkv_delete(racs_streamkv *kv, racs_uint64 stream_id);
+void racs_sessions_delete(racs_sessions *sessions, racs_uint64 stream_id);
 
-void racs_streamkv_put(racs_streamkv *kv, racs_uint64 stream_id, racs_uint8 *session_id);
+void racs_sessions_put(racs_sessions *sessions, racs_uint64 stream_id, racs_uint8 *session);
 
-racs_streamkv *racs_streamkv_create(int capacity);
+racs_sessions *racs_sessions_create(int capacity);
 
-void racs_streamkv_destroy(racs_streamkv *kv);
+void racs_sessions_destroy(racs_sessions *sessions);
 
-racs_uint64 racs_streamkv_hash(void *key);
+racs_uint64 racs_sessions_hash(void *key);
 
-int racs_streamkv_cmp(void *a, void *b);
+int racs_sessions_cmp(void *a, void *b);
 
-void racs_streamkv_destroy_entry(void *key, void *value);
+void racs_sessions_destroy_entry(void *key, void *value);
 
-int racs_session_cmp(const racs_uint8 *src, const racs_uint8 *dest);
+int racs_sessions_id_cmp(const racs_uint8 *src, const racs_uint8 *dest);
+
+off_t racs_session_read(racs_session *session, racs_uint8 *buf);
+
+off_t racs_session_write(racs_uint8 *buf, racs_session *session);
 
 #ifdef __cplusplus
 }

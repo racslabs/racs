@@ -27,7 +27,7 @@ typedef struct {
     racs_cache *scache;
     racs_offsets *offsets;
     racs_versions *versions;
-    racs_streamkv *kv;
+    racs_sessions *sessions;
     racs_multi_memtable *mmt;
 } racs_context;
 

@@ -131,8 +131,6 @@ void racs_accept_callback(struct evconnlistener *listener, evutil_socket_t fd, s
     struct bufferevent *bev = bufferevent_socket_new(base, fd, BEV_OPT_CLOSE_ON_FREE);
     bufferevent_setcb(bev, racs_read_callback, NULL, racs_event_callback, ctx);
     bufferevent_enable(bev, EV_READ | EV_WRITE);
-
-    racs_log_info("Client connected");
 }
 
 void racs_broadcast_to_slaves(racs_connection_context *ctx, racs_uint8 *buf, size_t len) {
@@ -196,8 +194,8 @@ int main(int argc, char *argv[]) {
     racs_log_instance();
 
     racs_wal_instance();
-    racs_wal_replay(db->ctx.mmt, db->ctx.offsets);
-    racs_ttl_async(db->ctx.offsets);
+    racs_wal_replay(db->ctx.mmt, db->ctx.offsets, db->ctx.versions, db->ctx.sessions);
+    racs_ttl_async(db->ctx.offsets, db->ctx.versions);
 
     char ver[55];
     racs_version(ver);

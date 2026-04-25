@@ -34,6 +34,8 @@ void racs_offsets_destroy(racs_offsets *offsets);
 
 void racs_offsets_init(racs_offsets *offsets);
 
+racs_time racs_offsets_timestamp(racs_uint64 offset, racs_time ref, racs_uint16 channels, racs_uint16 bit_depth, racs_uint32 sample_rate);
+
 #ifdef __cplusplus
 }
 #endif

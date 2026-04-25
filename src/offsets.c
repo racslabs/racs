@@ -141,3 +141,7 @@ void racs_offsets_destroy(racs_offsets *offsets) {
     pthread_rwlock_destroy(&offsets->rwlock);
 }
 
+racs_time racs_offsets_timestamp(racs_uint64 offset, racs_time ref, racs_uint16 channels, racs_uint16 bit_depth, racs_uint32 sample_rate) {
+    double seconds = offset / (double) (channels * sample_rate * (bit_depth / 8));
+    return (racs_time) (seconds * 1000) + ref;
+}

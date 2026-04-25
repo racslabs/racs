@@ -15,6 +15,7 @@ extern "C" {
 #endif
 
 #include <msgpack.h>
+#include <uuid/uuid.h>
 #include "scm.h"
 #include "pack.h"
 #include "stream.h"

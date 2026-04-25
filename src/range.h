@@ -42,7 +42,7 @@ racs_uint8 *
 racs_range_from_cache_or_sstable(racs_cache *cache, racs_uint64 stream_id, racs_time time, const char *path);
 
 void
-racs_range_process_sstable(racs_pcm *pcm, racs_uint8 *data, racs_uint64 stream_id, racs_int64 from, racs_int64 to);
+racs_range_process_sstable(racs_pcm *pcm, racs_uint8 *data, racs_uint64 stream_id, racs_uint64 version, racs_int64 from, racs_int64 to);
 
 #ifdef __cplusplus
 }

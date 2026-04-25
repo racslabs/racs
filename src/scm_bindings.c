@@ -264,7 +264,6 @@ SCM racs_scm_range(SCM stream_id, SCM start, SCM duration) {
     double _duration = scm_to_double(duration);
 
     racs_pcm pcm;
-
     racs_db *db = racs_db_instance();
 
     int rc = racs_range(&db->ctx, &pcm, _stream_id, _start, _duration);

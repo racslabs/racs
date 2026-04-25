@@ -53,7 +53,7 @@ racs_create_command(streamcreate) {
     if (channels != 1 && channels != 2)
         return racs_pack_error(&pk, "CREATE", "Invalid number of channels. Must be mono or stereo.");
 
-    int rc = racs_stream_create(stream_id, sample_rate, channels, bit_depth);
+    int rc = racs_stream_create(ctx->versions, stream_id, sample_rate, channels, bit_depth);
     if (rc == 1)
         return racs_pack_null_with_status_ok(&pk);
 
@@ -97,17 +97,29 @@ racs_create_command(streamopen) {
 
     racs_parse_buf(in_buf, &pk, &msg, "OPEN", "Error parsing args")
 
-    racs_validate_num_args(&pk, msg, "OPEN", 1)
+    racs_validate_num_args(&pk, msg, "OPEN", 2)
     racs_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "OPEN", "Invalid type at arg 1. Expected string")
+    racs_validate_arg_type(&pk, msg, 1, MSGPACK_OBJECT_STR, "OPEN", "Invalid type at arg 2. Expected string")
 
     char *stream_id = racs_unpack_str(&msg.data, 0);
-    int rc = racs_stream_open(ctx->kv, racs_hash(stream_id));
+    char *session_id = racs_unpack_str(&msg.data, 1);
+
+    uuid_t uuid;
+    if (uuid_parse(session_id, uuid) != 0) {
+        free(stream_id);
+        free(session_id);
+
+        return racs_pack_error(&pk, "OPEN", "Invalid session id. Must be valid uuid");
+    }
+
+    int rc = racs_stream_open(ctx->sessions, racs_hash(stream_id), uuid);
     free(stream_id);
+    free(session_id);
 
     if (rc == 1)
         return racs_pack_null_with_status_ok(&pk);
 
-    return racs_pack_error(&pk, "OPEN", "Stream is already open");
+    return racs_pack_error(&pk, "OPEN", "Stream is already open or doesn't exist");
 }
 
 racs_create_command(streamclose) {
@@ -125,7 +137,7 @@ racs_create_command(streamclose) {
     racs_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "CLOSE", "Invalid type at arg 1. Expected string")
 
     char *stream_id = racs_unpack_str(&msg.data, 0);
-    int rc = racs_stream_close(ctx->kv, racs_hash(stream_id));
+    int rc = racs_stream_close(ctx->sessions, racs_hash(stream_id));
     free(stream_id);
 
     if (rc == 1)
@@ -227,6 +239,8 @@ racs_create_command(expire) {
 
     racs_uint64 hash = racs_hash(stream_id);
     free(stream_id);
+
+    racs_wal_append(RACS_OP_CODE_EXPIRE, sizeof(racs_uint64), (racs_uint8 *)&hash);
 
     int rc = racs_ttl_expire(hash, ttl);
     if (rc == 0) return racs_pack_error(&pk, "EXPIRE", "The stream-id does not exist");
@@ -708,6 +722,6 @@ int racs_stream(msgpack_sbuffer *out_buf, racs_context *ctx, racs_uint8 *data, s
     msgpack_packer pk;
     msgpack_packer_init(&pk, out_buf, msgpack_sbuffer_write);
 
-    racs_stream_batch_append(ctx->mmt, ctx->offsets, ctx->kv, data, size);
+    racs_stream_batch_append(ctx->mmt, ctx->offsets, ctx->versions, ctx->sessions, data, size);
     return racs_pack_null_with_status_ok(&pk);
 }

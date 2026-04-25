@@ -72,8 +72,6 @@ int racs_metadata_exits(racs_uint64 stream_id);
 
 void racs_metadata_destroy(racs_metadata *metadata);
 
-racs_time racs_metadata_timestamp(racs_metadata *metadata, racs_uint64 offset);
-
 void racs_streams_add(racs_streams *streams, const char *stream);
 
 void racs_streams_init(racs_streams *streams);

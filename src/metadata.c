@@ -112,11 +112,6 @@ off_t racs_metadata_read(racs_metadata *metadata, racs_uint8 *buf) {
     return offset + metadata->id_size;
 }
 
-racs_time racs_metadata_timestamp(racs_metadata *metadata, racs_uint64 offset) {
-    double seconds = offset / (double) (metadata->channels * metadata->sample_rate * (metadata->bit_depth / 8));
-    return (racs_time) (seconds * 1000) + metadata->ref;
-}
-
 racs_uint64 racs_hash(const char *stream_id) {
     racs_uint64 hash[2];
     murmur3_x64_128((racs_uint8*)stream_id, strlen(stream_id), 0, hash);

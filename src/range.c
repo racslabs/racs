@@ -35,6 +35,8 @@ int racs_range_as_timestamp(racs_context *ctx, racs_pcm *pcm, racs_uint64 hash, 
     char *path = racs_time_range_to_path(hash, from, to);
     racs_filelist *list = racs_sorted_filelist(path);
 
+    racs_uint64 version = racs_versions_get(ctx->versions, hash);
+
     for (int i = 0; i < list->num_files; ++i) {
         char *file_path = list->files[i];
 
@@ -46,7 +48,7 @@ int racs_range_as_timestamp(racs_context *ctx, racs_pcm *pcm, racs_uint64 hash, 
             racs_uint8 *data = racs_range_from_cache_or_sstable(ctx->scache, hash, time, file_path);
             if (!data) continue;
 
-            racs_range_process_sstable(pcm, data, hash, from, to);
+            racs_range_process_sstable(pcm, data, hash, version, from, to);
         }
     }
 
@@ -54,10 +56,9 @@ int racs_range_as_timestamp(racs_context *ctx, racs_pcm *pcm, racs_uint64 hash, 
     while (mt) {
         for (int i = 0; i < mt->num_entries; ++i) {
             racs_memtable_entry *entry = &mt->entries[i];
-            racs_uint64 _stream_id = entry->key[0];
-            racs_time time = (racs_time)entry->key[1];
+            racs_time timestamp = (racs_time)entry->key[1];
 
-            if (hash == _stream_id && time >= from && time <= to) {
+            if (hash == entry->key[0] && timestamp >= from && timestamp <= to && version == entry->key[2]) {
                 if (entry->flags == 1) {
                     size_t decompressed_size;
 
@@ -106,7 +107,7 @@ racs_range_from_cache_or_sstable(racs_cache *cache, racs_uint64 stream_id, racs_
 }
 
 void
-racs_range_process_sstable(racs_pcm *pcm, racs_uint8 *data, racs_uint64 stream_id, racs_int64 from, racs_int64 to) {
+racs_range_process_sstable(racs_pcm *pcm, racs_uint8 *data, racs_uint64 stream_id, racs_uint64 version, racs_int64 from, racs_int64 to) {
     size_t size;
     memcpy(&size, data, sizeof(size_t));
 
@@ -118,9 +119,9 @@ racs_range_process_sstable(racs_pcm *pcm, racs_uint8 *data, racs_uint64 stream_i
 
         racs_memtable_entry *entry = racs_memtable_entry_read(data, offset);
         if (!entry) continue;
-
-        racs_time time = (racs_time) entry->key[1];
-        if (entry->key[0] == stream_id && time >= from && time <= to) {
+        
+        racs_time timestamp = (racs_time) entry->key[1];
+        if (entry->key[0] == stream_id && timestamp >= from && timestamp <= to && version == entry->key[2]) {
             if (entry->flags == 1) {
                 size_t decompressed_size;
 
