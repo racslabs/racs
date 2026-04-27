@@ -13,7 +13,7 @@ racs_result racs_exec_stream(racs_context *ctx, racs_uint8 *data, size_t size) {
     msgpack_sbuffer out_buf;
     msgpack_sbuffer_init(&out_buf);
 
-    racs_stream(&out_buf, ctx, data + 3, size - 3);
+    racs_stream(&out_buf, ctx, data);
 
     racs_result result;
     racs_result_init(&result, out_buf.size);

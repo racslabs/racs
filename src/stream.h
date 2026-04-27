@@ -51,8 +51,6 @@ int racs_stream_create(racs_versions *versions, const char* stream_id, racs_uint
 
 int racs_stream_append(racs_multi_memtable *mmt, racs_offsets *offsets, racs_versions *versions, racs_sessions *sessions, racs_uint8 *data);
 
-void racs_stream_batch_append(racs_multi_memtable *mmt, racs_offsets *offsets, racs_versions *versions, racs_sessions *kv, racs_uint8 *data, size_t size);
-
 int racs_stream_open(racs_sessions *sessions, racs_uint64 stream_id, racs_uint8 *session_id);
 
 int racs_stream_close(racs_sessions *sessions, racs_uint64 stream_id);

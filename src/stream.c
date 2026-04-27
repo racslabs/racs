@@ -14,9 +14,6 @@ const char *const racs_stream_status_string[] = {
         "",
         "Malformed rsp frame.",
         "Stream is closed or currently in use.",
-        "Invalid sample rate.",
-        "Invalid channels.",
-        "Invalid bit depth.",
         "Stream not found."
 };
 
@@ -50,24 +47,6 @@ int racs_stream_create(racs_versions *versions, const char* stream_id, racs_uint
     racs_metadata_destroy(&metadata);
 
     return 1;
-}
-
-void racs_stream_batch_append(racs_multi_memtable *mmt, racs_offsets *offsets, racs_versions *versions, racs_sessions *kv, racs_uint8 *data, size_t size) {
-    msgpack_unpacked msg;
-    msgpack_unpacked_init(&msg);
-
-    if (msgpack_unpack_next(&msg, (char *)data, size, 0) == MSGPACK_UNPACK_PARSE_ERROR)
-        perror("Error parsing response");
-
-    size_t num_frames = msg.data.via.array.size;
-
-    for (int i = 0; i < num_frames; ++i) {
-        msgpack_object obj = msg.data.via.array.ptr[i];
-        racs_uint8 *frame = racs_unpack_u8v(&obj);
-
-        if (frame)
-            racs_stream_append(mmt, offsets, versions, kv, frame);
-    }
 }
 
 int racs_stream_append(racs_multi_memtable *mmt, racs_offsets *offsets, racs_versions *versions, racs_sessions *sessions, racs_uint8 *data) {
