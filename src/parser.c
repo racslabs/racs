@@ -188,7 +188,6 @@ racs_token racs_parser_lex_token_eof() {
 
 racs_token racs_parser_token_error(racs_parser *parser) {
     sprintf(parser->error, "Invalid token at %d", parser->curr);
-    racs_log_error(parser->error);
 
     racs_token token;
     token.type = RACS_TOKEN_TYPE_ERROR;

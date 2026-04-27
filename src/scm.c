@@ -164,51 +164,41 @@ int racs_scm_pack_list(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x) {
 }
 
 SCM racs_scm_safe_eval(void *body) {
-    scm_c_use_module("ice-9 sandbox");
+    SCM make_sandbox_module = scm_c_public_ref("ice-9 sandbox", "make-sandbox-module");
+    SCM eval_in_sandbox     = scm_c_public_ref("ice-9 sandbox", "eval-in-sandbox");
+    SCM all_pure_bindings   = scm_c_public_ref("ice-9 sandbox", "all-pure-bindings");
 
-    SCM eval_in_sandbox = scm_variable_ref(scm_c_lookup("eval-in-sandbox"));
-    SCM make_sandbox_module = scm_variable_ref(scm_c_lookup("make-sandbox-module"));
+    SCM racs_module = scm_list_n(
+        scm_list_1(scm_from_latin1_symbol("racs")), // module name (racs)
+        scm_from_latin1_symbol("range"),
+        scm_from_latin1_symbol("meta"),
+        scm_from_latin1_symbol("encode"),
+        scm_from_latin1_symbol("list"),
+        scm_from_latin1_symbol("mix"),
+        scm_from_latin1_symbol("gain"),
+        scm_from_latin1_symbol("trim"),
+        scm_from_latin1_symbol("fade"),
+        scm_from_latin1_symbol("pan"),
+        scm_from_latin1_symbol("pad"),
+        scm_from_latin1_symbol("clip"),
+        scm_from_latin1_symbol("split"),
+        scm_from_latin1_symbol("merge"),
+        scm_from_latin1_symbol("ttl"),
+        SCM_UNDEFINED
+    );
 
-    SCM base_module = scm_list_4(scm_list_2(scm_from_locale_symbol("scheme"),
-                                            scm_from_locale_symbol("base")),
-                                 scm_from_locale_symbol("+"),
-                                 scm_from_locale_symbol("-"),
-                                 scm_from_locale_symbol("*"));
+    SCM modules = scm_cons(racs_module, all_pure_bindings);
+    SCM sandbox = scm_call_1(make_sandbox_module, modules);
 
-    SCM racs_module = scm_list_n(scm_list_1(scm_from_locale_symbol("racs")),
-                                 scm_from_locale_symbol("range"),
-                                 scm_from_locale_symbol("meta"),
-                                 scm_from_locale_symbol("encode"),
-                                 scm_from_locale_symbol("list"),
-                                 scm_from_locale_symbol("mix"),
-                                 scm_from_locale_symbol("gain"),
-                                 scm_from_locale_symbol("trim"),
-                                 scm_from_locale_symbol("fade"),
-                                 scm_from_locale_symbol("pan"),
-                                 scm_from_locale_symbol("pad"),
-                                 scm_from_locale_symbol("clip"),
-                                 scm_from_locale_symbol("split"),
-                                 scm_from_locale_symbol("merge"),
-                                 scm_from_locale_symbol("ttl"),
-                                 SCM_UNDEFINED);
+    SCM time_limit = scm_from_double(30.0);                     // 30 seconds
+    SCM allocation_limit = scm_from_size_t(50 * 1024 * 1024);    // ~50 MB
 
-    SCM modules = scm_list_1(racs_module);
-    SCM bindings = scm_call_1(make_sandbox_module, modules);
-
-    SCM kw_module = scm_from_latin1_keyword("module");
-    SCM kw_time_limit = scm_from_latin1_keyword("time-limit");
-    SCM kw_alloc_limit = scm_from_latin1_keyword("allocation-limit");
-
-    SCM time_limit = scm_from_double(10.0);                // 10 seconds
-    SCM alloc_limit = scm_from_size_t(50 * 1024 * 1024);    // ~50 MB
-
-    SCM expr = scm_c_read_string((char *)body);
-
+    SCM expr = scm_c_read_string(body);
     return scm_call_7(eval_in_sandbox,
-                      expr,
-                      kw_module, bindings,
-                      kw_time_limit, time_limit,
-                      kw_alloc_limit, alloc_limit);
+                       expr,
+                      scm_from_latin1_keyword("module"), sandbox,
+                      scm_from_latin1_keyword("time-limit"), time_limit,
+                      scm_from_latin1_keyword("allocation-limit"), allocation_limit);
 }
 
 

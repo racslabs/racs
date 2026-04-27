@@ -44,7 +44,9 @@ SCM racs_scm_encode(SCM data, SCM mime_type);
 
 SCM racs_scm_ttl(SCM stream_id);
 
-void racs_scm_init_bindings();
+void racs_scm_init_bindings(void *data);
+
+void racs_sandbox_init(void *data);
 
 void racs_scm_init_module();
 

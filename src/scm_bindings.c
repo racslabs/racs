@@ -379,7 +379,7 @@ SCM racs_scm_ttl(SCM stream_id) {
     return scm_from_int64( (ttl - racs_time_now()) / 1000);
 }
 
-void racs_scm_init_bindings() {
+void racs_scm_init_bindings(void *data) {
     scm_c_define_gsubr("range", 3, 0, 0, racs_scm_range);
     scm_c_define_gsubr("meta", 2, 0, 0, racs_scm_metadata);
     scm_c_define_gsubr("encode", 2, 0, 0, racs_scm_encode);
@@ -398,6 +398,12 @@ void racs_scm_init_bindings() {
     scm_c_export("range", "meta", "encode", "list", "mix", "gain", "trim", "fade", "pan", "pad", "clip", "split", "merge", "ttl", NULL);
 }
 
+void racs_sandbox_init(void *data) {
+    scm_c_use_module("scheme base");
+    scm_c_use_module("racs");
+}
+
 void racs_scm_init_module() {
     scm_c_define_module("racs", racs_scm_init_bindings, NULL);
+    scm_c_define_module("racs-sandbox", racs_sandbox_init, NULL);
 }
