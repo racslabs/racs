@@ -51,13 +51,10 @@ typedef enum {
     }
 
 #define racs_validate_s32v(pk, msg, command) \
-    char *type = racs_unpack_str(msg.data, 0); \
-    if (strcmp(type, "s32v") != 0) { \
-        free(type); \
+    if ((msg).data.via.ext.type != RACS_EXT_TYPE_S32VEC) { \
         msgpack_sbuffer_clear(out_buf); \
         return racs_pack_error(pk, command, "Invalid input type. Expected: int32 array"); \
-    } \
-    free(type);
+    }
 
 #define racs_create_command(name) \
     int racs_command_##name(msgpack_sbuffer* in_buf, msgpack_sbuffer* out_buf, racs_context* ctx, bool is_final)

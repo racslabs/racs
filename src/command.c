@@ -41,11 +41,11 @@ racs_create_command(streamcreate) {
     racs_validate_arg_type(&pk, msg, 2, MSGPACK_OBJECT_POSITIVE_INTEGER, "CREATE", "Invalid type at arg 3. Expected: positive int")
     racs_validate_arg_type(&pk, msg, 3, MSGPACK_OBJECT_POSITIVE_INTEGER, "CREATE", "Invalid type at arg 4. Expected: positive int")
 
-    char *stream_id = racs_unpack_str(&msg.data, 0);
+    char *stream_id = racs_unpack_str_from_array(&msg.data, 0);
 
-    racs_uint32 sample_rate = racs_unpack_uint32(&msg.data, 1);
-    racs_uint16 channels = racs_unpack_uint16(&msg.data, 2);
-    racs_uint16 bit_depth = racs_unpack_uint16(&msg.data, 3);
+    racs_uint32 sample_rate = racs_unpack_uint32_from_array(&msg.data, 1);
+    racs_uint16 channels = racs_unpack_uint16_from_array(&msg.data, 2);
+    racs_uint16 bit_depth = racs_unpack_uint16_from_array(&msg.data, 3);
 
     if (bit_depth != 16 && bit_depth != 24)
         return racs_pack_error(&pk, "CREATE", "Invalid bit-depth. Only 16- and 24-bit are supported.");
@@ -73,7 +73,7 @@ racs_create_command(streamlist) {
     racs_validate_num_args(&pk, msg, "LIST", 1)
     racs_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "LIST", "Invalid type at arg 1. Expected string")
 
-    char *pattern = racs_unpack_str(&msg.data, 0);
+    char *pattern = racs_unpack_str_from_array(&msg.data, 0);
 
     racs_streams streams;
     racs_streams_init(&streams);
@@ -101,8 +101,8 @@ racs_create_command(streamopen) {
     racs_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "OPEN", "Invalid type at arg 1. Expected string")
     racs_validate_arg_type(&pk, msg, 1, MSGPACK_OBJECT_STR, "OPEN", "Invalid type at arg 2. Expected string")
 
-    char *stream_id = racs_unpack_str(&msg.data, 0);
-    char *session_id = racs_unpack_str(&msg.data, 1);
+    char *stream_id = racs_unpack_str_from_array(&msg.data, 0);
+    char *session_id = racs_unpack_str_from_array(&msg.data, 1);
 
     uuid_t uuid;
     if (uuid_parse(session_id, uuid) != 0) {
@@ -136,7 +136,7 @@ racs_create_command(streamclose) {
     racs_validate_num_args(&pk, msg, "CLOSE", 1)
     racs_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "CLOSE", "Invalid type at arg 1. Expected string")
 
-    char *stream_id = racs_unpack_str(&msg.data, 0);
+    char *stream_id = racs_unpack_str_from_array(&msg.data, 0);
     int rc = racs_stream_close(ctx->sessions, racs_hash(stream_id));
     free(stream_id);
 
@@ -161,8 +161,8 @@ racs_create_command(metadata) {
     racs_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "META", "Invalid type at arg 1. Expected string")
     racs_validate_arg_type(&pk, msg, 1, MSGPACK_OBJECT_STR, "META", "Invalid type at arg 2. Expected string")
 
-    char *stream_id = racs_unpack_str(&msg.data, 0);
-    char *attr = racs_unpack_str(&msg.data, 1);
+    char *stream_id = racs_unpack_str_from_array(&msg.data, 0);
+    char *attr = racs_unpack_str_from_array(&msg.data, 1);
 
     racs_uint64 hash = racs_hash(stream_id);
 
@@ -202,7 +202,7 @@ racs_create_command(ttl) {
     racs_validate_num_args(&pk, msg, "TTL", 1)
     racs_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "EXPIRE", "Invalid type at arg 1. Expected string")
 
-    char *stream_id = racs_unpack_str(&msg.data, 0);
+    char *stream_id = racs_unpack_str_from_array(&msg.data, 0);
     racs_uint64 hash = racs_hash(stream_id);
     free(stream_id);
 
@@ -234,8 +234,8 @@ racs_create_command(expire) {
     racs_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "EXPIRE", "Invalid type at arg 1. Expected string")
     racs_validate_arg_type(&pk, msg, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "EXPIRE", "Invalid type at arg 2. Expected: positive int")
 
-    char *stream_id = racs_unpack_str(&msg.data, 0);
-    racs_time ttl = racs_unpack_int64(&msg.data, 1);
+    char *stream_id = racs_unpack_str_from_array(&msg.data, 0);
+    racs_time ttl = racs_unpack_int64_from_array(&msg.data, 1);
 
     racs_uint64 hash = racs_hash(stream_id);
     free(stream_id);
@@ -263,7 +263,7 @@ racs_create_command(eval) {
     racs_validate_arg_type(&pk, msg, 0, MSGPACK_OBJECT_STR, "EVAL", "Invalid type at arg 1. Expected string")
 
     char *error = NULL;
-    char *expr = racs_unpack_str(&msg.data, 0);
+    char *expr = racs_unpack_str_from_array(&msg.data, 0);
 
     SCM res = racs_scm_safe_eval_with_error_handling(expr, &error);
     free(expr);
@@ -289,9 +289,9 @@ racs_create_command(range) {
     racs_validate_arg_type(&pk, msg, 1, MSGPACK_OBJECT_FLOAT64, "RANGE", "Invalid type at arg 2. Expected: float")
     racs_validate_arg_type(&pk, msg, 2, MSGPACK_OBJECT_FLOAT64, "RANGE", "Invalid type at arg 3. Expected: float")
 
-    char *stream_id = racs_unpack_str(&msg.data, 0);
-    double start = racs_unpack_float64(&msg.data, 1);
-    double duration = racs_unpack_float64(&msg.data, 2);
+    char *stream_id = racs_unpack_str_from_array(&msg.data, 0);
+    double start = racs_unpack_float64_from_array(&msg.data, 1);
+    double duration = racs_unpack_float64_from_array(&msg.data, 2);
 
     racs_pcm pcm;
 
@@ -346,11 +346,11 @@ racs_create_command(encode) {
     racs_validate_arg_type(&pk, msg1, 0, MSGPACK_OBJECT_STR, "ENCODE", "Invalid type at arg 1. Expected: string")
 
     racs_validate_not_null(&pk, msg2, "ENCODE")
-    racs_validate_s32v(&pk, &msg2, "ENCODE")
+    racs_validate_s32v(&pk, msg2, "ENCODE")
 
-    racs_int32 *in = racs_unpack_s32v(&msg2.data, 1);
-    size_t size = racs_unpack_s32v_size(&msg2.data, 1) - 2;
-    char *mime_type = racs_unpack_str(&msg1.data, 0);
+    racs_int32 *in = racs_unpack_s32v(&msg2.data);
+    size_t size = racs_unpack_s32v_size(&msg2.data) - 2;
+    char *mime_type = racs_unpack_str_from_array(&msg1.data, 0);
 
     if (size == 0 || !in) {
         free(mime_type);
@@ -407,11 +407,11 @@ racs_create_command(gain) {
     racs_validate_arg_type(&pk, msg1, 0, MSGPACK_OBJECT_FLOAT64, "GAIN", "Invalid type at arg 1. Expected: float")
 
     racs_validate_not_null(&pk, msg2, "GAIN")
-    racs_validate_s32v(&pk, &msg2, "GAIN")
+    racs_validate_s32v(&pk, msg2, "GAIN")
 
-    double gain = racs_unpack_float64(&msg1.data, 0);
-    racs_int32 *in = racs_unpack_s32v(&msg2.data, 1);
-    size_t in_size = racs_unpack_s32v_size(&msg2.data, 1);
+    double gain = racs_unpack_float64_from_array(&msg1.data, 0);
+    racs_int32 *in = racs_unpack_s32v(&msg2.data);
+    size_t in_size = racs_unpack_s32v_size(&msg2.data);
 
     if (in_size < 2 || !in) {
         msgpack_sbuffer_clear(out_buf);
@@ -449,13 +449,13 @@ racs_create_command(trim) {
     racs_validate_arg_type(&pk, msg1, 1, MSGPACK_OBJECT_FLOAT64, "TRIM", "Invalid type at arg 1. Expected: float")
 
     racs_validate_not_null(&pk, msg2, "TRIM")
-    racs_validate_s32v(&pk, &msg2, "TRIM")
+    racs_validate_s32v(&pk, msg2, "TRIM")
 
-    double left_seconds = racs_unpack_float64(&msg1.data, 0);
-    double right_seconds = racs_unpack_float64(&msg1.data, 1);
+    double left_seconds = racs_unpack_float64_from_array(&msg1.data, 0);
+    double right_seconds = racs_unpack_float64_from_array(&msg1.data, 1);
 
-    racs_int32 *in = racs_unpack_s32v(&msg2.data, 1);
-    size_t in_size = racs_unpack_s32v_size(&msg2.data, 1);
+    racs_int32 *in = racs_unpack_s32v(&msg2.data);
+    size_t in_size = racs_unpack_s32v_size(&msg2.data);
 
     if (in_size < 2 || !in) {
         msgpack_sbuffer_clear(out_buf);
@@ -495,13 +495,13 @@ racs_create_command(fade) {
     racs_validate_arg_type(&pk, msg1, 1, MSGPACK_OBJECT_FLOAT64, "FADE", "Invalid type at arg 1. Expected: float")
 
     racs_validate_not_null(&pk, msg2, "FADE")
-    racs_validate_s32v(&pk, &msg2, "FADE")
+    racs_validate_s32v(&pk, msg2, "FADE")
 
-    double fade_in_seconds = racs_unpack_float64(&msg1.data, 0);
-    double fade_out_seconds = racs_unpack_float64(&msg1.data, 1);
+    double fade_in_seconds = racs_unpack_float64_from_array(&msg1.data, 0);
+    double fade_out_seconds = racs_unpack_float64_from_array(&msg1.data, 1);
 
-    racs_int32 *in = racs_unpack_s32v(&msg2.data, 1);
-    size_t in_size = racs_unpack_s32v_size(&msg2.data, 1);
+    racs_int32 *in = racs_unpack_s32v(&msg2.data);
+    size_t in_size = racs_unpack_s32v_size(&msg2.data);
 
     if (in_size < 2 || !in) {
         msgpack_sbuffer_clear(out_buf);
@@ -540,16 +540,16 @@ racs_create_command(pan) {
     racs_validate_arg_type(&pk, msg1, 0, MSGPACK_OBJECT_FLOAT64, "PAN", "Invalid type at arg 1. Expected: float")
 
     racs_validate_not_null(&pk, msg2, "PAN")
-    racs_validate_s32v(&pk, &msg2, "PAN")
+    racs_validate_s32v(&pk, msg2, "PAN")
 
-    double pan = racs_unpack_float64(&msg1.data, 0);
+    double pan = racs_unpack_float64_from_array(&msg1.data, 0);
     if (pan < -1.0 || pan > 1.0) {
         msgpack_sbuffer_clear(out_buf);
         return racs_pack_error(&pk, "PAN", "Pan must be between -1.0 and +1.0.");
     }
 
-    racs_int32 *in = racs_unpack_s32v(&msg2.data, 1);
-    size_t in_size = racs_unpack_s32v_size(&msg2.data, 1);
+    racs_int32 *in = racs_unpack_s32v(&msg2.data);
+    size_t in_size = racs_unpack_s32v_size(&msg2.data);
 
     if (in_size < 2 || !in) {
         msgpack_sbuffer_clear(out_buf);
@@ -589,13 +589,13 @@ racs_create_command(pad) {
     racs_validate_arg_type(&pk, msg1, 1, MSGPACK_OBJECT_FLOAT64, "PAD", "Invalid type at arg 2. Expected: float")
 
     racs_validate_not_null(&pk, msg2, "PAD")
-    racs_validate_s32v(&pk, &msg2, "PAD")
+    racs_validate_s32v(&pk, msg2, "PAD")
 
-    double left_seconds = racs_unpack_float64(&msg1.data, 0);
-    double right_seconds = racs_unpack_float64(&msg1.data, 1);
+    double left_seconds = racs_unpack_float64_from_array(&msg1.data, 0);
+    double right_seconds = racs_unpack_float64_from_array(&msg1.data, 1);
 
-    racs_int32 *in = racs_unpack_s32v(&msg2.data, 1);
-    size_t in_size = racs_unpack_s32v_size(&msg2.data, 1);
+    racs_int32 *in = racs_unpack_s32v(&msg2.data);
+    size_t in_size = racs_unpack_s32v_size(&msg2.data);
 
     if (in_size < 2 || !in) {
         msgpack_sbuffer_clear(out_buf);
@@ -635,13 +635,13 @@ racs_create_command(clip) {
     racs_validate_arg_type(&pk, msg1, 1, MSGPACK_OBJECT_POSITIVE_INTEGER, "CLIP", "Invalid type at arg 2. Expected: positive int")
 
     racs_validate_not_null(&pk, msg2, "CLIP")
-    racs_validate_s32v(&pk, &msg2, "CLIP")
+    racs_validate_s32v(&pk, msg2, "CLIP")
 
-    racs_int32 min = racs_unpack_int32(&msg1.data, 0);
-    racs_int32 max = racs_unpack_int32(&msg1.data, 1);
+    racs_int32 min = racs_unpack_int32_from_array(&msg1.data, 0);
+    racs_int32 max = racs_unpack_int32_from_array(&msg1.data, 1);
 
-    racs_int32 *in = racs_unpack_s32v(&msg2.data, 1);
-    size_t in_size = racs_unpack_s32v_size(&msg2.data, 1);
+    racs_int32 *in = racs_unpack_s32v(&msg2.data);
+    size_t in_size = racs_unpack_s32v_size(&msg2.data);
 
     if (in_size < 2 || !in) {
         msgpack_sbuffer_clear(out_buf);
@@ -680,12 +680,12 @@ racs_create_command(split) {
     racs_validate_arg_type(&pk, msg1, 0, MSGPACK_OBJECT_POSITIVE_INTEGER, "SPLIT", "Invalid type at arg 2. Expected: positive int")
 
     racs_validate_not_null(&pk, msg2, "SPLIT")
-    racs_validate_s32v(&pk, &msg2, "SPLIT")
+    racs_validate_s32v(&pk, msg2, "SPLIT")
 
-    racs_uint16 channel = racs_unpack_uint16(&msg1.data, 0);
+    racs_uint16 channel = racs_unpack_uint16_from_array(&msg1.data, 0);
 
-    racs_int32 *in = racs_unpack_s32v(&msg2.data, 1);
-    size_t in_size = racs_unpack_s32v_size(&msg2.data, 1);
+    racs_int32 *in = racs_unpack_s32v(&msg2.data);
+    size_t in_size = racs_unpack_s32v_size(&msg2.data);
 
     if (in_size < 2 || !in) {
         msgpack_sbuffer_clear(out_buf);

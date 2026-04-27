@@ -10,7 +10,7 @@
 #include "scm.h"
 
 void racs_scm_propagate_error(msgpack_object *obj, racs_uint8 *data) {
-    char *message = racs_unpack_str(obj, 1);
+    char *message = racs_unpack_str(obj);
     SCM error = scm_from_utf8_string(message);
 
     free(data);
@@ -147,44 +147,14 @@ int racs_scm_pack(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x, bool is_final
     return racs_pack_error(pk, "EVAL", "Unsupported SCM type");
 }
 
-int racs_scm_pack_element(msgpack_packer *pk, msgpack_sbuffer *buf, SCM v) {
-    if (scm_is_string(v)) {
-        char *str = scm_to_locale_string(v);
-        msgpack_pack_str_with_body(pk, str, strlen(str));
-        return true;
-    }
-
-    if (scm_is_integer(v)) {
-        msgpack_pack_int64(pk, scm_to_int64(v));
-        return true;
-    }
-
-    if (scm_is_number(v)) {
-        msgpack_pack_double(pk, scm_to_double(v));
-        return true;
-    }
-
-    if (scm_is_bool(v)) {
-        scm_to_bool(v) ? msgpack_pack_true(pk) : msgpack_pack_false(pk);
-        return true;
-    }
-
-    msgpack_sbuffer_clear(buf);
-    racs_pack_error(pk, "EVAL", "Unsupported SCM type");
-
-    return false;
-}
-
 int racs_scm_pack_list(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x) {
     racs_uint32 n = scm_to_uint32(scm_length(x));
-
-    msgpack_pack_array(pk, n + 1);
-    racs_pack_type(pk, RACS_TYPE_LIST);
+    msgpack_pack_array(pk, n);
 
     while (scm_is_pair(x)) {
         SCM v = scm_car(x);
 
-        if (!racs_scm_pack_element(pk, buf, v))
+        if (racs_scm_pack(pk, buf, v, false) != RACS_STATUS_OK)
             return RACS_STATUS_ERROR;
 
         x = scm_cdr(x);
@@ -222,7 +192,7 @@ SCM racs_scm_safe_eval(void *body) {
                                  scm_from_locale_symbol("ttl"),
                                  SCM_UNDEFINED);
 
-    SCM modules = scm_list_2(base_module, racs_module);
+    SCM modules = scm_list_1(racs_module);
     SCM bindings = scm_call_1(make_sandbox_module, modules);
 
     SCM kw_module = scm_from_latin1_keyword("module");

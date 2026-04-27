@@ -31,8 +31,6 @@ void racs_wal_replay(racs_multi_memtable *mmt, racs_offsets *offsets, racs_versi
                 continue;
             }
 
-            racs_log_info("REPLAY OP: %d LSN: %llu", entry->op_code, entry->lsn);
-
             if (entry->op_code == RACS_OP_CODE_APPEND)
                 racs_wal_replay_append(entry, mmt, offsets, versions, sessions);
             else if (entry->op_code == RACS_OP_CODE_EXPIRE)

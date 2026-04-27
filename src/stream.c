@@ -62,8 +62,11 @@ void racs_stream_batch_append(racs_multi_memtable *mmt, racs_offsets *offsets, r
     size_t num_frames = msg.data.via.array.size;
 
     for (int i = 0; i < num_frames; ++i) {
-        racs_uint8 *frame = racs_unpack_u8v(&msg.data, i);
-        racs_stream_append(mmt, offsets, versions, kv, frame);
+        msgpack_object obj = msg.data.via.array.ptr[i];
+        racs_uint8 *frame = racs_unpack_u8v(&obj);
+
+        if (frame)
+            racs_stream_append(mmt, offsets, versions, kv, frame);
     }
 }
 
