@@ -269,8 +269,11 @@ SCM racs_scm_range(SCM stream_id, SCM start, SCM duration) {
     int rc = racs_range(&db->ctx, &pcm, _stream_id, _start, _duration);
     if (rc == RACS_RANGE_STATUS_NOT_FOUND) {
         racs_pcm_destroy(&pcm);
+        free(_stream_id);
         scm_misc_error("range", "The stream-id does not exist", SCM_EOL);
     }
+
+    free(_stream_id);
 
     racs_int32 *samples = NULL;
     size_t size = pcm.samples * pcm.channels;
@@ -296,10 +299,14 @@ SCM racs_scm_metadata(SCM stream_id, SCM attr) {
     char *_attr = scm_to_locale_string(attr);
 
     racs_uint64 hash = racs_hash(_stream_id);
+    free(_stream_id);
 
     racs_metadata metadata;
-    if (racs_metadata_get(&metadata, hash) == 0)
+    if (racs_metadata_get(&metadata, hash) == 0) {
+        free(_attr);
         scm_misc_error("meta", "The stream-id does not exist.", SCM_EOL);
+    }
+
 
     racs_int64 value = 0;
     value = racs_metadata_attr(&metadata, _attr);
@@ -308,6 +315,8 @@ SCM racs_scm_metadata(SCM stream_id, SCM attr) {
 
     if (strcmp(_attr, "size") == 0)
         value = (racs_int64)racs_offsets_get(db->ctx.offsets, hash);
+
+    free(_attr);
 
     if (value == 0)
         scm_misc_error("meta", "Invalid metadata attribute.", SCM_EOL);
@@ -322,6 +331,7 @@ SCM racs_scm_stream_list(SCM pattern) {
     racs_streams_init(&streams);
     racs_streams_list(&streams, _pattern);
 
+    free(_pattern);
     SCM list = SCM_EOL;
 
     for (int i = 0; i < streams.num_streams; ++i) {
@@ -344,6 +354,7 @@ SCM racs_scm_encode(SCM data, SCM mime_type) {
 
     if ((ssize_t) size < 2) {
         scm_array_handle_release(&handle);
+        free(_mime_type);
         scm_misc_error("encode", "Missing input data.", SCM_EOL);
     }
 
@@ -357,7 +368,9 @@ SCM racs_scm_encode(SCM data, SCM mime_type) {
     void *out = malloc(size * (encode.bit_depth / 8) + 44);
     size_t n = racs_encode_pcm(&encode, in + 2, out, size / encode.channels, size * (encode.bit_depth / 8) + 44, _mime_type);
 
+    free(_mime_type);
     scm_array_handle_release(&handle);
+
     return scm_take_u8vector(out, n);
 }
 
@@ -365,6 +378,7 @@ SCM racs_scm_ttl(SCM stream_id) {
     char *_stream_id = scm_to_locale_string(stream_id);
 
     racs_uint64 hash = racs_hash(_stream_id);
+    free(_stream_id);
 
     racs_metadata metadata;
     int rc = racs_metadata_get(&metadata, hash);
@@ -373,9 +387,7 @@ SCM racs_scm_ttl(SCM stream_id) {
     racs_time ttl = metadata.ttl;
     racs_metadata_destroy(&metadata);
 
-    if (ttl == -1)
-        return scm_from_int64(ttl);
-
+    if (ttl == -1) return scm_from_int64(ttl);
     return scm_from_int64( (ttl - racs_time_now()) / 1000);
 }
 

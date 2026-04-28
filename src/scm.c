@@ -124,6 +124,14 @@ int racs_scm_pack_c32vector(msgpack_packer *pk, SCM v) {
     return RACS_STATUS_OK;
 }
 
+int racs_scm_pack_str(msgpack_packer *pk, SCM s) {
+    char *cstr = scm_to_locale_string(s);
+    int rc = racs_pack_str(pk, cstr);
+    free(cstr);
+
+    return rc;
+}
+
 int racs_scm_pack_pair(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x) {
     msgpack_pack_array(pk, 2);
 
@@ -190,7 +198,7 @@ int racs_scm_pack(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x, bool is_final
         return racs_scm_pack_pair(pk, buf, x);
     }
     if (scm_is_string(x))
-        return racs_pack_str(pk, scm_to_locale_string(x));
+        return racs_scm_pack_str(pk, x);
     if (scm_is_typed_array(x, scm_from_locale_symbol("s8")))
         return racs_scm_pack_s8vector(pk, x);
     if (scm_is_typed_array(x, scm_from_locale_symbol("u8")))
@@ -239,7 +247,7 @@ SCM racs_scm_safe_eval(void *body) {
     SCM modules = scm_cons(racs_module, all_pure_bindings);
     SCM sandbox = scm_call_1(make_sandbox_module, modules);
 
-    SCM time_limit = scm_from_double(30.0);                     // 30 seconds
+    SCM time_limit = scm_from_double(30.0);                     //  30 seconds
     SCM allocation_limit = scm_from_size_t(50 * 1024 * 1024);    // ~50 MB
 
     SCM expr = scm_c_read_string(body);

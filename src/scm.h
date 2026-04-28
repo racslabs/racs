@@ -33,6 +33,8 @@ int racs_scm_pack_f32vector(msgpack_packer *pk, SCM v);
 
 int racs_scm_pack_c32vector(msgpack_packer *pk, SCM v);
 
+int racs_scm_pack_str(msgpack_packer *pk, SCM s);
+
 int racs_scm_pack(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x, bool is_final);
 
 int racs_scm_pack_pair(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x);
