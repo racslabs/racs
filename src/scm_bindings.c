@@ -398,12 +398,6 @@ void racs_scm_init_bindings(void *data) {
     scm_c_export("range", "meta", "encode", "list", "mix", "gain", "trim", "fade", "pan", "pad", "clip", "split", "merge", "ttl", NULL);
 }
 
-void racs_sandbox_init(void *data) {
-    scm_c_use_module("scheme base");
-    scm_c_use_module("racs");
-}
-
 void racs_scm_init_module() {
     scm_c_define_module("racs", racs_scm_init_bindings, NULL);
-    scm_c_define_module("racs-sandbox", racs_sandbox_init, NULL);
 }

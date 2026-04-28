@@ -9,6 +9,17 @@
 
 #include "scm.h"
 
+static bool is_alist(SCM x) {
+    for ( ; scm_is_pair(x); x = scm_cdr(x)) {
+        SCM v = scm_car(x);
+        if (!scm_is_pair(v))
+            return false;
+    }
+
+    return scm_is_null(x);
+}
+
+
 void racs_scm_propagate_error(msgpack_object *obj, racs_uint8 *data) {
     char *message = racs_unpack_str(obj);
     SCM error = scm_from_utf8_string(message);
@@ -113,6 +124,57 @@ int racs_scm_pack_c32vector(msgpack_packer *pk, SCM v) {
     return RACS_STATUS_OK;
 }
 
+int racs_scm_pack_pair(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x) {
+    msgpack_pack_array(pk, 2);
+
+    SCM k = scm_car(x);
+    SCM v = scm_cdr(x);
+
+    if (racs_scm_pack(pk, buf, k, false) != RACS_STATUS_OK)
+        return RACS_STATUS_ERROR;
+
+    if (racs_scm_pack(pk, buf, v, false) != RACS_STATUS_OK)
+        return RACS_STATUS_ERROR;
+
+    return RACS_STATUS_OK;
+}
+
+int racs_scm_pack_list(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x) {
+    size_t len = scm_to_size_t(scm_length(x));
+    msgpack_pack_array(pk, len);
+
+    for ( ; scm_is_pair(x); x = scm_cdr(x)) {
+        if (racs_scm_pack(pk, buf, scm_car(x), false) != RACS_STATUS_OK)
+            return RACS_STATUS_ERROR;
+    }
+
+    return RACS_STATUS_OK;
+}
+
+int racs_scm_pack_map(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x) {
+    size_t len = scm_to_size_t(scm_length(x));
+    msgpack_pack_map(pk, len);
+
+    for ( ; scm_is_pair(x); x = scm_cdr(x)) {
+        SCM p = scm_car(x);
+        SCM k = scm_car(p);
+        SCM v = scm_cdr(p);
+
+        if (racs_scm_pack(pk, buf, k, false) != RACS_STATUS_OK)
+            return RACS_STATUS_ERROR;
+
+        if (racs_scm_pack(pk, buf, v, false) != RACS_STATUS_OK)
+            return RACS_STATUS_ERROR;
+    }
+
+    return RACS_STATUS_OK;
+}
+
+int racs_scm_pack_list_or_map(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x) {
+    if (is_alist(x))
+        return racs_scm_pack_map(pk, buf, x);
+    return racs_scm_pack_list(pk, buf, x);
+}
 int racs_scm_pack(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x, bool is_final) {
     if (scm_is_integer(x))
         return racs_pack_int64(pk, scm_to_int64(x));
@@ -122,8 +184,11 @@ int racs_scm_pack(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x, bool is_final
         return racs_pack_bool(pk, scm_to_bool(x));
     if (scm_is_null_or_nil(x))
         return racs_pack_null_with_status_ok(pk);
-    if (scm_is_pair(x))
-        return racs_scm_pack_list(pk, buf, x);
+    if (scm_is_pair(x)) {
+        if (scm_is_true(scm_list_p(x)))
+            return racs_scm_pack_list_or_map(pk, buf, x);
+        return racs_scm_pack_pair(pk, buf, x);
+    }
     if (scm_is_string(x))
         return racs_pack_str(pk, scm_to_locale_string(x));
     if (scm_is_typed_array(x, scm_from_locale_symbol("s8")))
@@ -145,22 +210,6 @@ int racs_scm_pack(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x, bool is_final
 
     msgpack_sbuffer_clear(buf);
     return racs_pack_error(pk, "EVAL", "Unsupported SCM type");
-}
-
-int racs_scm_pack_list(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x) {
-    racs_uint32 n = scm_to_uint32(scm_length(x));
-    msgpack_pack_array(pk, n);
-
-    while (scm_is_pair(x)) {
-        SCM v = scm_car(x);
-
-        if (racs_scm_pack(pk, buf, v, false) != RACS_STATUS_OK)
-            return RACS_STATUS_ERROR;
-
-        x = scm_cdr(x);
-    }
-
-    return RACS_STATUS_OK;
 }
 
 SCM racs_scm_safe_eval(void *body) {

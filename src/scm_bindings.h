@@ -46,8 +46,6 @@ SCM racs_scm_ttl(SCM stream_id);
 
 void racs_scm_init_bindings(void *data);
 
-void racs_sandbox_init(void *data);
-
 void racs_scm_init_module();
 
 #ifdef __cplusplus

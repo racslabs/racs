@@ -35,7 +35,13 @@ int racs_scm_pack_c32vector(msgpack_packer *pk, SCM v);
 
 int racs_scm_pack(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x, bool is_final);
 
+int racs_scm_pack_pair(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x);
+
 int racs_scm_pack_list(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x);
+
+int racs_scm_pack_map(msgpack_packer *pk, msgpack_sbuffer *buf, SCM m);
+
+int racs_scm_pack_list_or_map(msgpack_packer *pk, msgpack_sbuffer *buf, SCM x);
 
 void racs_scm_propagate_error(msgpack_object *obj, racs_uint8 *data);
 
