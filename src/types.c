@@ -5,11 +5,9 @@
 // Non-commercial use only. Commercial use requires a paid license.
 // Contact: sales@racslabs.com
 //
-// SPDX-License-Identifier: RACS-SAL-1.0
 
 #include "types.h"
 
-#include "log.h"
 
 float *racs_s16_f32(const racs_int16 *in, size_t n) {
     float *out = NULL;

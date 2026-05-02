@@ -5,7 +5,6 @@
 // Non-commercial use only. Commercial use requires a paid license.
 // Contact: sales@racslabs.com
 //
-// SPDX-License-Identifier: RACS-SAL-1.0
 
 #ifndef RACS_EXPORT_H
 #define RACS_EXPORT_H
