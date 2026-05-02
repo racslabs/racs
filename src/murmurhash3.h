@@ -16,11 +16,11 @@ extern "C" {
 #include "types.h"
 #include "export.h"
 
-#define RACS_ROTL64(x,y)	racs_rotl64(x,y)
+#define RACS_ROTL64(x,y)	 racs_rotl64(x,y)
 
 #define RACS_BIG_CONSTANT(x) (x##LLU)
 
-#define RACS_GETBLOCK(p, i) (p[i])
+#define RACS_GETBLOCK(p, i)  (p[i])
 
 static RACS_FORCE_INLINE racs_uint64 racs_rotl64(racs_uint64 x, racs_int8 r) {
     return (x << r) | (x >> (64 - r));

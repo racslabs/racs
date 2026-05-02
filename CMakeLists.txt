@@ -8,7 +8,7 @@
 # SPDX-License-Identifier: RACS-SAL-1.0
 
 cmake_minimum_required(VERSION 3.22.1)
-project(racs LANGUAGES C CXX)
+project(racs LANGUAGES C)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 17)
@@ -19,17 +19,17 @@ set(RACS_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 #---------Uncomment For Debugging Only----------#
-option(ENABLE_ASAN "Enable AddressSanitizer" ON)
-
-if(ENABLE_ASAN)
-    add_compile_options(
-            -fsanitize=address
-            -fno-omit-frame-pointer
-            -g
-            -O0
-    )
-    add_link_options(-fsanitize=address)
-endif()
+#option(ENABLE_ASAN "Enable AddressSanitizer" ON)
+#
+#if(ENABLE_ASAN)
+#    add_compile_options(
+#            -fsanitize=address
+#            -fno-omit-frame-pointer
+#            -g
+#            -O0
+#    )
+#    add_link_options(-fsanitize=address)
+#endif()
 
 find_package(Guile REQUIRED)
 find_package(Msgpack)
@@ -67,31 +67,3 @@ target_link_libraries(racs
         ${ZSTD_LIBRARIES}
         uuid
 )
-
-include(FetchContent)
-include(GoogleTest)
-
-FetchContent_Declare(
-        googletest
-        URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
-        DOWNLOAD_EXTRACT_TIMESTAMP true
-)
-
-FetchContent_MakeAvailable(googletest)
-
-enable_testing()
-
-add_executable(racs_test ${RACS_SOURCE_FILES} ${RACS_TEST_FILES})
-
-target_link_libraries(
-        racs_test
-        PRIVATE
-        GTest::gtest_main
-)
-
-gtest_discover_tests(racs_test)
-
-option(INSTALL_GMOCK OFF)
-option(INSTALL_GTEST OFF)
-
-enable_testing()

@@ -17,6 +17,7 @@ extern "C" {
 #include <string.h>
 #include <stdio.h>
 #include "types.h"
+#include "murmurhash3.h"
 
 
 typedef racs_uint64 (*racs_dict_hash_callback)   (const void *key);
