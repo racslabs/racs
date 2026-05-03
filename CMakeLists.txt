@@ -51,10 +51,11 @@ include_directories(
         ${ZSTD_INCLUDE_DIRS}
 )
 
-file(GLOB_RECURSE RACS_TEST_FILES CONFIGURE_DEPENDS ${RACS_TEST_DIR}/*.hpp ${RACS_TEST_DIR}/*.cpp)
+file(GLOB_RECURSE RACS_TEST_FILES CONFIGURE_DEPENDS ${RACS_TEST_DIR}/*.h ${RACS_TEST_DIR}/*.c)
 file(GLOB_RECURSE RACS_SOURCE_FILES CONFIGURE_DEPENDS ${RACS_SOURCE_DIR}/*.h ${RACS_SOURCE_DIR}/*.c)
+list(FILTER RACS_SOURCE_FILES EXCLUDE REGEX "server.c")
 
-add_executable(racs ${RACS_SOURCE_FILES})
+add_executable(racs ${RACS_SOURCE_FILES} src/server.c)
 
 target_link_libraries(racs
         ${MSGPACK_LIBRARIES}
@@ -67,3 +68,20 @@ target_link_libraries(racs
         ${ZSTD_LIBRARIES}
         uuid
 )
+
+enable_testing()
+
+add_executable(racs_test
+        ${RACS_SOURCE_FILES}
+        ${RACS_TEST_FILES}
+        external/unity/src/unity.c
+        test/test_runner.c
+        test/dict_test.h
+)
+
+target_include_directories(racs_test PRIVATE
+        src
+        external/unity/src
+)
+
+add_test(NAME AllTests COMMAND racs_test)
