@@ -42,8 +42,12 @@ racs_sstable *racs_sstable_open(const char *path) {
            sst->data + (size - sizeof(racs_uint16)),
            sizeof(racs_uint16));
 
-    size_t index_size = sst->num_entries * sizeof(racs_sstable_index_entry);
-    sst->index_ptr = sst->data + (size - sizeof(racs_uint16) - index_size);
+    if (sst->num_entries == 0) {
+        sst->index_ptr = NULL;
+    } else {
+        size_t index_size = sst->num_entries * sizeof(racs_sstable_index_entry);
+        sst->index_ptr = sst->data + (size - sizeof(racs_uint16) - index_size);
+    }
 
     return sst;
 }
