@@ -15,7 +15,6 @@ extern "C" {
 
 #include <time.h>
 #include <stdlib.h>
-#include "export.h"
 
 // Basic integer types
 typedef signed char racs_int8;
@@ -45,8 +44,6 @@ typedef time_t racs_time;
 
 typedef float complex racs_complex;
 #endif
-
-float *racs_s16_f32(const racs_int16 *in, size_t n);
 
 racs_int16 *racs_f32_s16(const float *in, size_t n);
 

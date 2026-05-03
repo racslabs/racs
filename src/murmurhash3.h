@@ -14,7 +14,6 @@ extern "C" {
 #endif
 
 #include "types.h"
-#include "export.h"
 
 #define RACS_ROTL64(x,y)	 racs_rotl64(x,y)
 
@@ -22,11 +21,11 @@ extern "C" {
 
 #define RACS_GETBLOCK(p, i)  (p[i])
 
-static RACS_FORCE_INLINE racs_uint64 racs_rotl64(racs_uint64 x, racs_int8 r) {
+static __attribute__((always_inline)) racs_uint64 racs_rotl64(racs_uint64 x, racs_int8 r) {
     return (x << r) | (x >> (64 - r));
 }
 
-static RACS_FORCE_INLINE racs_uint64 racs_fmix64(racs_uint64 k) {
+static __attribute__((always_inline)) racs_uint64 racs_fmix64(racs_uint64 k) {
     k ^= k >> 33;
     k *= RACS_BIG_CONSTANT(0xff51afd7ed558ccd);
     k ^= k >> 33;

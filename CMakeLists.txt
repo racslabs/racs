@@ -58,7 +58,9 @@ file(GLOB_RECURSE UNITY_SOURCE_FILES CONFIGURE_DEPENDS ${UNITY_SOURCE_DIR}/*.h $
 
 list(FILTER RACS_SOURCE_FILES EXCLUDE REGEX "server.c")
 
-add_executable(racs ${RACS_SOURCE_FILES} src/server.c)
+add_executable(racs ${RACS_SOURCE_FILES} src/server.c
+        src/sstable.h
+        src/sstable.c)
 
 target_link_libraries(racs
         ${MSGPACK_LIBRARIES}
