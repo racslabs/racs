@@ -78,4 +78,3 @@ void test_dict_collision(void) {
 
     racs_dict_destroy(dict);
 }
-

@@ -8,13 +8,14 @@
 # SPDX-License-Identifier: RACS-SAL-1.0
 
 cmake_minimum_required(VERSION 3.22.1)
-project(racs LANGUAGES C)
+project(racs C)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 17)
 
 set(RACS_TEST_DIR ${CMAKE_SOURCE_DIR}/test)
 set(RACS_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
+set(UNITY_SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/unity/src)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -53,9 +54,12 @@ include_directories(
 
 file(GLOB_RECURSE RACS_TEST_FILES CONFIGURE_DEPENDS ${RACS_TEST_DIR}/*.h ${RACS_TEST_DIR}/*.c)
 file(GLOB_RECURSE RACS_SOURCE_FILES CONFIGURE_DEPENDS ${RACS_SOURCE_DIR}/*.h ${RACS_SOURCE_DIR}/*.c)
+file(GLOB_RECURSE UNITY_SOURCE_FILES CONFIGURE_DEPENDS ${UNITY_SOURCE_DIR}/*.h ${UNITY_SOURCE_DIR}/*.c)
+
 list(FILTER RACS_SOURCE_FILES EXCLUDE REGEX "server.c")
 
-add_executable(racs ${RACS_SOURCE_FILES} src/server.c)
+add_executable(racs ${RACS_SOURCE_FILES} src/server.c
+        src/cache.c)
 
 target_link_libraries(racs
         ${MSGPACK_LIBRARIES}
@@ -74,14 +78,12 @@ enable_testing()
 add_executable(racs_test
         ${RACS_SOURCE_FILES}
         ${RACS_TEST_FILES}
-        external/unity/src/unity.c
-        test/test_runner.c
-        test/dict_test.h
+        ${UNITY_SOURCE_FILES}
 )
 
 target_include_directories(racs_test PRIVATE
-        src
-        external/unity/src
+        ${RACS_SOURCE_DIR}
+        ${UNITY_SOURCE_DIR}
 )
 
 add_test(NAME AllTests COMMAND racs_test)

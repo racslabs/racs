@@ -6,7 +6,6 @@
 #include "dict.h"
 #include "murmurhash3.h"
 
-
 void test_dict_get(void);
 
 void test_dict_overwrite(void);
