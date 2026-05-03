@@ -1,6 +1,7 @@
 #include "unity.h"
 #include "dict_test.h"
 #include "cache_test.h"
+#include "sstable_test.h"
 
 
 void setUp(void) {}
@@ -15,5 +16,6 @@ int main(void) {
     RUN_TEST(test_dict_collision);
     RUN_TEST(test_cache_get);
     RUN_TEST(test_cache_evict);
+    RUN_TEST(test_sstable_read);
     return UNITY_END();
 }

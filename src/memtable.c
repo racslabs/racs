@@ -1,4 +1,16 @@
+// RACS - Remote Audio Caching Server
+// Copyright (c) 2025 RACS Labs, LLC. All rights reserved.
+//
+// Licensed under the RACS Source Available License (RACS-SAL-1.0).
+// Non-commercial use only. Commercial use requires a paid license.
+// Contact: sales@racslabs.com
+//
+
 #include "memtable.h"
+
+
+static racs_uint8 *racs_memtable_to_sstable(racs_memtable *mt, size_t *sst_size);
+
 
 racs_memtable *racs_memtable_create(int capacity) {
     racs_memtable *mt = malloc(sizeof(racs_memtable));
