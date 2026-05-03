@@ -24,7 +24,7 @@ racs_cache *racs_cache_create(size_t capacity, racs_cache_callbacks callbacks) {
         return NULL;
     }
 
-    racs_dict_callbacks internal_callbacks = {
+    racs_dict_callbacks dict_callbacks = {
         .hash = callbacks.hash,
         .eq = callbacks.eq,
         .destroy = racs_cache_empty_destroy_callback,
@@ -36,7 +36,8 @@ racs_cache *racs_cache_create(size_t capacity, racs_cache_callbacks callbacks) {
     cache->capacity = capacity;
     cache->head = NULL;
     cache->tail = NULL;
-    cache->dict = racs_dict_create(capacity, internal_callbacks);
+    cache->dict = racs_dict_create(capacity, dict_callbacks);
+    cache->callbacks = callbacks;
 
     return cache;
 }
@@ -94,7 +95,6 @@ void racs_cache_destroy(racs_cache *cache) {
     }
 
     pthread_rwlock_wrlock(&cache->rwlock);
-
     racs_cache_destroy_callback destroy = cache->callbacks.destroy;
 
     for (racs_cache_node *curr = cache->head, *next; curr; curr = next) {

@@ -39,7 +39,6 @@ void destroy_callback(void *key, void *value) {
 
 void test_dict_get(void) {
     racs_dict *dict = racs_dict_create(8, DICT_TEST_CALLBACKS);
-
     racs_dict_put(dict, strdup("a"), strdup("1"));
     racs_dict_put(dict, strdup("b"), strdup("2"));
     racs_dict_put(dict, strdup("c"), strdup("3"));
@@ -53,7 +52,6 @@ void test_dict_get(void) {
 
 void test_dict_overwrite(void) {
     racs_dict *dict = racs_dict_create(8, DICT_TEST_CALLBACKS);
-
     racs_dict_put(dict, strdup("a"), strdup("1"));
     racs_dict_put(dict, strdup("a"), strdup("2"));
 
@@ -67,7 +65,6 @@ void test_dict_collision(void) {
     bad_callbacks.hash = bad_hash_callback;
 
     racs_dict *dict = racs_dict_create(8, bad_callbacks);
-
     racs_dict_put(dict, strdup("a"), strdup("1"));
     racs_dict_put(dict, strdup("b"), strdup("2"));
     racs_dict_put(dict, strdup("c"), strdup("3"));

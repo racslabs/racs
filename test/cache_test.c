@@ -13,6 +13,8 @@ static const racs_cache_callbacks CACHE_TEST_CALLBACKS = {
     .destroy = destroy_callback,
 };
 
+static int destroy_call_count = 0;
+
 
 racs_uint64 hash_callback(const void *key) {
     racs_uint64 hash[2];
@@ -25,6 +27,7 @@ int eq_callback(const void *a, const void *b) {
 }
 
 void destroy_callback(void *key, void *value) {
+    destroy_call_count++;
     free(key);
     free(value);
 }
@@ -32,7 +35,6 @@ void destroy_callback(void *key, void *value) {
 
 void test_cache_get(void) {
     racs_cache *cache = racs_cache_create(2, CACHE_TEST_CALLBACKS);
-
     racs_cache_put(cache, strdup("a"), strdup("1"));
     racs_cache_put(cache, strdup("b"), strdup("2"));
 
@@ -43,13 +45,16 @@ void test_cache_get(void) {
 }
 
 void test_cache_evict(void) {
-    racs_cache *cache = racs_cache_create(2, CACHE_TEST_CALLBACKS);
+    destroy_call_count = 0;
 
+    racs_cache *cache = racs_cache_create(2, CACHE_TEST_CALLBACKS);
     racs_cache_put(cache, strdup("a"), strdup("1"));
     racs_cache_put(cache, strdup("b"), strdup("2"));
     racs_cache_put(cache, strdup("c"), strdup("3"));
 
+    TEST_ASSERT_EQUAL_INT(1, destroy_call_count);
     TEST_ASSERT_NULL(racs_cache_get(cache, "a"));
+
     TEST_ASSERT_EQUAL_STRING("2", racs_cache_get(cache, "b"));
     TEST_ASSERT_EQUAL_STRING("3", racs_cache_get(cache, "c"));
 
