@@ -15,12 +15,20 @@ static racs_cache_node *racs_cache_node_create(void *key, void *value);
 
 static void racs_cache_move_to_head(racs_cache *cache, racs_cache_node *node);
 
+static void racs_cache_empty_destroy_callback(void *key, void *value);
 
-racs_cache *racs_cache_create(size_t capacity, racs_dict_callbacks callbacks) {
+
+racs_cache *racs_cache_create(size_t capacity, racs_cache_callbacks callbacks) {
     racs_cache *cache = malloc(sizeof(racs_cache));
     if (!cache) {
         return NULL;
     }
+
+    racs_dict_callbacks internal_callbacks = {
+        .hash = callbacks.hash,
+        .eq = callbacks.eq,
+        .destroy = racs_cache_empty_destroy_callback,
+    };
 
     pthread_rwlock_init(&cache->rwlock, NULL);
 
@@ -28,7 +36,7 @@ racs_cache *racs_cache_create(size_t capacity, racs_dict_callbacks callbacks) {
     cache->capacity = capacity;
     cache->head = NULL;
     cache->tail = NULL;
-    cache->dict = racs_dict_create(capacity, callbacks);
+    cache->dict = racs_dict_create(capacity, internal_callbacks);
 
     return cache;
 }
@@ -87,6 +95,18 @@ void racs_cache_destroy(racs_cache *cache) {
 
     pthread_rwlock_wrlock(&cache->rwlock);
 
+    racs_cache_destroy_callback destroy = cache->callbacks.destroy;
+
+    for (racs_cache_node *curr = cache->head, *next; curr; curr = next) {
+        next = curr->next;
+
+        if (destroy) {
+            destroy(curr->entry.key, curr->entry.value);
+        }
+
+        free(curr);
+    }
+
     if (cache->dict) {
         racs_dict_destroy(cache->dict);
     }
@@ -98,16 +118,28 @@ void racs_cache_destroy(racs_cache *cache) {
 }
 
 void racs_cache_evict(racs_cache *cache) {
-    racs_cache_node *tail = cache->tail;
-    racs_cache_node *prev = cache->tail->prev;
-
-    racs_dict_delete(cache->dict, tail);
-    cache->tail = prev;
-
-    if (cache->tail) {
-        cache->tail->next = NULL;
+    if (!cache->tail) {
+        return;
     }
 
+    racs_cache_node *tail = cache->tail;
+    racs_cache_node *prev = cache->tail->prev;
+    racs_cache_destroy_callback destroy = cache->callbacks.destroy;
+
+    racs_dict_delete(cache->dict, tail->entry.key);
+
+    if (destroy) {
+        destroy(tail->entry.key, tail->entry.value);
+    }
+
+    cache->tail = prev;
+    if (cache->tail) {
+        cache->tail->next = NULL;
+    } else {
+        cache->head = NULL;
+    }
+
+    free(tail);
     --cache->size;
 }
 
@@ -165,3 +197,5 @@ void racs_cache_move_to_head(racs_cache *cache, racs_cache_node *node) {
     cache->head->prev = node;
     cache->head = node;
 }
+
+void racs_cache_empty_destroy_callback(void *key, void *value) {}

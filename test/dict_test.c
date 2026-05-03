@@ -9,7 +9,7 @@ static int eq_callback(const void *a, const void *b);
 
 static void destroy_callback(void *key, void *value);
 
-static const racs_dict_callbacks callbacks = {
+static const racs_dict_callbacks DICT_TEST_CALLBACKS = {
     .hash = hash_callback,
     .eq = eq_callback,
     .destroy = destroy_callback,
@@ -38,7 +38,7 @@ void destroy_callback(void *key, void *value) {
 
 
 void test_dict_get(void) {
-    racs_dict *dict = racs_dict_create(8, callbacks);
+    racs_dict *dict = racs_dict_create(8, DICT_TEST_CALLBACKS);
 
     racs_dict_put(dict, strdup("a"), strdup("1"));
     racs_dict_put(dict, strdup("b"), strdup("2"));
@@ -52,7 +52,7 @@ void test_dict_get(void) {
 }
 
 void test_dict_overwrite(void) {
-    racs_dict *dict = racs_dict_create(8, callbacks);
+    racs_dict *dict = racs_dict_create(8, DICT_TEST_CALLBACKS);
 
     racs_dict_put(dict, strdup("a"), strdup("1"));
     racs_dict_put(dict, strdup("a"), strdup("2"));
@@ -63,7 +63,7 @@ void test_dict_overwrite(void) {
 }
 
 void test_dict_collision(void) {
-    racs_dict_callbacks bad_callbacks = callbacks;
+    racs_dict_callbacks bad_callbacks = DICT_TEST_CALLBACKS;
     bad_callbacks.hash = bad_hash_callback;
 
     racs_dict *dict = racs_dict_create(8, bad_callbacks);

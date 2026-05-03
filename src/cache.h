@@ -17,6 +17,15 @@ extern "C" {
 #include "murmurhash3.h"
 #include <pthread.h>
 
+typedef racs_uint64 (*racs_cache_hash_callback)   (const void *key);
+typedef int         (*racs_cache_eq_callback)     (const void *a, const void *b);
+typedef void        (*racs_cache_destroy_callback)(void *key, void *value);
+
+typedef struct {
+    racs_cache_hash_callback    hash;
+    racs_cache_eq_callback      eq;
+    racs_cache_destroy_callback destroy;
+} racs_cache_callbacks;
 
 typedef struct {
     void *key;
@@ -30,16 +39,17 @@ typedef struct racs_cache_node {
 } racs_cache_node;
 
 typedef struct {
-    size_t            size;
-    size_t            capacity;
-    racs_cache_node  *head;
-    racs_cache_node  *tail;
-    racs_dict        *dict;
-    pthread_rwlock_t  rwlock;
+    size_t              size;
+    size_t              capacity;
+    racs_cache_node     *head;
+    racs_cache_node     *tail;
+    racs_cache_callbacks callbacks;
+    racs_dict           *dict;
+    pthread_rwlock_t     rwlock;
 } racs_cache;
 
 
-racs_cache *racs_cache_create(size_t capacity, racs_dict_callbacks callbacks);
+racs_cache *racs_cache_create(size_t capacity, racs_cache_callbacks callbacks);
 
 void *racs_cache_get(racs_cache *cache, const void *key);
 
