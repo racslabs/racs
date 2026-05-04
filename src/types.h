@@ -13,7 +13,6 @@
 extern "C" {
 #endif
 
-#include <time.h>
 #include <stdlib.h>
 
 // Basic integer types
@@ -35,7 +34,7 @@ typedef struct RACS_PACKED {
 } racs_int24;
 
 // Standard time type
-typedef time_t racs_time;
+typedef racs_int64 racs_time;
 
 // Complex type (C99 and later)
 #if __STDC_VERSION__ >= 199901L

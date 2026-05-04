@@ -10,9 +10,7 @@
 cmake_minimum_required(VERSION 3.22.1)
 project(racs C)
 
-set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_C_STANDARD 17)
-
 set(RACS_TEST_DIR ${CMAKE_SOURCE_DIR}/test)
 set(RACS_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
 set(UNITY_SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/unity/src)
@@ -59,6 +57,8 @@ file(GLOB_RECURSE UNITY_SOURCE_FILES CONFIGURE_DEPENDS ${UNITY_SOURCE_DIR}/*.h $
 list(FILTER RACS_SOURCE_FILES EXCLUDE REGEX "server.c")
 
 add_executable(racs ${RACS_SOURCE_FILES} src/server.c)
+
+target_compile_definitions(racs PRIVATE _GNU_SOURCE)
 
 target_link_libraries(racs
         ${MSGPACK_LIBRARIES}

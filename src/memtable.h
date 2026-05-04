@@ -13,6 +13,7 @@
 extern "C" {
 #endif
 
+#include "dict.h"
 #include "types.h"
 #include "sstable.h"
 #include <stdio.h>
@@ -35,7 +36,6 @@ typedef struct racs_memtable {
     struct racs_memtable *next;
     struct racs_memtable *prev;
 } racs_memtable;
-
 
 racs_memtable *racs_memtable_create(int capacity);
 
