@@ -1,12 +1,12 @@
 #include "unity.h"
 #include "dict_test.h"
 #include "cache_test.h"
+#include "config_test.h"
 #include "sstable_test.h"
 #include "time_test.h"
 
 
 void setUp(void) {}
-
 void tearDown(void) {}
 
 
@@ -22,5 +22,6 @@ int main(void) {
     RUN_TEST(test_time_to_tm);
     RUN_TEST(test_time_to_rfc3339);
     RUN_TEST(test_time_from_path);
+    RUN_TEST(test_config_load);
     return UNITY_END();
 }

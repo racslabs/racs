@@ -86,4 +86,8 @@ target_include_directories(racs_test PRIVATE
 )
 target_link_libraries(racs_test ${RACS_LIBRARIES})
 
+configure_file(${RACS_TEST_DIR}/test-conf.yaml
+        ${CMAKE_CURRENT_BINARY_DIR}/test-conf.yaml
+        COPYONLY)
+
 add_test(NAME AllTests COMMAND racs_test)

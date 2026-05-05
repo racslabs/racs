@@ -1,18 +1,25 @@
+// RACS - Remote Audio Caching Server
+// Copyright (c) 2025 RACS Labs, LLC. All rights reserved.
+//
+// Licensed under the RACS Source Available License (RACS-SAL-1.0).
+// Non-commercial use only. Commercial use requires a paid license.
+// Contact: sales@racslabs.com
+//
+
 #include "path.h"
 
-char *racs_path_expand(const char* path) {
+
+int racs_path_expand(char *dest, const char* path) {
     wordexp_t p;
     if (wordexp(path, &p, 0) != 0) {
-        printf("racs: could not expand path: %s", path);
-        return NULL;
+        return -1;
     }
 
-    char *result = strdup(p.we_wordv[0]);
+    strcpy(dest, p.we_wordv[0]);
     wordfree(&p);
 
-    return result;
+    return 0;
 }
-
 
 void racs_path_from_time(char *path, racs_uint64 stream_id, racs_time time) {
     struct tm info;
@@ -29,7 +36,7 @@ void racs_path_from_time(char *path, racs_uint64 stream_id, racs_time time) {
             milliseconds);
 }
 
-void racs_path_from_time_range(char *path, racs_uint64 stream_id, racs_time_range range) {
+void racs_path_from_range(char *path, racs_uint64 stream_id, racs_time_range range) {
     char path1[PATH_MAX];
     char path2[PATH_MAX];
 

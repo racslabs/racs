@@ -20,9 +20,11 @@ extern "C" {
 #include <errno.h>
 #include <sys/stat.h>
 
-char *racs_path_expand(const char *path);
+int racs_path_expand(char *dest, const char *path);
 
 void racs_path_from_time(char *path, racs_uint64 stream_id, racs_time time);
+
+void racs_path_from_range(char *path, racs_uint64 stream_id, racs_time_range range);
 
 void racs_path_mkdirs(racs_uint64 stream_id, racs_time time);
 

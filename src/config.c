@@ -11,6 +11,22 @@
 
 static racs_config *config = NULL;
 
+static int racs_config_expand_path(char **path_ptr);
+
+
+int racs_config_expand_path(char **path_ptr) {
+    char exp_path[PATH_MAX];
+
+    if (racs_path_expand(exp_path, *path_ptr) == -1) {
+        fprintf(stderr, "racs: failed to expand: %s\n", *path_ptr);
+        return -1;
+    }
+
+    free(*path_ptr);
+    *path_ptr = strdup(exp_path);
+
+    return 0;
+}
 
 int racs_config_load(const char* path) {
     if (config) {
@@ -20,6 +36,12 @@ int racs_config_load(const char* path) {
     cyaml_err_t err = cyaml_load_file(path, &yaml_config, &racs_schema, (void **)&config, NULL);
     if (err != CYAML_OK) {
         fprintf(stderr, "racs: failed to load config: %s\n", cyaml_strerror(err));
+        return -1;
+    }
+
+    if (racs_config_expand_path(&config->data_dir) == -1 ||
+        racs_config_expand_path(&config->log_dir) == -1) {
+        racs_config_destroy();
         return -1;
     }
 
