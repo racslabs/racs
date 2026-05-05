@@ -21,14 +21,14 @@ racs_time racs_time_now() {
     return racs_time_from_ts(&ts);
 }
 
-void racs_time_to_tm(racs_time time, struct tm *info) {
+void racs_time_to_tm(struct tm *info, racs_time time) {
     time_t seconds = (time_t)(time / 1000);
     gmtime_r(&seconds, info);
 }
 
-void racs_time_to_rfc3339(racs_time time, char *buf) {
+void racs_time_to_rfc3339(char *buf, racs_time time) {
     struct tm info;
-    racs_time_to_tm(time, &info);
+    racs_time_to_tm(&info, time);
 
     size_t len = strftime(buf, 21, "%Y-%m-%dT%H:%M:%S", &info);
     sprintf(buf + len, ".%03ldZ", (long)(time % 1000));

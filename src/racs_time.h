@@ -18,13 +18,22 @@ extern "C" {
 #include <string.h>
 #include "types.h"
 
+typedef struct {
+    racs_time from;
+    racs_time to;
+} racs_time_range;
+
+static inline int racs_time_in_range(racs_time t, racs_time_range range) {
+    return t >= range.from && t <= range.to;
+}
+
 racs_time racs_time_from_ts(struct timespec *ts);
 
 racs_time racs_time_now();
 
-void racs_time_to_tm(racs_time time, struct tm *info);
+void racs_time_to_tm(struct tm *info, racs_time time);
 
-void racs_time_to_rfc3339(racs_time time, char *buf);
+void racs_time_to_rfc3339(char *buf, racs_time time);
 
 racs_time racs_time_from_path(const char *path);
 

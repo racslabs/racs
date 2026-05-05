@@ -22,9 +22,11 @@ extern "C" {
 
 char *racs_path_expand(const char *path);
 
-void racs_path_from_time(racs_uint64 stream_id, racs_time time, char *path);
+void racs_path_from_time(char *path, racs_uint64 stream_id, racs_time time);
 
 void racs_path_mkdirs(racs_uint64 stream_id, racs_time time);
+
+void racs_path_resolve(char *dest, const char *path1, const char *path2);
 
 #ifdef __cplusplus
 }

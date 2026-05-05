@@ -68,19 +68,3 @@ wal:
   # Forces a fsync after every N records appended to the WAL.
   # Lower values improve durability at the cost of higher disk I/O.
   fsync: 20
-
-
-# ---------------------------------------------------------------------------
-# Slave node configuration (optional)
-# ---------------------------------------------------------------------------
-
-# List of RACS slave nodes used for distributed caching.
-# Each entry must provide:
-#   - host: hostname or IP string
-#   - port: TCP port number
-#
-# If omitted entirely, RACS runs in standalone mode.
-
-#slaves:
-#  - host: <host>
-#    port: <port>

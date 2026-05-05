@@ -17,7 +17,7 @@ void test_time_to_tm(void) {
     struct tm info;
 
     racs_time timestamp = 1714838401000LL;
-    racs_time_to_tm(timestamp, &info);
+    racs_time_to_tm(&info, timestamp);
 
     TEST_ASSERT_EQUAL_INT(2024 - 1900, info.tm_year);
     TEST_ASSERT_EQUAL_INT(4, info.tm_mon);
@@ -32,7 +32,7 @@ void test_time_to_rfc3339(void) {
     char buf[55];
 
     racs_time timestamp = 1714838400123LL;
-    racs_time_to_rfc3339(timestamp, buf);
+    racs_time_to_rfc3339(buf, timestamp);
 
     TEST_ASSERT_EQUAL_STRING("2024-05-04T16:00:00.123Z", buf);
 }

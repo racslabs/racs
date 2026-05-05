@@ -16,7 +16,7 @@ extern "C" {
                       (RACS_VERSION_MINOR * 100) +  \
                        RACS_VERSION_PATCH)
 
-static __attribute__((always_inline)) void racs_version(char* buf) {
+static inline void racs_version(char* buf) {
     sprintf(buf, "racs %d.%d.%d  (%s)", RACS_VERSION_MAJOR, RACS_VERSION_MINOR, RACS_VERSION_PATCH, __DATE__);
 }
 

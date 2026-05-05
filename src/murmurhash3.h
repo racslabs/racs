@@ -21,11 +21,11 @@ extern "C" {
 
 #define RACS_GETBLOCK(p, i)  (p[i])
 
-static __attribute__((always_inline)) racs_uint64 racs_rotl64(racs_uint64 x, racs_int8 r) {
+static inline racs_uint64 racs_rotl64(racs_uint64 x, racs_int8 r) {
     return (x << r) | (x >> (64 - r));
 }
 
-static __attribute__((always_inline)) racs_uint64 racs_fmix64(racs_uint64 k) {
+static inline racs_uint64 racs_fmix64(racs_uint64 k) {
     k ^= k >> 33;
     k *= RACS_BIG_CONSTANT(0xff51afd7ed558ccd);
     k ^= k >> 33;

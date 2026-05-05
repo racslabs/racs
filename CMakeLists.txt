@@ -39,6 +39,18 @@ find_package(Yaml)
 find_package(Event)
 find_package(Zstd)
 
+set(RACS_LIBRARIES
+        ${MSGPACK_LIBRARIES}
+        ${GUILE_LIBRARIES}
+        ${LAME_LIBRARIES}
+        ${OPUS_LIBRARIES}
+        ${OPUSENC_LIBRARIES}
+        ${YAML_LIBRARIES}
+        ${EVENT_LIBRARIES}
+        ${ZSTD_LIBRARIES}
+        uuid
+)
+
 include_directories(
         ${OPUS_INCLUDE_DIRS}
         ${OPUSENC_INCLUDE_DIRS}
@@ -58,19 +70,7 @@ list(FILTER RACS_SOURCE_FILES EXCLUDE REGEX "racs_cli.c")
 
 add_executable(racs ${RACS_SOURCE_FILES} src/racs_cli.c)
 
-target_compile_definitions(racs PRIVATE _GNU_SOURCE)
-
-target_link_libraries(racs
-        ${MSGPACK_LIBRARIES}
-        ${GUILE_LIBRARIES}
-        ${LAME_LIBRARIES}
-        ${OPUS_LIBRARIES}
-        ${OPUSENC_LIBRARIES}
-        ${YAML_LIBRARIES}
-        ${EVENT_LIBRARIES}
-        ${ZSTD_LIBRARIES}
-        uuid
-)
+target_link_libraries(racs ${RACS_LIBRARIES})
 
 enable_testing()
 
@@ -84,5 +84,6 @@ target_include_directories(racs_test PRIVATE
         ${RACS_SOURCE_DIR}
         ${UNITY_SOURCE_DIR}
 )
+target_link_libraries(racs_test ${RACS_LIBRARIES})
 
 add_test(NAME AllTests COMMAND racs_test)
