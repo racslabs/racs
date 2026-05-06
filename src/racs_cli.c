@@ -36,10 +36,12 @@ void racs_cli_args(int argc, char *argv[]) {
 
             exit(0);
         }
+
         if (racs_cli_is_arg(cmd, "-h", "--help")) {
             racs_cli_help();
             exit(0);
         }
+
         if (racs_cli_is_arg(cmd, "-c", "--config")) {
             fprintf(stderr, "racs: option '-c' requires an argument\n");
             goto error;
@@ -47,7 +49,7 @@ void racs_cli_args(int argc, char *argv[]) {
     }
 
     if (argc == 3 && racs_cli_is_arg(cmd, "-c", "--config")) {
-        if (racs_config_load(argv[2]) != 0) {
+        if (racs_config_load(argv[2]) == -1) {
             exit(-1);
         }
         return;

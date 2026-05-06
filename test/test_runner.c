@@ -4,6 +4,7 @@
 #include "config_test.h"
 #include "sstable_test.h"
 #include "time_test.h"
+#include "path_test.h"
 
 
 void setUp(void) {}
@@ -23,5 +24,10 @@ int main(void) {
     RUN_TEST(test_time_to_rfc3339);
     RUN_TEST(test_time_from_path);
     RUN_TEST(test_config_load);
+    RUN_TEST(test_path_expand);
+    RUN_TEST(test_path_from_time);
+    RUN_TEST(test_path_from_range);
+    RUN_TEST(test_path_resolve);
+    RUN_TEST(test_path_mkdirs);
     return UNITY_END();
 }

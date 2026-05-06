@@ -65,9 +65,34 @@ void racs_path_resolve(char *dest, const char *path1, const char *path2) {
     dest[slash_idx] = '\0';
 }
 
-void racs_path_mkdirs(racs_uint64 stream_id, racs_time time) {
+void racs_path_walk(const char *path, racs_path_walk_callback callback, void *data) {
+    DIR *dir = opendir(path);
+    if (!dir) {
+        return;
+    }
+
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL) {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+
+        char full_path[PATH_MAX];
+        snprintf(full_path, sizeof(full_path), "%s/%s", path, entry->d_name);
+
+        if (entry->d_type == DT_DIR) {
+            racs_path_walk(full_path, callback, data);
+        } else if (entry->d_type == DT_REG) {
+            callback(full_path, data);
+        }
+    }
+    
+    closedir(dir);
+}
+
+void racs_path_mkdir(const char *path) {
     char dir[PATH_MAX];
-    racs_path_from_time(dir, stream_id, time);
+    snprintf(dir, sizeof(dir), "%s", path);
 
     char *p = dir;
     while ((p = strchr(p + 1, '/')) != NULL) {

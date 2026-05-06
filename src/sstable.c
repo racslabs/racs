@@ -8,6 +8,7 @@
 
 #include "sstable.h"
 
+
 // Table layout: [Audio blocks ...][Index entries ...][Entry count]
 racs_sstable *racs_sstable_open(const char *path) {
     int fd = open(path, O_RDONLY);
