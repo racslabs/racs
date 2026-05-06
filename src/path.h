@@ -17,12 +17,7 @@ extern "C" {
 #include "config.h"
 #include <wordexp.h>
 #include <limits.h>
-#include <errno.h>
 #include <sys/stat.h>
-#include <dirent.h>
-
-
-typedef void (*racs_path_walk_callback)(const char *path, void *data);
 
 
 int racs_path_expand(char *dest, const char *path);
@@ -32,10 +27,6 @@ void racs_path_from_time(char *path, racs_uint64 stream_id, racs_time time);
 void racs_path_from_range(char *path, racs_uint64 stream_id, racs_time_range range);
 
 void racs_path_resolve(char *dest, const char *path1, const char *path2);
-
-void racs_path_walk(const char *path, racs_path_walk_callback callback, void *data);
-
-void racs_path_mkdir(const char *path);
 
 
 #ifdef __cplusplus

@@ -13,6 +13,4 @@ void test_path_from_range(void);
 
 void test_path_resolve(void);
 
-void test_path_mkdirs(void);
-
 #endif //RACS_PATH_TEST_H

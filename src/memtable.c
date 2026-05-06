@@ -10,21 +10,13 @@
 #include "murmurhash3.h"
 
 
-typedef struct {
-    int capacity;
-    racs_dict *dict;
-} racs_memtable_partitions;
-
-
 static racs_uint8 *racs_memtable_to_sstable(racs_memtable *mt, size_t *sst_size);
 
-static racs_uint64 racs_memtable_partitions_hash_callback(const void *key);
+static racs_uint64 racs_memtable_parts_hash_callback(const void *key);
 
-static int racs_memtable_partitions_eq_callback(const void *a, const void *b);
+static int racs_memtable_parts_eq_callback(const void *a, const void *b);
 
-static void racs_memtable_partitions_destroy_callback(void *key, void *value);
-
-static racs_memtable_partitions *racs_memtable_partitions_create(int capacity);
+static void racs_memtable_parts_destroy_callback(void *key, void *value);
 
 
 racs_memtable *racs_memtable_create(int capacity) {
@@ -137,6 +129,137 @@ void racs_memtable_destroy(racs_memtable *mt) {
     free(mt);
 }
 
+racs_memtable_parts *racs_memtable_parts_create(int capacity) {
+    racs_memtable_parts *parts = malloc(sizeof(racs_memtable_parts));
+    if (!parts) {
+        return NULL;
+    }
+
+    racs_dict_callbacks callbacks = {
+        .hash = racs_memtable_parts_hash_callback,
+        .eq = racs_memtable_parts_eq_callback,
+        .destroy = racs_memtable_parts_destroy_callback
+    };
+
+    parts->capacity = capacity;
+    parts->dict = racs_dict_create(capacity, callbacks);
+    if (!parts->dict) {
+        free(parts);
+        return NULL;
+    }
+
+    return parts;
+}
+
+void racs_memtable_parts_append(racs_memtable_parts *parts,
+                                const racs_uint64 *key,
+                                const racs_uint8 *block,
+                                racs_uint16 block_size,
+                                racs_uint32 checksum,
+                                racs_uint64 lsn) {
+    if (!parts || !parts->dict) {
+        return;
+    }
+
+    racs_uint64 *part_key = malloc(2 * sizeof(racs_uint64));
+    if (!part_key) {
+        return;
+    }
+
+    part_key[0] = key[0]; // stream-id
+    part_key[1] = key[2]; // version
+
+    racs_memtable *mt = racs_dict_get(parts->dict, part_key);
+    if (!mt) {
+        mt = racs_memtable_create(parts->capacity);
+        racs_dict_put(parts->dict, part_key, mt);
+    } else {
+        free(part_key);
+    }
+
+    racs_memtable_append(mt, key, block, block_size, checksum, lsn);
+}
+
+void racs_memtable_parts_destroy(racs_memtable_parts *parts) {
+    if (!parts) {
+        return;
+    }
+
+    if (parts->dict) {
+        racs_dict_destroy(parts->dict);
+    }
+}
+
+void racs_memtable_split_and_flush(racs_memtable *mt) {
+    if (!mt || mt->num_entries == 0) {
+        return;
+    }
+
+    racs_memtable_parts *parts = racs_memtable_parts_create(mt->capacity);
+    if (!parts) {
+        return;
+    }
+
+    if (!parts->dict) {
+        free(parts);
+        return;
+    }
+
+    for (int i = 0; i < mt->num_entries; i++) {
+        racs_memtable_entry *entry = &mt->entries[i];
+
+        //TODO: filter out old versions
+        racs_memtable_parts_append(parts, entry->key, entry->block,
+                                   entry->block_size, entry->checksum,
+                                   entry->lsn);
+    }
+
+    racs_dict *dict = parts->dict;
+    for (int i = 0; i < dict->size; i++) {
+        racs_dict_bucket *bucket = &dict->buckets[i];
+        racs_dict_entry *curr = bucket->head;
+
+        while (curr) {
+            racs_dict_entry *next = curr->next;
+
+            racs_memtable *p_mt = (racs_memtable *)curr->value;
+            if (!p_mt || p_mt->num_entries == 0) {
+                continue;
+            }
+
+            char path[PATH_MAX];
+
+            racs_uint64 *key = p_mt->entries[0].key;
+            racs_path_from_time(path, key[0], (racs_time)key[1]);
+
+            racs_fs_mkdir(path);
+            racs_memtable_flush(p_mt, path);
+
+            curr = next;
+        }
+    }
+
+    //TODO: update WAL manifest
+    racs_memtable_parts_destroy(parts);
+}
+
+racs_uint64 racs_memtable_parts_hash_callback(const void *key) {
+    racs_uint64 hash[2];
+    racs_murmurhash3_x64_128(key, 2 * sizeof(racs_uint64), 0, hash);
+    return hash[0];
+}
+
+int racs_memtable_parts_eq_callback(const void *a, const void *b) {
+    racs_uint64 *x = (racs_uint64 *) a;
+    racs_uint64 *y = (racs_uint64 *) b;
+    return x[0] == y[0] && x[1] == y[1];
+}
+
+void racs_memtable_parts_destroy_callback(void *key, void *value) {
+    free(key);
+    racs_memtable_destroy(value);
+}
+
 racs_uint8 *racs_memtable_to_sstable(racs_memtable *mt, size_t *sst_size) {
     size_t data_size = 0;
     for (int i = 0; i < mt->num_entries; i++) {
@@ -172,72 +295,4 @@ racs_uint8 *racs_memtable_to_sstable(racs_memtable *mt, size_t *sst_size) {
     *sst_size = total_size;
 
     return sst;
-}
-
-racs_memtable_partitions *racs_memtable_partitions_create(int capacity) {
-    racs_memtable_partitions *partitions = malloc(sizeof(racs_memtable_partitions));
-    if (!partitions) {
-        return NULL;
-    }
-
-    racs_dict_callbacks callbacks = {
-        .hash = racs_memtable_partitions_hash_callback,
-        .eq = racs_memtable_partitions_eq_callback,
-        .destroy = racs_memtable_partitions_destroy_callback
-    };
-
-    partitions->capacity = capacity;
-    partitions->dict = racs_dict_create(capacity, callbacks);
-    if (!partitions->dict) {
-        free(partitions);
-        return NULL;
-    }
-
-    return partitions;
-}
-
-void racs_memtable_partitions_append(racs_memtable_partitions *partitions,
-                                     const racs_uint64 *key,
-                                     const racs_uint8 *block,
-                                     racs_uint16 block_size,
-                                     racs_uint32 checksum,
-                                     racs_uint64 lsn) {
-    if (!partitions || !partitions->dict) {
-        return;
-    }
-
-    racs_uint64 *partition_key = malloc(2 * sizeof(racs_uint64));
-    if (!partition_key) {
-        return;
-    }
-
-    partition_key[0] = key[0]; // stream-id
-    partition_key[1] = key[2]; // version
-
-    racs_memtable *mt = racs_dict_get(partitions->dict, partition_key);
-    if (!mt) {
-        mt = racs_memtable_create(partitions->capacity);
-        racs_dict_put(partitions->dict, partition_key, mt);
-    } else {
-        free(partition_key);
-    }
-
-    racs_memtable_append(mt, key, block, block_size, checksum, lsn);
-}
-
-racs_uint64 racs_memtable_partitions_hash_callback(const void *key) {
-    racs_uint64 hash[2];
-    racs_murmurhash3_x64_128(key, 2 * sizeof(racs_uint64), 0, hash);
-    return hash[0];
-}
-
-int racs_memtable_partitions_eq_callback(const void *a, const void *b) {
-    racs_uint64 *x = (racs_uint64 *) a;
-    racs_uint64 *y = (racs_uint64 *) b;
-    return x[0] == y[0] && x[1] == y[1];
-}
-
-void racs_memtable_partitions_destroy_callback(void *key, void *value) {
-    free(key);
-    racs_memtable_destroy(value);
 }

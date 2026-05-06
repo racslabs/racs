@@ -24,6 +24,7 @@ racs_sstable *racs_sstable_open(const char *path) {
 
     size_t size = st.st_size;
     racs_uint8 *data = mmap(NULL, size, PROT_READ, MAP_PRIVATE, fd, 0);
+    madvise(data, size, MADV_WILLNEED | MADV_SEQUENTIAL);
     close(fd);
 
     if (data == MAP_FAILED) {
@@ -54,7 +55,9 @@ racs_sstable *racs_sstable_open(const char *path) {
 }
 
 void racs_sstable_destroy(racs_sstable *sst) {
-    if (!sst) return;
+    if (!sst) {
+        return;
+    }
 
     if (sst->data) {
         munmap(sst->data, sst->size);

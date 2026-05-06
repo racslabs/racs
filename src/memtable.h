@@ -15,9 +15,10 @@ extern "C" {
 
 #include "dict.h"
 #include "types.h"
+#include "path.h"
+#include "fs.h"
 #include "sstable.h"
 #include <stdio.h>
-#include <limits.h>
 #include <pthread.h>
 
 typedef struct {
@@ -37,6 +38,12 @@ typedef struct racs_memtable {
     struct racs_memtable *prev;
 } racs_memtable;
 
+typedef struct {
+    int capacity;
+    racs_dict *dict;
+} racs_memtable_parts;
+
+
 racs_memtable *racs_memtable_create(int capacity);
 
 void racs_memtable_append(racs_memtable *mt,
@@ -49,6 +56,19 @@ void racs_memtable_append(racs_memtable *mt,
 void racs_memtable_flush(racs_memtable *mt, const char *path);
 
 void racs_memtable_destroy(racs_memtable *mt);
+
+racs_memtable_parts *racs_memtable_parts_create(int capacity);
+
+void racs_memtable_parts_append(racs_memtable_parts *parts,
+                                     const racs_uint64 *key,
+                                     const racs_uint8 *block,
+                                     racs_uint16 block_size,
+                                     racs_uint32 checksum,
+                                     racs_uint64 lsn);
+
+void racs_memtable_parts_destroy(racs_memtable_parts *parts);
+
+void racs_memtable_split_and_flush(racs_memtable *mt);
 
 #ifdef __cplusplus
 }

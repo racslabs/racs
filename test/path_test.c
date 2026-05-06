@@ -57,12 +57,3 @@ void test_path_resolve(void) {
     racs_path_resolve(path, "/foo/bar/baz", "/foo/tmp");
     TEST_ASSERT_EQUAL_STRING("/foo", path);
 }
-
-void test_path_mkdirs(void) {
-    racs_path_mkdir("/tmp/foo/bar");
-
-    struct stat st = {0};
-    TEST_ASSERT_EQUAL_INT(0, stat("/tmp/foo", &st));
-
-    system("rm -rf /tmp/foo");
-}

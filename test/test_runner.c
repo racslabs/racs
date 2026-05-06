@@ -2,6 +2,7 @@
 #include "dict_test.h"
 #include "cache_test.h"
 #include "config_test.h"
+#include "memtable_test.h"
 #include "sstable_test.h"
 #include "time_test.h"
 #include "path_test.h"
@@ -28,6 +29,6 @@ int main(void) {
     RUN_TEST(test_path_from_time);
     RUN_TEST(test_path_from_range);
     RUN_TEST(test_path_resolve);
-    RUN_TEST(test_path_mkdirs);
+    RUN_TEST(test_memtable_parts_append);
     return UNITY_END();
 }
