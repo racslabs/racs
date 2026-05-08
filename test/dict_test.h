@@ -4,7 +4,7 @@
 
 #include "unity.h"
 #include "dict.h"
-#include "murmurhash3.h"
+#include "mmh3.h"
 
 void test_dict_get(void);
 

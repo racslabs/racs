@@ -19,10 +19,10 @@ static int racs_dict_insert_entry(racs_dict *dict, racs_dict_bucket *bucket, voi
 
 static void racs_dict_remove_entry(racs_dict *dict, racs_dict_bucket *bucket, const void *key);
 
-static int racs_dict_validate_callbacks(const racs_dict *dict);
+static int racs_dict_validate_cb(const racs_dict *dict);
 
 
-racs_dict *racs_dict_create(const size_t capacity, racs_dict_callbacks callbacks) {
+racs_dict *racs_dict_create(const size_t capacity, racs_dict_cb cb) {
     if (capacity == 0) {
         return NULL;
     }
@@ -34,7 +34,7 @@ racs_dict *racs_dict_create(const size_t capacity, racs_dict_callbacks callbacks
 
     dict->size = 0;
     dict->capacity = capacity;
-    dict->callbacks = callbacks;
+    dict->cb = cb;
 
     dict->buckets = calloc(capacity, sizeof(racs_dict_bucket));
     if (!dict->buckets) {
@@ -50,7 +50,7 @@ size_t racs_dict_index(racs_dict *dict, const void *key) {
         return 0;
     }
 
-    racs_dict_hash_callback hash = dict->callbacks.hash;
+    racs_dict_hash_cb hash = dict->cb.hash;
     return hash(key) % dict->capacity;
 }
 
@@ -64,7 +64,7 @@ racs_dict_bucket *racs_dict_get_bucket(racs_dict *dict, const void *key) {
 }
 
 void *racs_dict_get(racs_dict *dict, const void *key) {
-    if (!dict || !racs_dict_validate_callbacks(dict)) {
+    if (!dict || !racs_dict_validate_cb(dict)) {
         return NULL;
     }
 
@@ -73,7 +73,7 @@ void *racs_dict_get(racs_dict *dict, const void *key) {
         return NULL;
     }
 
-    racs_dict_eq_callback eq = dict->callbacks.eq;
+    racs_dict_eq_cb eq = dict->cb.eq;
     for (racs_dict_entry *curr = bucket->head; curr; curr = curr->next) {
         if (eq(curr->key, key)) {
             return curr->value;
@@ -85,7 +85,7 @@ void *racs_dict_get(racs_dict *dict, const void *key) {
 
 void racs_dict_put(racs_dict *dict, const void *key, void *value) {
     if (!dict || dict->capacity == 0
-              || !racs_dict_validate_callbacks(dict)) {
+              || !racs_dict_validate_cb(dict)) {
         return;
     }
 
@@ -106,7 +106,7 @@ void racs_dict_put(racs_dict *dict, const void *key, void *value) {
 
 void racs_dict_delete(racs_dict *dict, const void *key) {
     if (!dict || dict->capacity == 0
-              || !racs_dict_validate_callbacks(dict)) {
+              || !racs_dict_validate_cb(dict)) {
         return;
     }
 
@@ -123,7 +123,7 @@ void racs_dict_destroy(racs_dict *dict) {
         return;
     }
 
-    racs_dict_destroy_callback destroy = dict->callbacks.destroy;
+    racs_dict_destroy_cb destroy = dict->cb.destroy;
 
     if (dict->buckets) {
         for (size_t i = 0; i < dict->capacity; i++) {
@@ -151,8 +151,8 @@ void racs_dict_remove_entry(racs_dict *dict, racs_dict_bucket *bucket, const voi
     racs_dict_entry *prev = NULL;
     racs_dict_entry *curr = bucket->head;
 
-    racs_dict_eq_callback eq = dict->callbacks.eq;
-    racs_dict_destroy_callback destroy = dict->callbacks.destroy;
+    racs_dict_eq_cb eq = dict->cb.eq;
+    racs_dict_destroy_cb destroy = dict->cb.destroy;
 
     while (curr) {
         if (eq(curr->key, key)) {
@@ -216,7 +216,7 @@ int racs_dict_resize(racs_dict *dict, size_t new_capacity) {
         while (curr) {
             racs_dict_entry *next = curr->next;
 
-            racs_dict_hash_callback hash = dict->callbacks.hash;
+            racs_dict_hash_cb hash = dict->cb.hash;
             size_t index = hash(curr->key) % new_capacity;
 
             // insert at head of new bucket
@@ -236,8 +236,8 @@ int racs_dict_resize(racs_dict *dict, size_t new_capacity) {
     return 1;
 }
 
-int racs_dict_validate_callbacks(const racs_dict *dict) {
-    return dict->callbacks.hash &&
-           dict->callbacks.eq &&
-           dict->callbacks.destroy;
+int racs_dict_validate_cb(const racs_dict *dict) {
+    return dict->cb.hash &&
+           dict->cb.eq &&
+           dict->cb.destroy;
 }

@@ -1,24 +1,24 @@
 #include "dict_test.h"
 
 
-static racs_uint64 hash_callback(const void *key);
+static racs_uint64 hash_cb(const void *key);
 
 static racs_uint64 bad_hash_callback(const void *key);
 
-static int eq_callback(const void *a, const void *b);
+static int eq_cb(const void *a, const void *b);
 
-static void destroy_callback(void *key, void *value);
+static void destroy_cb(void *key, void *value);
 
-static const racs_dict_callbacks DICT_TEST_CALLBACKS = {
-    .hash = hash_callback,
-    .eq = eq_callback,
-    .destroy = destroy_callback,
+static const racs_dict_cb DICT_TEST_CALLBACKS = {
+    .hash = hash_cb,
+    .eq = eq_cb,
+    .destroy = destroy_cb,
 };
 
 
-racs_uint64 hash_callback(const void *key) {
+racs_uint64 hash_cb(const void *key) {
     racs_uint64 hash[2];
-    racs_murmurhash3_x64_128(key, strlen((char *)key), 0, hash);
+    racs_mmh3_x64_128(key, strlen((char *)key), 0, hash);
     return hash[0];
 }
 
@@ -27,11 +27,11 @@ racs_uint64 bad_hash_callback(const void *key) {
     return 1;
 }
 
-int eq_callback(const void *a, const void *b) {
+int eq_cb(const void *a, const void *b) {
     return strcmp((char *)a, (char *)b) == 0;
 }
 
-void destroy_callback(void *key, void *value) {
+void destroy_cb(void *key, void *value) {
     free(key);
     free(value);
 }
@@ -61,7 +61,7 @@ void test_dict_overwrite(void) {
 }
 
 void test_dict_collision(void) {
-    racs_dict_callbacks bad_callbacks = DICT_TEST_CALLBACKS;
+    racs_dict_cb bad_callbacks = DICT_TEST_CALLBACKS;
     bad_callbacks.hash = bad_hash_callback;
 
     racs_dict *dict = racs_dict_create(8, bad_callbacks);

@@ -6,8 +6,8 @@
 // Contact: sales@racslabs.com
 //
 
-#ifndef RACS_MURMURHASH3_H
-#define RACS_MURMURHASH3_H
+#ifndef RACS_MMH3_H
+#define RACS_MMH3_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,10 +35,10 @@ static inline racs_uint64 racs_fmix64(racs_uint64 k) {
     return k;
 }
 
-void racs_murmurhash3_x64_128(const void *key, int len, racs_uint32 seed, void *out);
+void racs_mmh3_x64_128(const void *key, int len, racs_uint32 seed, void *out);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //RACS_MURMURHASH3_H
+#endif //RACS_MMH3_H

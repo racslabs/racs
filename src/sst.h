@@ -6,8 +6,8 @@
 // Contact: sales@racslabs.com
 //
 
-#ifndef RACS_SSTABLE_H
-#define RACS_SSTABLE_H
+#ifndef RACS_SST_H
+#define RACS_SST_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,24 +25,24 @@ typedef struct __attribute__((packed)) {
     racs_uint32 offset;
     racs_uint32 block_size;
     racs_uint32 checksum;
-} racs_sstable_index_entry;
+} racs_sst_index_entry;
 
 typedef struct {
     size_t      size;
     racs_uint8 *data;      // mmap pointer
     racs_uint8 *index_ptr;
     racs_uint16 num_entries;
-} racs_sstable;
+} racs_sst;
 
 
-racs_sstable *racs_sstable_open(const char *path);
+racs_sst *racs_sst_open(const char *path);
 
-void racs_sstable_destroy(racs_sstable *sst);
+void racs_sst_destroy(racs_sst *sst);
 
-racs_sstable_index_entry *racs_sstable_get_index(racs_sstable *sst);
+racs_sst_index_entry *racs_sst_get_index(racs_sst *sst);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //RACS_SSTABLE_H
+#endif //RACS_SST_H

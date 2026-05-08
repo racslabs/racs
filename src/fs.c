@@ -16,7 +16,7 @@ void racs_fs_mkdir(const char *path) {
     }
 }
 
-void racs_fs_walk(const char *path, racs_fs_walk_callback callback, void *data) {
+void racs_fs_walk(const char *path, racs_fs_walk_cb cb, void *data) {
     DIR *dir = opendir(path);
     if (!dir) {
         return;
@@ -32,9 +32,9 @@ void racs_fs_walk(const char *path, racs_fs_walk_callback callback, void *data) 
         snprintf(full_path, sizeof(full_path), "%s/%s", path, entry->d_name);
 
         if (entry->d_type == DT_DIR) {
-            racs_fs_walk(full_path, callback, data);
+            racs_fs_walk(full_path, cb, data);
         } else if (entry->d_type == DT_REG) {
-            callback(full_path, data);
+            cb(full_path, data);
         }
     }
 

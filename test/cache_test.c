@@ -1,32 +1,32 @@
 #include "cache_test.h"
 
 
-static racs_uint64 hash_callback(const void *key);
+static racs_uint64 hash_cb(const void *key);
 
-static int eq_callback(const void *a, const void *b);
+static int eq_cb(const void *a, const void *b);
 
-static void destroy_callback(void *key, void *value);
+static void destroy_cb(void *key, void *value);
 
-static const racs_cache_callbacks CACHE_TEST_CALLBACKS = {
-    .hash = hash_callback,
-    .eq = eq_callback,
-    .destroy = destroy_callback,
+static const racs_cache_cb CACHE_TEST_CB = {
+    .hash = hash_cb,
+    .eq = eq_cb,
+    .destroy = destroy_cb,
 };
 
 static int destroy_call_count = 0;
 
 
-racs_uint64 hash_callback(const void *key) {
+racs_uint64 hash_cb(const void *key) {
     racs_uint64 hash[2];
-    racs_murmurhash3_x64_128(key, strlen((char *)key), 0, hash);
+    racs_mmh3_x64_128(key, strlen((char *)key), 0, hash);
     return hash[0];
 }
 
-int eq_callback(const void *a, const void *b) {
+int eq_cb(const void *a, const void *b) {
     return strcmp((char *)a, (char *)b) == 0;
 }
 
-void destroy_callback(void *key, void *value) {
+void destroy_cb(void *key, void *value) {
     destroy_call_count++;
     free(key);
     free(value);
@@ -34,7 +34,7 @@ void destroy_callback(void *key, void *value) {
 
 
 void test_cache_get(void) {
-    racs_cache *cache = racs_cache_create(2, CACHE_TEST_CALLBACKS);
+    racs_cache *cache = racs_cache_create(2, CACHE_TEST_CB);
     racs_cache_put(cache, strdup("a"), strdup("1"));
     racs_cache_put(cache, strdup("b"), strdup("2"));
 
@@ -47,7 +47,7 @@ void test_cache_get(void) {
 void test_cache_evict(void) {
     destroy_call_count = 0;
 
-    racs_cache *cache = racs_cache_create(2, CACHE_TEST_CALLBACKS);
+    racs_cache *cache = racs_cache_create(2, CACHE_TEST_CB);
     racs_cache_put(cache, strdup("a"), strdup("1"));
     racs_cache_put(cache, strdup("b"), strdup("2"));
     racs_cache_put(cache, strdup("c"), strdup("3"));

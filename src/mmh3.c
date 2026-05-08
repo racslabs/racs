@@ -6,10 +6,10 @@
 // Contact: sales@racslabs.com
 //
 
-#include "murmurhash3.h"
+#include "mmh3.h"
 
 
-void racs_murmurhash3_x64_128(const void *key, const int len, const racs_uint32 seed, void *out) {
+void racs_mmh3_x64_128(const void *key, const int len, const racs_uint32 seed, void *out) {
       const racs_uint8 * data = (const racs_uint8 *)key;
     const int n = len / 16;
 

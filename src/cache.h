@@ -14,18 +14,18 @@ extern "C" {
 #endif
 
 #include "dict.h"
-#include "murmurhash3.h"
+#include "mmh3.h"
 #include <pthread.h>
 
-typedef racs_uint64 (*racs_cache_hash_callback)   (const void *key);
-typedef int         (*racs_cache_eq_callback)     (const void *a, const void *b);
-typedef void        (*racs_cache_destroy_callback)(void *key, void *value);
+typedef racs_uint64 (*racs_cache_hash_cb)   (const void *key);
+typedef int         (*racs_cache_eq_cb)     (const void *a, const void *b);
+typedef void        (*racs_cache_destroy_cb)(void *key, void *value);
 
 typedef struct {
-    racs_cache_hash_callback    hash;
-    racs_cache_eq_callback      eq;
-    racs_cache_destroy_callback destroy;
-} racs_cache_callbacks;
+    racs_cache_hash_cb    hash;
+    racs_cache_eq_cb      eq;
+    racs_cache_destroy_cb destroy;
+} racs_cache_cb;
 
 typedef struct {
     void *key;
@@ -43,13 +43,13 @@ typedef struct {
     size_t              capacity;
     racs_cache_node     *head;
     racs_cache_node     *tail;
-    racs_cache_callbacks callbacks;
+    racs_cache_cb        cb;
     racs_dict           *dict;
-    pthread_rwlock_t     rwlock;
+    pthread_mutex_t      mutex;
 } racs_cache;
 
 
-racs_cache *racs_cache_create(size_t capacity, racs_cache_callbacks callbacks);
+racs_cache *racs_cache_create(size_t capacity, racs_cache_cb cb);
 
 void *racs_cache_get(racs_cache *cache, const void *key);
 

@@ -12,11 +12,11 @@ extern "C" {
 #include <string.h>
 #include <stdio.h>
 
-typedef void (*racs_fs_walk_callback)(const char *path, void *data);
+typedef void (*racs_fs_walk_cb)(const char *path, void *data);
 
 void racs_fs_mkdir(const char *path);
 
-void racs_fs_walk(const char *path, racs_fs_walk_callback callback, void *data);
+void racs_fs_walk(const char *path, racs_fs_walk_cb cb, void *data);
 
 #ifdef __cplusplus
 }

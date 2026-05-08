@@ -19,15 +19,15 @@ extern "C" {
 #include "types.h"
 
 
-typedef racs_uint64 (*racs_dict_hash_callback)   (const void *key);
-typedef int         (*racs_dict_eq_callback)     (const void *a, const void *b);
-typedef void        (*racs_dict_destroy_callback)(void *key, void *value);
+typedef racs_uint64 (*racs_dict_hash_cb)   (const void *key);
+typedef int         (*racs_dict_eq_cb)     (const void *a, const void *b);
+typedef void        (*racs_dict_destroy_cb)(void *key, void *value);
 
 typedef struct {
-    racs_dict_hash_callback    hash;
-    racs_dict_eq_callback      eq;
-    racs_dict_destroy_callback destroy;
-} racs_dict_callbacks;
+    racs_dict_hash_cb    hash;
+    racs_dict_eq_cb      eq;
+    racs_dict_destroy_cb destroy;
+} racs_dict_cb;
 
 typedef struct racs_dict_entry {
     void *key;
@@ -43,12 +43,12 @@ typedef struct {
 typedef struct {
     size_t              size;
     size_t              capacity;
-    racs_dict_callbacks callbacks;
+    racs_dict_cb        cb;
     racs_dict_bucket   *buckets;
 } racs_dict;
 
 
-racs_dict *racs_dict_create(size_t capacity, racs_dict_callbacks callbacks);
+racs_dict *racs_dict_create(size_t capacity, racs_dict_cb cb);
 
 void *racs_dict_get(racs_dict *dict, const void *key);
 

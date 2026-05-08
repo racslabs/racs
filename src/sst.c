@@ -6,11 +6,11 @@
 // Contact: sales@racslabs.com
 //
 
-#include "sstable.h"
+#include "sst.h"
 
 
 // Table layout: [Audio blocks ...][Index entries ...][Entry count]
-racs_sstable *racs_sstable_open(const char *path) {
+racs_sst *racs_sst_open(const char *path) {
     int fd = open(path, O_RDONLY);
     if (fd == -1) {
         return NULL;
@@ -31,7 +31,7 @@ racs_sstable *racs_sstable_open(const char *path) {
         return NULL;
     }
 
-    racs_sstable *sst = malloc(sizeof(racs_sstable));
+    racs_sst *sst = malloc(sizeof(racs_sst));
     if (!sst) {
         munmap(data, size);
         return NULL;
@@ -47,14 +47,14 @@ racs_sstable *racs_sstable_open(const char *path) {
     if (sst->num_entries == 0) {
         sst->index_ptr = NULL;
     } else {
-        size_t index_size = sst->num_entries * sizeof(racs_sstable_index_entry);
+        size_t index_size = sst->num_entries * sizeof(racs_sst_index_entry);
         sst->index_ptr = sst->data + (size - sizeof(racs_uint16) - index_size);
     }
 
     return sst;
 }
 
-void racs_sstable_destroy(racs_sstable *sst) {
+void racs_sst_destroy(racs_sst *sst) {
     if (!sst) {
         return;
     }
@@ -66,6 +66,6 @@ void racs_sstable_destroy(racs_sstable *sst) {
     free(sst);
 }
 
-racs_sstable_index_entry *racs_sstable_get_index(racs_sstable *sst) {
-    return (racs_sstable_index_entry *)sst->index_ptr;
+racs_sst_index_entry *racs_sst_get_index(racs_sst *sst) {
+    return (racs_sst_index_entry *)sst->index_ptr;
 }
