@@ -3,13 +3,13 @@
 
 static racs_uint64 hash_cb(const void *key);
 
-static racs_uint64 bad_hash_callback(const void *key);
+static racs_uint64 bad_hash_cb(const void *key);
 
 static int eq_cb(const void *a, const void *b);
 
 static void destroy_cb(void *key, void *value);
 
-static const racs_dict_cb DICT_TEST_CALLBACKS = {
+static const racs_dict_cb DICT_TEST_CB = {
     .hash = hash_cb,
     .eq = eq_cb,
     .destroy = destroy_cb,
@@ -22,7 +22,7 @@ racs_uint64 hash_cb(const void *key) {
     return hash[0];
 }
 
-racs_uint64 bad_hash_callback(const void *key) {
+racs_uint64 bad_hash_cb(const void *key) {
     (void)key;
     return 1;
 }
@@ -38,7 +38,7 @@ void destroy_cb(void *key, void *value) {
 
 
 void test_dict_get(void) {
-    racs_dict *dict = racs_dict_create(8, DICT_TEST_CALLBACKS);
+    racs_dict *dict = racs_dict_create(8, DICT_TEST_CB);
     racs_dict_put(dict, strdup("a"), strdup("1"));
     racs_dict_put(dict, strdup("b"), strdup("2"));
     racs_dict_put(dict, strdup("c"), strdup("3"));
@@ -51,7 +51,7 @@ void test_dict_get(void) {
 }
 
 void test_dict_overwrite(void) {
-    racs_dict *dict = racs_dict_create(8, DICT_TEST_CALLBACKS);
+    racs_dict *dict = racs_dict_create(8, DICT_TEST_CB);
     racs_dict_put(dict, strdup("a"), strdup("1"));
     racs_dict_put(dict, strdup("a"), strdup("2"));
 
@@ -61,10 +61,10 @@ void test_dict_overwrite(void) {
 }
 
 void test_dict_collision(void) {
-    racs_dict_cb bad_callbacks = DICT_TEST_CALLBACKS;
-    bad_callbacks.hash = bad_hash_callback;
+    racs_dict_cb cb = DICT_TEST_CB;
+    cb.hash = bad_hash_cb;
 
-    racs_dict *dict = racs_dict_create(8, bad_callbacks);
+    racs_dict *dict = racs_dict_create(8, cb);
     racs_dict_put(dict, strdup("a"), strdup("1"));
     racs_dict_put(dict, strdup("b"), strdup("2"));
     racs_dict_put(dict, strdup("c"), strdup("3"));

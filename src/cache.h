@@ -39,8 +39,8 @@ typedef struct racs_cache_node {
 } racs_cache_node;
 
 typedef struct {
-    size_t              size;
-    size_t              capacity;
+    size_t               size;
+    size_t               capacity;
     racs_cache_node     *head;
     racs_cache_node     *tail;
     racs_cache_cb        cb;

@@ -30,5 +30,6 @@ int main(void) {
     RUN_TEST(test_path_from_range);
     RUN_TEST(test_path_resolve);
     RUN_TEST(test_mt_parts_put);
+    RUN_TEST(test_mmt_put_sync);
     return UNITY_END();
 }

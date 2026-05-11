@@ -19,7 +19,233 @@ static int racs_mt_parts_eq_cb(const void *a, const void *b);
 static void racs_mt_parts_destroy_cb(void *key, void *value);
 
 
-racs_mt *racs_mt_create(int capacity) {
+void racs_mmt_iter_init(racs_mmt_iter *iter, racs_mmt *mmt) {
+    pthread_mutex_lock(&mmt->mutex);
+    iter->mmt = mmt;
+    iter->curr = mmt->head;
+    pthread_mutex_unlock(&mmt->mutex);
+}
+
+racs_mt* racs_mmt_iter_next(racs_mmt_iter *iter) {
+    pthread_mutex_lock(&iter->mmt->mutex);
+
+    racs_mt_node *prev = iter->curr;
+    racs_mt_node *next = NULL;
+
+    if (iter->curr == NULL) {
+        next = iter->mmt->head;
+    } else {
+        next = iter->curr->next;
+    }
+
+    if (next) {
+        next->ref_count++;
+    }
+
+    if (prev) {
+        prev->ref_count--;
+        if (prev->ref_count == 0 &&
+            prev->state == RACS_MT_STATE_FLUSHED) {
+            racs_mt_node_destroy(prev);
+        }
+    }
+
+    iter->curr = next;
+    pthread_mutex_unlock(&iter->mmt->mutex);
+
+    return next ? next->mt : NULL;
+}
+
+void racs_mmt_flush_start(racs_mmt *mmt) {
+    pthread_t thread;
+    pthread_create(&thread, NULL, racs_mmt_flush_worker, mmt);
+    pthread_detach(thread);
+}
+
+void *racs_mmt_flush_worker(void* arg) {
+    racs_mmt *mmt = (racs_mmt *)arg;
+
+    while (1) {
+        pthread_mutex_lock(&mmt->mutex);
+
+        while (mmt->tail == NULL || mmt->tail->state != RACS_MT_STATE_FLUSHING) {
+            pthread_cond_wait(&mmt->cond, &mmt->mutex);
+        }
+
+        racs_mt_node *node = racs_mmt_pop_tail(mmt);
+        pthread_mutex_unlock(&mmt->mutex);
+
+        if (node && node->mt) {
+            racs_mt_split_and_flush(node->mt);
+            node->state = RACS_MT_STATE_FLUSHED;
+            //TODO: update WAL manifest
+        }
+
+        pthread_mutex_lock(&mmt->mutex);
+
+        if (node) {
+            node->state = RACS_MT_STATE_FLUSHED;
+            node->ref_count--;
+
+            if (node->ref_count == 0) {
+                racs_mt_node_destroy(node);
+            }
+        }
+
+        pthread_cond_signal(&mmt->cond);
+        pthread_mutex_unlock(&mmt->mutex);
+    }
+}
+
+racs_mmt *racs_mmt_create(racs_uint32 mmt_capacity, racs_uint16 mt_capacity) {
+    racs_mmt *mmt = malloc(sizeof(racs_mmt));
+    if (!mmt) {
+        return NULL;
+    }
+
+    pthread_mutex_init(&mmt->mutex, NULL);
+    pthread_cond_init(&mmt->cond, NULL);
+
+    mmt->mmt_capacity = mmt_capacity;
+    mmt->mt_capacity = mt_capacity;
+    mmt->num_tables = 0;
+
+    mmt->head = NULL;
+    mmt->tail = NULL;
+
+    return mmt;
+}
+
+int racs_mmt_put(racs_mmt *mmt,
+                 const racs_uint64 *key,
+                 const racs_uint8 *block,
+                 racs_uint16 block_size,
+                 racs_uint32 checksum,
+                 racs_uint64 lsn) {
+    if (!mmt) {
+        return -1;
+    }
+
+    pthread_mutex_lock(&mmt->mutex);
+    // Ensure that we can append a new node to the head.
+    // A new node is appended when head is null or current head is full.
+    if (mmt->head == NULL || mmt->head->mt->num_entries >= mmt->mt_capacity) {
+        // Check if mmt limit is reached
+        if (mmt->mmt_capacity != 0 && mmt->num_tables >= mmt->mmt_capacity) {
+            pthread_mutex_unlock(&mmt->mutex);
+            return -1;
+        }
+
+        // Create new node and append to the head
+        racs_mt_node *node = racs_mt_node_create(mmt->mt_capacity);
+        if (!node) {
+            pthread_mutex_unlock(&mmt->mutex);
+            return -1;
+        }
+
+        racs_mmt_push_head(mmt, node);
+
+        // Flush tail when 80% of the mmt capacity is reached
+        if (mmt->num_tables > (mmt->mmt_capacity * 0.8)) {
+            if (mmt->tail && mmt->tail->state != RACS_MT_STATE_FLUSHING) {
+                mmt->tail->state = RACS_MT_STATE_FLUSHING;
+                pthread_cond_signal(&mmt->cond);
+            }
+        }
+    }
+
+    racs_mt_put(mmt->head->mt, key, block, block_size, checksum, lsn);
+    pthread_mutex_unlock(&mmt->mutex);
+
+    return 0;
+}
+
+void racs_mmt_push_head(racs_mmt *mmt, racs_mt_node *node) {
+    if (!mmt || !node) {
+        return;
+    }
+
+    node->prev = NULL;
+    node->next = mmt->head;
+
+    if (mmt->head) {
+        mmt->head->state = RACS_MT_STATE_IMMUTABLE;
+        mmt->head->prev = node;
+    } else {
+        mmt->tail = node;
+    }
+
+    mmt->head = node;
+    ++mmt->num_tables;
+    printf("%d\n", mmt->num_tables);
+}
+
+racs_mt_node* racs_mmt_pop_tail(racs_mmt *mmt) {
+    if (!mmt || !mmt->tail
+             || mmt->tail->state != RACS_MT_STATE_FLUSHING) {
+        return NULL;
+    }
+
+    racs_mt_node *node = mmt->tail;
+    mmt->tail = node->prev;
+
+    if (mmt->tail) {
+        mmt->tail->next = NULL;
+    } else {
+        mmt->head = NULL;
+    }
+
+    node->prev = NULL;
+    node->next = NULL;
+    mmt->num_tables--;
+
+    return node;
+}
+
+void racs_mmt_destroy(racs_mmt *mmt) {
+    pthread_mutex_lock(&mmt->mutex);
+
+    for (racs_mt_node *curr = mmt->head, *next; curr; curr = next) {
+        next = curr->next;
+        racs_mt_node_destroy(curr);
+    }
+
+    pthread_mutex_unlock(&mmt->mutex);
+    pthread_mutex_destroy(&mmt->mutex);
+}
+
+racs_mt_node *racs_mt_node_create(racs_uint16 capacity) {
+    racs_mt_node *node = malloc(sizeof(racs_mt_node));
+    if (!node) {
+        return NULL;
+    }
+
+    node->mt = racs_mt_create(capacity);
+    if (!node->mt) {
+        free(node);
+        return NULL;
+    }
+
+    node->next = NULL;
+    node->prev = NULL;
+    node->state = RACS_MT_STATE_ACTIVE;
+
+    return node;
+}
+
+void racs_mt_node_destroy(racs_mt_node *node) {
+    if (!node) {
+        return;
+    }
+
+    if (node->mt) {
+        racs_mt_destroy(node->mt);
+    }
+
+    free(node);
+}
+
+racs_mt *racs_mt_create(racs_uint16 capacity) {
     racs_mt *mt = malloc(sizeof(racs_mt));
     if (!mt) {
         return NULL;
@@ -126,7 +352,7 @@ void racs_mt_destroy(racs_mt *mt) {
     free(mt);
 }
 
-racs_mt_parts *racs_mt_parts_create(int capacity) {
+racs_mt_parts *racs_mt_parts_create(racs_uint16 capacity) {
     racs_mt_parts *parts = malloc(sizeof(racs_mt_parts));
     if (!parts) {
         return NULL;
@@ -236,7 +462,6 @@ void racs_mt_split_and_flush(racs_mt *mt) {
         }
     }
 
-    //TODO: update WAL manifest
     racs_mt_parts_destroy(parts);
 }
 
