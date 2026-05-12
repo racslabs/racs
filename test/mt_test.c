@@ -43,7 +43,7 @@ void test_mt_parts_put(void) {
     racs_mt_parts_destroy(parts);
 }
 
-void test_mmt_put_sync(void) {
+void test_mmt_put(void) {
     racs_uint64 key1[3] = {1, 1777838829, 0};
     racs_uint64 key2[3] = {2, 1777838831, 0};
     racs_uint64 key3[3] = {1, 1777838830, 0};

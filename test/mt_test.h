@@ -7,6 +7,6 @@
 
 void test_mt_parts_put(void);
 
-void test_mmt_put_sync(void);
+void test_mmt_put(void);
 
 #endif //RACS_MT_TEST_H

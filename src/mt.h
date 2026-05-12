@@ -61,6 +61,7 @@ typedef struct racs_mt_node {
 // Doubly-linked-list of memtables.
 // Active memtable is the head. Flush happens at the tail.
 typedef struct {
+    int             is_running;
     racs_uint16     mt_capacity;
     racs_uint32     mmt_capacity;
     racs_uint32     num_tables;

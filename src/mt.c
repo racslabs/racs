@@ -68,6 +68,11 @@ void *racs_mmt_flush_worker(void* arg) {
     while (1) {
         pthread_mutex_lock(&mmt->mutex);
 
+        if (!mmt->is_running) {
+            pthread_mutex_unlock(&mmt->mutex);
+            break;
+        }
+
         while (mmt->tail == NULL || mmt->tail->state != RACS_MT_STATE_FLUSHING) {
             pthread_cond_wait(&mmt->cond, &mmt->mutex);
         }
@@ -95,6 +100,8 @@ void *racs_mmt_flush_worker(void* arg) {
         pthread_cond_signal(&mmt->cond);
         pthread_mutex_unlock(&mmt->mutex);
     }
+
+    return NULL;
 }
 
 racs_mmt *racs_mmt_create(racs_uint32 mmt_capacity, racs_uint16 mt_capacity) {
@@ -109,6 +116,7 @@ racs_mmt *racs_mmt_create(racs_uint32 mmt_capacity, racs_uint16 mt_capacity) {
     mmt->mmt_capacity = mmt_capacity;
     mmt->mt_capacity = mt_capacity;
     mmt->num_tables = 0;
+    mmt->is_running = 1;
 
     mmt->head = NULL;
     mmt->tail = NULL;
@@ -177,7 +185,6 @@ void racs_mmt_push_head(racs_mmt *mmt, racs_mt_node *node) {
 
     mmt->head = node;
     ++mmt->num_tables;
-    printf("%d\n", mmt->num_tables);
 }
 
 racs_mt_node* racs_mmt_pop_tail(racs_mmt *mmt) {
