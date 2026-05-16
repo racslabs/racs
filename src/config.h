@@ -41,18 +41,18 @@ typedef struct {
 
 
 static const cyaml_schema_field_t racs_memtables_schema_fields[] = {
-        CYAML_FIELD_UINT("tables", CYAML_FLAG_DEFAULT, racs_memtable_config , tables),
-        CYAML_FIELD_UINT("entries", CYAML_FLAG_DEFAULT, racs_memtable_config , entries),
+        CYAML_FIELD_UINT("tables", CYAML_FLAG_DEFAULT, racs_memtable_config, tables),
+        CYAML_FIELD_UINT("entries", CYAML_FLAG_DEFAULT, racs_memtable_config, entries),
         CYAML_FIELD_END
 };
 
 static const cyaml_schema_field_t racs_cache_schema_fields[] = {
-        CYAML_FIELD_UINT("entries", CYAML_FLAG_DEFAULT, racs_cache_config , entries),
+        CYAML_FIELD_UINT("entries", CYAML_FLAG_DEFAULT, racs_cache_config, entries),
         CYAML_FIELD_END
 };
 
 static const cyaml_schema_field_t racs_wal_schema_fields[] = {
-    CYAML_FIELD_UINT("fsync", CYAML_FLAG_DEFAULT, racs_wal_config , fsync),
+    CYAML_FIELD_UINT("fsync", CYAML_FLAG_DEFAULT, racs_wal_config, fsync),
     CYAML_FIELD_END
 };
 
@@ -60,9 +60,9 @@ static const cyaml_schema_field_t racs_schema_fields[] = {
         CYAML_FIELD_UINT("port", CYAML_FLAG_DEFAULT, racs_config , port),
         CYAML_FIELD_STRING_PTR("data_dir", CYAML_FLAG_POINTER, racs_config, data_dir, 0, CYAML_UNLIMITED),
         CYAML_FIELD_MAPPING("memtable", CYAML_FLAG_DEFAULT, racs_config, memtable, racs_memtables_schema_fields),
-        CYAML_FIELD_MAPPING("cache", CYAML_FLAG_DEFAULT, racs_config , cache, racs_cache_schema_fields),
-        CYAML_FIELD_MAPPING("wal", CYAML_FLAG_DEFAULT, racs_config , wal, racs_wal_schema_fields),
-        CYAML_FIELD_STRING_PTR("log_dir", CYAML_FLAG_DEFAULT, racs_config , log_dir, 0, CYAML_UNLIMITED),
+        CYAML_FIELD_MAPPING("cache", CYAML_FLAG_DEFAULT, racs_config, cache, racs_cache_schema_fields),
+        CYAML_FIELD_MAPPING("wal", CYAML_FLAG_DEFAULT, racs_config, wal, racs_wal_schema_fields),
+        CYAML_FIELD_STRING_PTR("log_dir", CYAML_FLAG_DEFAULT, racs_config, log_dir, 0, CYAML_UNLIMITED),
         CYAML_FIELD_END
 };
 
