@@ -1,6 +1,54 @@
 #include "eval.h"
 
 
+#define RACS_CHECK_ARG_TYPE(ctx, obj, offset, type, err_msg) \
+do { \
+    if (msgpack_unpack_next(&(obj), (ctx)->out_buf.data, (ctx)->out_buf.size, &(offset)) <= 0) { \
+        (ctx)->has_error = 1; \
+        racs_pack_err(&(ctx)->out_buf, "Missing arguments"); \
+        msgpack_unpacked_destroy(&(obj)); \
+        return; \
+    } \
+    if ((obj).data.type != (type)) { \
+        (ctx)->has_error = 1; \
+        racs_pack_err(&(ctx)->out_buf, (err_msg)); \
+        msgpack_unpacked_destroy(&(obj)); \
+        return; \
+    } \
+} while(0)
+
+
+#define RACS_CHECK_ARG_COUNT(ctx, actual, expected, err_msg) \
+do { \
+    if ((actual) != (expected)) { \
+        (ctx)->has_error = 1; \
+        racs_pack_err(&(ctx)->out_buf, (err_msg)); \
+        return; \
+    } \
+} while(0)
+
+typedef void (*racs_cmd_func) (racs_eval_ctx *ctx, size_t num_args);
+
+typedef struct {
+    char u_name[55];
+    char l_name[55];
+    racs_cmd_func func;
+} racs_cmd;
+
+
+void racs_eval_node(racs_eval_ctx *ctx, msgpack_object obj);
+
+racs_cmd_func racs_cmd_lookup(const char *name, size_t size);
+
+// Command declarations
+
+void racs_cmd_ping(racs_eval_ctx *ctx, size_t num_args);
+
+const racs_cmd cmds[1] = {
+    {"PING", "ping", racs_cmd_ping }
+};
+
+
 void racs_eval(racs_eval_ctx *ctx, const racs_uint8 *source, size_t size) {
     if (!ctx || ctx->has_error || !source || size == 0) {
         return;
@@ -120,4 +168,14 @@ racs_cmd_func racs_cmd_lookup(const char *name, size_t size) {
         }
     }
     return NULL;
+}
+
+// Command implementations
+
+void racs_cmd_ping(racs_eval_ctx *ctx, size_t num_args) {
+    RACS_CHECK_ARG_COUNT(ctx, num_args, 0, "PING requires 0 args");
+
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, &ctx->out_buf, msgpack_sbuffer_write);
+    msgpack_pack_str_with_body(&pk, "PONG", 4);
 }
