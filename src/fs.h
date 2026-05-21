@@ -12,7 +12,11 @@ extern "C" {
 #include <string.h>
 #include <stdio.h>
 
+
 typedef void (*racs_fs_walk_cb)(const char *path, void *data);
+
+
+char *racs_fs_fname(const char *path);
 
 void racs_fs_mkdir(const char *path);
 

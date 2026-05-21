@@ -1,6 +1,28 @@
 #include "fs.h"
 
 
+char *racs_fs_fname(const char *path) {
+    char dir[PATH_MAX];
+    snprintf(dir, sizeof(dir), "%s", path);
+
+    char *curr = dir;
+    char *prev = NULL;
+    while ((curr = strchr(curr + 1, '/')) != NULL) {
+        prev = curr;
+    }
+
+    if (!prev) {
+        if (*dir == '/') {
+            return path + 1;
+        }
+
+        return path;
+    }
+
+    size_t ptr_diff = (prev + 1) - dir;
+    return path + ptr_diff;
+}
+
 void racs_fs_mkdir(const char *path) {
     char dir[PATH_MAX];
     snprintf(dir, sizeof(dir), "%s", path);

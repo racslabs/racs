@@ -7,6 +7,7 @@
 #include "time_test.h"
 #include "path_test.h"
 #include "eval_test.h"
+#include "fs_test.h"
 
 
 void setUp(void) {}
@@ -33,5 +34,6 @@ int main(void) {
     RUN_TEST(test_mt_parts_put);
     RUN_TEST(test_mmt_put);
     RUN_TEST(test_eval_ping);
+    RUN_TEST(test_fs_fname);
     return UNITY_END();
 }

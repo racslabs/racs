@@ -4,6 +4,7 @@
 
 #include "unity.h"
 #include "fs.h"
-#include <stdlib.h>
+
+void test_fs_fname(void);
 
 #endif //RACS_FS_TEST_H

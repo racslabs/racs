@@ -1,18 +1,21 @@
 #include "info.h"
 
 
-void racs_info_init(racs_info  *info,
-                    const char *name,
-                    racs_uint32 sample_rate,
-                    racs_uint8  channels,
-                    racs_uint8  bit_depth) {
+racs_info *racs_info_create(racs_uint32 sample_rate,
+                            racs_uint8  channels,
+                            racs_uint8  bit_depth) {
+    racs_info *info = malloc(sizeof(racs_info));
+    if (!info) {
+        return NULL;
+    }
+
     info->ttl = 0;
     info->ref = racs_time_now();
     info->sample_rate = sample_rate;
     info->channels = channels;
     info->bit_depth = bit_depth;
 
-    strcpy(info->name, name);
+    return info;
 }
 
 int racs_info_flush(racs_info *info, const char *path) {
@@ -25,7 +28,7 @@ int racs_info_flush(racs_info *info, const char *path) {
 
     int fd = open(tmp_path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (fd != -1) {
-        if (write(fd, info, 22) == 22) {
+        if (write(fd, info, sizeof(racs_info)) == sizeof(racs_info)) {
             fsync(fd);
             close(fd);
 
@@ -37,4 +40,26 @@ int racs_info_flush(racs_info *info, const char *path) {
             unlink(tmp_path);
         }
     }
+}
+
+racs_info *racs_info_open(const char *path) {
+    int fd = open(path, O_RDONLY);
+    if (fd == -1) {
+        return NULL;
+    }
+
+    racs_uint8 *data = mmap(NULL, sizeof(racs_info), PROT_READ, MAP_PRIVATE, fd, 0);
+    madvise(data, sizeof(racs_info), MADV_WILLNEED | MADV_SEQUENTIAL);
+
+    close(fd);
+
+    if (data == MAP_FAILED) {
+        return NULL;
+    }
+
+    return (racs_info *)data;
+}
+
+void racs_info_destroy(racs_info *info) {
+    free(info);
 }
