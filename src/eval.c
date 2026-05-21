@@ -45,7 +45,7 @@ racs_cmd_func racs_cmd_lookup(const char *name, size_t size);
 void racs_cmd_ping(racs_eval_ctx *ctx, size_t num_args);
 
 const racs_cmd cmds[1] = {
-    {"PING", "ping", racs_cmd_ping }
+    { "PING", "ping", racs_cmd_ping }
 };
 
 

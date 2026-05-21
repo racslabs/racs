@@ -1,0 +1,56 @@
+Scheme Bindings
+===============
+
+RACS includes an embedded Guile Scheme interpreter, allowing direct interaction with the server using Scheme expressions.
+This is done using the :ref:`EVAL` command. For security, Scheme evaluation is sandboxed. Only the operators ``+``, ``-``, ``*`` and the RACS command bindings are allowed in the sandbox. This prevents arbitrary code execution.
+
+Supported Command Bindings
+--------------------------
+
+The following read-only RACS commands are available as Scheme bindings.
+Additional Scheme bindings are also provided for handling multiple PCM buffers.
+
+.. toctree::
+   :maxdepth: 1
+
+   clip
+   encode
+   fade
+   gain
+   merge
+   meta
+   mix
+   pad
+   pan
+   ping
+   range
+   list
+   split
+   trim
+   ttl
+
+Supported Scheme Data Types
+---------------------------
+
+The result of a Scheme expression is automatically mapped to the corresponding RACS data type as shown below:
+
++-------------------+-------------------------------------------------------------+
+| Scheme type       | RACS type                                                   |
++===================+=============================================================+
+| Integer           | ``int``                                                     |
++-------------------+-------------------------------------------------------------+
+| Float             | ``float``                                                   |
++-------------------+-------------------------------------------------------------+
+| Boolean           | ``bool``                                                    |
++-------------------+-------------------------------------------------------------+
+| Null / nil        | ``null``                                                    |
++-------------------+-------------------------------------------------------------+
+| Pair / list       | ``list``                                                    |
++-------------------+-------------------------------------------------------------+
+| String            | ``string``                                                  |
++-------------------+-------------------------------------------------------------+
+| Typed arrays      | ``s8v``, ``u8v``, ``s16v``, ``u16v``, ``s32v``, ``u32v``,   |
+|                   | ``f32v``, ``c64v``                                          |
++-------------------+-------------------------------------------------------------+
+
+If the final result of the Scheme expression cannot be serialized to one of the above RACS data types, an error message will be returned.

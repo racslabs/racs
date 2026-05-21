@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Build from source &#8212; racs  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=649a27d8" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=29da98fa" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=f1dccd3e" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Replication" href="replication.html" />
+    <link rel="prev" title="Install with Docker" href="install-with-docker.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="replication.html" title="Replication"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="install-with-docker.html" title="Install with Docker"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">racs  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="getting-started.html" accesskey="U">Getting Started</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Build from source</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="build-from-source">
+<span id="id1"></span><h1>Build from source<a class="headerlink" href="#build-from-source" title="Link to this heading">¶</a></h1>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Minimum 4 GB of RAM</p></li>
+<li><p>Minimum 1 CPU core</p></li>
+<li><p>Linux Kernel 4.19+ or macOS 10.15+</p></li>
+</ul>
+</section>
+<section id="install-dependencies">
+<h2>Install dependencies<a class="headerlink" href="#install-dependencies" title="Link to this heading">¶</a></h2>
+<section id="on-debian-ubuntu">
+<h3>On Debian/Ubuntu<a class="headerlink" href="#on-debian-ubuntu" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>ninja-build<span class="w"> </span>cmake<span class="w"> </span>g++<span class="w"> </span>libmp3lame-dev<span class="w"> </span>libopus-dev<span class="w"> </span>libopusenc-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>guile-3.0-dev<span class="w"> </span>libmsgpack-dev<span class="w"> </span>libcyaml-dev<span class="w"> </span>libevent-dev<span class="w"> </span>libzstd-dev
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">libopusenc-dev</span></code> is not available on Ubuntu. To install it from source, run the following:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/xiph/libopusenc.git<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>libopusenc
+./autogen.sh
+./configure
+make<span class="w"> </span>-j<span class="k">$(</span>nproc<span class="k">)</span>
+sudo<span class="w"> </span>make<span class="w"> </span>install
+</pre></div>
+</div>
+</section>
+<section id="on-macos">
+<h3>On macOS<a class="headerlink" href="#on-macos" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>brew<span class="w"> </span>install<span class="w"> </span>cmake<span class="w"> </span>ninja<span class="w"> </span>pkg-config<span class="w"> </span>gcc@13<span class="w"> </span>guile<span class="w"> </span>lame<span class="w"> </span>msgpack<span class="w"> </span>opus<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>libopusenc<span class="w"> </span>libcyaml<span class="w"> </span>libevent
+</pre></div>
+</div>
+</section>
+</section>
+<section id="clone-the-repository">
+<h2>Clone the repository<a class="headerlink" href="#clone-the-repository" title="Link to this heading">¶</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>--branch<span class="w"> </span>main<span class="w"> </span>https://github.com/racslabs/racs.git<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>racs
+</pre></div>
+</div>
+</section>
+<section id="build-the-project">
+<h2>Build the project<a class="headerlink" href="#build-the-project" title="Link to this heading">¶</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-B<span class="w"> </span>build<span class="w"> </span>-G<span class="w"> </span>Ninja<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>cmake<span class="w"> </span>--build<span class="w"> </span>build<span class="w"> </span>--target<span class="w"> </span>racs
+</pre></div>
+</div>
+</section>
+<section id="run-racs">
+<h2>Run RACS<a class="headerlink" href="#run-racs" title="Link to this heading">¶</a></h2>
+<p>Run the RACS executable from the build directory, specifying the path to the <code class="docutils literal notranslate"><span class="pre">conf.yaml</span></code> file located in the project root:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>build/racs<span class="w"> </span>--config<span class="w"> </span>conf.yaml
+</pre></div>
+</div>
+<p>Once started, the server listens on <code class="docutils literal notranslate"><span class="pre">localhost:6381</span></code> by default.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Build from source</a><ul>
+<li><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li><a class="reference internal" href="#install-dependencies">Install dependencies</a><ul>
+<li><a class="reference internal" href="#on-debian-ubuntu">On Debian/Ubuntu</a></li>
+<li><a class="reference internal" href="#on-macos">On macOS</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#clone-the-repository">Clone the repository</a></li>
+<li><a class="reference internal" href="#build-the-project">Build the project</a></li>
+<li><a class="reference internal" href="#run-racs">Run RACS</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="install-with-docker.html"
+                          title="previous chapter">Install with Docker</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="replication.html"
+                          title="next chapter">Replication</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/build-from-source.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="replication.html" title="Replication"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="install-with-docker.html" title="Install with Docker"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">racs  documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="getting-started.html" >Getting Started</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Build from source</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2026, RACS Labs, LLC..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    </div>
+  </body>
+</html>

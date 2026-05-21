@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Streaming &#8212; racs  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=649a27d8" />
+    <link rel="stylesheet" type="text/css" href="_static/basic.css?v=29da98fa" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=f1dccd3e" />
+    <script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Types" href="types.html" />
+    <link rel="prev" title="Replication" href="replication.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="types.html" title="Types"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="replication.html" title="Replication"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">racs  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Streaming</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="streaming">
+<h1>Streaming<a class="headerlink" href="#streaming" title="Link to this heading">¶</a></h1>
+<section id="racs-streaming-protocol">
+<h2>RACS Streaming Protocol<a class="headerlink" href="#racs-streaming-protocol" title="Link to this heading">¶</a></h2>
+<p><strong>RACS Streaming Protocol</strong> (RSP) is used to efficiently transfer audio data over TCP/IP.</p>
+<p>Clients send PCM samples interleaved by channel in frames, batching multiple frames per TCP transmission. Only 16-bit and 24-bit PCM samples are supported.</p>
+<section id="frame-format">
+<h3>Frame Format<a class="headerlink" href="#frame-format" title="Link to this heading">¶</a></h3>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Value</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Bytes</p></th>
+<th class="head"><p>Offset</p></th>
+<th class="head"><p>Byte Order</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>chunk_id</p></td>
+<td><p>The ASCII string <code class="docutils literal notranslate"><span class="pre">&quot;rsp&quot;</span></code></p></td>
+<td><p>3</p></td>
+<td><p>0</p></td>
+<td><p>N/A</p></td>
+</tr>
+<tr class="row-odd"><td><p>session_id</p></td>
+<td><p>128-bit unique session id (UUID)</p></td>
+<td><p>16</p></td>
+<td><p>3</p></td>
+<td><p>Little</p></td>
+</tr>
+<tr class="row-even"><td><p>hash</p></td>
+<td><p>64-bit hash of the stream ID</p></td>
+<td><p>8</p></td>
+<td><p>19</p></td>
+<td><p>Little</p></td>
+</tr>
+<tr class="row-odd"><td><p>checksum</p></td>
+<td><p>32-bit CRC32C checksum for error detection</p></td>
+<td><p>4</p></td>
+<td><p>27</p></td>
+<td><p>Little</p></td>
+</tr>
+<tr class="row-even"><td><p>block_size</p></td>
+<td><p>Size of PCM encoded block in bytes
+Max block size is 2^16 bytes (64KB)</p></td>
+<td><p>2</p></td>
+<td><p>31</p></td>
+<td><p>Little</p></td>
+</tr>
+<tr class="row-odd"><td><p>flags</p></td>
+<td><p>Compression flag (0 = uncompressed, 1 = compressed)</p></td>
+<td><p>1</p></td>
+<td><p>33</p></td>
+<td><p>N/A</p></td>
+</tr>
+<tr class="row-even"><td><p>pcm_block</p></td>
+<td><p>Block containing the raw PCM samples interleaved by channel</p></td>
+<td><p>block_size</p></td>
+<td><p>34</p></td>
+<td><p>Little</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="block-sizes">
+<h2>Block Sizes<a class="headerlink" href="#block-sizes" title="Link to this heading">¶</a></h2>
+<p>The minimum uncompressed block size is 1024 bytes (1 KB). All uncompressed block sizes must be a power of two. Smaller block sizes result in slower ingestion but provide more precise time-range queries. Larger block sizes allow faster ingestion at the cost of lower time-range precision.</p>
+</section>
+<section id="timestamp-generation">
+<h2>Timestamp Generation<a class="headerlink" href="#timestamp-generation" title="Link to this heading">¶</a></h2>
+<p>When a new stream is created, a reference timestamp is generated when the first frame is appended. The timestamp for each subsequent frame is calculated as an offset from this reference based on the number of PCM samples per block, the sample rate, and the number of channels. This ensures accurate alignment for time-range queries.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Streaming</a><ul>
+<li><a class="reference internal" href="#racs-streaming-protocol">RACS Streaming Protocol</a><ul>
+<li><a class="reference internal" href="#frame-format">Frame Format</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#block-sizes">Block Sizes</a></li>
+<li><a class="reference internal" href="#timestamp-generation">Timestamp Generation</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="replication.html"
+                          title="previous chapter">Replication</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="types.html"
+                          title="next chapter">Types</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/streaming.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="types.html" title="Types"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="replication.html" title="Replication"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">racs  documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Streaming</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2026, RACS Labs, LLC..
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.2.3.
+    </div>
+  </body>
+</html>
