@@ -60,7 +60,7 @@ void test_eval_create(void) {
 
     racs_eval_ctx ctx;
     racs_eval_ctx_init(&ctx);
-    racs_eval(&ctx, (racs_uint8 *)in_buf.data, in_buf.size);
+    racs_eval(&ctx, (racs_uint8 *) in_buf.data, in_buf.size);
 
     msgpack_sbuffer_destroy(&in_buf);
 

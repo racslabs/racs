@@ -9,9 +9,17 @@ do { \
 } while(0)
 
 
-#define RACS_CHECK_ARG(ctx, unpacked, type, err_msg) \
+#define RACS_CHECK_STR(ctx, unpacked, err_msg) \
 do { \
-    if ((unpacked).data.type != (type)) { \
+    if ((unpacked).data.type != MSGPACK_OBJECT_STR) { \
+        RACS_PACK_ERR((ctx), (unpacked), (err_msg)); \
+    } \
+} while(0)
+
+
+#define RACS_CHECK_INT(ctx, unpacked, err_msg) \
+do { \
+    if ((unpacked).data.type != MSGPACK_OBJECT_POSITIVE_INTEGER) { \
         RACS_PACK_ERR((ctx), (unpacked), (err_msg)); \
     } \
 } while(0)
@@ -203,6 +211,7 @@ void racs_cmd_create(racs_eval_ctx *ctx, size_t num_args) {
     msgpack_unpacked_init(&unpacked);
 
     RACS_UNPACK_ARG(ctx, unpacked, offset, "CREATE error unpacking arg1");
+    RACS_CHECK_STR(ctx, unpacked, "CREATE expected string at arg1");
 
     char path[PATH_MAX];
 
@@ -218,25 +227,26 @@ void racs_cmd_create(racs_eval_ctx *ctx, size_t num_args) {
 
     strncat(path, name, size);
 
-    // RACS_CHECK_ARG(ctx, unpacked, MSGPACK_OBJECT_POSITIVE_INTEGER, "");
     RACS_UNPACK_ARG(ctx, unpacked, offset, "CREATE error unpacking arg2");
+    RACS_CHECK_INT(ctx, unpacked, "CREATE expected int at arg2");
+
     racs_uint32 sample_rate = (racs_uint32) unpacked.data.via.u64;
 
     RACS_UNPACK_ARG(ctx, unpacked, offset, "CREATE error unpacking arg3");
+    RACS_CHECK_INT(ctx, unpacked, "CREATE expected int at arg3");
+
     racs_uint8 channels = (racs_uint8) unpacked.data.via.u64;
 
     RACS_UNPACK_ARG(ctx, unpacked, offset, "CREATE error unpacking arg4");
+    RACS_CHECK_INT(ctx, unpacked, "CREATE expected int at arg4");
+    
     racs_uint8 bit_depth = (racs_uint8) unpacked.data.via.u64;
 
     if (racs_info_exist(path)) {
         RACS_PACK_ERR(ctx, unpacked, "CREATE stream already exist");
     }
 
-    racs_fs_mkdir(path);
-
-    racs_info *info = racs_info_create(sample_rate, channels, bit_depth);
-    racs_info_flush(info, path);
-    racs_info_destroy(info);
+    racs_create(path, sample_rate, channels, bit_depth);
 
     msgpack_sbuffer_clear(&ctx->out_buf);
 
