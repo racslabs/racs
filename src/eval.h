@@ -6,6 +6,8 @@
 extern "C" {
 #endif
 
+
+#include "config.h"
 #include "types.h"
 #include "pack.h"
 #include <ctype.h>
@@ -13,7 +15,7 @@ extern "C" {
 
 #define RACS_EXT_ERR 42
 
-#define RACS_MAX_RECURSION_DEPTH 50
+#define RACS_MAX_RECURSION_DEPTH 100
 
 
 typedef struct {

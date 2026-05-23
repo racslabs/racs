@@ -8,5 +8,7 @@
 
 void test_eval_ping(void);
 
+void test_eval_create(void);
+
 
 #endif //RACS_EVAL_TEST_H

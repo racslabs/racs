@@ -60,6 +60,10 @@ racs_info *racs_info_open(const char *path) {
     return (racs_info *)data;
 }
 
+int racs_info_exist(const char *path) {
+
+}
+
 void racs_info_destroy(racs_info *info) {
     free(info);
 }

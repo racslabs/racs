@@ -1,24 +1,29 @@
 #include "eval.h"
 
 
-#define RACS_CHECK_ARG_TYPE(ctx, obj, offset, type, err_msg) \
+#define RACS_UNPACK_ARG(ctx, unpacked, offset, err_msg) \
 do { \
-    if (msgpack_unpack_next(&(obj), (ctx)->out_buf.data, (ctx)->out_buf.size, &(offset)) <= 0) { \
+    if (msgpack_unpack_next(&(unpacked), (ctx)->out_buf.data, (ctx)->out_buf.size, &(offset)) <= 0) { \
         (ctx)->has_error = 1; \
-        racs_pack_err(&(ctx)->out_buf, "Missing arguments"); \
-        msgpack_unpacked_destroy(&(obj)); \
-        return; \
-    } \
-    if ((obj).data.type != (type)) { \
-        (ctx)->has_error = 1; \
-        racs_pack_err(&(ctx)->out_buf, (err_msg)); \
-        msgpack_unpacked_destroy(&(obj)); \
+        racs_pack_err(&(ctx)->out_buf, err_msg); \
+        msgpack_unpacked_destroy(&(unpacked)); \
         return; \
     } \
 } while(0)
 
 
-#define RACS_CHECK_ARG_COUNT(ctx, actual, expected, err_msg) \
+#define RACS_CHECK_ARG(ctx, unpacked, type, err_msg) \
+do { \
+    if ((unpacked).data.type != (type)) { \
+        (ctx)->has_error = 1; \
+        racs_pack_err(&(ctx)->out_buf, (err_msg)); \
+        msgpack_unpacked_destroy(&(unpacked)); \
+        return; \
+    } \
+} while(0)
+
+
+#define RACS_COUNT_ARGS(ctx, actual, expected, err_msg) \
 do { \
     if ((actual) != (expected)) { \
         (ctx)->has_error = 1; \
@@ -27,11 +32,11 @@ do { \
     } \
 } while(0)
 
+
 typedef void (*racs_cmd_func) (racs_eval_ctx *ctx, size_t num_args);
 
 typedef struct {
-    char u_name[55];
-    char l_name[55];
+    char name[55];
     racs_cmd_func func;
 } racs_cmd;
 
@@ -44,8 +49,11 @@ racs_cmd_func racs_cmd_lookup(const char *name, size_t size);
 
 void racs_cmd_ping(racs_eval_ctx *ctx, size_t num_args);
 
-const racs_cmd cmds[1] = {
-    { "PING", "ping", racs_cmd_ping }
+void racs_cmd_create(racs_eval_ctx *ctx, size_t num_args);
+
+const racs_cmd cmds[2] = {
+    { "ping"  , racs_cmd_ping },
+    { "create", racs_cmd_create }
 };
 
 
@@ -162,20 +170,52 @@ racs_cmd_func racs_cmd_lookup(const char *name, size_t size) {
     for (size_t i = 0; i < num_cmds; i++) {
         racs_cmd cmd = cmds[i];
 
-        if ((size == strlen(cmd.u_name) && memcmp(cmd.u_name, name, size) == 0) ||
-            (size == strlen(cmd.l_name) && memcmp(cmd.l_name, name, size) == 0)) {
+        if (size == strlen(cmd.name) && memcmp(cmd.name, name, size) == 0) {
             return cmd.func;
         }
     }
+
     return NULL;
 }
 
 // Command implementations
 
 void racs_cmd_ping(racs_eval_ctx *ctx, size_t num_args) {
-    RACS_CHECK_ARG_COUNT(ctx, num_args, 0, "PING requires 0 args");
+    RACS_COUNT_ARGS(ctx, num_args, 0, "PING requires 0 args");
 
     msgpack_packer pk;
     msgpack_packer_init(&pk, &ctx->out_buf, msgpack_sbuffer_write);
-    msgpack_pack_str_with_body(&pk, "PONG", 4);
+    msgpack_pack_str_with_body(&pk, "pong", 4);
+}
+
+void racs_cmd_create(racs_eval_ctx *ctx, size_t num_args) {
+    RACS_COUNT_ARGS(ctx, num_args, 4, "CREATE requires 4 args");
+
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, &ctx->out_buf, msgpack_sbuffer_write);
+
+    size_t offset = 0;
+    msgpack_unpacked unpacked;
+    msgpack_unpacked_init(&unpacked);
+
+    RACS_UNPACK_ARG(ctx, unpacked, offset, "CREATE error unpacking arg1");
+
+    const char *name = unpacked.data.via.str.ptr;
+    size_t size = unpacked.data.via.str.size;
+
+    char path[PATH_MAX];
+    strcpy(path, racs_config_get()->data_dir);
+    strcat(path, "/.racs/md/");
+    strncat(path, name, size);
+
+    RACS_UNPACK_ARG(ctx, unpacked, offset, "CREATE error unpacking arg2");
+    racs_uint32 sample_rate = (racs_uint32) unpacked.data.via.u64;
+
+    RACS_UNPACK_ARG(ctx, unpacked, offset, "CREATE error unpacking arg3");
+    racs_uint8 channels = (racs_uint8) unpacked.data.via.u64;
+
+    RACS_UNPACK_ARG(ctx, unpacked, offset, "CREATE error unpacking arg4");
+    racs_uint8 bit_depth = (racs_uint8) unpacked.data.via.u64;
+
+    msgpack_pack_nil(&pk);
 }

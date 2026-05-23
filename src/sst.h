@@ -9,9 +9,11 @@
 #ifndef RACS_SST_H
 #define RACS_SST_H
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -19,6 +21,7 @@ extern "C" {
 #include <unistd.h>
 #include <string.h>
 #include "types.h"
+
 
 typedef struct __attribute__((packed)) {
     racs_uint64 key[3];      // { stream-id, timestamp, version }
@@ -40,6 +43,7 @@ racs_sst *racs_sst_open(const char *path);
 void racs_sst_destroy(racs_sst *sst);
 
 racs_sst_index_entry *racs_sst_get_index(racs_sst *sst);
+
 
 #ifdef __cplusplus
 }

@@ -34,6 +34,7 @@ int main(void) {
     RUN_TEST(test_mt_parts_put);
     RUN_TEST(test_mmt_put);
     RUN_TEST(test_eval_ping);
+    RUN_TEST(test_eval_create);
     RUN_TEST(test_fs_fname);
     return UNITY_END();
 }
