@@ -4,10 +4,7 @@
 #define RACS_UNPACK_ARG(ctx, unpacked, offset, err_msg) \
 do { \
     if (msgpack_unpack_next(&(unpacked), (ctx)->out_buf.data, (ctx)->out_buf.size, &(offset)) <= 0) { \
-        (ctx)->has_error = 1; \
-        racs_pack_err(&(ctx)->out_buf, err_msg); \
-        msgpack_unpacked_destroy(&(unpacked)); \
-        return; \
+        RACS_PACK_ERR((ctx), (unpacked), (err_msg)); \
     } \
 } while(0)
 
@@ -15,11 +12,17 @@ do { \
 #define RACS_CHECK_ARG(ctx, unpacked, type, err_msg) \
 do { \
     if ((unpacked).data.type != (type)) { \
-        (ctx)->has_error = 1; \
-        racs_pack_err(&(ctx)->out_buf, (err_msg)); \
-        msgpack_unpacked_destroy(&(unpacked)); \
-        return; \
+        RACS_PACK_ERR((ctx), (unpacked), (err_msg)); \
     } \
+} while(0)
+
+
+#define RACS_PACK_ERR(ctx, unpacked, err_msg) \
+do { \
+    (ctx)->has_error = 1; \
+    racs_pack_err(&(ctx)->out_buf, (err_msg)); \
+    msgpack_unpacked_destroy(&(unpacked)); \
+    return; \
 } while(0)
 
 
@@ -50,6 +53,7 @@ racs_cmd_func racs_cmd_lookup(const char *name, size_t size);
 void racs_cmd_ping(racs_eval_ctx *ctx, size_t num_args);
 
 void racs_cmd_create(racs_eval_ctx *ctx, size_t num_args);
+
 
 const racs_cmd cmds[2] = {
     { "ping"  , racs_cmd_ping },
@@ -178,10 +182,13 @@ racs_cmd_func racs_cmd_lookup(const char *name, size_t size) {
     return NULL;
 }
 
+
 // Command implementations
 
 void racs_cmd_ping(racs_eval_ctx *ctx, size_t num_args) {
     RACS_COUNT_ARGS(ctx, num_args, 0, "PING requires 0 args");
+
+    msgpack_sbuffer_clear(&ctx->out_buf);
 
     msgpack_packer pk;
     msgpack_packer_init(&pk, &ctx->out_buf, msgpack_sbuffer_write);
@@ -191,23 +198,27 @@ void racs_cmd_ping(racs_eval_ctx *ctx, size_t num_args) {
 void racs_cmd_create(racs_eval_ctx *ctx, size_t num_args) {
     RACS_COUNT_ARGS(ctx, num_args, 4, "CREATE requires 4 args");
 
-    msgpack_packer pk;
-    msgpack_packer_init(&pk, &ctx->out_buf, msgpack_sbuffer_write);
-
     size_t offset = 0;
     msgpack_unpacked unpacked;
     msgpack_unpacked_init(&unpacked);
 
     RACS_UNPACK_ARG(ctx, unpacked, offset, "CREATE error unpacking arg1");
 
+    char path[PATH_MAX];
+
     const char *name = unpacked.data.via.str.ptr;
     size_t size = unpacked.data.via.str.size;
 
-    char path[PATH_MAX];
     strcpy(path, racs_config_get()->data_dir);
     strcat(path, "/.racs/md/");
+
+    if (size >= (PATH_MAX - strlen(path))) {
+        RACS_PACK_ERR(ctx, unpacked, "CREATE stream-id max length exceeded");
+    }
+
     strncat(path, name, size);
 
+    // RACS_CHECK_ARG(ctx, unpacked, MSGPACK_OBJECT_POSITIVE_INTEGER, "");
     RACS_UNPACK_ARG(ctx, unpacked, offset, "CREATE error unpacking arg2");
     racs_uint32 sample_rate = (racs_uint32) unpacked.data.via.u64;
 
@@ -217,5 +228,19 @@ void racs_cmd_create(racs_eval_ctx *ctx, size_t num_args) {
     RACS_UNPACK_ARG(ctx, unpacked, offset, "CREATE error unpacking arg4");
     racs_uint8 bit_depth = (racs_uint8) unpacked.data.via.u64;
 
+    if (racs_info_exist(path)) {
+        RACS_PACK_ERR(ctx, unpacked, "CREATE stream already exist");
+    }
+
+    racs_fs_mkdir(path);
+
+    racs_info *info = racs_info_create(sample_rate, channels, bit_depth);
+    racs_info_flush(info, path);
+    racs_info_destroy(info);
+
+    msgpack_sbuffer_clear(&ctx->out_buf);
+
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, &ctx->out_buf, msgpack_sbuffer_write);
     msgpack_pack_nil(&pk);
 }

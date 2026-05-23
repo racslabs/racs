@@ -61,7 +61,8 @@ racs_info *racs_info_open(const char *path) {
 }
 
 int racs_info_exist(const char *path) {
-
+    struct stat st;
+    return stat(path, &st) == 0;
 }
 
 void racs_info_destroy(racs_info *info) {

@@ -36,7 +36,10 @@ int racs_info_flush(racs_info *info, const char *path);
 
 racs_info *racs_info_open(const char *path);
 
+int racs_info_exist(const char *path);
+
 void racs_info_destroy(racs_info *info);
+
 
 #ifdef __cplusplus
 }

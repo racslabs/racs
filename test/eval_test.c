@@ -63,6 +63,23 @@ void test_eval_create(void) {
     racs_eval(&ctx, (racs_uint8 *)in_buf.data, in_buf.size);
 
     msgpack_sbuffer_destroy(&in_buf);
+
+    TEST_ASSERT_FALSE(ctx.has_error);
+
+    msgpack_unpacked unpacked;
+    msgpack_unpacked_init(&unpacked);
+
+    size_t offset = 0;
+    msgpack_unpack_return result = msgpack_unpack_next(
+        &unpacked,
+        ctx.out_buf.data,
+        ctx.out_buf.size,
+        &offset
+    );
+
+    TEST_ASSERT_EQUAL_INT(MSGPACK_UNPACK_SUCCESS, result);
+
+    msgpack_unpacked_destroy(&unpacked);
     racs_eval_ctx_cleanup(&ctx);
     racs_config_destroy();
 }
