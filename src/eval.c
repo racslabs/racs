@@ -218,8 +218,7 @@ void racs_cmd_create(racs_eval_ctx *ctx, size_t num_args) {
     const char *name = unpacked.data.via.str.ptr;
     size_t size = unpacked.data.via.str.size;
 
-    strcpy(path, racs_config_get()->data_dir);
-    strcat(path, "/.racs/md/");
+    sprintf(path, "%s/.racs/md/", racs_config_get()->data_dir);
 
     if (size >= (PATH_MAX - strlen(path))) {
         RACS_PACK_ERR(ctx, unpacked, "CREATE stream-id max length exceeded");

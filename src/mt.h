@@ -13,6 +13,7 @@
 extern "C" {
 #endif
 
+#include "config.h"
 #include "dict.h"
 #include "types.h"
 #include "path.h"
@@ -20,6 +21,11 @@ extern "C" {
 #include "sst.h"
 #include <stdio.h>
 #include <pthread.h>
+
+
+#define RACS_MMT_PUT (key, block, size, checksum, lsn) \
+    racs_mmt_put(racs_mmt_get(), key, block, size, checksum, lsn)
+
 
 typedef enum {
     RACS_MT_STATE_ACTIVE,
@@ -75,6 +81,11 @@ typedef struct {
     racs_mmt     *mmt;
     racs_mt_node *curr;
 } racs_mmt_iter;
+
+
+void racs_mmt_init(void);
+
+racs_mmt *racs_mmt_get(void);
 
 void racs_mmt_flush_start(racs_mmt *mmt);
 

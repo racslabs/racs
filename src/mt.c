@@ -18,6 +18,29 @@ static int racs_mt_parts_eq_cb(const void *a, const void *b);
 
 static void racs_mt_parts_destroy_cb(void *key, void *value);
 
+static racs_mmt *mmt_ = NULL;
+
+
+void racs_mmt_init(void) {
+    if (!racs_config_get()) {
+        exit(-1);
+    }
+
+    if (!mmt_) {
+        racs_uint32 mmt_capacity = racs_config_get()->memtable.tables;
+        racs_uint32 mt_capacity = racs_config_get()->memtable.entries;
+
+        mmt_ = racs_mmt_create(mmt_capacity, mt_capacity);
+    }
+}
+
+racs_mmt *racs_mmt_get(void) {
+    if (!mmt_) {
+        return NULL;
+    }
+
+    return mmt_;
+}
 
 void racs_mmt_iter_init(racs_mmt_iter *iter, racs_mmt *mmt) {
     pthread_mutex_lock(&mmt->mutex);

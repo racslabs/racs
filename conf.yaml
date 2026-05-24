@@ -49,6 +49,8 @@ memtable:
   # Once this limit is reached, the memtable is serialized to disk and cleared.
   entries: 2048
 
+  samples_per_block: 1024
+
 
 # ---------------------------------------------------------------------------
 # Cache configuration

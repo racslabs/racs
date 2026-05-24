@@ -20,6 +20,7 @@ extern "C" {
 typedef struct {
     racs_uint32 tables;
     racs_uint32 entries;
+    racs_uint32 samples_per_block;
 } racs_memtable_config;
 
 typedef struct {
@@ -43,6 +44,7 @@ typedef struct {
 static const cyaml_schema_field_t racs_memtables_schema_fields[] = {
         CYAML_FIELD_UINT("tables", CYAML_FLAG_DEFAULT, racs_memtable_config, tables),
         CYAML_FIELD_UINT("entries", CYAML_FLAG_DEFAULT, racs_memtable_config, entries),
+        CYAML_FIELD_UINT("samples_per_block", CYAML_FLAG_DEFAULT, racs_memtable_config, samples_per_block),
         CYAML_FIELD_END
 };
 
