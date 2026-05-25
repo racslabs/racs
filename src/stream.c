@@ -53,6 +53,8 @@ int racs_streams_put(racs_streams *streams,
         return -1;
     }
 
+    pthread_mutex_lock(&streams->mutex);
+
     racs_uint8 *ptr = decoded_data;
     while (ptr) {
         racs_uint32 ptr_diff = ptr - decoded_data;
@@ -74,6 +76,8 @@ int racs_streams_put(racs_streams *streams,
             free(compressed_block);
         }
     }
+
+    pthread_mutex_unlock(&streams->mutex);
 
     free(decoded_data);
 }
