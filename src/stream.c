@@ -35,6 +35,51 @@ void racs_streams_init(void) {
     }
 }
 
+int racs_streams_put(racs_streams *streams,
+                     const racs_uint64 key,
+                     const char *mime_type,
+                     const racs_uint8 *src,
+                     racs_uint32 src_size) {
+    pthread_mutex_lock(&streams->mutex);
+    racs_stream *stream = racs_dict_get(streams->dict, &key);
+    if (!stream) {
+        return -1;
+    }
+    pthread_mutex_unlock(&streams->mutex);
+
+    racs_uint32 decoded_size;
+    racs_uint8 *decoded_data = racs_stream_decode(mime_type, src, src_size, &decoded_size);
+    if (!decoded_data) {
+        return -1;
+    }
+
+    racs_uint8 *ptr = decoded_data;
+    while (ptr) {
+        racs_uint32 ptr_diff = ptr - decoded_data;
+
+        racs_uint32 b_bytes = stream->capacity - stream->size;
+        racs_uint32 r_bytes = decoded_size - ptr_diff;
+        racs_uint32 w_bytes = (r_bytes > b_bytes) ? b_bytes : r_bytes;
+
+        memcpy(stream->buf, ptr, w_bytes);
+
+        ptr += w_bytes;
+        stream->size += w_bytes;
+
+        if (stream->size >= stream->capacity) {
+            size_t compressed_size;
+            racs_uint8 compressed_block = racs_zstd_compress(ptr, stream->size, &compressed_size, 3);
+
+            RACS_MMT_PUT(key, compressed_block, compressed_size, 0, 0);
+            free(compressed_block);
+        }
+    }
+
+    free(decoded_data);
+}
+
+
+
 racs_stream *racs_stream_create(const char *path) {
     if (!racs_config_get()) {
         return NULL;
@@ -83,6 +128,32 @@ void racs_stream_destroy(racs_stream *stream) {
     }
 
     free(stream);
+}
+
+racs_uint8 *racs_stream_decode(const char *mime_type,
+                               const racs_uint8 *src,
+                               racs_uint32 src_size,
+                               racs_uint32 *decoded_size) {
+    if (strcmp(mime_type, "audio/pcm") == 0) {
+        return racs_stream_decode_pcm(src, src_size, decoded_size);
+    }
+
+    return NULL;
+}
+
+racs_uint8 *racs_stream_decode_pcm(const racs_uint8 *src,
+                                   racs_uint32 src_size,
+                                   racs_uint32 *decoded_size) {
+    racs_uint8 *out = malloc(src_size);
+    if (!out) {
+        *decoded_size = 0;
+        return NULL;
+    }
+
+    memcpy(out, src, src_size);
+    *decoded_size = src_size;
+
+    return out;
 }
 
 racs_uint64 racs_streams_hash_cb(const void *key) {
