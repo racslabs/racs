@@ -6,7 +6,9 @@
 extern "C" {
 #endif
 
+#include "mmh3.h"
 #include "dict.h"
+#include <pthread.h>
 
 
 typedef struct {
@@ -18,6 +20,8 @@ typedef struct {
 void racs_offsets_init(void);
 
 void racs_offsets_put(racs_offsets *offsets, racs_uint64 hash, racs_uint64 offset);
+
+racs_uint64 racs_offsets_get(racs_offsets *offsets, racs_uint64 hash);
 
 #ifdef __cplusplus
 }

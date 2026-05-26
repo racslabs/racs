@@ -36,8 +36,35 @@ void racs_offsets_init(void) {
 }
 
 void racs_offsets_put(racs_offsets *offsets, racs_uint64 hash, racs_uint64 offset) {
-    pthread_mutex_lock(&streams->mutex);
-   
+    racs_uint64 *_hash = malloc(sizeof(racs_uint64));
+    if (!_hash) {
+        return;
+    }
+
+    racs_uint64 *_offset = malloc(sizeof(racs_uint64));
+    if (!_offset) {
+        free(_hash);
+        return;
+    }
+
+    *_hash = hash;
+    *_offset = offset;
+
+    pthread_mutex_lock(&offsets->mutex);
+    racs_dict_put(offsets->dict, _hash, _offset);
+    pthread_mutex_unlock(&offsets->mutex);
+}
+
+racs_uint64 racs_offsets_get(racs_offsets *offsets, racs_uint64 hash) {
+    pthread_mutex_lock(&offsets->mutex);
+    racs_uint64 *offset = racs_dict_get(offsets->dict, &hash);
+    pthread_mutex_unlock(&offsets->mutex);
+
+    if (!offset) {
+        return 0;
+    }
+
+    return *offset;
 }
 
 racs_uint64 racs_offsets_hash_cb(const void *key) {
