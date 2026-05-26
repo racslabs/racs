@@ -38,6 +38,8 @@ racs_info *racs_info_open(const char *path);
 
 int racs_info_exist(const char *path);
 
+racs_time racs_info_to_time(racs_info *info, racs_uint64 offset);
+
 void racs_info_destroy(racs_info *info);
 
 

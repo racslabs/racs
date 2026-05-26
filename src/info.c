@@ -65,6 +65,15 @@ int racs_info_exist(const char *path) {
     return stat(path, &st) == 0;
 }
 
+racs_time racs_info_to_time(racs_info *info, racs_uint64 offset) {
+    racs_uint32 bytes_per_sample = (info->bit_depth / 8);
+
+    double bytes_per_second = info->channels * info->sample_rate * bytes_per_sample;
+    double seconds = (double)offset / bytes_per_second;
+
+    return (racs_time) (seconds * 1000) + info->ref;
+}
+
 void racs_info_destroy(racs_info *info) {
     free(info);
 }

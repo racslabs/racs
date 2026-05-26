@@ -36,9 +36,11 @@ typedef struct {
 } racs_streams;
 
 
+void racs_streams_init(void);
+
 int racs_streams_put(racs_streams *streams,
                      const char *name,
-                     size_t size
+                     size_t size,
                      const char *mime_type,
                      const racs_uint8 *src,
                      racs_uint32 src_size);
