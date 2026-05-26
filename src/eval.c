@@ -213,17 +213,11 @@ void racs_cmd_create(racs_eval_ctx *ctx, size_t num_args) {
     RACS_UNPACK_ARG(ctx, unpacked, offset, "CREATE error unpacking arg1");
     RACS_CHECK_STR(ctx, unpacked, "CREATE expected string at arg1");
 
-    char path[PATH_MAX];
-
     const char *name = unpacked.data.via.str.ptr;
     size_t size = unpacked.data.via.str.size;
 
+    char path[PATH_MAX];
     sprintf(path, "%s/.racs/md/", racs_config_get()->data_dir);
-
-    if (size >= (PATH_MAX - strlen(path))) {
-        RACS_PACK_ERR(ctx, unpacked, "CREATE stream-id max length exceeded");
-    }
-
     strncat(path, name, size);
 
     RACS_UNPACK_ARG(ctx, unpacked, offset, "CREATE error unpacking arg2");
@@ -246,7 +240,6 @@ void racs_cmd_create(racs_eval_ctx *ctx, size_t num_args) {
     }
 
     racs_create(path, sample_rate, channels, bit_depth);
-
     msgpack_sbuffer_clear(&ctx->out_buf);
 
     msgpack_packer pk;

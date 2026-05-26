@@ -23,7 +23,7 @@ extern "C" {
 #include <pthread.h>
 
 
-#define RACS_MMT_PUT (key, block, size, checksum, lsn) \
+#define RACS_MMT_PUT(key, block, size, checksum, lsn) \
     racs_mmt_put(racs_mmt_get(), key, block, size, checksum, lsn)
 
 
