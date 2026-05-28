@@ -11,6 +11,17 @@ extern "C" {
 #include <pthread.h>
 
 
+#define RACS_OFFSETS_PUT(hash, offset) \
+do { \
+    if (racs_offsets_get_()) { \
+        racs_offsets_put(racs_offsets_get_(), hash, offset); \
+    } \
+} while(0)
+
+#define RACS_OFFSETS_GET(hash) \
+    (racs_offsets_get_() != NULL) ? racs_offsets_get(racs_offsets_get_(), hash) : 0;
+
+
 typedef struct {
     racs_dict       *dict;
     pthread_mutex_t  mutex;
@@ -22,6 +33,8 @@ void racs_offsets_init(void);
 void racs_offsets_put(racs_offsets *offsets, racs_uint64 hash, racs_uint64 offset);
 
 racs_uint64 racs_offsets_get(racs_offsets *offsets, racs_uint64 hash);
+
+racs_offsets *racs_offsets_get_(void);
 
 #ifdef __cplusplus
 }

@@ -10,6 +10,7 @@ extern "C" {
 #include "mt.h"
 #include "mmh3.h"
 #include "info.h"
+#include "offsets.h"
 #include "crc32c.h"
 #include "racs_zstd.h"
 
@@ -38,26 +39,14 @@ typedef struct {
 
 void racs_streams_init(void);
 
+int racs_streams_open(racs_streams *streams, const char *name, size_t size);
+
 int racs_streams_put(racs_streams *streams,
                      const char *name,
                      size_t size,
                      const char *mime_type,
                      const racs_uint8 *src,
                      racs_uint32 src_size);
-
-racs_stream *racs_stream_create(const char *path);
-
-void racs_stream_destroy(racs_stream *stream);
-
-racs_uint8 *racs_stream_decode(const char *mime_type,
-                               const racs_uint8 *src,
-                               racs_uint32 src_size,
-                               racs_uint32 *decoded_size);
-
-racs_uint8 *racs_stream_decode_pcm(const racs_uint8 *src,
-                                   racs_uint32 src_size,
-                                   racs_uint32 *decoded_size);
-
 
 #ifdef __cplusplus
 }

@@ -67,6 +67,14 @@ racs_uint64 racs_offsets_get(racs_offsets *offsets, racs_uint64 hash) {
     return *offset;
 }
 
+racs_offsets *racs_offsets_get_(void) {
+    if (!offsets) {
+        return NULL;
+    }
+
+    return offsets;
+}
+
 racs_uint64 racs_offsets_hash_cb(const void *key) {
     racs_uint64 hash[2];
     racs_mmh3_x64_128(key, sizeof(racs_uint64), 0, hash);
