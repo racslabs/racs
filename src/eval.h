@@ -6,6 +6,7 @@
 extern "C" {
 #endif
 
+#include "stream.h"
 #include "config.h"
 #include "types.h"
 #include "pack.h"

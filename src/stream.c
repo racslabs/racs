@@ -11,6 +11,13 @@ typedef struct {
     pthread_mutex_t  mutex;
 } racs_stream;
 
+const char *const racs_stream_result_string[] = {
+    "",
+    "stream not found",
+    "stream conflict",
+    "stream decode error",
+    "stream allocation error"
+};
 
 static racs_streams *streams = NULL;
 
@@ -69,7 +76,7 @@ void racs_streams_init(void) {
     }
 }
 
-racs_streams *racs_streams_get(void) {
+racs_streams *racs_streams_get_(void) {
     if (!streams) {
         return NULL;
     }
@@ -82,13 +89,13 @@ int racs_streams_create(const char *name,
                         racs_uint32 sample_rate,
                         racs_uint8 channels,
                         racs_uint8 bit_depth) {
-    if (racs_info_exist(path)) {
-        return RACS_STREAM_CONFLICT;
-    }
-
     char path[PATH_MAX];
     sprintf(path, "%s/.racs/md/", racs_config_get()->data_dir);
     strncat(path, name, size);
+
+    if (racs_info_exist(path)) {
+        return RACS_STREAM_CONFLICT;
+    }
 
     racs_fs_mkdir(path);
 

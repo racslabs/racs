@@ -216,10 +216,6 @@ void racs_cmd_create(racs_eval_ctx *ctx, size_t num_args) {
     const char *name = unpacked.data.via.str.ptr;
     size_t size = unpacked.data.via.str.size;
 
-    char path[PATH_MAX];
-    sprintf(path, "%s/.racs/md/", racs_config_get()->data_dir);
-    strncat(path, name, size);
-
     RACS_UNPACK_ARG(ctx, unpacked, offset, "CREATE error unpacking arg2");
     RACS_CHECK_INT(ctx, unpacked, "CREATE expected int at arg2");
 
@@ -235,11 +231,13 @@ void racs_cmd_create(racs_eval_ctx *ctx, size_t num_args) {
     
     racs_uint8 bit_depth = (racs_uint8) unpacked.data.via.u64;
 
-    if (racs_info_exist(path)) {
-        RACS_PACK_ERR(ctx, unpacked, "CREATE stream already exist");
+    int rc = RACS_STREAM_CREATE(name, size, sample_rate, channels, bit_depth);
+    if (rc != RACS_STREAM_OK) {
+        char err_msg[255];
+        sprintf(err_msg, "CREATE %s", racs_stream_result_string[rc]);
+        RACS_PACK_ERR(ctx, unpacked, err_msg);
     }
 
-    racs_create(path, sample_rate, channels, bit_depth);
     msgpack_sbuffer_clear(&ctx->out_buf);
 
     msgpack_packer pk;
