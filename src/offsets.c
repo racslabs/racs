@@ -4,11 +4,11 @@
 
 static racs_offsets *offsets = NULL;
 
-static racs_uint64 racs_offsets_hash_cb(const void *key);
+racs_uint64 racs_offsets_hash_cb(const void *key);
 
-static int racs_offsets_eq_cb(const void *a, const void *b);
+int racs_offsets_eq_cb(const void *a, const void *b);
 
-static void racs_offsets_destroy_cb(void *key, void *value);
+void racs_offsets_destroy_cb(void *key, void *value);
 
 
 void racs_offsets_init(void) {

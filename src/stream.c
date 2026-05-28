@@ -21,35 +21,35 @@ const char *const racs_stream_result_string[] = {
 
 static racs_streams *streams = NULL;
 
-static racs_uint64 racs_streams_hash_cb(const void *key);
+racs_uint64 racs_streams_hash_cb(const void *key);
 
-static int racs_streams_eq_cb(const void *a, const void *b);
+int racs_streams_eq_cb(const void *a, const void *b);
 
-static void racs_streams_destroy_cb(void *key, void *value);
+void racs_streams_destroy_cb(void *key, void *value);
 
-static racs_stream *racs_streams_get(racs_streams *streams, racs_uint64 hash);
+racs_stream *racs_streams_get(racs_streams *streams, racs_uint64 hash);
 
-static void racs_streams_put(racs_streams *streams, racs_uint64 hash, racs_stream *stream);
+void racs_streams_put(racs_streams *streams, racs_uint64 hash, racs_stream *stream);
 
-static racs_stream *racs_stream_open(const char *path);
+racs_stream *racs_stream_open(const char *path);
 
-static void racs_stream_chunk(racs_stream *stream,
-                              racs_uint8 *decoded_data,
-                              racs_uint32 decoded_size,
-                              racs_uint64 hash);
+void racs_stream_chunk(racs_stream *stream,
+                       racs_uint8 *decoded_data,
+                       racs_uint32 decoded_size,
+                       racs_uint64 hash);
 
-static racs_uint64 racs_stream_hash(const char *name, size_t size);
+racs_uint64 racs_stream_hash(const char *name, size_t size);
 
-static void racs_stream_destroy(racs_stream *stream);
+void racs_stream_destroy(racs_stream *stream);
 
-static racs_uint8 *racs_stream_decode(const char *mime_type,
-                                      const racs_uint8 *src,
-                                      racs_uint32 src_size,
-                                      racs_uint32 *decoded_size);
+racs_uint8 *racs_stream_decode(const char *mime_type,
+                               const racs_uint8 *src,
+                               racs_uint32 src_size,
+                               racs_uint32 *decoded_size);
 
-static racs_uint8 *racs_stream_decode_pcm(const racs_uint8 *src,
-                                          racs_uint32 src_size,
-                                          racs_uint32 *decoded_size);
+racs_uint8 *racs_stream_decode_pcm(const racs_uint8 *src,
+                                   racs_uint32 src_size,
+                                   racs_uint32 *decoded_size);
 
 
 void racs_streams_init(void) {

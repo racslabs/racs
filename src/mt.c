@@ -10,13 +10,13 @@
 #include "mmh3.h"
 
 
-static racs_uint8 *racs_mt_to_sst(racs_mt *mt, size_t *sst_size);
+racs_uint8 *racs_mt_to_sst(racs_mt *mt, size_t *sst_size);
 
-static racs_uint64 racs_mt_parts_hash_cb(const void *key);
+racs_uint64 racs_mt_parts_hash_cb(const void *key);
 
-static int racs_mt_parts_eq_cb(const void *a, const void *b);
+int racs_mt_parts_eq_cb(const void *a, const void *b);
 
-static void racs_mt_parts_destroy_cb(void *key, void *value);
+void racs_mt_parts_destroy_cb(void *key, void *value);
 
 static racs_mmt *mmt_ = NULL;
 

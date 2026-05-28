@@ -9,17 +9,17 @@
 #include "dict.h"
 
 
-static int racs_dict_resize(racs_dict *dict, size_t new_capacity);
+int racs_dict_resize(racs_dict *dict, size_t new_capacity);
 
-static size_t racs_dict_index(racs_dict *dict, const void *key);
+size_t racs_dict_index(racs_dict *dict, const void *key);
 
-static racs_dict_bucket *racs_dict_get_bucket(racs_dict *dict, const void *key);
+racs_dict_bucket *racs_dict_get_bucket(racs_dict *dict, const void *key);
 
-static int racs_dict_insert_entry(racs_dict *dict, racs_dict_bucket *bucket, void *key, void *value);
+int racs_dict_insert_entry(racs_dict *dict, racs_dict_bucket *bucket, void *key, void *value);
 
-static void racs_dict_remove_entry(racs_dict *dict, racs_dict_bucket *bucket, const void *key);
+void racs_dict_remove_entry(racs_dict *dict, racs_dict_bucket *bucket, const void *key);
 
-static int racs_dict_validate_cb(const racs_dict *dict);
+int racs_dict_validate_cb(const racs_dict *dict);
 
 
 racs_dict *racs_dict_create(const size_t capacity, racs_dict_cb cb) {

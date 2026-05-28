@@ -9,13 +9,13 @@
 #include "cache.h"
 
 
-static void racs_cache_evict(racs_cache *cache);
+void racs_cache_evict(racs_cache *cache);
 
-static racs_cache_node *racs_cache_node_create(void *key, void *value);
+racs_cache_node *racs_cache_node_create(void *key, void *value);
 
-static void racs_cache_move_to_head(racs_cache *cache, racs_cache_node *node);
+void racs_cache_move_to_head(racs_cache *cache, racs_cache_node *node);
 
-static void racs_cache_empty_destroy_cb(void *key, void *value);
+void racs_cache_empty_destroy_cb(void *key, void *value);
 
 
 racs_cache *racs_cache_create(size_t capacity, racs_cache_cb cb) {

@@ -62,6 +62,8 @@ void racs_cmd_ping(racs_eval_ctx *ctx, size_t num_args);
 
 void racs_cmd_create(racs_eval_ctx *ctx, size_t num_args);
 
+void racs_cmd_open(racs_eval_ctx *ctx, size_t num_args);
+
 
 const racs_cmd cmds[2] = {
     { "ping"  , racs_cmd_ping },
@@ -235,6 +237,33 @@ void racs_cmd_create(racs_eval_ctx *ctx, size_t num_args) {
     if (rc != RACS_STREAM_OK) {
         char err_msg[255];
         sprintf(err_msg, "CREATE %s", racs_stream_result_string[rc]);
+        RACS_PACK_ERR(ctx, unpacked, err_msg);
+    }
+
+    msgpack_sbuffer_clear(&ctx->out_buf);
+
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, &ctx->out_buf, msgpack_sbuffer_write);
+    msgpack_pack_nil(&pk);
+}
+
+void racs_cmd_open(racs_eval_ctx *ctx, size_t num_args) {
+    RACS_COUNT_ARGS(ctx, num_args, 2, "OPEN requires 2 args");
+
+    size_t offset = 0;
+    msgpack_unpacked unpacked;
+    msgpack_unpacked_init(&unpacked);
+
+    RACS_UNPACK_ARG(ctx, unpacked, offset, "CREATE error unpacking arg1");
+    RACS_CHECK_STR(ctx, unpacked, "CREATE expected string at arg1");
+
+    const char *name = unpacked.data.via.str.ptr;
+    size_t size = unpacked.data.via.str.size;
+
+    int rc = RACS_STREAM_OPEN(name, size);
+    if (rc != RACS_STREAM_OK) {
+        char err_msg[255];
+        sprintf(err_msg, "OPEN %s", racs_stream_result_string[rc]);
         RACS_PACK_ERR(ctx, unpacked, err_msg);
     }
 

@@ -11,7 +11,7 @@
 
 static racs_config *config = NULL;
 
-static int racs_config_expand_path(char **path_ptr);
+int racs_config_expand_path(char **path_ptr);
 
 
 int racs_config_expand_path(char **path_ptr) {
