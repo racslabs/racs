@@ -24,11 +24,12 @@ typedef enum {
 } racs_stream_result;
 
 typedef struct {
-    racs_uint8  id[16];
-    racs_uint32 size;
-    racs_uint32 capacity;
-    racs_uint8 *buf;
-    racs_info  *info;
+    racs_uint8       id[16];
+    racs_uint32      size;
+    racs_uint32      capacity;
+    racs_uint8      *buf;
+    racs_info       *info;
+    pthread_mutex_t  mutex;
 } racs_stream;
 
 typedef struct {
@@ -41,12 +42,18 @@ void racs_streams_init(void);
 
 int racs_streams_open(racs_streams *streams, const char *name, size_t size);
 
-int racs_streams_put(racs_streams *streams,
-                     const char *name,
-                     size_t size,
-                     const char *mime_type,
-                     const racs_uint8 *src,
-                     racs_uint32 src_size);
+int racs_streams_append(racs_streams *streams,
+                        const char *name,
+                        size_t size,
+                        const char *mime_type,
+                        const racs_uint8 *src,
+                        racs_uint32 src_size);
+
+int racs_streams_close(racs_streams *streams,
+                       const char *name,
+                       size_t size);
+
+void racs_streams_destroy(void);
 
 #ifdef __cplusplus
 }

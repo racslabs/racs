@@ -10,12 +10,18 @@ static int racs_streams_eq_cb(const void *a, const void *b);
 
 static void racs_streams_destroy_cb(void *key, void *value);
 
+static racs_stream *racs_streams_get(racs_streams *streams, racs_uint64 hash);
+
+static void racs_streams_put(racs_streams *streams, racs_uint64 hash, racs_stream *stream);
+
 static racs_stream *racs_stream_create(const char *path);
 
 static void racs_stream_chunk(racs_stream *stream,
                               racs_uint8 *decoded_data,
                               racs_uint32 decoded_size,
                               racs_uint64 hash);
+
+static racs_uint64 racs_stream_hash(const char *name, size_t size);
 
 static void racs_stream_destroy(racs_stream *stream);
 
@@ -54,17 +60,12 @@ void racs_streams_init(void) {
 }
 
 int racs_streams_open(racs_streams *streams, const char *name, size_t size) {
-    racs_uint64 *hash = malloc(2 * sizeof(racs_uint64));
-    racs_mmh3_x64_128(name, size, 0, hash);
+    racs_uint64 hash = racs_stream_hash(name, size);
 
-    pthread_mutex_lock(&streams->mutex);
-    racs_stream *stream = racs_dict_get(streams->dict, hash);
-    if (stream) {
-        free(hash);
-        pthread_mutex_unlock(&streams->mutex);
+    racs_stream *stream = racs_streams_get(streams, hash);
+     if (stream) {
         return RACS_STREAM_CONFLICT;
     }
-    pthread_mutex_unlock(&streams->mutex);
 
     char path[PATH_MAX];
     sprintf(path, "%s/.racs/md/", racs_config_get()->data_dir);
@@ -72,33 +73,25 @@ int racs_streams_open(racs_streams *streams, const char *name, size_t size) {
 
     stream = racs_stream_create(path);
     if (!stream) {
-        free(hash);
         return RACS_STREAM_ALLOC_ERR;
     }
 
-    pthread_mutex_lock(&streams->mutex);
-    racs_dict_put(streams->dict, hash, stream);
-    pthread_mutex_unlock(&streams->mutex);
-
+    racs_streams_put(streams, hash, stream);
     return RACS_STREAM_OK;
 }
 
-int racs_streams_put(racs_streams *streams,
-                     const char *name,
-                     size_t size,
-                     const char *mime_type,
-                     const racs_uint8 *src,
-                     racs_uint32 src_size) {
-    racs_uint64 hash[2];
-    racs_mmh3_x64_128(name, size, 0, hash);
+int racs_streams_append(racs_streams *streams,
+                        const char *name,
+                        size_t size,
+                        const char *mime_type,
+                        const racs_uint8 *src,
+                        racs_uint32 src_size) {
+    racs_uint64 hash = racs_stream_hash(name, size);
 
-    pthread_mutex_lock(&streams->mutex);
-    racs_stream *stream = racs_dict_get(streams->dict, &hash[0]);
+    racs_stream *stream = racs_streams_get(streams, hash);
     if (!stream) {
-        pthread_mutex_unlock(&streams->mutex);
         return RACS_STREAM_NOT_FOUND;
     }
-    pthread_mutex_unlock(&streams->mutex);
 
     racs_uint32 decoded_size;
     racs_uint8 *decoded_data = racs_stream_decode(mime_type, src, src_size, &decoded_size);
@@ -106,10 +99,7 @@ int racs_streams_put(racs_streams *streams,
         return RACS_STREAM_DECODE_ERR;
     }
 
-    pthread_mutex_lock(&streams->mutex);
-    racs_stream_chunk(stream, decoded_data, decoded_size, hash[0]);
-    pthread_mutex_unlock(&streams->mutex);
-
+    racs_stream_chunk(stream, decoded_data, decoded_size, hash);
     free(decoded_data);
 
     return RACS_STREAM_OK;
@@ -118,36 +108,71 @@ int racs_streams_put(racs_streams *streams,
 int racs_streams_close(racs_streams *streams,
                        const char *name,
                        size_t size) {
-    racs_uint64 hash[2];
-    racs_mmh3_x64_128(name, size, 0, hash);
+    racs_uint64 hash = racs_stream_hash(name, size);
 
-    pthread_mutex_lock(&streams->mutex);
-    racs_stream *stream = racs_dict_get(streams->dict, &hash[0]);
+    racs_stream *stream = racs_streams_get(streams, hash);
     if (!stream) {
-        pthread_mutex_unlock(&streams->mutex);
         return RACS_STREAM_NOT_FOUND;
     }
-    pthread_mutex_unlock(&streams->mutex);
 
     if (stream->size > 0) {
         racs_uint32 padded_size = stream->capacity - stream->size;
-        racs_uint8 *padded_data = malloc(decoded_size);
+
+        racs_uint8 *padded_data = malloc(padded_size);
         if (!padded_data) {
             return RACS_STREAM_ALLOC_ERR;
         }
 
-        pthread_mutex_lock(&streams->mutex);
-        racs_stream_chunk(stream, decoded_data, decoded_size, hash[0]);
-        pthread_mutex_unlock(&streams->mutex);
+        memset(padded_data, 0, padded_size);
+        racs_stream_chunk(stream, padded_data, padded_size, hash);
+        free(padded_data);
     }
 
     return RACS_STREAM_OK;
+}
+
+racs_stream *racs_streams_get(racs_streams *streams, racs_uint64 hash) {
+    pthread_mutex_lock(&streams->mutex);
+    racs_stream *stream = racs_dict_get(streams->dict, &hash);
+    if (!stream) {
+        pthread_mutex_unlock(&streams->mutex);
+        return NULL;
+    }
+    pthread_mutex_unlock(&streams->mutex);
+}
+
+void racs_streams_put(racs_streams *streams, racs_uint64 hash, racs_stream *stream) {
+    racs_uint64 *_hash = malloc(sizeof(racs_uint64));
+    if (!_hash) {
+        return;
+    }
+
+    *_hash = hash;
+
+    pthread_mutex_lock(&streams->mutex);
+    racs_dict_put(streams->dict, _hash, stream);
+    pthread_mutex_unlock(&streams->mutex);
+}
+
+void racs_streams_destroy(void) {
+    if (!streams) {
+        return;
+    }
+
+    if (streams->dict) {
+        racs_dict_destroy(streams->dict);
+    }
+
+    pthread_mutex_destroy(&streams->mutex);
+    free(streams);
 }
 
 void racs_stream_chunk(racs_stream *stream,
                        racs_uint8 *decoded_data,
                        racs_uint32 decoded_size,
                        racs_uint64 hash) {
+    pthread_mutex_lock(&stream->mutex);
+
     racs_uint8 *ptr = decoded_data;
     while (ptr) {
         racs_uint32 ptr_diff = ptr - decoded_data;
@@ -178,6 +203,8 @@ void racs_stream_chunk(racs_stream *stream,
             RACS_OFFSETS_PUT(hash, offset);
         }
     }
+
+    pthread_mutex_unlock(&stream->mutex);
 }
 
 racs_stream *racs_stream_create(const char *path) {
@@ -206,7 +233,7 @@ racs_stream *racs_stream_create(const char *path) {
         return NULL;
     }
 
-    munmap(info, sizeof(racs_info));
+    pthread_mutex_init(&stream->mutex, NULL);
     return stream;
 }
 
@@ -223,6 +250,7 @@ void racs_stream_destroy(racs_stream *stream) {
          munmap(stream->info, sizeof(racs_info));
     }
 
+    pthread_mutex_destroy(&stream->mutex);
     free(stream);
 }
 
@@ -250,6 +278,12 @@ racs_uint8 *racs_stream_decode_pcm(const racs_uint8 *src,
     *decoded_size = src_size;
 
     return out;
+}
+
+racs_uint64 racs_stream_hash(const char *name, size_t size) {
+    racs_uint64 hash[2];
+    racs_mmh3_x64_128(name, size, 0, hash);
+    return hash[0];
 }
 
 racs_uint64 racs_streams_hash_cb(const void *key) {
