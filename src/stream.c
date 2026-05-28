@@ -2,6 +2,16 @@
 #include "stream.h"
 
 
+typedef struct {
+    racs_uint8       id[16];
+    racs_uint32      size;
+    racs_uint32      capacity;
+    racs_uint8      *buf;
+    racs_info       *info;
+    pthread_mutex_t  mutex;
+} racs_stream;
+
+
 static racs_streams *streams = NULL;
 
 static racs_uint64 racs_streams_hash_cb(const void *key);
@@ -14,7 +24,7 @@ static racs_stream *racs_streams_get(racs_streams *streams, racs_uint64 hash);
 
 static void racs_streams_put(racs_streams *streams, racs_uint64 hash, racs_stream *stream);
 
-static racs_stream *racs_stream_create(const char *path);
+static racs_stream *racs_stream_open(const char *path);
 
 static void racs_stream_chunk(racs_stream *stream,
                               racs_uint8 *decoded_data,
@@ -59,6 +69,36 @@ void racs_streams_init(void) {
     }
 }
 
+racs_streams *racs_streams_get(void) {
+    if (!streams) {
+        return NULL;
+    }
+
+    return streams;
+}
+
+int racs_streams_create(const char *name,
+                        size_t size,
+                        racs_uint32 sample_rate,
+                        racs_uint8 channels,
+                        racs_uint8 bit_depth) {
+    if (racs_info_exist(path)) {
+        return RACS_STREAM_CONFLICT;
+    }
+
+    char path[PATH_MAX];
+    sprintf(path, "%s/.racs/md/", racs_config_get()->data_dir);
+    strncat(path, name, size);
+
+    racs_fs_mkdir(path);
+
+    racs_info *info = racs_info_create(sample_rate, channels, bit_depth);
+    racs_info_flush(info, path);
+    racs_info_destroy(info);
+
+    return RACS_STREAM_OK;
+}
+
 int racs_streams_open(racs_streams *streams, const char *name, size_t size) {
     racs_uint64 hash = racs_stream_hash(name, size);
 
@@ -71,9 +111,9 @@ int racs_streams_open(racs_streams *streams, const char *name, size_t size) {
     sprintf(path, "%s/.racs/md/", racs_config_get()->data_dir);
     strncat(path, name, size);
 
-    stream = racs_stream_create(path);
+    stream = racs_stream_open(path);
     if (!stream) {
-        return RACS_STREAM_ALLOC_ERR;
+        return RACS_STREAM_NOT_FOUND;
     }
 
     racs_streams_put(streams, hash, stream);
@@ -207,7 +247,7 @@ void racs_stream_chunk(racs_stream *stream,
     pthread_mutex_unlock(&stream->mutex);
 }
 
-racs_stream *racs_stream_create(const char *path) {
+racs_stream *racs_stream_open(const char *path) {
     racs_info *info = racs_info_open(path);
     if (!info) {
         return NULL;

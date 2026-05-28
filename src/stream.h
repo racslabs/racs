@@ -15,6 +15,22 @@ extern "C" {
 #include "racs_zstd.h"
 
 
+#define RACS_STREAM_CREATE(name, size, sample_rate, channels, bit_depth) \
+    racs_streams_create(name, size, sample_rate, channels, bit_depth);
+
+
+#define RACS_STREAM_OPEN(name, size) \
+    (racs_streams_get() != NULL) ? racs_streams_open(racs_streams_get(), name, size) : RACS_STREAM_ALLOC_ERR;
+
+
+#define RACS_STREAM_CLOSE(name, size) \
+    (racs_streams_get() != NULL) ? racs_streams_close(racs_streams_get(), name, size) : RACS_STREAM_ALLOC_ERR;
+
+
+#define RACS_STREAM_APPEND(name, size, mime_type, src, src_size) \
+    (racs_streams_get() != NULL) ? racs_streams_append(racs_streams_get(), name, size, mime_type, src, src_size) : RACS_STREAM_ALLOC_ERR;
+
+
 typedef enum {
     RACS_STREAM_OK,
     RACS_STREAM_NOT_FOUND,
@@ -24,21 +40,20 @@ typedef enum {
 } racs_stream_result;
 
 typedef struct {
-    racs_uint8       id[16];
-    racs_uint32      size;
-    racs_uint32      capacity;
-    racs_uint8      *buf;
-    racs_info       *info;
-    pthread_mutex_t  mutex;
-} racs_stream;
-
-typedef struct {
     racs_dict       *dict;
     pthread_mutex_t  mutex;
 } racs_streams;
 
 
 void racs_streams_init(void);
+
+racs_streams *racs_streams_get(void);
+
+int racs_streams_create(const char *name,
+                        size_t size,
+                        racs_uint32 sample_rate,
+                        racs_uint8 channels,
+                        racs_uint8 bit_depth);
 
 int racs_streams_open(racs_streams *streams, const char *name, size_t size);
 
