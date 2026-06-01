@@ -27,9 +27,9 @@ int racs_streams_eq_cb(const void *a, const void *b);
 
 void racs_streams_destroy_cb(void *key, void *value);
 
-racs_stream *racs_streams_get(racs_streams *streams, racs_uint64 hash);
+racs_stream *racs_streams_sget(racs_streams *streams, racs_uint64 hash);
 
-void racs_streams_put(racs_streams *streams, racs_uint64 hash, racs_stream *stream);
+void racs_streams_sput(racs_streams *streams, racs_uint64 hash, racs_stream *stream);
 
 racs_stream *racs_stream_open(const char *path);
 
@@ -76,7 +76,7 @@ void racs_streams_init(void) {
     }
 }
 
-racs_streams *racs_streams_get_(void) {
+racs_streams *racs_streams_get(void) {
     if (!streams_) {
         return NULL;
     }
@@ -109,7 +109,7 @@ int racs_streams_create(const char *name,
 int racs_streams_open(racs_streams *streams, const char *name, size_t size) {
     racs_uint64 hash = racs_stream_hash(name, size);
 
-    racs_stream *stream = racs_streams_get(streams, hash);
+    racs_stream *stream = racs_streams_sget(streams, hash);
      if (stream) {
         return RACS_STREAM_CONFLICT;
     }
@@ -123,7 +123,7 @@ int racs_streams_open(racs_streams *streams, const char *name, size_t size) {
         return RACS_STREAM_NOT_FOUND;
     }
 
-    racs_streams_put(streams, hash, stream);
+    racs_streams_sput(streams, hash, stream);
     return RACS_STREAM_OK;
 }
 
@@ -135,7 +135,7 @@ int racs_streams_append(racs_streams *streams,
                         racs_uint32 src_size) {
     racs_uint64 hash = racs_stream_hash(name, size);
 
-    racs_stream *stream = racs_streams_get(streams, hash);
+    racs_stream *stream = racs_streams_sget(streams, hash);
     if (!stream) {
         return RACS_STREAM_NOT_FOUND;
     }
@@ -157,7 +157,7 @@ int racs_streams_close(racs_streams *streams,
                        size_t size) {
     racs_uint64 hash = racs_stream_hash(name, size);
 
-    racs_stream *stream = racs_streams_get(streams, hash);
+    racs_stream *stream = racs_streams_sget(streams, hash);
     if (!stream) {
         return RACS_STREAM_NOT_FOUND;
     }
@@ -178,7 +178,7 @@ int racs_streams_close(racs_streams *streams,
     return RACS_STREAM_OK;
 }
 
-racs_stream *racs_streams_get(racs_streams *streams, racs_uint64 hash) {
+racs_stream *racs_streams_sget(racs_streams *streams, racs_uint64 hash) {
     pthread_mutex_lock(&streams->mutex);
 
     racs_stream *stream = racs_dict_get(streams->dict, &hash);
@@ -191,7 +191,7 @@ racs_stream *racs_streams_get(racs_streams *streams, racs_uint64 hash) {
     return stream;
 }
 
-void racs_streams_put(racs_streams *streams, racs_uint64 hash, racs_stream *stream) {
+void racs_streams_sput(racs_streams *streams, racs_uint64 hash, racs_stream *stream) {
     racs_uint64 *_hash = malloc(sizeof(racs_uint64));
     if (!_hash) {
         return;

@@ -244,9 +244,10 @@ void racs_cmd_create(racs_eval_ctx *ctx, size_t num_args) {
     
     racs_uint8 bit_depth = (racs_uint8) unpacked.data.via.u64;
 
-    int result = RACS_STREAM_CREATE(name, size, sample_rate, channels, bit_depth);
+    int result = racs_streams_create(name, size, sample_rate, channels, bit_depth);
+
     if (result != RACS_STREAM_OK) {
-        char err_msg[255];
+        char err_msg[55];
         sprintf(err_msg, "CREATE %s", racs_stream_result_string[result]);
         RACS_PACK_ERR(ctx, unpacked, err_msg);
     }
@@ -270,9 +271,11 @@ void racs_cmd_open(racs_eval_ctx *ctx, size_t num_args) {
     const char *name = unpacked.data.via.str.ptr;
     size_t size = unpacked.data.via.str.size;
 
-    int result = RACS_STREAM_OPEN(name, size);
+    racs_streams *streams = racs_streams_get();
+    int result = racs_streams_open(streams, name, size);
+
     if (result != RACS_STREAM_OK) {
-        char err_msg[255];
+        char err_msg[55];
         sprintf(err_msg, "OPEN %s", racs_stream_result_string[result]);
         RACS_PACK_ERR(ctx, unpacked, err_msg);
     }
@@ -310,9 +313,11 @@ void racs_cmd_stream(racs_eval_ctx *ctx, size_t num_args) {
 
     mime_type = strndup(mime_type, mime_size);
 
-    int result = RACS_STREAM_APPEND(name, size, mime_type, src, src_size);
+    racs_streams *streams = racs_streams_get();
+    int result = racs_streams_append(streams, name, size, mime_type, src, src_size);
+
     if (result != RACS_STREAM_OK) {
-        char err_msg[255];
+        char err_msg[55];
         sprintf(err_msg, "STREAM %s", racs_stream_result_string[result]);
 
         free(mime_type);

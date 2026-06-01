@@ -15,22 +15,6 @@ extern "C" {
 #include "racs_zstd.h"
 
 
-#define RACS_STREAM_CREATE(name, size, sample_rate, channels, bit_depth) \
-    racs_streams_create(name, size, sample_rate, channels, bit_depth);
-
-
-#define RACS_STREAM_OPEN(name, size) \
-    (racs_streams_get_() != NULL) ? racs_streams_open(racs_streams_get_(), name, size) : RACS_STREAM_ALLOC_ERR;
-
-
-#define RACS_STREAM_CLOSE(name, size) \
-    (racs_streams_get_() != NULL) ? racs_streams_close(racs_streams_get_(), name, size) : RACS_STREAM_ALLOC_ERR;
-
-
-#define RACS_STREAM_APPEND(name, size, mime_type, src, src_size) \
-    (racs_streams_get_() != NULL) ? racs_streams_append(racs_streams_get_(), name, size, mime_type, src, src_size) : RACS_STREAM_ALLOC_ERR;
-
-
 typedef enum {
     RACS_STREAM_OK,
     RACS_STREAM_NOT_FOUND,
@@ -50,7 +34,7 @@ extern const char *const racs_stream_result_string[];
 
 void racs_streams_init(void);
 
-racs_streams *racs_streams_get_(void);
+racs_streams *racs_streams_get(void);
 
 int racs_streams_create(const char *name,
                         size_t size,
