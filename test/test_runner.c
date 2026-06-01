@@ -10,11 +10,26 @@
 #include "fs_test.h"
 
 
-void setUp(void) {}
-void tearDown(void) {}
+void setUp(void) {
+}
 
+void tearDown(void) {
+}
+
+
+static void before_all(void) {
+    racs_config_load("test-conf.yaml");
+
+    racs_mmt_init();
+    racs_mmt_flusher_start(racs_mmt_get());
+
+    racs_offsets_init();
+    racs_streams_init();
+}
 
 int main(void) {
+    before_all();
+
     UNITY_BEGIN();
     RUN_TEST(test_dict_get);
     RUN_TEST(test_dict_overwrite);
@@ -35,6 +50,8 @@ int main(void) {
     RUN_TEST(test_mmt_put);
     RUN_TEST(test_eval_ping);
     RUN_TEST(test_eval_create);
-    RUN_TEST(test_fs_fname);
+    RUN_TEST(test_eval_open);
+    RUN_TEST(test_eval_stream);
+
     return UNITY_END();
 }

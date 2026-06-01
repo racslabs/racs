@@ -17,8 +17,6 @@ void test_path_expand(void) {
 }
 
 void test_path_from_time(void) {
-    racs_config_load("test-conf.yaml");
-
     char path1[PATH_MAX];
     char path2[PATH_MAX];
     char *home = getenv("HOME");
@@ -27,13 +25,9 @@ void test_path_from_time(void) {
     racs_path_from_time(path2, 1ULL, 1714838400123LL);
 
     TEST_ASSERT_EQUAL_STRING(path1, path2);
-
-    racs_config_destroy();
 }
 
 void test_path_from_range(void) {
-    racs_config_load("test-conf.yaml");
-
     char path1[PATH_MAX];
     char path2[PATH_MAX];
     char *home = getenv("HOME");
@@ -47,8 +41,6 @@ void test_path_from_range(void) {
     racs_path_from_range(path2, 123ULL, range);
 
     TEST_ASSERT_EQUAL_STRING(path1, path2);
-
-    racs_config_destroy();
 }
 
 void test_path_resolve(void) {

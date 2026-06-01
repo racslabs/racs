@@ -19,7 +19,7 @@ const char *const racs_stream_result_string[] = {
     "stream allocation error"
 };
 
-static racs_streams *streams = NULL;
+static racs_streams *streams_ = NULL;
 
 racs_uint64 racs_streams_hash_cb(const void *key);
 
@@ -34,7 +34,7 @@ void racs_streams_put(racs_streams *streams, racs_uint64 hash, racs_stream *stre
 racs_stream *racs_stream_open(const char *path);
 
 void racs_stream_chunk(racs_stream *stream,
-                       racs_uint8 *decoded_data,
+                       const racs_uint8 *decoded_data,
                        racs_uint32 decoded_size,
                        racs_uint64 hash);
 
@@ -53,7 +53,7 @@ racs_uint8 *racs_stream_decode_pcm(const racs_uint8 *src,
 
 
 void racs_streams_init(void) {
-    if (!streams) {
+    if (!streams_) {
         racs_dict_cb cb = {
             .hash = racs_streams_hash_cb,
             .eq = racs_streams_eq_cb,
@@ -65,23 +65,23 @@ void racs_streams_init(void) {
             exit(-1);
         }
 
-        streams = malloc(sizeof(racs_streams));
-        if (!streams) {
+        streams_ = malloc(sizeof(racs_streams));
+        if (!streams_) {
             racs_dict_destroy(dict);
             exit(-1);
         }
 
-        pthread_mutex_init(&streams->mutex, NULL);
-        streams->dict = dict;
+        pthread_mutex_init(&streams_->mutex, NULL);
+        streams_->dict = dict;
     }
 }
 
 racs_streams *racs_streams_get_(void) {
-    if (!streams) {
+    if (!streams_) {
         return NULL;
     }
 
-    return streams;
+    return streams_;
 }
 
 int racs_streams_create(const char *name,
@@ -180,12 +180,15 @@ int racs_streams_close(racs_streams *streams,
 
 racs_stream *racs_streams_get(racs_streams *streams, racs_uint64 hash) {
     pthread_mutex_lock(&streams->mutex);
+
     racs_stream *stream = racs_dict_get(streams->dict, &hash);
     if (!stream) {
         pthread_mutex_unlock(&streams->mutex);
         return NULL;
     }
+
     pthread_mutex_unlock(&streams->mutex);
+    return stream;
 }
 
 void racs_streams_put(racs_streams *streams, racs_uint64 hash, racs_stream *stream) {
@@ -202,35 +205,33 @@ void racs_streams_put(racs_streams *streams, racs_uint64 hash, racs_stream *stre
 }
 
 void racs_streams_destroy(void) {
-    if (!streams) {
+    if (!streams_) {
         return;
     }
 
-    if (streams->dict) {
-        racs_dict_destroy(streams->dict);
+    if (streams_->dict) {
+        racs_dict_destroy(streams_->dict);
     }
 
-    pthread_mutex_destroy(&streams->mutex);
-    free(streams);
+    pthread_mutex_destroy(&streams_->mutex);
+    free(streams_);
 }
 
 void racs_stream_chunk(racs_stream *stream,
-                       racs_uint8 *decoded_data,
+                       const racs_uint8 *decoded_data,
                        racs_uint32 decoded_size,
                        racs_uint64 hash) {
     pthread_mutex_lock(&stream->mutex);
 
-    racs_uint8 *ptr = decoded_data;
-    while (ptr) {
-        racs_uint32 ptr_diff = ptr - decoded_data;
-
+    racs_uint32 bytes_read = 0;
+    while (bytes_read < decoded_size) {
         racs_uint32 b_bytes = stream->capacity - stream->size;
-        racs_uint32 r_bytes = decoded_size - ptr_diff;
+        racs_uint32 r_bytes = decoded_size - bytes_read;
         racs_uint32 w_bytes = (r_bytes > b_bytes) ? b_bytes : r_bytes;
 
-        memcpy(stream->buf, ptr, w_bytes);
+        memcpy(stream->buf + stream->size, decoded_data + bytes_read, w_bytes);
 
-        ptr += w_bytes;
+        bytes_read += w_bytes;
         stream->size += w_bytes;
 
         if (stream->size >= stream->capacity) {
@@ -239,15 +240,16 @@ void racs_stream_chunk(racs_stream *stream,
             racs_uint64 key[3] = { hash, time, 0 };
 
             size_t compressed_size;
-            racs_uint8 *compressed_block = racs_zstd_compress(ptr, stream->size, &compressed_size, 3);
+            racs_uint8 *compressed_block = racs_zstd_compress(decoded_data + bytes_read, stream->size, &compressed_size, 3);
 
             racs_uint32 checksum = crc32c(0, stream->buf, stream->size);
             RACS_MMT_PUT(key, compressed_block, compressed_size, checksum, 0);
-
             free(compressed_block);
 
             offset += stream->size;
             RACS_OFFSETS_PUT(hash, offset);
+
+            stream->size = 0;
         }
     }
 

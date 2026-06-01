@@ -43,12 +43,13 @@ log_dir: "${HOME}"
 memtable:
   # Number of memtables that can reside in memory simultaneously.
   # Each memtable holds a portion of incoming audio data before being flushed.
-  tables: 4
+  tables: 2
 
   # Maximum number of audio blocks that each memtable can store before flush.
   # Once this limit is reached, the memtable is serialized to disk and cleared.
-  entries: 2
+  entries: 1
 
+  # Number of samples stored in each audio block.
   samples_per_block: 1024
 
 

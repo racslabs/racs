@@ -91,7 +91,9 @@ void racs_mmt_init(void);
 
 racs_mmt *racs_mmt_get(void);
 
-void racs_mmt_flush_start(racs_mmt *mmt);
+void racs_mmt_flusher_start(racs_mmt *mmt);
+
+void racs_mmt_flusher_stop(racs_mmt *mmt);
 
 void *racs_mmt_flush_worker(void* arg);
 

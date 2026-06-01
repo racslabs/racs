@@ -17,6 +17,14 @@ do { \
 } while(0)
 
 
+#define RACS_CHECK_BIN(ctx, unpacked, err_msg) \
+do { \
+    if ((unpacked).data.type != MSGPACK_OBJECT_BIN) { \
+        RACS_PACK_ERR((ctx), (unpacked), (err_msg)); \
+    } \
+} while(0)
+
+
 #define RACS_CHECK_INT(ctx, unpacked, err_msg) \
 do { \
     if ((unpacked).data.type != MSGPACK_OBJECT_POSITIVE_INTEGER) { \
@@ -64,10 +72,14 @@ void racs_cmd_create(racs_eval_ctx *ctx, size_t num_args);
 
 void racs_cmd_open(racs_eval_ctx *ctx, size_t num_args);
 
+void racs_cmd_stream(racs_eval_ctx *ctx, size_t num_args);
 
-const racs_cmd cmds[2] = {
+
+const racs_cmd cmds[4] = {
     { "ping"  , racs_cmd_ping },
-    { "create", racs_cmd_create }
+    { "create", racs_cmd_create },
+    { "open"  , racs_cmd_open },
+    { "stream", racs_cmd_stream },
 };
 
 
@@ -84,7 +96,7 @@ void racs_eval(racs_eval_ctx *ctx, const racs_uint8 *source, size_t size) {
 
     if (result != MSGPACK_UNPACK_SUCCESS && result != MSGPACK_UNPACK_EXTRA_BYTES) {
         ctx->has_error = 1;
-        racs_pack_err(&ctx->out_buf, "MsgPack parsing failed");
+        racs_pack_err(&ctx->out_buf, "error parsing msgpack");
 
         msgpack_unpacked_destroy(&unpacked);
         return;
@@ -101,7 +113,7 @@ void racs_eval_node(racs_eval_ctx *ctx, msgpack_object obj) {
 
     if (++ctx->depth > RACS_MAX_RECURSION_DEPTH) {
         ctx->has_error = 1;
-        racs_pack_err(&ctx->out_buf, "Max recursion depth exceeded");
+        racs_pack_err(&ctx->out_buf, "max recursion depth exceeded");
         ctx->depth--;
         return;
     }
@@ -114,14 +126,14 @@ void racs_eval_node(racs_eval_ctx *ctx, msgpack_object obj) {
 
     if (obj.via.array.size == 0) {
         ctx->has_error = 1;
-        racs_pack_err(&ctx->out_buf, "Empty S-expression");
+        racs_pack_err(&ctx->out_buf, "empty s-expression");
         ctx->depth--;
         return;
     }
 
     if (obj.via.array.ptr[0].type != MSGPACK_OBJECT_STR) {
         ctx->has_error = 1;
-        racs_pack_err(&ctx->out_buf, "Command must be a string");
+        racs_pack_err(&ctx->out_buf, "command must be a string");
         ctx->depth--;
         return;
     }
@@ -134,7 +146,7 @@ void racs_eval_node(racs_eval_ctx *ctx, msgpack_object obj) {
         ctx->has_error = 1;
 
         char msg[255];
-        snprintf(msg, sizeof(msg), "Unknown command: %.*s", (int)size, name);
+        snprintf(msg, sizeof(msg), "unknown command: %.*s", (int)size, name);
 
         racs_pack_err(&ctx->out_buf, msg);
         ctx->depth--;
@@ -199,7 +211,6 @@ void racs_cmd_ping(racs_eval_ctx *ctx, size_t num_args) {
     RACS_COUNT_ARGS(ctx, num_args, 0, "PING requires 0 args");
 
     msgpack_sbuffer_clear(&ctx->out_buf);
-
     msgpack_packer pk;
     msgpack_packer_init(&pk, &ctx->out_buf, msgpack_sbuffer_write);
     msgpack_pack_str_with_body(&pk, "pong", 4);
@@ -233,22 +244,21 @@ void racs_cmd_create(racs_eval_ctx *ctx, size_t num_args) {
     
     racs_uint8 bit_depth = (racs_uint8) unpacked.data.via.u64;
 
-    int rc = RACS_STREAM_CREATE(name, size, sample_rate, channels, bit_depth);
-    if (rc != RACS_STREAM_OK) {
+    int result = RACS_STREAM_CREATE(name, size, sample_rate, channels, bit_depth);
+    if (result != RACS_STREAM_OK) {
         char err_msg[255];
-        sprintf(err_msg, "CREATE %s", racs_stream_result_string[rc]);
+        sprintf(err_msg, "CREATE %s", racs_stream_result_string[result]);
         RACS_PACK_ERR(ctx, unpacked, err_msg);
     }
 
     msgpack_sbuffer_clear(&ctx->out_buf);
-
     msgpack_packer pk;
     msgpack_packer_init(&pk, &ctx->out_buf, msgpack_sbuffer_write);
     msgpack_pack_nil(&pk);
 }
 
 void racs_cmd_open(racs_eval_ctx *ctx, size_t num_args) {
-    RACS_COUNT_ARGS(ctx, num_args, 2, "OPEN requires 2 args");
+    RACS_COUNT_ARGS(ctx, num_args, 1, "OPEN requires 1 arg");
 
     size_t offset = 0;
     msgpack_unpacked unpacked;
@@ -260,15 +270,58 @@ void racs_cmd_open(racs_eval_ctx *ctx, size_t num_args) {
     const char *name = unpacked.data.via.str.ptr;
     size_t size = unpacked.data.via.str.size;
 
-    int rc = RACS_STREAM_OPEN(name, size);
-    if (rc != RACS_STREAM_OK) {
+    int result = RACS_STREAM_OPEN(name, size);
+    if (result != RACS_STREAM_OK) {
         char err_msg[255];
-        sprintf(err_msg, "OPEN %s", racs_stream_result_string[rc]);
+        sprintf(err_msg, "OPEN %s", racs_stream_result_string[result]);
         RACS_PACK_ERR(ctx, unpacked, err_msg);
     }
 
     msgpack_sbuffer_clear(&ctx->out_buf);
+    msgpack_packer pk;
+    msgpack_packer_init(&pk, &ctx->out_buf, msgpack_sbuffer_write);
+    msgpack_pack_nil(&pk);
+}
 
+void racs_cmd_stream(racs_eval_ctx *ctx, size_t num_args) {
+    RACS_COUNT_ARGS(ctx, num_args, 3, "STREAM requires 3 arg");
+
+    size_t offset = 0;
+    msgpack_unpacked unpacked;
+    msgpack_unpacked_init(&unpacked);
+
+    RACS_UNPACK_ARG(ctx, unpacked, offset, "STREAM error unpacking arg1");
+    RACS_CHECK_STR(ctx, unpacked, "STREAM expected string at arg1");
+
+    const char *name = unpacked.data.via.str.ptr;
+    size_t size = unpacked.data.via.str.size;
+
+    RACS_UNPACK_ARG(ctx, unpacked, offset, "STREAM error unpacking arg2");
+    RACS_CHECK_STR(ctx, unpacked, "STREAM expected string at arg2");
+
+    char *mime_type = unpacked.data.via.str.ptr;
+    size_t mime_size = unpacked.data.via.str.size;
+
+    RACS_UNPACK_ARG(ctx, unpacked, offset, "STREAM error unpacking arg3");
+    RACS_CHECK_BIN(ctx, unpacked, "STREAM expected string at arg3");
+
+    racs_uint8 *src = unpacked.data.via.bin.ptr;
+    size_t src_size = unpacked.data.via.bin.size;
+
+    mime_type = strndup(mime_type, mime_size);
+
+    int result = RACS_STREAM_APPEND(name, size, mime_type, src, src_size);
+    if (result != RACS_STREAM_OK) {
+        char err_msg[255];
+        sprintf(err_msg, "STREAM %s", racs_stream_result_string[result]);
+
+        free(mime_type);
+        RACS_PACK_ERR(ctx, unpacked, err_msg);
+    }
+
+    free(mime_type);
+
+    msgpack_sbuffer_clear(&ctx->out_buf);
     msgpack_packer pk;
     msgpack_packer_init(&pk, &ctx->out_buf, msgpack_sbuffer_write);
     msgpack_pack_nil(&pk);

@@ -79,10 +79,16 @@ racs_mt* racs_mmt_iter_next(racs_mmt_iter *iter) {
     return next ? next->mt : NULL;
 }
 
-void racs_mmt_flush_start(racs_mmt *mmt) {
+void racs_mmt_flusher_start(racs_mmt *mmt) {
     pthread_t thread;
     pthread_create(&thread, NULL, racs_mmt_flush_worker, mmt);
     pthread_detach(thread);
+}
+
+void racs_mmt_flusher_stop(racs_mmt *mmt) {
+    pthread_mutex_lock(&mmt->mutex);
+    mmt->is_running = 0;
+    pthread_mutex_unlock(&mmt->mutex);
 }
 
 void *racs_mmt_flush_worker(void* arg) {
@@ -310,18 +316,20 @@ void racs_mt_put(racs_mt *mt,
         return;
     }
 
-    mt->entries[mt->num_entries].block = malloc(block_size);
-    if (!mt->entries[mt->num_entries].block) {
+    racs_mt_entry *entry = &mt->entries[mt->num_entries];
+
+    entry->block = malloc(block_size);
+    if (!entry->block) {
         pthread_mutex_unlock(&mt->mutex);
         return;
     }
 
-    memcpy(mt->entries[mt->num_entries].key, key, sizeof(racs_uint64) * 3);
-    mt->entries[mt->num_entries].lsn = lsn;
-    mt->entries[mt->num_entries].block_size = block_size;
-    mt->entries[mt->num_entries].checksum = checksum;
+    memcpy(entry->key, key, sizeof(racs_uint64) * 3);
+    entry->lsn = lsn;
+    entry->block_size = block_size;
+    entry->checksum = checksum;
 
-    memcpy(mt->entries[mt->num_entries].block, block, block_size);
+    memcpy(entry->block, block, block_size);
     ++mt->num_entries;
 
     pthread_mutex_unlock(&mt->mutex);
