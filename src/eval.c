@@ -62,7 +62,7 @@ typedef struct {
 
 void racs_eval_node(racs_eval_ctx *ctx, msgpack_object obj);
 
-racs_cmd_func racs_cmd_lookup(const char *name, size_t size);
+racs_cmd_func racs_cmd_lookup(const char *name);
 
 // Command declarations
 
@@ -141,8 +141,11 @@ void racs_eval_node(racs_eval_ctx *ctx, msgpack_object obj) {
     const char *name = obj.via.array.ptr[0].via.str.ptr;
     size_t size = obj.via.array.ptr[0].via.str.size;
 
-    racs_cmd_func func = racs_cmd_lookup(name, size);
+    char *s_name = strndup(name, size);
+
+    racs_cmd_func func = racs_cmd_lookup(s_name);
     if (!func) {
+        free(s_name);
         ctx->has_error = 1;
 
         char msg[255];
@@ -153,6 +156,7 @@ void racs_eval_node(racs_eval_ctx *ctx, msgpack_object obj) {
         return;
     }
 
+    free(s_name);
     size_t num_args = obj.via.array.size - 1;
 
     for (size_t i = 0; i < num_args; i++) {
@@ -172,13 +176,7 @@ void racs_eval_ctx_init(racs_eval_ctx *ctx) {
         return;
     }
 
-    ctx->depth = 0;
-    ctx->has_error = 0;
-
-    ctx->sample_rate = 0;
-    ctx->channels = 0;
-    ctx->bit_depth = 0;
-
+    memset(ctx, 0, sizeof(racs_eval_ctx));
     msgpack_sbuffer_init(&ctx->out_buf);
 }
 
@@ -190,13 +188,13 @@ void racs_eval_ctx_cleanup(racs_eval_ctx *ctx) {
     msgpack_sbuffer_destroy(&ctx->out_buf);
 }
 
-racs_cmd_func racs_cmd_lookup(const char *name, size_t size) {
+racs_cmd_func racs_cmd_lookup(const char *name) {
     size_t num_cmds = sizeof(cmds) / sizeof(cmds[0]);
 
     for (size_t i = 0; i < num_cmds; i++) {
         racs_cmd cmd = cmds[i];
 
-        if (size == strlen(cmd.name) && memcmp(cmd.name, name, size) == 0) {
+        if (strlen(name) == strlen(cmd.name) && strcmp(cmd.name, name) == 0) {
             return cmd.func;
         }
     }
@@ -244,13 +242,18 @@ void racs_cmd_create(racs_eval_ctx *ctx, size_t num_args) {
     
     racs_uint8 bit_depth = (racs_uint8) unpacked.data.via.u64;
 
-    int result = racs_streams_create(name, size, sample_rate, channels, bit_depth);
+    char *s_name = strndup(name, size);
+    int result = racs_streams_create(name, sample_rate, channels, bit_depth);
 
     if (result != RACS_STREAM_OK) {
         char err_msg[55];
         sprintf(err_msg, "CREATE %s", racs_stream_result_string[result]);
+
+        free(s_name);
         RACS_PACK_ERR(ctx, unpacked, err_msg);
     }
+
+    free(s_name);
 
     msgpack_sbuffer_clear(&ctx->out_buf);
     msgpack_packer pk;
@@ -271,14 +274,20 @@ void racs_cmd_open(racs_eval_ctx *ctx, size_t num_args) {
     const char *name = unpacked.data.via.str.ptr;
     size_t size = unpacked.data.via.str.size;
 
+    char *s_name = strndup(name, size);
+
     racs_streams *streams = racs_streams_get();
-    int result = racs_streams_open(streams, name, size);
+    int result = racs_streams_open(streams, s_name);
 
     if (result != RACS_STREAM_OK) {
         char err_msg[55];
         sprintf(err_msg, "OPEN %s", racs_stream_result_string[result]);
+
+        free(s_name);
         RACS_PACK_ERR(ctx, unpacked, err_msg);
     }
+
+    free(s_name);
 
     msgpack_sbuffer_clear(&ctx->out_buf);
     msgpack_packer pk;
@@ -302,29 +311,32 @@ void racs_cmd_stream(racs_eval_ctx *ctx, size_t num_args) {
     RACS_UNPACK_ARG(ctx, unpacked, offset, "STREAM error unpacking arg2");
     RACS_CHECK_STR(ctx, unpacked, "STREAM expected string at arg2");
 
-    char *mime_type = unpacked.data.via.str.ptr;
+    const char *mime_type = unpacked.data.via.str.ptr;
     size_t mime_size = unpacked.data.via.str.size;
 
     RACS_UNPACK_ARG(ctx, unpacked, offset, "STREAM error unpacking arg3");
     RACS_CHECK_BIN(ctx, unpacked, "STREAM expected string at arg3");
 
-    racs_uint8 *src = unpacked.data.via.bin.ptr;
+    const racs_uint8 *src = unpacked.data.via.bin.ptr;
     size_t src_size = unpacked.data.via.bin.size;
 
-    mime_type = strndup(mime_type, mime_size);
+    char *s_name = strndup(name, size);
+    char *s_mime_type = strndup(mime_type, mime_size);
 
     racs_streams *streams = racs_streams_get();
-    int result = racs_streams_append(streams, name, size, mime_type, src, src_size);
+    int result = racs_streams_append(streams, s_name, s_mime_type, src, src_size);
 
     if (result != RACS_STREAM_OK) {
         char err_msg[55];
         sprintf(err_msg, "STREAM %s", racs_stream_result_string[result]);
 
-        free(mime_type);
+        free(s_name);
+        free(s_mime_type);
         RACS_PACK_ERR(ctx, unpacked, err_msg);
     }
 
-    free(mime_type);
+    free(s_name);
+    free(s_mime_type);
 
     msgpack_sbuffer_clear(&ctx->out_buf);
     msgpack_packer pk;

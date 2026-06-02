@@ -23,14 +23,6 @@ extern "C" {
 #include <pthread.h>
 
 
-#define RACS_MMT_PUT(key, block, size, checksum, lsn) \
-do { \
-    if (racs_mmt_get()) { \
-        racs_mmt_put(racs_mmt_get(), key, block, size, checksum, lsn); \
-    } \
-} while(0)
-
-
 typedef enum {
     RACS_MT_STATE_ACTIVE,
     RACS_MT_STATE_IMMUTABLE,

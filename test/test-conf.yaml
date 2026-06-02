@@ -50,7 +50,7 @@ memtable:
   entries: 1
 
   # Number of samples stored in each audio block.
-  samples_per_block: 1024
+  samples_per_block: 4096
 
 
 # ---------------------------------------------------------------------------

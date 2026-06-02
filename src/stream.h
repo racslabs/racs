@@ -37,23 +37,19 @@ void racs_streams_init(void);
 racs_streams *racs_streams_get(void);
 
 int racs_streams_create(const char *name,
-                        size_t size,
                         racs_uint32 sample_rate,
                         racs_uint8 channels,
                         racs_uint8 bit_depth);
 
-int racs_streams_open(racs_streams *streams, const char *name, size_t size);
+int racs_streams_open(racs_streams *streams, const char *name);
 
 int racs_streams_append(racs_streams *streams,
                         const char *name,
-                        size_t size,
                         const char *mime_type,
                         const racs_uint8 *src,
                         racs_uint32 src_size);
 
-int racs_streams_close(racs_streams *streams,
-                       const char *name,
-                       size_t size);
+int racs_streams_close(racs_streams *streams, const char *name);
 
 void racs_streams_destroy(void);
 

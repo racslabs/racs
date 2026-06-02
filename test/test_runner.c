@@ -52,6 +52,7 @@ int main(void) {
     RUN_TEST(test_eval_create);
     RUN_TEST(test_eval_open);
     RUN_TEST(test_eval_stream);
+    RUN_TEST(test_fs_fname);
 
     return UNITY_END();
 }
