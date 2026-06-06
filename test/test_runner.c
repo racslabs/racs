@@ -1,4 +1,5 @@
 #include "unity.h"
+#include "queue_test.h"
 #include "dict_test.h"
 #include "cache_test.h"
 #include "config_test.h"
@@ -31,6 +32,7 @@ int main(void) {
     before_all();
 
     UNITY_BEGIN();
+    RUN_TEST(test_queue);
     RUN_TEST(test_dict_get);
     RUN_TEST(test_dict_overwrite);
     RUN_TEST(test_dict_collision);
