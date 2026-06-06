@@ -6,33 +6,14 @@
 extern "C" {
 #endif
 
-#include "stream.h"
-#include "config.h"
-#include "types.h"
-#include "pack.h"
+
+#include "cmd.h"
 #include <ctype.h>
 
 
-#define RACS_EXT_ERR 42
-
 #define RACS_MAX_RECURSION_DEPTH 100
 
-
-typedef struct {
-    int             depth;
-    int             has_error;
-    racs_uint32     sample_rate;
-    racs_uint8      channels;
-    racs_uint8      bit_depth;
-    msgpack_sbuffer out_buf;
-} racs_eval_ctx;
-
-
-void racs_eval_ctx_init(racs_eval_ctx *ctx);
-
-void racs_eval_ctx_cleanup(racs_eval_ctx *ctx);
-
-void racs_eval(racs_eval_ctx *ctx, const racs_uint8 *source, size_t size);
+void racs_eval(racs_ctx *ctx, const racs_uint8 *src, size_t size);
 
 
 #ifdef __cplusplus

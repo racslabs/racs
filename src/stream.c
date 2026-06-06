@@ -13,10 +13,11 @@ typedef struct {
 
 const char *const racs_stream_result_string[] = {
     "",
-    "stream not found",
-    "stream conflict",
-    "stream decode error",
-    "stream allocation error"
+    "not found",
+    "conflict",
+    "decode error",
+    "allocation error",
+    "buffer overflow"
 };
 
 static racs_streams *streams_ = NULL;
@@ -86,10 +87,17 @@ racs_streams *racs_streams_get(void) {
 
 int racs_streams_create(const char *name,
                         racs_uint32 sample_rate,
-                        racs_uint8 channels,
-                        racs_uint8 bit_depth) {
+                        racs_uint8  channels,
+                        racs_uint8  bit_depth) {
     char path[PATH_MAX];
-    sprintf(path, "%s/.racs/md/%s", racs_config_get()->data_dir, name);
+    sprintf(path, "%s/.racs/md/", racs_config_get()->data_dir);
+
+    if ((strlen(name) + strlen(path)) > PATH_MAX) {
+        return RACS_STREAM_BUFFER_OVERFLOW;
+    }
+
+    strcat(path, name);
+
 
     if (racs_info_exist(path)) {
         return RACS_STREAM_CONFLICT;
@@ -113,7 +121,13 @@ int racs_streams_open(racs_streams *streams, const char *name) {
     }
 
     char path[PATH_MAX];
-    sprintf(path, "%s/.racs/md/%s", racs_config_get()->data_dir, name);
+    sprintf(path, "%s/.racs/md/", racs_config_get()->data_dir);
+
+    if ((strlen(name) + strlen(path)) > PATH_MAX) {
+        return RACS_STREAM_BUFFER_OVERFLOW;
+    }
+
+    strcat(path, name);
 
     stream = racs_stream_open(path);
     if (!stream) {
@@ -139,7 +153,7 @@ int racs_streams_append(racs_streams *streams,
     racs_uint32 decoded_size;
     racs_uint8 *decoded_data = racs_stream_decode(mime_type, src, src_size, &decoded_size);
     if (!decoded_data) {
-        return RACS_STREAM_DECODE_ERR;
+        return RACS_STREAM_DECODE_ERROR;
     }
 
     racs_stream_chunk(stream, decoded_data, decoded_size, hash);
@@ -161,7 +175,7 @@ int racs_streams_close(racs_streams *streams, const char *name) {
 
         racs_uint8 *padded_data = malloc(padded_size);
         if (!padded_data) {
-            return RACS_STREAM_ALLOC_ERR;
+            return RACS_STREAM_ALLOC_ERROR;
         }
 
         memset(padded_data, 0, padded_size);
@@ -241,6 +255,7 @@ void racs_stream_chunk(racs_stream *stream,
 
             racs_mmt *mmt = racs_mmt_get();
             racs_mmt_put(mmt, key, compressed_block, compressed_size, checksum, 0);
+            // usleep(5000);
 
             free(compressed_block);
 
@@ -294,7 +309,7 @@ void racs_stream_destroy(racs_stream *stream) {
     }
 
     if (stream->info) {
-         munmap(stream->info, sizeof(racs_info));
+        munmap(stream->info, sizeof(racs_info));
     }
 
     pthread_mutex_destroy(&stream->mutex);

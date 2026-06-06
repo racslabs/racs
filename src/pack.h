@@ -6,11 +6,11 @@
 extern "C" {
 #endif
 
+#include "ctx.h"
 #include <msgpack.h>
 
 
 #define RACS_EXT_ERR 42
-
 
 void racs_pack_obj(msgpack_sbuffer *buf, msgpack_object obj);
 
