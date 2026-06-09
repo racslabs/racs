@@ -11,6 +11,8 @@ extern "C" {
 #include <dirent.h>
 #include <string.h>
 #include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 
 typedef void (*racs_fs_walk_cb)(const char *path, void *data);
@@ -21,6 +23,8 @@ char *racs_fs_fname(const char *path);
 void racs_fs_mkdir(const char *path);
 
 void racs_fs_walk(const char *path, racs_fs_walk_cb cb, void *data);
+
+int racs_fs_write(const char *path, void *data, size_t size);
 
 
 #ifdef __cplusplus

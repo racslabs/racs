@@ -62,3 +62,28 @@ void racs_fs_walk(const char *path, racs_fs_walk_cb cb, void *data) {
 
     closedir(dir);
 }
+
+int racs_fs_write(const char *path, void *data, size_t size) {
+    char tmp_path[PATH_MAX];
+    snprintf(tmp_path, sizeof(tmp_path), "%s.tmp", path);
+
+    int fd = open(tmp_path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (fd == -1) {
+        return -1;
+    }
+
+    if (write(fd, data, size) == (ssize_t)size) {
+        fsync(fd);
+        close(fd);
+
+        if (rename(tmp_path, path) != 0) {
+            unlink(tmp_path);
+            return 0;
+        }
+    } else {
+        close(fd);
+        unlink(tmp_path);
+    }
+
+    return -1;
+}

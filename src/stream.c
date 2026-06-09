@@ -245,7 +245,7 @@ void racs_stream_chunk(racs_stream *stream,
         if (stream->size >= stream->capacity) {
             racs_offsets *offsets = racs_offsets_get();
             racs_uint64 offset = racs_offsets_get_offset(offsets, hash);
-
+            
             racs_time time = racs_info_to_time(stream->info, offset);
             racs_uint64 key[3] = { hash, time, 0 };
 
@@ -255,8 +255,6 @@ void racs_stream_chunk(racs_stream *stream,
 
             racs_mmt *mmt = racs_mmt_get();
             racs_mmt_put(mmt, key, compressed_block, compressed_size, checksum, 0);
-            // usleep(5000);
-
             free(compressed_block);
 
             offset += stream->size;

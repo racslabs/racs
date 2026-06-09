@@ -14,8 +14,9 @@ extern "C" {
 typedef void (*racs_cmd_func) (racs_ctx *ctx, size_t num_args);
 
 typedef struct {
-    char name[55];
+    char          name[55];
     racs_cmd_func func;
+    int           rd_only;
 } racs_cmd;
 
 

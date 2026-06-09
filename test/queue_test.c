@@ -12,9 +12,9 @@ static void destroy_cb(void *data) {
 void test_queue(void) {
     racs_queue *q = racs_queue_create(destroy_cb);
 
-    racs_enqueue(q, strlen("1"), strdup("1"));
-    racs_enqueue(q, strlen("2"), strdup("2"));
-    racs_enqueue(q, strlen("3"), strdup("3"));
+    racs_enqueue(q, strdup("1"));
+    racs_enqueue(q, strdup("2"));
+    racs_enqueue(q, strdup("3"));
 
     racs_queue_entry *entry1 = racs_dequeue(q);
     racs_queue_entry *entry2 = racs_dequeue(q);

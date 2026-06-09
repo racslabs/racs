@@ -18,17 +18,17 @@ set(UNITY_SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/unity/src)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 #---------Uncomment For Debugging Only----------#
-#option(ENABLE_ASAN "Enable AddressSanitizer" ON)
-#
-#if(ENABLE_ASAN)
-#    add_compile_options(
-#            -fsanitize=address
-#            -fno-omit-frame-pointer
-#            -g
-#            -O0
-#    )
-#    add_link_options(-fsanitize=address)
-#endif()
+option(ENABLE_ASAN "Enable AddressSanitizer" ON)
+
+if(ENABLE_ASAN)
+    add_compile_options(
+            -fsanitize=address
+            -fno-omit-frame-pointer
+            -g
+            -O0
+    )
+    add_link_options(-fsanitize=address)
+endif()
 
 find_package(Guile REQUIRED)
 find_package(Msgpack)

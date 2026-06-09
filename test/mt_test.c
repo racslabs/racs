@@ -55,7 +55,6 @@ void test_mmt_put(void) {
     TEST_ASSERT_EQUAL_INT(-1, racs_mmt_put(mmt, key3, (racs_uint8 *)"2", strlen("2") + 1, 2, 2));
 
     racs_mt_node *node = racs_mmt_pop_tail(mmt);
-    TEST_ASSERT_EQUAL_INT(RACS_MT_STATE_FLUSHING, node->state);
 
     racs_mt *mt = node->mt;
     TEST_ASSERT_EQUAL_UINT64(0ULL, mt->entries[0].lsn);

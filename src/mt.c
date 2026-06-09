@@ -22,10 +22,6 @@ static racs_mmt *mmt_ = NULL;
 
 
 void racs_mmt_init(void) {
-    if (!racs_config_get()) {
-        exit(-1);
-    }
-
     if (!mmt_) {
         racs_uint32 mmt_capacity = racs_config_get()->memtable.tables;
         racs_uint32 mt_capacity = racs_config_get()->memtable.entries;
@@ -42,14 +38,14 @@ racs_mmt *racs_mmt_get(void) {
     return mmt_;
 }
 
-void racs_mmt_iter_init(racs_mmt_iter *iter, racs_mmt *mmt) {
+void racs_mmt_iterator_init(racs_mmt_iter *iter, racs_mmt *mmt) {
     pthread_mutex_lock(&mmt->mutex);
     iter->mmt = mmt;
     iter->curr = mmt->head;
     pthread_mutex_unlock(&mmt->mutex);
 }
 
-racs_mt* racs_mmt_iter_next(racs_mmt_iter *iter) {
+racs_mt* racs_mmt_iterator_next(racs_mmt_iter *iter) {
     pthread_mutex_lock(&iter->mmt->mutex);
 
     racs_mt_node *prev = iter->curr;
@@ -61,76 +57,10 @@ racs_mt* racs_mmt_iter_next(racs_mmt_iter *iter) {
         next = iter->curr->next;
     }
 
-    if (next) {
-        next->ref_count++;
-    }
-
-    if (prev) {
-        prev->ref_count--;
-        if (prev->ref_count == 0 &&
-            prev->state == RACS_MT_STATE_FLUSHED) {
-            racs_mt_node_destroy(prev);
-        }
-    }
-
     iter->curr = next;
     pthread_mutex_unlock(&iter->mmt->mutex);
 
     return next ? next->mt : NULL;
-}
-
-void racs_mmt_flusher_start(racs_mmt *mmt) {
-    pthread_t thread;
-    pthread_create(&thread, NULL, racs_mmt_flush_worker, mmt);
-    pthread_detach(thread);
-}
-
-void racs_mmt_flusher_stop(racs_mmt *mmt) {
-    pthread_mutex_lock(&mmt->mutex);
-    mmt->is_running = 0;
-    pthread_mutex_unlock(&mmt->mutex);
-}
-
-void *racs_mmt_flush_worker(void* arg) {
-    racs_mmt *mmt = (racs_mmt *)arg;
-
-    while (1) {
-        pthread_mutex_lock(&mmt->mutex);
-
-        if (!mmt->is_running) {
-            pthread_mutex_unlock(&mmt->mutex);
-            break;
-        }
-
-        while (mmt->tail == NULL || mmt->tail->state != RACS_MT_STATE_FLUSHING) {
-            pthread_cond_wait(&mmt->cond, &mmt->mutex);
-        }
-
-        racs_mt_node *node = racs_mmt_pop_tail(mmt);
-        pthread_mutex_unlock(&mmt->mutex);
-
-        if (node && node->mt) {
-            racs_mt_split_and_flush(node->mt);
-            node->state = RACS_MT_STATE_FLUSHED;
-            //TODO: update WAL manifest
-        }
-
-        pthread_mutex_lock(&mmt->mutex);
-
-        if (node) {
-            node->state = RACS_MT_STATE_FLUSHED;
-            node->ref_count--;
-
-            if (node->ref_count == 0) {
-                racs_mt_node_destroy(node);
-            }
-        }
-
-        pthread_cond_signal(&mmt->cond);
-        pthread_mutex_unlock(&mmt->mutex);
-    }
-
-    return NULL;
 }
 
 racs_mmt *racs_mmt_create(racs_uint32 mmt_capacity, racs_uint16 mt_capacity) {
@@ -145,7 +75,6 @@ racs_mmt *racs_mmt_create(racs_uint32 mmt_capacity, racs_uint16 mt_capacity) {
     mmt->mmt_capacity = mmt_capacity;
     mmt->mt_capacity = mt_capacity;
     mmt->num_tables = 0;
-    mmt->is_running = 1;
 
     mmt->head = NULL;
     mmt->tail = NULL;
@@ -184,9 +113,12 @@ int racs_mmt_put(racs_mmt *mmt,
 
         // Flush tail when 80% of the mmt capacity is reached
         if (mmt->num_tables > (mmt->mmt_capacity * 0.8)) {
-            if (mmt->tail && mmt->tail->state != RACS_MT_STATE_FLUSHING) {
-                mmt->tail->state = RACS_MT_STATE_FLUSHING;
-                pthread_cond_signal(&mmt->cond);
+            if (mmt->tail) {
+                racs_mt_node *tail = racs_mmt_pop_tail(mmt);
+                if (tail->mt) {
+                    racs_mt_split_and_flush(tail->mt);
+                    racs_mt_node_destroy(tail);
+                }
             }
         }
     }
@@ -206,7 +138,6 @@ void racs_mmt_push_head(racs_mmt *mmt, racs_mt_node *node) {
     node->next = mmt->head;
 
     if (mmt->head) {
-        mmt->head->state = RACS_MT_STATE_IMMUTABLE;
         mmt->head->prev = node;
     } else {
         mmt->tail = node;
@@ -217,8 +148,7 @@ void racs_mmt_push_head(racs_mmt *mmt, racs_mt_node *node) {
 }
 
 racs_mt_node* racs_mmt_pop_tail(racs_mmt *mmt) {
-    if (!mmt || !mmt->tail
-             || mmt->tail->state != RACS_MT_STATE_FLUSHING) {
+    if (!mmt || !mmt->tail) {
         return NULL;
     }
 
@@ -264,7 +194,6 @@ racs_mt_node *racs_mt_node_create(racs_uint16 capacity) {
 
     node->next = NULL;
     node->prev = NULL;
-    node->state = RACS_MT_STATE_ACTIVE;
 
     return node;
 }
@@ -325,6 +254,7 @@ void racs_mt_put(racs_mt *mt,
     }
 
     memcpy(entry->key, key, sizeof(racs_uint64) * 3);
+    
     entry->lsn = lsn;
     entry->block_size = block_size;
     entry->checksum = checksum;
@@ -339,32 +269,15 @@ void racs_mt_flush(racs_mt *mt, const char *path) {
     if (!mt || mt->num_entries == 0) {
         return;
     }
-
+    
     size_t sst_size = 0;
     racs_uint8 *sst = racs_mt_to_sst(mt, &sst_size);
     if (!sst) {
         return;
     }
-
-    char tmp_path[PATH_MAX];
-    snprintf(tmp_path, sizeof(tmp_path), "%s.tmp", path);
-
-    int fd = open(tmp_path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    if (fd != -1) {
-        if (write(fd, sst, sst_size) == (ssize_t)sst_size) {
-            fsync(fd);
-            close(fd);
-
-            if (rename(tmp_path, path) != 0) {
-                unlink(tmp_path);
-            }
-        } else {
-            close(fd);
-            unlink(tmp_path);
-        }
-    }
-
-    free(sst);
+    
+    racs_queue *flush_q = racs_flush_queue_get();
+    racs_flush_enqueue(flush_q, path, sst, sst_size);
 }
 
 void racs_mt_destroy(racs_mt *mt) {
@@ -437,7 +350,7 @@ void racs_mt_parts_put(racs_mt_parts *parts,
     } else {
         free(part_key);
     }
-
+    
     racs_mt_put(mt, key, block, block_size, checksum, lsn);
 }
 
@@ -479,7 +392,7 @@ void racs_mt_split_and_flush(racs_mt *mt) {
     for (int i = 0; i < dict->size; i++) {
         racs_dict_bucket *bucket = &dict->buckets[i];
         racs_dict_entry *curr = bucket->head;
-
+        
         while (curr) {
             racs_dict_entry *next = curr->next;
 
@@ -489,11 +402,9 @@ void racs_mt_split_and_flush(racs_mt *mt) {
             }
 
             char path[PATH_MAX];
-
+            
             racs_uint64 *key = p_mt->entries[0].key;
             racs_path_from_time(path, key[0], (racs_time)key[1]);
-
-            racs_fs_mkdir(path);
             racs_mt_flush(p_mt, path);
 
             curr = next;

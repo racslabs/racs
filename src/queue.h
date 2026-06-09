@@ -8,6 +8,7 @@ extern "C" {
 
 #include "types.h"
 #include <pthread.h>
+#include <stdio.h>
 
 
 typedef void (*racs_queue_destroy_cb) (void *data);
@@ -20,7 +21,7 @@ typedef struct racs_queue_entry {
 } racs_queue_entry;
 
 typedef struct {
-    int size;
+    int                   size;
     racs_queue_entry     *head;
     racs_queue_entry     *tail;
     racs_queue_destroy_cb cb;
@@ -31,7 +32,7 @@ typedef struct {
 
 racs_queue *racs_queue_create(racs_queue_destroy_cb cb);
 
-void racs_enqueue(racs_queue *q, size_t size, racs_uint8 *data);
+void racs_enqueue(racs_queue *q, void *data);
 
 racs_queue_entry *racs_dequeue(racs_queue *q);
 
@@ -39,6 +40,7 @@ void racs_queue_entry_destroy(racs_queue_entry *entry);
 
 void racs_queue_destroy(racs_queue *q);
 
+int racs_queue_size(racs_queue *q);
 
 #ifdef __cplusplus
 }

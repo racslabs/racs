@@ -13,6 +13,7 @@
 extern "C" {
 #endif
 
+#include "flush.h"
 #include "config.h"
 #include "dict.h"
 #include "types.h"
@@ -22,13 +23,6 @@ extern "C" {
 #include <stdio.h>
 #include <pthread.h>
 
-
-typedef enum {
-    RACS_MT_STATE_ACTIVE,
-    RACS_MT_STATE_IMMUTABLE,
-    RACS_MT_STATE_FLUSHING,
-    RACS_MT_STATE_FLUSHED
-} racs_mt_state;
 
 typedef struct {
     racs_uint64 key[3];
@@ -53,7 +47,6 @@ typedef struct {
 
 typedef struct racs_mt_node {
     racs_mt             *mt;
-    racs_mt_state        state;
     int                  ref_count;
     struct racs_mt_node *next;
     struct racs_mt_node *prev;
@@ -63,7 +56,6 @@ typedef struct racs_mt_node {
 // Doubly-linked-list of memtables.
 // Active memtable is the head. Flush happens at the tail.
 typedef struct {
-    int             is_running;
     racs_uint16     mt_capacity;
     racs_uint32     mmt_capacity;
     racs_uint32     num_tables;
@@ -83,15 +75,9 @@ void racs_mmt_init(void);
 
 racs_mmt *racs_mmt_get(void);
 
-void racs_mmt_flusher_start(racs_mmt *mmt);
+void racs_mmt_iterator_init(racs_mmt_iter *iter, racs_mmt *mmt);
 
-void racs_mmt_flusher_stop(racs_mmt *mmt);
-
-void *racs_mmt_flush_worker(void* arg);
-
-void racs_mmt_iter_init(racs_mmt_iter *iter, racs_mmt *mmt);
-
-racs_mt* racs_mmt_iter_next(racs_mmt_iter *iter);
+racs_mt *racs_mmt_iterator_next(racs_mmt_iter *iter);
 
 racs_mmt *racs_mmt_create(racs_uint32 mmt_capacity, racs_uint16 mt_capacity);
 
@@ -106,7 +92,7 @@ void racs_mmt_push_head(racs_mmt *mmt, racs_mt_node *node);
 
 void racs_mmt_destroy(racs_mmt *mmt);
 
-racs_mt_node* racs_mmt_pop_tail(racs_mmt *mmt);
+racs_mt_node *racs_mmt_pop_tail(racs_mmt *mmt);
 
 racs_mt_node *racs_mt_node_create(racs_uint16 capacity);
 
