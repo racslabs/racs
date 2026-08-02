@@ -38,6 +38,7 @@ find_package(Yaml)
 find_package(Event)
 find_package(Zstd)
 find_package(Mpg123)
+find_package(AAC)
 
 set(RACS_LIBRARIES
         ${MSGPACK_LIBRARIES}
@@ -47,7 +48,8 @@ set(RACS_LIBRARIES
         ${YAML_LIBRARIES}
         ${EVENT_LIBRARIES}
         ${ZSTD_LIBRARIES}
-	${MPG123_LIBRARIES}
+	    ${MPG123_LIBRARIES}
+        ${AAC_LIBRARIES}
         uuid
 )
 
@@ -60,7 +62,8 @@ include_directories(
         ${MSGPACK_INCLUDE_DIRS}
         ${EVENT_INCLUDE_DIRS}
         ${ZSTD_INCLUDE_DIRS}
-	${MPG123_INCLUDE_DIRS}
+	    ${MPG123_INCLUDE_DIRS}
+        ${AAC_INCLUDE_DIRS}
 )
 
 file(GLOB_RECURSE RACS_TEST_FILES CONFIGURE_DEPENDS ${RACS_TEST_DIR}/*.h ${RACS_TEST_DIR}/*.c)
@@ -69,7 +72,8 @@ file(GLOB_RECURSE UNITY_SOURCE_FILES CONFIGURE_DEPENDS ${UNITY_SOURCE_DIR}/*.h $
 
 list(FILTER RACS_SOURCE_FILES EXCLUDE REGEX "racs_cli.c")
 
-add_executable(racs ${RACS_SOURCE_FILES} src/racs_cli.c)
+add_executable(racs ${RACS_SOURCE_FILES} src/racs_cli.c
+        src/aac.c)
 
 target_link_libraries(racs ${RACS_LIBRARIES})
 

@@ -16,15 +16,15 @@ void test_mp3_encode(void) {
 
     racs_mp3_format fmt;
 
-    int result = racs_mp3_decode(&fmt, src, src_size, &decoded, &decoded_size);
-    TEST_ASSERT_EQUAL_INT(RACS_MP3_OK, result);
+    int status = racs_mp3_decode(&fmt, src, src_size, &decoded, &decoded_size);
+    TEST_ASSERT_EQUAL_INT(RACS_MP3_OK, status);
 
     TEST_ASSERT_EQUAL_UINT8(2, fmt.channels);
     TEST_ASSERT_EQUAL_UINT8(16, fmt.bit_depth);
     TEST_ASSERT_EQUAL_UINT32(48000, fmt.sample_rate);
 
-    result = racs_mp3_encode(&fmt, decoded, decoded_size, &encoded, &encoded_size);
-    TEST_ASSERT_EQUAL_INT(RACS_MP3_OK, result);
+    status = racs_mp3_encode(&fmt, decoded, decoded_size, &encoded, &encoded_size);
+    TEST_ASSERT_EQUAL_INT(RACS_MP3_OK, status);
 
     write_file("chopin-out.mp3", encoded, encoded_size);
 

@@ -38,13 +38,19 @@ int racs_mp3_decoder_init(racs_mp3_decoder *dec) {
     int err = MPG123_OK;
 
     dec->mh = mpg123_new(NULL, &err);
-    if (!dec->mh || mpg123_open_feed(dec->mh) != MPG123_OK) {
-        return RACS_MP3_DECODE_ERROR;
+    if (!dec->mh || err != MPG123_OK) {
+        return RACS_MP3_ALLOC_ERROR;
+    }
+
+    if (mpg123_open_feed(dec->mh) != MPG123_OK) {
+        mpg123_delete(dec->mh);
+        return RACS_MP3_ALLOC_ERROR;
     }
 
     dec->pcm_block_size = mpg123_outblock(dec->mh);
     dec->pcm_block = malloc(dec->pcm_block_size);
     if (!dec->pcm_block) {
+        mpg123_delete(dec->mh);
         return RACS_MP3_ALLOC_ERROR;
     }
 
@@ -145,14 +151,15 @@ int racs_mp3_decode(racs_mp3_format *fmt,
     racs_mp3_decoder dec;
     int status = racs_mp3_decoder_init(&dec);
     if (status != RACS_MP3_OK) {
-        return RACS_MP3_ALLOC_ERROR;
+        free(buf);
+        return status;
     }
 
     status = racs_mp3_decoder_decode(&dec, fmt, src, src_size, &ms);
     if (status != RACS_MP3_OK) {
         free(buf);
         racs_mp3_decoder_cleanup(&dec);
-        return RACS_MP3_DECODE_ERROR;
+        return status;
     }
 
     *out = buf;
@@ -169,7 +176,7 @@ int racs_mp3_encoder_init(racs_mp3_encoder *enc, racs_mp3_format *fmt) {
     }
 
     lame_set_num_channels(enc->gfp, fmt->channels);
-    lame_set_in_samplerate(enc->gfp, fmt->sample_rate);
+    lame_set_in_samplerate(enc->gfp, (int) fmt->sample_rate);
     lame_set_VBR(enc->gfp, vbr_default);
     lame_set_quality(enc->gfp, 2);
 
@@ -211,18 +218,13 @@ int racs_mp3_encoder_encode(racs_mp3_encoder *enc,
 
         switch (fmt->channels) {
             case 1:
-                bytes_encoded = lame_encode_buffer(enc->gfp,
-                                                   samples + samples_read,
-                                                   NULL,
-                                                   (int) chunk_size,
-                                                   buf,
-                                                   buf_size);
+                bytes_encoded = lame_encode_buffer(enc->gfp, samples + samples_read,
+                                                   NULL, (int) chunk_size,
+                                                   buf, buf_size);
                 break;
             case 2:
-                bytes_encoded = lame_encode_buffer_interleaved(enc->gfp,
-                                                               samples + samples_read,
-                                                               (int) chunk_size,
-                                                               buf,
+                bytes_encoded = lame_encode_buffer_interleaved(enc->gfp, samples + samples_read,
+                                                               (int) chunk_size, buf,
                                                                buf_size);
                 break;
             default:
@@ -280,14 +282,14 @@ int racs_mp3_encode(racs_mp3_format *fmt,
     int status = racs_mp3_encoder_init(&enc, fmt);
     if (status != RACS_MP3_OK) {
         free(buf);
-        return RACS_MP3_ALLOC_ERROR;
+        return status;
     }
 
     status = racs_mp3_encoder_encode(&enc, fmt, src, src_size, &ms);
     if (status != RACS_MP3_OK) {
         free(buf);
         racs_mp3_encoder_cleanup(&enc);
-        return RACS_MP3_DECODE_ERROR;
+        return status;
     }
 
     *out = buf;
