@@ -36,21 +36,29 @@ racs_stream *racs_stream_open(const char *path);
 
 void racs_stream_chunk(racs_stream *stream,
                        const racs_uint8 *src,
-                       racs_uint32 src_size,
+                       size_t src_size,
                        racs_uint64 hash);
 
 void racs_stream_destroy(racs_stream *stream);
 
 int racs_stream_decode(const char *mime_type,
+                       const racs_info *info,
                        const racs_uint8 *src,
-                       racs_uint32 src_size,
+                       size_t src_size,
                        racs_uint8 **out,
-                       racs_uint32 *out_size);
+                       size_t *out_size);
 
-int racs_stream_decode_pcm(const racs_uint8 *src,
-                           racs_uint32 src_size,
+int racs_stream_decode_pcm(const racs_info *info,
+                           const racs_uint8 *src,
+                           size_t src_size,
                            racs_uint8 **out,
-                           racs_uint32 *out_size);
+                           size_t *out_size);
+
+int racs_stream_decode_mp3(const racs_info *info,
+                           const racs_uint8 *src,
+                           size_t src_size,
+                           racs_uint8 **out,
+                           size_t *out_size);
 
 
 void racs_streams_init(void) {
@@ -132,7 +140,7 @@ int racs_streams_append(racs_streams *streams,
                         const char *stream_id,
                         const char *mime_type,
                         const racs_uint8 *src,
-                        racs_uint32 src_size) {
+                        size_t src_size) {
     racs_uint64 hash = racs_info_hash(stream_id);
 
     racs_stream *stream = racs_streams_get_stream(streams, hash);
@@ -140,10 +148,13 @@ int racs_streams_append(racs_streams *streams,
         return RACS_STREAM_NOT_FOUND;
     }
 
+    racs_info *info = stream->info;
     racs_uint8 *decoded_src = NULL;
-    racs_uint32 decoded_src_size = 0;
+    size_t decoded_src_size = 0;
 
-    int rc = racs_stream_decode(mime_type, src, src_size, &decoded_src, &decoded_src_size);
+    int rc = racs_stream_decode(mime_type, info, src, src_size,
+                                &decoded_src, &decoded_src_size);
+
     if (rc != RACS_STREAM_OK) {
         return RACS_STREAM_DECODE_ERROR;
     }
@@ -218,15 +229,15 @@ void racs_streams_destroy(void) {
 
 void racs_stream_chunk(racs_stream *stream,
                        const racs_uint8 *src,
-                       racs_uint32 src_size,
+                       size_t src_size,
                        racs_uint64 hash) {
     pthread_mutex_lock(&stream->mutex);
 
-    racs_uint32 bytes_read = 0;
+    size_t bytes_read = 0;
     while (bytes_read < src_size) {
-        racs_uint32 b_bytes = stream->capacity - stream->size;
-        racs_uint32 r_bytes = src_size - bytes_read;
-        racs_uint32 w_bytes = (r_bytes > b_bytes) ? b_bytes : r_bytes;
+        size_t b_bytes = stream->capacity - stream->size;
+        size_t r_bytes = src_size - bytes_read;
+        size_t w_bytes = (r_bytes > b_bytes) ? b_bytes : r_bytes;
 
         memcpy(stream->buf + stream->size, src + bytes_read, w_bytes);
 
@@ -313,21 +324,36 @@ void racs_stream_destroy(racs_stream *stream) {
 }
 
 int racs_stream_decode(const char *mime_type,
+                       const racs_info *info,
                        const racs_uint8 *src,
-                       racs_uint32 src_size,
+                       size_t src_size,
                        racs_uint8 **out,
-                       racs_uint32 *out_size) {
-    if (strcasecmp(racs_trim(mime_type), "audio/pcm") == 0) {
-        return racs_stream_decode_pcm(src, src_size, out, out_size);
+                       size_t *out_size) {
+    char *mime_type_trim = strdup(mime_type);
+    racs_trim(mime_type_trim);
+
+    int result = RACS_STREAM_DECODE_ERROR;
+
+    if (strcasecmp(mime_type_trim, "audio/pcm") == 0) {
+        result = racs_stream_decode_pcm(info, src, src_size, out, out_size);
     }
 
-    return RACS_STREAM_DECODE_ERROR;
+    if (strcasecmp(mime_type_trim, "audio/mp3") == 0 ||
+        strcasecmp(mime_type_trim, "audio/mpeg") == 0) {
+        result = racs_stream_decode_mp3(info, src, src_size, out, out_size);
+    }
+
+    free(mime_type_trim);
+    return result;
 }
 
-int racs_stream_decode_pcm(const racs_uint8 *src,
-                           racs_uint32 src_size,
+int racs_stream_decode_pcm(const racs_info *info,
+                           const racs_uint8 *src,
+                           size_t src_size,
                            racs_uint8 **out,
-                           racs_uint32 *out_size) {
+                           size_t *out_size) {
+    (void) info;
+
     *out = NULL;
     *out_size = 0;
 
@@ -340,6 +366,30 @@ int racs_stream_decode_pcm(const racs_uint8 *src,
 
     *out = buf;
     *out_size = src_size;
+
+    return RACS_STREAM_OK;
+}
+
+int racs_stream_decode_mp3(const racs_info *info,
+                           const racs_uint8 *src,
+                           size_t src_size,
+                           racs_uint8 **out,
+                           size_t *out_size) {
+    *out = NULL;
+    *out_size = 0;
+
+    racs_mp3_format fmt;
+
+    int result = racs_mp3_decode(&fmt, src, src_size, out, out_size);
+    if (result != RACS_MP3_OK) {
+        return RACS_STREAM_DECODE_ERROR;
+    }
+
+    if (fmt.bit_depth != info->bit_depth ||
+        fmt.channels != info->channels ||
+        fmt.sample_rate != info->sample_rate) {
+        return RACS_STREAM_DECODE_ERROR;
+    }
 
     return RACS_STREAM_OK;
 }

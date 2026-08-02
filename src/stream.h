@@ -8,6 +8,7 @@ extern "C" {
 
 
 #include "mt.h"
+#include "mp3.h"
 #include "mmh3.h"
 #include "info.h"
 #include "offsets.h"
@@ -49,7 +50,7 @@ int racs_streams_append(racs_streams *streams,
                         const char *stream_id,
                         const char *mime_type,
                         const racs_uint8 *src,
-                        racs_uint32 src_size);
+                        size_t src_size);
 
 int racs_streams_close(racs_streams *streams, const char *stream_id);
 

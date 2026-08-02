@@ -27,7 +27,7 @@ void racs_cmd_call_stream(racs_ctx *ctx,
                           const char *stream_id,
                           const char *mime_type,
                           const racs_uint8 *src,
-                          racs_uint32 src_size);
+                          size_t src_size);
 
 
 racs_cmd_func racs_cmd_lookup(const char *name) {
@@ -195,7 +195,7 @@ void racs_cmd_call_stream(racs_ctx *ctx,
                           const char *stream_id,
                           const char *mime_type,
                           const racs_uint8 *src,
-                          racs_uint32 src_size) {
+                          size_t src_size) {
     racs_streams *streams = racs_streams_get();
 
     int result = racs_streams_append(streams, stream_id, mime_type, src, src_size);
