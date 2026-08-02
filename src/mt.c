@@ -10,7 +10,7 @@
 #include "mmh3.h"
 
 
-racs_uint8 *racs_mt_to_sst(racs_mt *mt, size_t *sst_size);
+racs_uint8 *racs_mt_to_sst(racs_mt * mt, size_t * sst_size);
 
 racs_uint64 racs_mt_parts_hash_cb(const void *key);
 
@@ -45,7 +45,7 @@ void racs_mmt_iterator_init(racs_mmt_iter *iter, racs_mmt *mmt) {
     pthread_mutex_unlock(&mmt->mutex);
 }
 
-racs_mt* racs_mmt_iterator_next(racs_mmt_iter *iter) {
+racs_mt *racs_mmt_iterator_next(racs_mmt_iter *iter) {
     pthread_mutex_lock(&iter->mmt->mutex);
 
     racs_mt_node *prev = iter->curr;
@@ -147,7 +147,7 @@ void racs_mmt_push_head(racs_mmt *mmt, racs_mt_node *node) {
     ++mmt->num_tables;
 }
 
-racs_mt_node* racs_mmt_pop_tail(racs_mmt *mmt) {
+racs_mt_node *racs_mmt_pop_tail(racs_mmt *mmt) {
     if (!mmt || !mmt->tail) {
         return NULL;
     }
@@ -254,7 +254,7 @@ void racs_mt_put(racs_mt *mt,
     }
 
     memcpy(entry->key, key, sizeof(racs_uint64) * 3);
-    
+
     entry->lsn = lsn;
     entry->block_size = block_size;
     entry->checksum = checksum;
@@ -269,13 +269,13 @@ void racs_mt_flush(racs_mt *mt, const char *path) {
     if (!mt || mt->num_entries == 0) {
         return;
     }
-    
+
     size_t sst_size = 0;
     racs_uint8 *sst = racs_mt_to_sst(mt, &sst_size);
     if (!sst) {
         return;
     }
-    
+
     racs_queue *flush_q = racs_flush_queue_get();
     racs_flush_enqueue(flush_q, path, sst, sst_size);
 }
@@ -350,7 +350,7 @@ void racs_mt_parts_put(racs_mt_parts *parts,
     } else {
         free(part_key);
     }
-    
+
     racs_mt_put(mt, key, block, block_size, checksum, lsn);
 }
 
@@ -392,19 +392,19 @@ void racs_mt_split_and_flush(racs_mt *mt) {
     for (int i = 0; i < dict->size; i++) {
         racs_dict_bucket *bucket = &dict->buckets[i];
         racs_dict_entry *curr = bucket->head;
-        
+
         while (curr) {
             racs_dict_entry *next = curr->next;
 
-            racs_mt *p_mt = (racs_mt *)curr->value;
+            racs_mt *p_mt = (racs_mt *) curr->value;
             if (!p_mt || p_mt->num_entries == 0) {
                 continue;
             }
 
             char path[PATH_MAX];
-            
+
             racs_uint64 *key = p_mt->entries[0].key;
-            racs_path_from_time(path, key[0], (racs_time)key[1]);
+            racs_path_from_time(path, key[0], (racs_time) key[1]);
             racs_mt_flush(p_mt, path);
 
             curr = next;
@@ -447,7 +447,7 @@ racs_uint8 *racs_mt_to_sst(racs_mt *mt, size_t *sst_size) {
     }
 
     racs_uint8 *data_ptr = sst;
-    racs_sst_index_entry *index_ptr = (racs_sst_index_entry *)(sst + data_size);
+    racs_sst_index_entry *index_ptr = (racs_sst_index_entry *) (sst + data_size);
 
     for (int i = 0; i < mt->num_entries; i++) {
         racs_mt_entry *entry = &mt->entries[i];

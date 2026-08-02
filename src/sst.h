@@ -23,16 +23,18 @@ extern "C" {
 #include "types.h"
 
 
-typedef struct __attribute__((packed)) {
-    racs_uint64 key[3];      // { stream-id, timestamp, version }
+typedef struct __attribute__ ((packed)) {
+    racs_uint64 key[3]; // { stream-id, timestamp, version }
     racs_uint32 offset;
     racs_uint32 block_size;
     racs_uint32 checksum;
-} racs_sst_index_entry;
+}
+
+racs_sst_index_entry;
 
 typedef struct {
-    size_t      size;
-    racs_uint8 *data;      // mmap pointer
+    size_t size;
+    racs_uint8 *data; // mmap pointer
     racs_uint8 *index_ptr;
     racs_uint16 num_entries;
 } racs_sst;

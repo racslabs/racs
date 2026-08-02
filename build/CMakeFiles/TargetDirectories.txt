@@ -1,5 +1,0 @@
-/home/corbin/racs/build/CMakeFiles/racs.dir
-/home/corbin/racs/build/CMakeFiles/racs_test.dir
-/home/corbin/racs/build/CMakeFiles/test.dir
-/home/corbin/racs/build/CMakeFiles/edit_cache.dir
-/home/corbin/racs/build/CMakeFiles/rebuild_cache.dir

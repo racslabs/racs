@@ -11,22 +11,22 @@ extern "C" {
 #include <stdio.h>
 
 
-typedef void (*racs_queue_destroy_cb) (void *data);
+typedef void (*racs_queue_destroy_cb)(void *data);
 
 typedef struct racs_queue_entry {
-    size_t                   size;
-    void                    *data;
-    racs_queue_destroy_cb    cb;
+    size_t size;
+    void *data;
+    racs_queue_destroy_cb cb;
     struct racs_queue_entry *next;
 } racs_queue_entry;
 
 typedef struct {
-    int                   size;
-    racs_queue_entry     *head;
-    racs_queue_entry     *tail;
+    int size;
+    racs_queue_entry *head;
+    racs_queue_entry *tail;
     racs_queue_destroy_cb cb;
-    pthread_mutex_t       mutex;
-    pthread_cond_t        cond;
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
 } racs_queue;
 
 

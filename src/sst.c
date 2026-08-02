@@ -67,5 +67,5 @@ void racs_sst_destroy(racs_sst *sst) {
 }
 
 racs_sst_index_entry *racs_sst_get_index(racs_sst *sst) {
-    return (racs_sst_index_entry *)sst->index_ptr;
+    return (racs_sst_index_entry *) sst->index_ptr;
 }

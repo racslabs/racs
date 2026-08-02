@@ -23,8 +23,8 @@ do { \
 
 
 typedef struct {
-    racs_dict       *dict;
-    pthread_mutex_t  mutex;
+    racs_dict *dict;
+    pthread_mutex_t mutex;
 } racs_offsets;
 
 

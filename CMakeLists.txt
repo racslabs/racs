@@ -30,7 +30,6 @@ if(ENABLE_ASAN)
     add_link_options(-fsanitize=address)
 endif()
 
-find_package(Guile REQUIRED)
 find_package(Msgpack)
 find_package(Lame)
 find_package(Opus)
@@ -38,16 +37,17 @@ find_package(OpusEnc)
 find_package(Yaml)
 find_package(Event)
 find_package(Zstd)
+find_package(Mpg123)
 
 set(RACS_LIBRARIES
         ${MSGPACK_LIBRARIES}
-        ${GUILE_LIBRARIES}
         ${LAME_LIBRARIES}
         ${OPUS_LIBRARIES}
         ${OPUSENC_LIBRARIES}
         ${YAML_LIBRARIES}
         ${EVENT_LIBRARIES}
         ${ZSTD_LIBRARIES}
+	${MPG123_LIBRARIES}
         uuid
 )
 
@@ -60,6 +60,7 @@ include_directories(
         ${MSGPACK_INCLUDE_DIRS}
         ${EVENT_INCLUDE_DIRS}
         ${ZSTD_INCLUDE_DIRS}
+	${MPG123_INCLUDE_DIRS}
 )
 
 file(GLOB_RECURSE RACS_TEST_FILES CONFIGURE_DEPENDS ${RACS_TEST_DIR}/*.h ${RACS_TEST_DIR}/*.c)
@@ -88,6 +89,10 @@ target_link_libraries(racs_test ${RACS_LIBRARIES})
 
 configure_file(${RACS_TEST_DIR}/test-conf.yaml
         ${CMAKE_CURRENT_BINARY_DIR}/test-conf.yaml
+        COPYONLY)
+
+configure_file(${RACS_TEST_DIR}/chopin.mp3
+        ${CMAKE_CURRENT_BINARY_DIR}/chopin.mp3
         COPYONLY)
 
 add_test(NAME AllTests COMMAND racs_test)

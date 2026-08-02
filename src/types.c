@@ -60,7 +60,7 @@ racs_int16 *racs_s32_s16(const racs_int32 *in, size_t n) {
     if (!out) return NULL;
 
     for (size_t i = 0; i < n; ++i)
-        out[i] = (racs_int16)in[i];
+        out[i] = (racs_int16) in[i];
 
     return out;
 }

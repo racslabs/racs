@@ -10,7 +10,7 @@
 
 
 racs_time racs_time_from_ts(struct timespec *ts) {
-    return (racs_time)ts->tv_sec * 1000 + ts->tv_nsec / 1000000;
+    return (racs_time) ts->tv_sec * 1000 + ts->tv_nsec / 1000000;
 }
 
 racs_time racs_time_now() {
@@ -31,7 +31,7 @@ void racs_time_to_rfc3339(char *buf, racs_time time) {
     racs_time_to_tm(&info, time);
 
     size_t len = strftime(buf, 21, "%Y-%m-%dT%H:%M:%S", &info);
-    sprintf(buf + len, ".%03ldZ", (long)(time % 1000));
+    sprintf(buf + len, ".%03ldZ", (long) (time % 1000));
 }
 
 racs_time racs_time_from_path(const char *path) {
@@ -59,5 +59,5 @@ racs_time racs_time_from_path(const char *path) {
         return -1;
     }
 
-    return (racs_time)t * 1000 + milliseconds;
+    return (racs_time) t * 1000 + milliseconds;
 }

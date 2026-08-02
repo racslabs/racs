@@ -10,12 +10,12 @@ extern "C" {
 #include <msgpack.h>
 
 typedef struct {
-    int             depth;
-    int             has_error;
-    size_t          offset;
-    racs_uint32     sample_rate;
-    racs_uint8      channels;
-    racs_uint8      bit_depth;
+    int depth;
+    int has_error;
+    size_t offset;
+    racs_uint32 sample_rate;
+    racs_uint8 channels;
+    racs_uint8 bit_depth;
     msgpack_sbuffer out_buf;
 } racs_ctx;
 

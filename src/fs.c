@@ -72,18 +72,19 @@ int racs_fs_write(const char *path, void *data, size_t size) {
         return -1;
     }
 
-    if (write(fd, data, size) == (ssize_t)size) {
-        fsync(fd);
-        close(fd);
-
-        if (rename(tmp_path, path) != 0) {
-            unlink(tmp_path);
-            return 0;
-        }
-    } else {
+    if (write(fd, data, size) != (ssize_t) size) {
         close(fd);
         unlink(tmp_path);
+        return -1;
     }
 
-    return -1;
+    fsync(fd);
+    close(fd);
+
+    if (rename(tmp_path, path) != 0) {
+        unlink(tmp_path);
+        return -1;
+    }
+
+    return 0;
 }

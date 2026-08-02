@@ -13,7 +13,7 @@ void racs_eval(racs_ctx *ctx, const racs_uint8 *src, size_t size) {
     msgpack_unpacked_init(&unpacked);
 
     size_t offset = 0;
-    msgpack_unpack_return result = msgpack_unpack_next(&unpacked, (const char *)src, size, &offset);
+    msgpack_unpack_return result = msgpack_unpack_next(&unpacked, (const char *) src, size, &offset);
 
     if (result != MSGPACK_UNPACK_SUCCESS && result != MSGPACK_UNPACK_EXTRA_BYTES) {
         ctx->has_error = 1;
@@ -63,13 +63,13 @@ void racs_eval_node(racs_ctx *ctx, msgpack_object obj) {
     size_t size = obj.via.array.ptr[0].via.str.size;
     char *s_name = strndup(name, size);
 
-    racs_cmd_func func = racs_cmd_lookup(s_name);
+    racs_cmd_func func = racs_cmd_lookup(racs_trim(s_name));
     if (!func) {
         free(s_name);
         ctx->has_error = 1;
 
         char msg[255];
-        snprintf(msg, sizeof(msg), "unknown command: %.*s", (int)size, name);
+        snprintf(msg, sizeof(msg), "unknown command: %.*s", (int) size, name);
 
         racs_pack_err(&ctx->out_buf, msg);
         ctx->depth--;

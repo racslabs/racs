@@ -3,8 +3,8 @@
 
 
 typedef struct {
-    char        path[PATH_MAX];
-    size_t      size;
+    char path[PATH_MAX];
+    size_t size;
     racs_uint8 *data;
 } racs_flush_entry;
 
@@ -16,7 +16,7 @@ racs_flush_entry *racs_flush_entry_create(const char *path, racs_uint8 *data, si
 
 void racs_flush_destroy_cb(void *data);
 
-void *racs_flush_worker(void* arg);
+void *racs_flush_worker(void *arg);
 
 
 void racs_flush_queue_init(void) {
@@ -42,35 +42,34 @@ void racs_flush_thread_start(racs_queue *flush_q) {
     pthread_detach(thread);
 }
 
-void *racs_flush_worker(void* arg) {
+void *racs_flush_worker(void *arg) {
     racs_queue *flush_q = (racs_queue *) arg;
 
-    for ( ; ; ) {
+    for (; ;) {
         racs_queue_entry *q_entry = racs_dequeue(flush_q);
-        if (!q_entry) {
-            continue;
-        }
-        
-        racs_flush_entry *f_entry = (racs_flush_entry *)q_entry->data;
+        racs_flush_entry *f_entry = (racs_flush_entry *) q_entry->data;
 
         racs_fs_mkdir(f_entry->path);
-        racs_fs_write(f_entry->path, f_entry->data, f_entry->size);
+
+        int rc = racs_fs_write(f_entry->path, f_entry->data, f_entry->size);
+        if (rc == -1) {
+        }
 
         racs_queue_entry_destroy(q_entry);
     }
 
     return NULL;
-}   
+}
 
-void racs_flush_enqueue(racs_queue *flush_q, 
-                        const char *path, 
+void racs_flush_enqueue(racs_queue *flush_q,
+                        const char *path,
                         racs_uint8 *data,
                         size_t size) {
     racs_flush_entry *entry = racs_flush_entry_create(path, data, size);
     if (!entry) {
         return;
     }
-    
+
     racs_enqueue(flush_q, entry);
 }
 
@@ -90,6 +89,7 @@ racs_flush_entry *racs_flush_entry_create(const char *path, racs_uint8 *data, si
 
     strcpy(entry->path, path);
     entry->data = data;
+    entry->size = size;
 
     return entry;
 }

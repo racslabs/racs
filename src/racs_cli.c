@@ -59,8 +59,8 @@ void racs_cli_args(int argc, char *argv[]) {
         fprintf(stderr, "racs: unknown option '%s'\n", cmd);
     }
 
-    error:
-        fprintf(stderr, "racs: try 'racs --help' for more information\n");
+error:
+    fprintf(stderr, "racs: try 'racs --help' for more information\n");
     exit(-1);
 }
 

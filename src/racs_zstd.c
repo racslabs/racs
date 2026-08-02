@@ -1,40 +1,58 @@
 #include "racs_zstd.h"
 
 
-racs_uint8 *racs_zstd_compress(const void *src, size_t src_size, size_t *compressed_size, int compression_level) {
+int racs_zstd_compress(const void *src,
+                       size_t src_size,
+                       void **out,
+                       size_t *out_size,
+                       int level) {
+    *out = NULL;
+    *out_size = 0;
+
     size_t bound = ZSTD_compressBound(src_size);
-    racs_uint8 *out = malloc(bound);
-    if (!out) {
-        return NULL;
+
+    void *buf = malloc(bound);
+    if (!buf) {
+        return RACS_ZSTD_ALLOC_ERROR;
     }
 
-    size_t rc = ZSTD_compress(out, bound, src, src_size, compression_level);
+    size_t rc = ZSTD_compress(buf, bound, src, src_size, level);
     if (ZSTD_isError(rc)) {
-        free(out);
-        return NULL;
+        free(buf);
+        return RACS_ZSTD_COMPRESS_ERROR;
     }
 
-    *compressed_size = rc;
-    return out;
+    *out = buf;
+    *out_size = rc;
+
+    return RACS_ZSTD_OK;
 }
 
-racs_uint8 *racs_zstd_decompress(const void *src, size_t src_size, size_t *decompressed_size) {
+int racs_zstd_decompress(const void *src,
+                         size_t src_size,
+                         void **out,
+                         size_t *out_size) {
+    *out = NULL;
+    *out_size = 0;
+
     racs_uint64 original_size = ZSTD_getFrameContentSize(src, src_size);
     if (original_size == ZSTD_CONTENTSIZE_ERROR || original_size == ZSTD_CONTENTSIZE_UNKNOWN) {
-        return NULL;
+        return RACS_ZSTD_DECOMPRESS_ERROR;
     }
 
-    racs_uint8 *out = malloc(original_size);
-    if (!out) {
-        return NULL;
+    void *buf = malloc(original_size);
+    if (!buf) {
+        return RACS_ZSTD_ALLOC_ERROR;
     }
 
     size_t rc = ZSTD_decompress(out, original_size, src, src_size);
     if (ZSTD_isError(rc)) {
-        free(out);
-        return NULL;
+        free(buf);
+        return RACS_ZSTD_DECOMPRESS_ERROR;
     }
 
-    *decompressed_size = rc;
-    return out;
+    *out = buf;
+    *out_size = rc;
+
+    return RACS_ZSTD_OK;
 }

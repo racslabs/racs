@@ -10,6 +10,8 @@
 #include "eval_test.h"
 #include "fs_test.h"
 #include "flush.h"
+#include "mp3_test.h"
+
 
 void setUp(void) {
 }
@@ -57,6 +59,6 @@ int main(void) {
     RUN_TEST(test_eval_open);
     RUN_TEST(test_eval_stream);
     RUN_TEST(test_fs_fname);
-
+    RUN_TEST(test_mp3_encode);
     return UNITY_END();
 }

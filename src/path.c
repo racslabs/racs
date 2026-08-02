@@ -9,7 +9,7 @@
 #include "path.h"
 
 
-int racs_path_expand(char *dest, const char* path) {
+int racs_path_expand(char *dest, const char *path) {
     wordexp_t p;
     if (wordexp(path, &p, 0) != 0) {
         return -1;

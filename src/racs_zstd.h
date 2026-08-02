@@ -9,9 +9,24 @@ extern "C" {
 #include <zstd.h>
 
 
-racs_uint8 *racs_zstd_compress(const void *src, size_t src_size, size_t *compressed_size, int compression_level);
+typedef enum {
+    RACS_ZSTD_OK,
+    RACS_ZSTD_ALLOC_ERROR,
+    RACS_ZSTD_COMPRESS_ERROR,
+    RACS_ZSTD_DECOMPRESS_ERROR
+} racs_zstd_result;
 
-racs_uint8 *racs_zstd_decompress(const void *src, size_t src_size, size_t *decompressed_size);
+int racs_zstd_compress(const void *src,
+                       size_t src_size,
+                       void **out,
+                       size_t *out_size,
+                       int level);
+
+int racs_zstd_decompress(const void *src,
+                         size_t src_size,
+                         void **out,
+                         size_t *out_size);
+
 
 #ifdef __cplusplus
 }

@@ -80,10 +80,10 @@ static inline void gf2_matrix_square(uint32_t *square, uint32_t *mat) {
    for len == 1.  A version of this routine could be easily written for any
    len, but that is not needed for this application. */
 static void crc32c_zeros_op(uint32_t *even, size_t len) {
-    uint32_t odd[32];       /* odd-power-of-two zeros operator */
+    uint32_t odd[32]; /* odd-power-of-two zeros operator */
 
     /* put operator for one zero bit in odd */
-    odd[0] = POLY;              /* CRC-32C polynomial */
+    odd[0] = POLY; /* CRC-32C polynomial */
     uint32_t row = 1;
     for (unsigned n = 1; n < 32; n++) {
         odd[n] = row;
@@ -156,15 +156,15 @@ static uint32_t crc32c_hw(uint32_t crc, void const *buf, size_t len) {
 
     /* pre-process the crc */
     crc = ~crc;
-    uint64_t crc0 = crc;            /* 64-bits for crc32q instruction */
+    uint64_t crc0 = crc; /* 64-bits for crc32q instruction */
 
     /* compute the crc for up to seven leading bytes to bring the data pointer
        to an eight-byte boundary */
     unsigned char const *next = buf;
-    while (len && ((uintptr_t)next & 7) != 0) {
+    while (len && ((uintptr_t) next & 7) != 0) {
         __asm__("crc32b\t%1, %0"
-                : "+r"(crc0)
-                : "m"(*next));
+        : "+r"(crc0)
+        : "m"(*next));
         next++;
         len--;
     }
@@ -173,52 +173,52 @@ static uint32_t crc32c_hw(uint32_t crc, void const *buf, size_t len) {
        instructions, each on LONG bytes -- this is optimized for the Nehalem,
        Westmere, Sandy Bridge, and Ivy Bridge architectures, which have a
        throughput of one crc per cycle, but a latency of three cycles */
-    while (len >= LONG*3) {
+    while (len >= LONG * 3) {
         uint64_t crc1 = 0;
         uint64_t crc2 = 0;
-        unsigned char const * const end = next + LONG;
+        unsigned char const *const end = next + LONG;
         do {
             __asm__("crc32q\t%3, %0\n\t"
-                    "crc32q\t%4, %1\n\t"
-                    "crc32q\t%5, %2"
-                    : "+r"(crc0), "+r"(crc1), "+r"(crc2)
-                    : "m"(*next), "m"(next[LONG]), "m"(next[2*LONG]));
+                "crc32q\t%4, %1\n\t"
+                "crc32q\t%5, %2"
+            : "+r"(crc0), "+r"(crc1), "+r"(crc2)
+            : "m"(*next), "m"(next[LONG]), "m"(next[2 * LONG]));
             next += 8;
         } while (next < end);
         crc0 = crc32c_shift(crc32c_long, crc0) ^ crc1;
         crc0 = crc32c_shift(crc32c_long, crc0) ^ crc2;
-        next += LONG*2;
-        len -= LONG*3;
+        next += LONG * 2;
+        len -= LONG * 3;
     }
 
     /* do the same thing, but now on SHORT*3 blocks for the remaining data less
        than a LONG*3 block */
-    while (len >= SHORT*3) {
+    while (len >= SHORT * 3) {
         uint64_t crc1 = 0;
         uint64_t crc2 = 0;
-        unsigned char const * const end = next + SHORT;
+        unsigned char const *const end = next + SHORT;
         do {
             __asm__("crc32q\t%3, %0\n\t"
-                    "crc32q\t%4, %1\n\t"
-                    "crc32q\t%5, %2"
-                    : "+r"(crc0), "+r"(crc1), "+r"(crc2)
-                    : "m"(*next), "m"(next[SHORT]), "m"(next[2*SHORT]));
+                "crc32q\t%4, %1\n\t"
+                "crc32q\t%5, %2"
+            : "+r"(crc0), "+r"(crc1), "+r"(crc2)
+            : "m"(*next), "m"(next[SHORT]), "m"(next[2 * SHORT]));
             next += 8;
         } while (next < end);
         crc0 = crc32c_shift(crc32c_short, crc0) ^ crc1;
         crc0 = crc32c_shift(crc32c_short, crc0) ^ crc2;
-        next += SHORT*2;
-        len -= SHORT*3;
+        next += SHORT * 2;
+        len -= SHORT * 3;
     }
 
     /* compute the crc on the remaining eight-byte units less than a SHORT*3
        block */
     {
-        unsigned char const * const end = next + (len - (len & 7));
+        unsigned char const *const end = next + (len - (len & 7));
         while (next < end) {
             __asm__("crc32q\t%1, %0"
-                    : "+r"(crc0)
-                    : "m"(*next));
+            : "+r"(crc0)
+            : "m"(*next));
             next += 8;
         }
         len &= 7;
@@ -227,8 +227,8 @@ static uint32_t crc32c_hw(uint32_t crc, void const *buf, size_t len) {
     /* compute the crc for up to seven trailing bytes */
     while (len) {
         __asm__("crc32b\t%1, %0"
-                : "+r"(crc0)
-                : "m"(*next));
+        : "+r"(crc0)
+        : "m"(*next));
         next++;
         len--;
     }

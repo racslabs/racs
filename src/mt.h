@@ -34,20 +34,20 @@ typedef struct {
 
 // Memtable
 typedef struct {
-    racs_uint16     capacity;
-    racs_uint16     num_entries;
+    racs_uint16 capacity;
+    racs_uint16 num_entries;
     pthread_mutex_t mutex;
-    racs_mt_entry  *entries;
+    racs_mt_entry *entries;
 } racs_mt;
 
 typedef struct {
-    int        capacity;
+    int capacity;
     racs_dict *dict;
 } racs_mt_parts;
 
 typedef struct racs_mt_node {
-    racs_mt             *mt;
-    int                  ref_count;
+    racs_mt *mt;
+    int ref_count;
     struct racs_mt_node *next;
     struct racs_mt_node *prev;
 } racs_mt_node;
@@ -56,17 +56,17 @@ typedef struct racs_mt_node {
 // Doubly-linked-list of memtables.
 // Active memtable is the head. Flush happens at the tail.
 typedef struct {
-    racs_uint16     mt_capacity;
-    racs_uint32     mmt_capacity;
-    racs_uint32     num_tables;
+    racs_uint16 mt_capacity;
+    racs_uint32 mmt_capacity;
+    racs_uint32 num_tables;
     pthread_mutex_t mutex;
-    pthread_cond_t  cond;
-    racs_mt_node   *head;
-    racs_mt_node   *tail;
+    pthread_cond_t cond;
+    racs_mt_node *head;
+    racs_mt_node *tail;
 } racs_mmt;
 
 typedef struct {
-    racs_mmt     *mmt;
+    racs_mmt *mmt;
     racs_mt_node *curr;
 } racs_mmt_iter;
 

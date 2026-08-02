@@ -85,7 +85,7 @@ void *racs_dict_get(racs_dict *dict, const void *key) {
 
 void racs_dict_put(racs_dict *dict, const void *key, void *value) {
     if (!dict || dict->capacity == 0
-              || !racs_dict_validate_cb(dict)) {
+        || !racs_dict_validate_cb(dict)) {
         return;
     }
 
@@ -101,12 +101,12 @@ void racs_dict_put(racs_dict *dict, const void *key, void *value) {
     }
 
     racs_dict_remove_entry(dict, bucket, key);
-    racs_dict_insert_entry(dict, bucket, (void *)key, value);
+    racs_dict_insert_entry(dict, bucket, (void *) key, value);
 }
 
 void racs_dict_delete(racs_dict *dict, const void *key) {
     if (!dict || dict->capacity == 0
-              || !racs_dict_validate_cb(dict)) {
+        || !racs_dict_validate_cb(dict)) {
         return;
     }
 

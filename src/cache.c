@@ -9,11 +9,11 @@
 #include "cache.h"
 
 
-void racs_cache_evict(racs_cache *cache);
+void racs_cache_evict(racs_cache * cache);
 
 racs_cache_node *racs_cache_node_create(void *key, void *value);
 
-void racs_cache_move_to_head(racs_cache *cache, racs_cache_node *node);
+void racs_cache_move_to_head(racs_cache * cache, racs_cache_node * node);
 
 void racs_cache_empty_destroy_cb(void *key, void *value);
 
@@ -79,7 +79,7 @@ void racs_cache_put(racs_cache *cache, const void *key, void *value) {
         racs_cache_evict(cache);
     }
 
-    node = racs_cache_node_create((void *)key, value);
+    node = racs_cache_node_create((void *) key, value);
     racs_cache_move_to_head(cache, node);
     racs_dict_put(cache->dict, key, node);
 
@@ -198,4 +198,5 @@ void racs_cache_move_to_head(racs_cache *cache, racs_cache_node *node) {
     cache->head = node;
 }
 
-void racs_cache_empty_destroy_cb(void *key, void *value) {}
+void racs_cache_empty_destroy_cb(void *key, void *value) {
+}

@@ -28,12 +28,12 @@ int racs_config_expand_path(char **path_ptr) {
     return 0;
 }
 
-int racs_config_load(const char* path) {
+int racs_config_load(const char *path) {
     if (config) {
         racs_config_destroy();
     }
 
-    cyaml_err_t err = cyaml_load_file(path, &yaml_config, &racs_schema, (void **)&config, NULL);
+    cyaml_err_t err = cyaml_load_file(path, &yaml_config, &racs_schema, (void **) &config, NULL);
     if (err != CYAML_OK) {
         fprintf(stderr, "racs: failed to load config: %s\n", cyaml_strerror(err));
         return -1;
