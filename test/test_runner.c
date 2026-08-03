@@ -11,6 +11,7 @@
 #include "fs_test.h"
 #include "flush.h"
 #include "mp3_test.h"
+#include "aac_test.h"
 
 
 void setUp(void) {
@@ -59,6 +60,7 @@ int main(void) {
     RUN_TEST(test_eval_open);
     RUN_TEST(test_eval_stream);
     RUN_TEST(test_fs_fname);
-    RUN_TEST(test_mp3_encode);
+    RUN_TEST(test_mp3_decode_encode);
+    RUN_TEST(test_aac_decode_encode);
     return UNITY_END();
 }

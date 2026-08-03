@@ -83,6 +83,8 @@ add_executable(racs_test
         ${RACS_SOURCE_FILES}
         ${RACS_TEST_FILES}
         ${UNITY_SOURCE_FILES}
+        test/aac_test.h
+        test/aac_test.c
 )
 
 target_include_directories(racs_test PRIVATE
@@ -95,8 +97,18 @@ configure_file(${RACS_TEST_DIR}/test-conf.yaml
         ${CMAKE_CURRENT_BINARY_DIR}/test-conf.yaml
         COPYONLY)
 
-configure_file(${RACS_TEST_DIR}/chopin.mp3
-        ${CMAKE_CURRENT_BINARY_DIR}/chopin.mp3
-        COPYONLY)
+file(GLOB TEST_ASSETS
+        "${RACS_TEST_DIR}/*.mp3"
+        "${RACS_TEST_DIR}/*.aac"
+)
+
+foreach(file IN LISTS TEST_ASSETS)
+    get_filename_component(filename "${file}" NAME)
+    configure_file(
+            "${file}"
+            "${CMAKE_CURRENT_BINARY_DIR}/${filename}"
+            COPYONLY
+    )
+endforeach()
 
 add_test(NAME AllTests COMMAND racs_test)

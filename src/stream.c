@@ -60,6 +60,12 @@ int racs_stream_decode_mp3(const racs_info *info,
                            racs_uint8 **out,
                            size_t *out_size);
 
+int racs_stream_decode_aac(const racs_info *info,
+                           const racs_uint8 *src,
+                           size_t src_size,
+                           racs_uint8 **out,
+                           size_t *out_size);
+
 
 void racs_streams_init(void) {
     if (!streams_) {
@@ -332,19 +338,23 @@ int racs_stream_decode(const char *mime_type,
     char *mime_type_trim = strdup(mime_type);
     racs_trim(mime_type_trim);
 
-    int result = RACS_STREAM_DECODE_ERROR;
+    int status = RACS_STREAM_DECODE_ERROR;
 
     if (strcasecmp(mime_type_trim, "audio/pcm") == 0) {
-        result = racs_stream_decode_pcm(info, src, src_size, out, out_size);
+        status = racs_stream_decode_pcm(info, src, src_size, out, out_size);
     }
 
     if (strcasecmp(mime_type_trim, "audio/mp3") == 0 ||
         strcasecmp(mime_type_trim, "audio/mpeg") == 0) {
-        result = racs_stream_decode_mp3(info, src, src_size, out, out_size);
+        status = racs_stream_decode_mp3(info, src, src_size, out, out_size);
+    }
+
+    if (strcasecmp(mime_type_trim, "audio/aac") == 0) {
+        status = racs_stream_decode_aac(info, src, src_size, out, out_size);
     }
 
     free(mime_type_trim);
-    return result;
+    return status;
 }
 
 int racs_stream_decode_pcm(const racs_info *info,
@@ -380,8 +390,32 @@ int racs_stream_decode_mp3(const racs_info *info,
 
     racs_mp3_format fmt;
 
-    int result = racs_mp3_decode(&fmt, src, src_size, out, out_size);
-    if (result != RACS_MP3_OK) {
+    int status = racs_mp3_decode(&fmt, src, src_size, out, out_size);
+    if (status != RACS_MP3_OK) {
+        return RACS_STREAM_DECODE_ERROR;
+    }
+
+    if (fmt.bit_depth != info->bit_depth ||
+        fmt.channels != info->channels ||
+        fmt.sample_rate != info->sample_rate) {
+        return RACS_STREAM_DECODE_ERROR;
+    }
+
+    return RACS_STREAM_OK;
+}
+
+int racs_stream_decode_aac(const racs_info *info,
+                           const racs_uint8 *src,
+                           size_t src_size,
+                           racs_uint8 **out,
+                           size_t *out_size) {
+    *out = NULL;
+    *out_size = 0;
+
+    racs_aac_format fmt;
+
+    int status = racs_aac_decode(&fmt, src, src_size, out, out_size);
+    if (status != RACS_AAC_OK) {
         return RACS_STREAM_DECODE_ERROR;
     }
 

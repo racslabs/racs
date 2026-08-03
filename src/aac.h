@@ -10,6 +10,7 @@ extern "C" {
 
 #include "types.h"
 #include "memstream.h"
+#include <fdk-aac/aacenc_lib.h>
 #include <fdk-aac/aacdecoder_lib.h>
 
 
@@ -33,6 +34,12 @@ typedef enum {
 
 
 int racs_aac_decode(racs_aac_format *fmt,
+                    const racs_uint8 *src,
+                    size_t src_size,
+                    racs_uint8 **out,
+                    size_t *out_size);
+
+int racs_aac_encode(racs_aac_format *fmt,
                     const racs_uint8 *src,
                     size_t src_size,
                     racs_uint8 **out,

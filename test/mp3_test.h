@@ -6,6 +6,6 @@
 #include "test_utils.h"
 #include "unity.h"
 
-void test_mp3_encode(void);
+void test_mp3_decode_encode(void);
 
 #endif //RACS_MP3_TEST

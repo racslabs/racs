@@ -2,7 +2,7 @@
 #include "mp3_test.h"
 
 
-void test_mp3_encode(void) {
+void test_mp3_decode_encode(void) {
     racs_uint8 *src;
     size_t src_size;
 
