@@ -18,7 +18,6 @@ RUN apk add \
     libopusenc-dev
 
 RUN apk add \
-    guile-dev \
     msgpack-c-dev \
     libevent-dev \
     zstd-dev \

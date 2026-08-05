@@ -43,6 +43,7 @@ find_package(AAC)
 set(RACS_LIBRARIES
         ${MSGPACK_LIBRARIES}
         ${LAME_LIBRARIES}
+        ${FLAC_LIBRARIES}
         ${OPUS_LIBRARIES}
         ${OPUSENC_LIBRARIES}
         ${YAML_LIBRARIES}
@@ -57,7 +58,7 @@ include_directories(
         ${OPUS_INCLUDE_DIRS}
         ${OPUSENC_INCLUDE_DIRS}
         ${LAME_INCLUDE_DIRS}
-        ${GUILE_INCLUDE_DIRS}
+        ${FLAC_INCLUDE_DIRS}
         ${YAML_INCLUDE_DIRS}
         ${MSGPACK_INCLUDE_DIRS}
         ${EVENT_INCLUDE_DIRS}
@@ -73,7 +74,7 @@ file(GLOB_RECURSE UNITY_SOURCE_FILES CONFIGURE_DEPENDS ${UNITY_SOURCE_DIR}/*.h $
 list(FILTER RACS_SOURCE_FILES EXCLUDE REGEX "racs_cli.c")
 
 add_executable(racs ${RACS_SOURCE_FILES} src/racs_cli.c
-        src/aac.c)
+        src/codec/flac.c)
 
 target_link_libraries(racs ${RACS_LIBRARIES})
 
@@ -83,8 +84,6 @@ add_executable(racs_test
         ${RACS_SOURCE_FILES}
         ${RACS_TEST_FILES}
         ${UNITY_SOURCE_FILES}
-        test/aac_test.h
-        test/aac_test.c
 )
 
 target_include_directories(racs_test PRIVATE
