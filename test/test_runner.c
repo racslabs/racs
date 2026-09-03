@@ -12,6 +12,8 @@
 #include "flush.h"
 #include "mp3_test.h"
 #include "aac_test.h"
+#include "flac_test.h"
+#include "opus_test.h"
 
 
 void setUp(void) {
@@ -62,5 +64,7 @@ int main(void) {
     RUN_TEST(test_fs_fname);
     RUN_TEST(test_mp3_decode_encode);
     RUN_TEST(test_aac_decode_encode);
+    RUN_TEST(test_flac_decode_encode);
+    RUN_TEST(test_opus_decode_encode);
     return UNITY_END();
 }

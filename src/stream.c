@@ -66,6 +66,18 @@ int racs_stream_decode_aac(const racs_info *info,
                            racs_uint8 **out,
                            size_t *out_size);
 
+int racs_stream_decode_flac(const racs_info *info,
+                            const racs_uint8 *src,
+                            size_t src_size,
+                            racs_uint8 **out,
+                            size_t *out_size);
+
+int racs_stream_decode_opus(const racs_info *info,
+                            const racs_uint8 *src,
+                            size_t src_size,
+                            racs_uint8 **out,
+                            size_t *out_size);
+
 
 void racs_streams_init(void) {
     if (!streams_) {
@@ -353,6 +365,14 @@ int racs_stream_decode(const char *mime_type,
         status = racs_stream_decode_aac(info, src, src_size, out, out_size);
     }
 
+    if (strcasecmp(mime_type_trim, "audio/flac") == 0) {
+        status = racs_stream_decode_flac(info, src, src_size, out, out_size);
+    }
+
+    if (strcasecmp(mime_type_trim, "audio/opus") == 0) {
+        status = racs_stream_decode_opus(info, src, src_size, out, out_size);
+    }
+
     free(mime_type_trim);
     return status;
 }
@@ -385,6 +405,8 @@ int racs_stream_decode_mp3(const racs_info *info,
                            size_t src_size,
                            racs_uint8 **out,
                            size_t *out_size) {
+    (void) info;
+
     *out = NULL;
     *out_size = 0;
 
@@ -392,12 +414,6 @@ int racs_stream_decode_mp3(const racs_info *info,
 
     int status = racs_mp3_decode(&fmt, src, src_size, out, out_size);
     if (status != RACS_MP3_OK) {
-        return RACS_STREAM_DECODE_ERROR;
-    }
-
-    if (fmt.bit_depth != info->bit_depth ||
-        fmt.channels != info->channels ||
-        fmt.sample_rate != info->sample_rate) {
         return RACS_STREAM_DECODE_ERROR;
     }
 
@@ -409,6 +425,8 @@ int racs_stream_decode_aac(const racs_info *info,
                            size_t src_size,
                            racs_uint8 **out,
                            size_t *out_size) {
+    (void) info;
+
     *out = NULL;
     *out_size = 0;
 
@@ -419,9 +437,43 @@ int racs_stream_decode_aac(const racs_info *info,
         return RACS_STREAM_DECODE_ERROR;
     }
 
-    if (fmt.bit_depth != info->bit_depth ||
-        fmt.channels != info->channels ||
-        fmt.sample_rate != info->sample_rate) {
+    return RACS_STREAM_OK;
+}
+
+int racs_stream_decode_flac(const racs_info *info,
+                            const racs_uint8 *src,
+                            size_t src_size,
+                            racs_uint8 **out,
+                            size_t *out_size) {
+    (void) info;
+
+    *out = NULL;
+    *out_size = 0;
+
+    racs_flac_format fmt;
+
+    int status = racs_flac_decode(&fmt, src, src_size, out, out_size);
+    if (status != RACS_FLAC_OK) {
+        return RACS_STREAM_DECODE_ERROR;
+    }
+
+    return RACS_STREAM_OK;
+}
+
+int racs_stream_decode_opus(const racs_info *info,
+                            const racs_uint8 *src,
+                            size_t src_size,
+                            racs_uint8 **out,
+                            size_t *out_size) {
+    (void) info;
+
+    *out = NULL;
+    *out_size = 0;
+
+    racs_opus_format fmt;
+
+    int status = racs_opus_decode(&fmt, src, src_size, out, out_size);
+    if (status != RACS_OPUS_OK) {
         return RACS_STREAM_DECODE_ERROR;
     }
 

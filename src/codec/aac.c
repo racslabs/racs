@@ -139,6 +139,7 @@ int racs_aac_decode(racs_aac_format *fmt,
         .data = &buf,
         .size = &buf_size,
         .capacity = 1024,
+        .offset = 0
     };
 
     racs_aac_decoder dec;
@@ -321,6 +322,7 @@ int racs_aac_encode(racs_aac_format *fmt,
         .data = &buf,
         .size = &buf_size,
         .capacity = 1024,
+        .offset = 0
     };
 
     racs_aac_encoder enc;

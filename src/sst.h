@@ -28,9 +28,7 @@ typedef struct __attribute__ ((packed)) {
     racs_uint32 offset;
     racs_uint32 block_size;
     racs_uint32 checksum;
-}
-
-racs_sst_index_entry;
+} racs_sst_index_entry;
 
 typedef struct {
     size_t size;

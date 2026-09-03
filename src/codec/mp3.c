@@ -146,6 +146,7 @@ int racs_mp3_decode(racs_mp3_format *fmt,
         .data = &buf,
         .size = &buf_size,
         .capacity = 1024,
+        .offset = 0
     };
 
     racs_mp3_decoder dec;
@@ -276,6 +277,7 @@ int racs_mp3_encode(racs_mp3_format *fmt,
         .data = &buf,
         .size = &buf_size,
         .capacity = 1024,
+        .offset = 0
     };
 
     racs_mp3_encoder enc;

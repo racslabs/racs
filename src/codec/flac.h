@@ -36,6 +36,12 @@ int racs_flac_decode(racs_flac_format *fmt,
                      racs_uint8 **out,
                      size_t *out_size);
 
+int racs_flac_encode(racs_flac_format *fmt,
+                     const racs_uint8 *src,
+                     size_t src_size,
+                     racs_uint8 **out,
+                     size_t *out_size);
+
 
 #ifdef __cplusplus
 }

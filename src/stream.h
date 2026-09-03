@@ -10,6 +10,8 @@ extern "C" {
 #include "mt.h"
 #include "codec/mp3.h"
 #include "codec/aac.h"
+#include "codec/flac.h"
+#include "codec/opus.h"
 #include "mmh3.h"
 #include "info.h"
 #include "offsets.h"
@@ -56,6 +58,7 @@ int racs_streams_append(racs_streams *streams,
 int racs_streams_close(racs_streams *streams, const char *stream_id);
 
 void racs_streams_destroy(void);
+
 
 #ifdef __cplusplus
 }

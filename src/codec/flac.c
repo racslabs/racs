@@ -2,6 +2,11 @@
 #include "flac.h"
 
 
+#define RACS_FLAC_COMPRESSION_LEVEL 5
+
+#define RACS_FLAC_DEFAULT_FRAME_SIZE 4096
+
+
 typedef struct {
     FLAC__StreamDecoder *dec;
     const racs_uint8 *src_buf;
@@ -12,13 +17,19 @@ typedef struct {
     int status;
 } racs_flac_decoder;
 
+typedef struct {
+    FLAC__StreamEncoder *enc;
+    racs_memstream *ms;
+    int status;
+} racs_flac_encoder;
 
-FLAC__StreamDecoderReadStatus racs_flac_read_cb(const FLAC__StreamDecoder *decoder,
+
+FLAC__StreamDecoderReadStatus racs_flac_decode_read_cb(const FLAC__StreamDecoder *decoder,
                                                 FLAC__byte buffer[],
                                                 size_t *bytes,
                                                 void *data);
 
-FLAC__StreamDecoderWriteStatus racs_flac_write_cb(const FLAC__StreamDecoder *decoder,
+FLAC__StreamDecoderWriteStatus racs_flac_decode_write_cb(const FLAC__StreamDecoder *decoder,
                                                   const FLAC__Frame *frame,
                                                   const FLAC__int32 *const buffer[],
                                                   void *data);
@@ -37,11 +48,35 @@ int racs_flac_decoder_decode(racs_flac_decoder *dec,
 
 void racs_flac_decoder_cleanup(racs_flac_decoder *dec);
 
+FLAC__StreamEncoderWriteStatus racs_flac_encode_write_cb(const FLAC__StreamEncoder *encoder,
+                                                         const FLAC__byte buffer[],
+                                                         size_t bytes,
+                                                         unsigned samples,
+                                                         unsigned current_frame,
+                                                         void *data);
 
-FLAC__StreamDecoderReadStatus racs_flac_read_cb(const FLAC__StreamDecoder *decoder,
-                                                FLAC__byte buffer[],
-                                                size_t *bytes,
-                                                void *data) {
+FLAC__StreamEncoderSeekStatus racs_flac_encode_seek_cb(const FLAC__StreamEncoder *encoder,
+                                                       FLAC__uint64 absolute_byte_offset,
+                                                       void *data);
+
+FLAC__StreamEncoderTellStatus racs_flac_encode_tell_cb(const FLAC__StreamEncoder *encoder,
+                                                       FLAC__uint64 *absolute_byte_offset,
+                                                       void *data);
+
+int racs_flac_encoder_init(racs_flac_encoder *enc, racs_flac_format *fmt, racs_memstream *ms);
+
+int racs_flac_encoder_encode(racs_flac_encoder *enc,
+                             racs_flac_format *fmt,
+                             const racs_uint8 *src,
+                             size_t src_size);
+
+void racs_flac_encoder_cleanup(racs_flac_encoder *enc);
+
+
+FLAC__StreamDecoderReadStatus racs_flac_decode_read_cb(const FLAC__StreamDecoder *decoder,
+                                                       FLAC__byte buffer[],
+                                                       size_t *bytes,
+                                                       void *data) {
     (void) decoder;
 
     racs_flac_decoder *dec = (racs_flac_decoder *)data;
@@ -61,10 +96,10 @@ FLAC__StreamDecoderReadStatus racs_flac_read_cb(const FLAC__StreamDecoder *decod
     return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
 }
 
-FLAC__StreamDecoderWriteStatus racs_flac_write_cb(const FLAC__StreamDecoder *decoder,
-                                                  const FLAC__Frame *frame,
-                                                  const FLAC__int32 *const buffer[],
-                                                  void *data) {
+FLAC__StreamDecoderWriteStatus racs_flac_decode_write_cb(const FLAC__StreamDecoder *decoder,
+                                                         const FLAC__Frame *frame,
+                                                         const FLAC__int32 *const buffer[],
+                                                         void *data) {
     (void) decoder;
 
     racs_flac_decoder *dec = (racs_flac_decoder *)data;
@@ -119,12 +154,12 @@ int racs_flac_decoder_init(racs_flac_decoder *dec) {
 
     FLAC__StreamDecoderInitStatus status = FLAC__stream_decoder_init_stream(
         dec->dec,
-        racs_flac_read_cb,
+        racs_flac_decode_read_cb,
         NULL,
         NULL,
         NULL,
         NULL,
-        racs_flac_write_cb,
+        racs_flac_decode_write_cb,
         NULL,
         racs_flac_error_cb,
         dec
@@ -188,6 +223,7 @@ int racs_flac_decode(racs_flac_format *fmt,
         .data = &buf,
         .size = &buf_size,
         .capacity = 1024,
+        .offset = 0
     };
 
     racs_flac_decoder dec;
@@ -209,4 +245,187 @@ int racs_flac_decode(racs_flac_format *fmt,
 
     racs_flac_decoder_cleanup(&dec);
     return status;
+}
+
+FLAC__StreamEncoderWriteStatus racs_flac_encode_write_cb(const FLAC__StreamEncoder *encoder,
+                                                         const FLAC__byte buffer[],
+                                                         size_t bytes,
+                                                         unsigned samples,
+                                                         unsigned current_frame,
+                                                         void *data) {
+    (void) encoder;
+    (void) samples;
+    (void) current_frame;
+
+    racs_flac_encoder *enc = (racs_flac_encoder *)data;
+    racs_memstream_write(enc->ms, buffer, bytes);
+
+    return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
+}
+
+FLAC__StreamEncoderSeekStatus racs_flac_encode_seek_cb(const FLAC__StreamEncoder *encoder,
+                                                       FLAC__uint64 absolute_byte_offset,
+                                                       void *data) {
+    (void) encoder;
+    racs_flac_encoder *enc = (racs_flac_encoder *)data;
+
+    if (racs_memstream_seek(enc->ms, absolute_byte_offset) != 0) {
+        return FLAC__STREAM_ENCODER_SEEK_STATUS_ERROR;
+    }
+
+    return FLAC__STREAM_ENCODER_SEEK_STATUS_OK;
+}
+
+FLAC__StreamEncoderTellStatus racs_flac_encode_tell_cb(const FLAC__StreamEncoder *encoder,
+                                                       FLAC__uint64 *absolute_byte_offset,
+                                                       void *data) {
+    (void)encoder;
+
+    racs_flac_encoder *enc = (racs_flac_encoder *)data;
+
+    FLAC__int64 offset = racs_memstream_tell(enc->ms);
+    if (offset < 0) {
+        return FLAC__STREAM_ENCODER_TELL_STATUS_ERROR;
+    }
+
+    *absolute_byte_offset = (FLAC__uint64)offset;
+    return FLAC__STREAM_ENCODER_TELL_STATUS_OK;
+}
+
+int racs_flac_encoder_init(racs_flac_encoder *enc, racs_flac_format *fmt, racs_memstream *ms) {
+    enc->enc = FLAC__stream_encoder_new();
+    if (!enc->enc) {
+        return RACS_FLAC_ALLOC_ERROR;
+    }
+
+    enc->ms = ms;
+    enc->status = RACS_FLAC_OK;
+
+    FLAC__stream_encoder_set_channels(enc->enc, fmt->channels);
+    FLAC__stream_encoder_set_bits_per_sample(enc->enc, fmt->bit_depth);
+    FLAC__stream_encoder_set_sample_rate(enc->enc, fmt->sample_rate);
+    FLAC__stream_encoder_set_compression_level(enc->enc, RACS_FLAC_COMPRESSION_LEVEL);
+
+    FLAC__StreamEncoderInitStatus status = FLAC__stream_encoder_init_stream(
+        enc->enc,
+        racs_flac_encode_write_cb,
+        racs_flac_encode_seek_cb,
+        racs_flac_encode_tell_cb,
+        NULL,
+        enc
+    );
+
+    if (status != FLAC__STREAM_ENCODER_INIT_STATUS_OK) {
+        FLAC__stream_encoder_delete(enc->enc);
+        return RACS_FLAC_ALLOC_ERROR;
+    }
+
+    return RACS_FLAC_OK;
+}
+
+int racs_flac_encoder_encode(racs_flac_encoder *enc,
+                             racs_flac_format *fmt,
+                             const racs_uint8 *src,
+                             size_t src_size)
+{
+    if (!enc || !enc->enc || !src || !fmt || fmt->channels <= 0) {
+        return RACS_FLAC_PARAM_ERROR;
+    }
+
+    if (fmt->bit_depth != 16) {
+        return RACS_FLAC_UNSUPPORTED;
+    }
+
+    size_t total_samples = src_size / sizeof(racs_int16);
+    size_t frames_remaining = total_samples / fmt->channels;
+
+    if (frames_remaining <= 0) {
+        return RACS_FLAC_OK;
+    }
+
+    const racs_int16 *in_ptr = (const racs_int16 *)src;
+    size_t total_frame_samples = RACS_FLAC_DEFAULT_FRAME_SIZE * fmt->channels;
+
+    FLAC__int32 *buf = malloc(total_frame_samples * sizeof(FLAC__int32));
+    if (!buf) {
+        return RACS_FLAC_ALLOC_ERROR;
+    }
+
+    while (frames_remaining > 0) {
+        unsigned chunk_frames = (frames_remaining > (size_t)RACS_FLAC_DEFAULT_FRAME_SIZE) ?
+                                RACS_FLAC_DEFAULT_FRAME_SIZE : (unsigned)frames_remaining;
+
+        size_t chunk_size = (size_t)chunk_frames * fmt->channels;
+
+        for (size_t i = 0; i < chunk_size; i++) {
+            buf[i] = (FLAC__int32)in_ptr[i];
+        }
+
+        FLAC__bool status = FLAC__stream_encoder_process_interleaved(enc->enc, buf, chunk_frames);
+        if (!status) {
+            free(buf);
+            return RACS_FLAC_ENCODE_ERROR;
+        }
+
+        frames_remaining -= chunk_frames;
+        in_ptr += chunk_size;
+    }
+
+    free(buf);
+    return RACS_FLAC_OK;
+}
+
+
+void racs_flac_encoder_cleanup(racs_flac_encoder *enc) {
+    if (enc && enc->enc) {
+        FLAC__stream_encoder_finish(enc->enc);
+        FLAC__stream_encoder_delete(enc->enc);
+    }
+}
+
+int racs_flac_encode(racs_flac_format *fmt,
+                     const racs_uint8 *src,
+                     size_t src_size,
+                     racs_uint8 **out,
+                     size_t *out_size) {
+    if (!src || src_size == 0 || !out || !out_size || !fmt) {
+        return RACS_FLAC_PARAM_ERROR;
+    }
+
+    *out = NULL;
+    *out_size = 0;
+
+    size_t buf_size = 0;
+    racs_uint8 *buf = malloc(1024);
+    if (!buf) {
+        return RACS_FLAC_ALLOC_ERROR;
+    }
+
+    racs_memstream ms = {
+        .data = &buf,
+        .size = &buf_size,
+        .capacity = 1024,
+        .offset = 0
+    };
+
+    racs_flac_encoder enc;
+    int status = racs_flac_encoder_init(&enc, fmt, &ms);
+    if (status != RACS_FLAC_OK) {
+        free(buf);
+        return status;
+    }
+
+    status = racs_flac_encoder_encode(&enc, fmt, src, src_size);
+    if (status != RACS_FLAC_OK) {
+        free(buf);
+        racs_flac_encoder_cleanup(&enc);
+        return status;
+    }
+
+    racs_flac_encoder_cleanup(&enc);
+
+    *out = buf;
+    *out_size = buf_size;
+
+    return RACS_FLAC_OK;
 }

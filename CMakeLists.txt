@@ -34,11 +34,13 @@ find_package(Msgpack)
 find_package(Lame)
 find_package(Opus)
 find_package(OpusEnc)
+find_package(OpusFile)
 find_package(Yaml)
 find_package(Event)
 find_package(Zstd)
 find_package(Mpg123)
 find_package(AAC)
+find_package(FLAC)
 
 set(RACS_LIBRARIES
         ${MSGPACK_LIBRARIES}
@@ -46,6 +48,7 @@ set(RACS_LIBRARIES
         ${FLAC_LIBRARIES}
         ${OPUS_LIBRARIES}
         ${OPUSENC_LIBRARIES}
+        ${OPUSFILE_LIBRARIES}
         ${YAML_LIBRARIES}
         ${EVENT_LIBRARIES}
         ${ZSTD_LIBRARIES}
@@ -57,6 +60,7 @@ set(RACS_LIBRARIES
 include_directories(
         ${OPUS_INCLUDE_DIRS}
         ${OPUSENC_INCLUDE_DIRS}
+        ${OPUSFILE_INCLUDE_DIRS}
         ${LAME_INCLUDE_DIRS}
         ${FLAC_INCLUDE_DIRS}
         ${YAML_INCLUDE_DIRS}
@@ -73,8 +77,7 @@ file(GLOB_RECURSE UNITY_SOURCE_FILES CONFIGURE_DEPENDS ${UNITY_SOURCE_DIR}/*.h $
 
 list(FILTER RACS_SOURCE_FILES EXCLUDE REGEX "racs_cli.c")
 
-add_executable(racs ${RACS_SOURCE_FILES} src/racs_cli.c
-        src/codec/flac.c)
+add_executable(racs ${RACS_SOURCE_FILES} src/racs_cli.c)
 
 target_link_libraries(racs ${RACS_LIBRARIES})
 
@@ -99,6 +102,7 @@ configure_file(${RACS_TEST_DIR}/test-conf.yaml
 file(GLOB TEST_ASSETS
         "${RACS_TEST_DIR}/*.mp3"
         "${RACS_TEST_DIR}/*.aac"
+        "${RACS_TEST_DIR}/*.flac"
 )
 
 foreach(file IN LISTS TEST_ASSETS)
