@@ -12,7 +12,7 @@ void test_flac_decode_encode(void) {
     racs_uint8 *encoded;
     size_t encoded_size;
 
-    read_file("chopin.flac", &src, &src_size);
+    read_file(RACS_TEST_FLAC_PATH, &src, &src_size);
 
     racs_flac_format fmt;
 

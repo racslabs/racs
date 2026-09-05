@@ -13,6 +13,8 @@
 extern "C" {
 #endif
 
+#include <errno.h>
+#include <limits.h>
 #include <cyaml/cyaml.h>
 #include "path.h"
 

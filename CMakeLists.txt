@@ -52,7 +52,7 @@ set(RACS_LIBRARIES
         ${YAML_LIBRARIES}
         ${EVENT_LIBRARIES}
         ${ZSTD_LIBRARIES}
-	    ${MPG123_LIBRARIES}
+	${MPG123_LIBRARIES}
         ${AAC_LIBRARIES}
         uuid
 )
@@ -67,7 +67,7 @@ include_directories(
         ${MSGPACK_INCLUDE_DIRS}
         ${EVENT_INCLUDE_DIRS}
         ${ZSTD_INCLUDE_DIRS}
-	    ${MPG123_INCLUDE_DIRS}
+	${MPG123_INCLUDE_DIRS}
         ${AAC_INCLUDE_DIRS}
 )
 
@@ -103,6 +103,7 @@ file(GLOB TEST_ASSETS
         "${RACS_TEST_DIR}/*.mp3"
         "${RACS_TEST_DIR}/*.aac"
         "${RACS_TEST_DIR}/*.flac"
+        "${RACS_TEST_DIR}/*.opus"
 )
 
 foreach(file IN LISTS TEST_ASSETS)
@@ -113,5 +114,14 @@ foreach(file IN LISTS TEST_ASSETS)
             COPYONLY
     )
 endforeach()
+
+target_compile_definitions(racs_test PRIVATE 
+    RACS_TEST_CONFIG_PATH="${CMAKE_CURRENT_BINARY_DIR}/test-conf.yaml"
+
+    RACS_TEST_MP3_PATH="${CMAKE_CURRENT_BINARY_DIR}/chopin.mp3"
+    RACS_TEST_AAC_PATH="${CMAKE_CURRENT_BINARY_DIR}/chopin.aac"
+    RACS_TEST_FLAC_PATH="${CMAKE_CURRENT_BINARY_DIR}/chopin.flac"
+    RACS_TEST_OPUS_PATH="${CMAKE_CURRENT_BINARY_DIR}/chopin.opus"
+)
 
 add_test(NAME AllTests COMMAND racs_test)

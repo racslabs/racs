@@ -24,7 +24,7 @@ void tearDown(void) {
 
 
 static void before_all(void) {
-    racs_config_load("test-conf.yaml");
+    racs_config_load(RACS_TEST_CONFIG_PATH);
 
     racs_flush_queue_init();
     racs_flush_thread_start(racs_flush_queue_get());

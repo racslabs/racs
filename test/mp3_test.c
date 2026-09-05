@@ -12,7 +12,7 @@ void test_mp3_decode_encode(void) {
     racs_uint8 *encoded;
     size_t encoded_size;
 
-    read_file("chopin.mp3", &src, &src_size);
+    read_file(RACS_TEST_MP3_PATH, &src, &src_size);
 
     racs_mp3_format fmt;
 

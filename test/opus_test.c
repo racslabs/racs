@@ -12,7 +12,7 @@ void test_opus_decode_encode(void) {
     racs_uint8 *encoded;
     size_t encoded_size;
 
-    read_file("chopin.opus", &src, &src_size);
+    read_file(RACS_TEST_OPUS_PATH, &src, &src_size);
 
     racs_opus_format fmt = {
         .sample_rate = 48000,
@@ -22,7 +22,6 @@ void test_opus_decode_encode(void) {
 
     int status = racs_opus_decode(&fmt, src, src_size, &decoded, &decoded_size);
     TEST_ASSERT_EQUAL_INT(RACS_OPUS_OK, status);
-
     TEST_ASSERT_EQUAL_UINT8(2, fmt.channels);
     TEST_ASSERT_EQUAL_UINT8(16, fmt.bit_depth);
     TEST_ASSERT_EQUAL_UINT32(48000, fmt.sample_rate);

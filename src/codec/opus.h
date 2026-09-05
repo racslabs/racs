@@ -3,12 +3,11 @@
 #define RACS_OPUS_H
 
 
-#include "info.h"
-#include "types.h"
-#include "memstream.h"
+#include "../types.h"
+#include "../memstream.h"
+
 #include <opusfile.h>
 #include <opusenc.h>
-
 
 
 typedef struct {

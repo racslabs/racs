@@ -29,9 +29,7 @@ typedef struct __attribute__ ((packed)) {
     racs_uint8 bit_depth;
     racs_uint32 stream_id_size;
     char stream_id[];
-}
-
-racs_info;
+} racs_info;
 
 
 racs_info *racs_info_create(const char *stream_id,

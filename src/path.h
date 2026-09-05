@@ -20,6 +20,11 @@ extern "C" {
 #include <sys/stat.h>
 
 
+#ifndef PATH_MAX
+    #define PATH_MAX 4096
+#endif
+
+
 int racs_path_expand(char *dest, const char *path);
 
 void racs_path_from_time(char *path, racs_uint64 stream_id, racs_time time);
