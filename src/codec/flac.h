@@ -10,6 +10,8 @@ extern "C" {
 
 #include "../types.h"
 #include "../memstream.h"
+#include "../simd/simd.h"
+
 #include <FLAC/stream_decoder.h>
 #include <FLAC/stream_encoder.h>
 

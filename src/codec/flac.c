@@ -107,7 +107,7 @@ FLAC__StreamDecoderWriteStatus racs_flac_decode_write_cb(const FLAC__StreamDecod
     dec->fmt->channels = frame->header.channels;
     dec->fmt->sample_rate = frame->header.sample_rate;
     dec->fmt->bit_depth = frame->header.bits_per_sample;
-
+    
     racs_uint32 channels = frame->header.channels;
     racs_uint32 samples = frame->header.blocksize;
 
@@ -117,7 +117,7 @@ FLAC__StreamDecoderWriteStatus racs_flac_decode_write_cb(const FLAC__StreamDecod
             dec->status = RACS_FLAC_ALLOC_ERROR;
             return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
         }
-
+        
         for (int sample = 0; sample < samples; sample++) {
             for (int channel = 0; channel < channels; channel++) {
                 interleaved[sample * channels + channel] = (racs_int16)buffer[channel][sample];
@@ -125,6 +125,27 @@ FLAC__StreamDecoderWriteStatus racs_flac_decode_write_cb(const FLAC__StreamDecod
         }
 
         racs_memstream_write(dec->ms, interleaved, samples * channels * sizeof(racs_int16));
+        free(interleaved);
+    } else if (dec->fmt->bit_depth == 24) {
+        racs_int24 *interleaved = malloc(samples * channels * sizeof(racs_int24));
+        if (!interleaved) {
+            dec->status = RACS_FLAC_ALLOC_ERROR;
+            return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+        }
+    
+        for (int sample = 0; sample < samples; sample++) {
+            for (int channel = 0; channel < channels; channel++) {
+                racs_int24 pcm_sample;
+
+                pcm_sample._[0] = (racs_uint8)( buffer[channel][sample]       & 0xff);
+                pcm_sample._[1] = (racs_uint8)((buffer[channel][sample] >> 8) & 0xff);
+                pcm_sample._[2] = (racs_uint8)((buffer[channel][sample]>> 16) & 0xff);
+
+                interleaved[sample * channels + channel] = pcm_sample;
+            }
+        }
+
+        racs_memstream_write(dec->ms, interleaved, samples * channels * sizeof(racs_int24));
         free(interleaved);
     } else {
         dec->status = RACS_FLAC_UNSUPPORTED;
@@ -326,24 +347,20 @@ int racs_flac_encoder_init(racs_flac_encoder *enc, racs_flac_format *fmt, racs_m
 int racs_flac_encoder_encode(racs_flac_encoder *enc,
                              racs_flac_format *fmt,
                              const racs_uint8 *src,
-                             size_t src_size)
-{
+                             size_t src_size) {
     if (!enc || !enc->enc || !src || !fmt || fmt->channels <= 0) {
         return RACS_FLAC_PARAM_ERROR;
     }
 
-    if (fmt->bit_depth != 16) {
+    if (fmt->bit_depth != 16 && fmt->bit_depth != 24) {
         return RACS_FLAC_UNSUPPORTED;
     }
 
-    size_t total_samples = src_size / sizeof(racs_int16);
-    size_t frames_remaining = total_samples / fmt->channels;
+    size_t bytes_per_sample = (fmt->bit_depth == 16) ? sizeof(racs_int16) : sizeof(racs_int24);
+    size_t total_samples = src_size / bytes_per_sample;
+    size_t frames_remaining = total_samples / fmt->channels;  
 
-    if (frames_remaining <= 0) {
-        return RACS_FLAC_OK;
-    }
-
-    const racs_int16 *in_ptr = (const racs_int16 *)src;
+    const racs_uint8 *in_ptr = src;
     size_t total_frame_samples = RACS_FLAC_DEFAULT_FRAME_SIZE * fmt->channels;
 
     FLAC__int32 *buf = malloc(total_frame_samples * sizeof(FLAC__int32));
@@ -355,10 +372,16 @@ int racs_flac_encoder_encode(racs_flac_encoder *enc,
         unsigned chunk_frames = (frames_remaining > (size_t)RACS_FLAC_DEFAULT_FRAME_SIZE) ?
                                 RACS_FLAC_DEFAULT_FRAME_SIZE : (unsigned)frames_remaining;
 
-        size_t chunk_size = (size_t)chunk_frames * fmt->channels;
+        size_t chunk_samples = (size_t)chunk_frames * fmt->channels;
 
-        for (size_t i = 0; i < chunk_size; i++) {
-            buf[i] = (FLAC__int32)in_ptr[i];
+        if (fmt->bit_depth == 16) {
+            const racs_int16 *in_s16 = (const racs_int16 *)in_ptr;
+
+            racs_simd_int16_int32(in_s16, buf, chunk_samples);
+        } else if (fmt->bit_depth == 24) {
+            const racs_int24 *in_s24 = (const racs_int24 *)in_ptr;
+
+            racs_simd_int24_int32(in_s24, buf, chunk_samples);
         }
 
         FLAC__bool status = FLAC__stream_encoder_process_interleaved(enc->enc, buf, chunk_frames);
@@ -368,7 +391,7 @@ int racs_flac_encoder_encode(racs_flac_encoder *enc,
         }
 
         frames_remaining -= chunk_frames;
-        in_ptr += chunk_size;
+        in_ptr += chunk_samples * bytes_per_sample;
     }
 
     free(buf);

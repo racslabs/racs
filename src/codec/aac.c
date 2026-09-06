@@ -126,6 +126,10 @@ int racs_aac_decode(racs_aac_format *fmt,
         return RACS_AAC_PARAM_ERROR;
     }
 
+    if (fmt->bit_depth != 16) {
+        return RACS_AAC_UNSUPPORTED;
+    }
+
     *out = NULL;
     *out_size = 0;
 

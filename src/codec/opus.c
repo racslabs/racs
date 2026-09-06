@@ -207,6 +207,10 @@ int racs_opus_encoder_encode(racs_opus_encoder *enc,
         return RACS_OPUS_PARAM_ERROR;
     }
 
+    if (fmt->bit_depth != 16) {
+        return RACS_OPUS_UNSUPPORTED;
+    }
+
     size_t total_samples = src_size / sizeof(racs_int16);
     size_t samples_remaining = total_samples / fmt->channels;
 

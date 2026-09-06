@@ -17,6 +17,8 @@ set(UNITY_SOURCE_DIR ${CMAKE_SOURCE_DIR}/external/unity/src)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+add_compile_options(-mavx2)
+
 #---------Uncomment For Debugging Only----------#
 option(ENABLE_ASAN "Enable AddressSanitizer" ON)
 
