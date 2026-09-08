@@ -7,10 +7,10 @@ void racs_simd_interleave_int24(const racs_int24 *src_l, const racs_int24 *src_r
         return;
     }
 
-    size_t i = 0;
+    size_t i = 0, m = n & ~3;
     
     RACS_UNROLL
-    for ( ; i < (n & ~3); i++) {
+    for ( ; i < m; i++) {
         dst[i * 2]       = src_l[i]; 
         dst[(i * 2) + 1] = src_r[i];
     }

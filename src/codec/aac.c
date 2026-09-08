@@ -95,6 +95,10 @@ int racs_aac_decoder_decode(racs_aac_decoder *dec,
             fmt->sample_rate = info->sampleRate;
             fmt->bit_depth   = RACS_AAC_BIT_DEPTH;
 
+            if (fmt->channels != 1 && fmt->channels != 2) {
+                return RACS_AAC_UNSUPPORTED;
+            }
+
             size_t frame_samples = (size_t)info->frameSize * info->numChannels;
             racs_memstream_write(ms, dec->pcm_block, frame_samples * sizeof(racs_int16));
         }
@@ -124,10 +128,6 @@ int racs_aac_decode(racs_aac_format *fmt,
                     size_t *out_size) {
     if (!src || src_size == 0 || !out || !out_size || !fmt) {
         return RACS_AAC_PARAM_ERROR;
-    }
-
-    if (fmt->bit_depth != 16) {
-        return RACS_AAC_UNSUPPORTED;
     }
 
     *out = NULL;
@@ -169,6 +169,10 @@ int racs_aac_decode(racs_aac_format *fmt,
 
 int racs_aac_encoder_init(racs_aac_encoder *enc, racs_aac_format *fmt) {
     enc->henc = NULL;
+
+    if (fmt->channels != 1 && fmt-> channels != 2) {
+        return RACS_AAC_UNSUPPORTED;
+    }
 
     if (aacEncOpen(&enc->henc, 0, fmt->channels) != AACENC_OK) {
         return RACS_AAC_ALLOC_ERROR;
@@ -223,9 +227,6 @@ int racs_aac_encoder_encode(racs_aac_encoder *enc,
                             const racs_uint8 *src,
                             size_t src_size,
                             racs_memstream *ms) {
-    if (fmt->bit_depth != 16) {
-        return RACS_AAC_UNSUPPORTED;
-    }
 
     racs_uint8 *out_ptr = malloc(enc->max_out_size);
     if (!out_ptr) {

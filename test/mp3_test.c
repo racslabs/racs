@@ -20,7 +20,6 @@ void test_mp3_decode_encode(void) {
     TEST_ASSERT_EQUAL_INT(RACS_MP3_OK, status);
 
     TEST_ASSERT_EQUAL_UINT8(2, fmt.channels);
-    TEST_ASSERT_EQUAL_UINT8(16, fmt.bit_depth);
     TEST_ASSERT_EQUAL_UINT32(48000, fmt.sample_rate);
 
     status = racs_mp3_encode(&fmt, decoded, decoded_size, &encoded, &encoded_size);

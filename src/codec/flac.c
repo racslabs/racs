@@ -2,7 +2,7 @@
 #include "flac.h"
 
 
-#define RACS_FLAC_COMPRESSION_LEVEL 5
+#define RACS_FLAC_DEFAULT_COMPRESSION_LEVEL 5
 
 #define RACS_FLAC_DEFAULT_FRAME_SIZE 4096
 
@@ -192,6 +192,11 @@ FLAC__StreamDecoderWriteStatus racs_flac_decode_write_cb(const FLAC__StreamDecod
     racs_uint32 channels = frame->header.channels;
     racs_uint32 samples = frame->header.blocksize;
 
+    if (channels != 1 && channels != 2) {
+        dec->status = RACS_FLAC_UNSUPPORTED;
+        return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+    }
+
     if (dec->fmt->bit_depth == 16) {
         return racs_flac_decode_int16(dec, buffer, channels, samples);
     } else if (dec->fmt->bit_depth == 24) {
@@ -254,12 +259,8 @@ int racs_flac_decoder_decode(racs_flac_decoder *dec,
     dec->fmt = fmt;
 
     FLAC__bool status = FLAC__stream_decoder_process_until_end_of_stream(dec->dec);
-
-    if (!status || dec->status != RACS_FLAC_OK) {
-        return RACS_FLAC_DECODE_ERROR;
-    }
-
-    return RACS_FLAC_OK;
+    
+    return dec->status;
 }
 
 void racs_flac_decoder_cleanup(racs_flac_decoder *dec) {
@@ -361,6 +362,14 @@ FLAC__StreamEncoderTellStatus racs_flac_encode_tell_cb(const FLAC__StreamEncoder
 }
 
 int racs_flac_encoder_init(racs_flac_encoder *enc, racs_flac_format *fmt, racs_memstream *ms) {
+    if (fmt->channels != 1 && fmt->channels != 2) {
+        return RACS_FLAC_UNSUPPORTED;
+    }
+
+    if (fmt->bit_depth != 16 && fmt->bit_depth != 24) {
+        return RACS_FLAC_UNSUPPORTED;
+    }
+
     enc->enc = FLAC__stream_encoder_new();
     if (!enc->enc) {
         return RACS_FLAC_ALLOC_ERROR;
@@ -372,7 +381,7 @@ int racs_flac_encoder_init(racs_flac_encoder *enc, racs_flac_format *fmt, racs_m
     FLAC__stream_encoder_set_channels(enc->enc, fmt->channels);
     FLAC__stream_encoder_set_bits_per_sample(enc->enc, fmt->bit_depth);
     FLAC__stream_encoder_set_sample_rate(enc->enc, fmt->sample_rate);
-    FLAC__stream_encoder_set_compression_level(enc->enc, RACS_FLAC_COMPRESSION_LEVEL);
+    FLAC__stream_encoder_set_compression_level(enc->enc, RACS_FLAC_DEFAULT_COMPRESSION_LEVEL);
 
     FLAC__StreamEncoderInitStatus status = FLAC__stream_encoder_init_stream(
         enc->enc,

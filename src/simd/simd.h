@@ -23,6 +23,10 @@ void racs_simd_int32_int16(const racs_int32 *src, racs_int16 *dst, size_t n);
 
 void racs_simd_int32_int24(const racs_int32 *src, racs_int24 *dst, size_t n);
 
+void racs_simd_int16_int24(const racs_int16 *src, racs_int24 *dst, size_t n);
+
 void racs_simd_interleave_int16(const racs_int16 *src_l, const racs_int16 *src_r, racs_int16 *dst, size_t n);
 
 void racs_simd_interleave_int24(const racs_int24 *src_l, const racs_int24 *src_r, racs_int24 *dst, size_t n);
+
+void racs_simd_dither_int24_int16(const racs_int24 *src, racs_int16 *dst, size_t n);

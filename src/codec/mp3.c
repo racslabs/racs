@@ -42,6 +42,16 @@ int racs_mp3_decoder_init(racs_mp3_decoder *dec) {
         return RACS_MP3_ALLOC_ERROR;
     }
 
+    const long *rates;
+    size_t rate_count;
+
+    mpg123_format_none(dec->mh);
+    mpg123_rates(&rates, &rate_count);
+
+    for (size_t i = 0; i < rate_count; i++) {
+        mpg123_format(dec->mh, rates[i], MPG123_MONO | MPG123_STEREO, MPG123_ENC_SIGNED_16);
+    }
+
     if (mpg123_open_feed(dec->mh) != MPG123_OK) {
         mpg123_delete(dec->mh);
         return RACS_MP3_ALLOC_ERROR;
@@ -88,7 +98,10 @@ int racs_mp3_decoder_decode(racs_mp3_decoder *dec,
                 if (mpg123_getformat(dec->mh, &sample_rate, &channels, &encoding) == MPG123_OK) {
                     fmt->sample_rate = (racs_uint32) sample_rate;
                     fmt->channels = (racs_uint8) channels;
-                    fmt->bit_depth = (racs_uint8) (mpg123_encsize(encoding) * 8);
+
+                    if (fmt->channels != 1 && fmt->channels != 2) {
+                        return RACS_MP3_UNSUPPORTED;
+                    }
 
                     fmt_ext = 1;
                 }
@@ -194,10 +207,6 @@ int racs_mp3_encoder_encode(racs_mp3_encoder *enc,
                             const racs_uint8 *src,
                             size_t src_size,
                             racs_memstream *ms) {
-    if (fmt->bit_depth != 16) {
-        return RACS_MP3_UNSUPPORTED;
-    }
-
     int frames_per_chunk = 4096;
     int buf_size = 1.25 * frames_per_chunk + 7200;
 
@@ -266,6 +275,10 @@ int racs_mp3_encode(racs_mp3_format *fmt,
 
     *out = NULL;
     *out_size = 0;
+
+    if (fmt->channels != 1 && fmt->channels != 2) {
+        return RACS_MP3_UNSUPPORTED;
+    }
 
     size_t buf_size = 0;
     racs_uint8 *buf = malloc(1024);
