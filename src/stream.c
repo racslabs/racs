@@ -34,6 +34,7 @@ void racs_streams_put_stream(racs_streams *streams, racs_uint64 hash, racs_strea
 
 racs_stream *racs_stream_open(const char *path);
 
+
 void racs_stream_chunk(racs_stream *stream,
                        const racs_uint8 *src,
                        size_t src_size,
@@ -41,42 +42,12 @@ void racs_stream_chunk(racs_stream *stream,
 
 void racs_stream_destroy(racs_stream *stream);
 
-int racs_stream_decode(const char *mime_type,
+int racs_stream_decode(const char *codec,
                        const racs_info *info,
                        const racs_uint8 *src,
                        size_t src_size,
                        racs_uint8 **out,
                        size_t *out_size);
-
-int racs_stream_decode_pcm(const racs_info *info,
-                           const racs_uint8 *src,
-                           size_t src_size,
-                           racs_uint8 **out,
-                           size_t *out_size);
-
-int racs_stream_decode_mp3(const racs_info *info,
-                           const racs_uint8 *src,
-                           size_t src_size,
-                           racs_uint8 **out,
-                           size_t *out_size);
-
-int racs_stream_decode_aac(const racs_info *info,
-                           const racs_uint8 *src,
-                           size_t src_size,
-                           racs_uint8 **out,
-                           size_t *out_size);
-
-int racs_stream_decode_flac(const racs_info *info,
-                            const racs_uint8 *src,
-                            size_t src_size,
-                            racs_uint8 **out,
-                            size_t *out_size);
-
-int racs_stream_decode_opus(const racs_info *info,
-                            const racs_uint8 *src,
-                            size_t src_size,
-                            racs_uint8 **out,
-                            size_t *out_size);
 
 
 void racs_streams_init(void) {
@@ -341,143 +312,16 @@ void racs_stream_destroy(racs_stream *stream) {
     free(stream);
 }
 
-int racs_stream_decode(const char *mime_type,
+int racs_stream_decode(const char *codec,
                        const racs_info *info,
                        const racs_uint8 *src,
                        size_t src_size,
                        racs_uint8 **out,
                        size_t *out_size) {
-    char *mime_type_trim = strdup(mime_type);
-    racs_trim(mime_type_trim);
+    racs_codec_format fmt;
+    int _codec = racs_codec_from_string(codec);
 
-    int status = RACS_STREAM_DECODE_ERROR;
-
-    if (strcasecmp(mime_type_trim, "audio/pcm") == 0) {
-        status = racs_stream_decode_pcm(info, src, src_size, out, out_size);
-    }
-
-    if (strcasecmp(mime_type_trim, "audio/mp3") == 0 ||
-        strcasecmp(mime_type_trim, "audio/mpeg") == 0) {
-        status = racs_stream_decode_mp3(info, src, src_size, out, out_size);
-    }
-
-    if (strcasecmp(mime_type_trim, "audio/aac") == 0) {
-        status = racs_stream_decode_aac(info, src, src_size, out, out_size);
-    }
-
-    if (strcasecmp(mime_type_trim, "audio/flac") == 0) {
-        status = racs_stream_decode_flac(info, src, src_size, out, out_size);
-    }
-
-    if (strcasecmp(mime_type_trim, "audio/opus") == 0) {
-        status = racs_stream_decode_opus(info, src, src_size, out, out_size);
-    }
-
-    free(mime_type_trim);
-    return status;
-}
-
-int racs_stream_decode_pcm(const racs_info *info,
-                           const racs_uint8 *src,
-                           size_t src_size,
-                           racs_uint8 **out,
-                           size_t *out_size) {
-    (void) info;
-
-    *out = NULL;
-    *out_size = 0;
-
-    racs_uint8 *buf = malloc(src_size);
-    if (!buf) {
-        return RACS_STREAM_DECODE_ERROR;
-    }
-
-    memcpy(buf, src, src_size);
-
-    *out = buf;
-    *out_size = src_size;
-
-    return RACS_STREAM_OK;
-}
-
-int racs_stream_decode_mp3(const racs_info *info,
-                           const racs_uint8 *src,
-                           size_t src_size,
-                           racs_uint8 **out,
-                           size_t *out_size) {
-    (void) info;
-
-    *out = NULL;
-    *out_size = 0;
-
-    racs_mp3_format fmt;
-
-    int status = racs_mp3_decode(&fmt, src, src_size, out, out_size);
-    if (status != RACS_MP3_OK) {
-        return RACS_STREAM_DECODE_ERROR;
-    }
-
-    return RACS_STREAM_OK;
-}
-
-int racs_stream_decode_aac(const racs_info *info,
-                           const racs_uint8 *src,
-                           size_t src_size,
-                           racs_uint8 **out,
-                           size_t *out_size) {
-    (void) info;
-
-    *out = NULL;
-    *out_size = 0;
-
-    racs_aac_format fmt;
-
-    int status = racs_aac_decode(&fmt, src, src_size, out, out_size);
-    if (status != RACS_AAC_OK) {
-        return RACS_STREAM_DECODE_ERROR;
-    }
-
-    return RACS_STREAM_OK;
-}
-
-int racs_stream_decode_flac(const racs_info *info,
-                            const racs_uint8 *src,
-                            size_t src_size,
-                            racs_uint8 **out,
-                            size_t *out_size) {
-    (void) info;
-
-    *out = NULL;
-    *out_size = 0;
-
-    racs_flac_format fmt;
-
-    int status = racs_flac_decode(&fmt, src, src_size, out, out_size);
-    if (status != RACS_FLAC_OK) {
-        return RACS_STREAM_DECODE_ERROR;
-    }
-
-    return RACS_STREAM_OK;
-}
-
-int racs_stream_decode_opus(const racs_info *info,
-                            const racs_uint8 *src,
-                            size_t src_size,
-                            racs_uint8 **out,
-                            size_t *out_size) {
-    (void) info;
-
-    *out = NULL;
-    *out_size = 0;
-
-    racs_opus_format fmt;
-
-    int status = racs_opus_decode(&fmt, src, src_size, out, out_size);
-    if (status != RACS_OPUS_OK) {
-        return RACS_STREAM_DECODE_ERROR;
-    }
-
-    return RACS_STREAM_OK;
+    return racs_codec_decode(_codec, &fmt, src, src_size, out, out_size);
 }
 
 racs_uint64 racs_streams_hash_cb(const void *key) {

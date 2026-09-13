@@ -1,4 +1,4 @@
-#include "mp3.h"
+#include "codec_mp3.h"
 
 
 typedef struct {
@@ -16,17 +16,17 @@ typedef struct {
 int racs_mp3_decoder_init(racs_mp3_decoder *dec);
 
 int racs_mp3_decoder_decode(racs_mp3_decoder *dec,
-                            racs_mp3_format *fmt,
+                            racs_codec_format *fmt,
                             const racs_uint8 *src,
                             size_t src_size,
                             racs_memstream *ms);
 
 void racs_mp3_decoder_cleanup(racs_mp3_decoder *dec);
 
-int racs_mp3_encoder_init(racs_mp3_encoder *enc, racs_mp3_format *fmt);
+int racs_mp3_encoder_init(racs_mp3_encoder *enc, racs_codec_format *fmt);
 
 int racs_mp3_encoder_encode(racs_mp3_encoder *enc,
-                            racs_mp3_format *fmt,
+                            racs_codec_format *fmt,
                             const racs_uint8 *src,
                             size_t src_size,
                             racs_memstream *ms);
@@ -39,7 +39,7 @@ int racs_mp3_decoder_init(racs_mp3_decoder *dec) {
 
     dec->mh = mpg123_new(NULL, &err);
     if (!dec->mh || err != MPG123_OK) {
-        return RACS_MP3_ALLOC_ERROR;
+        return RACS_CODEC_ALLOC_ERROR;
     }
 
     const long *rates;
@@ -54,21 +54,21 @@ int racs_mp3_decoder_init(racs_mp3_decoder *dec) {
 
     if (mpg123_open_feed(dec->mh) != MPG123_OK) {
         mpg123_delete(dec->mh);
-        return RACS_MP3_ALLOC_ERROR;
+        return RACS_CODEC_ALLOC_ERROR;
     }
 
     dec->pcm_block_size = mpg123_outblock(dec->mh);
     dec->pcm_block = malloc(dec->pcm_block_size);
     if (!dec->pcm_block) {
         mpg123_delete(dec->mh);
-        return RACS_MP3_ALLOC_ERROR;
+        return RACS_CODEC_ALLOC_ERROR;
     }
 
-    return RACS_MP3_OK;
+    return RACS_CODEC_OK;
 }
 
 int racs_mp3_decoder_decode(racs_mp3_decoder *dec,
-                            racs_mp3_format *fmt,
+                            racs_codec_format *fmt,
                             const racs_uint8 *src,
                             size_t src_size,
                             racs_memstream *ms) {
@@ -100,7 +100,7 @@ int racs_mp3_decoder_decode(racs_mp3_decoder *dec,
                     fmt->channels = (racs_uint8) channels;
 
                     if (fmt->channels != 1 && fmt->channels != 2) {
-                        return RACS_MP3_UNSUPPORTED;
+                        return RACS_CODEC_UNSUPPORTED;
                     }
 
                     fmt_ext = 1;
@@ -109,15 +109,15 @@ int racs_mp3_decoder_decode(racs_mp3_decoder *dec,
         }
 
         if (status == MPG123_DONE) {
-            return RACS_MP3_OK;
+            return RACS_CODEC_OK;
         }
 
         if (status == MPG123_ERR) {
-            return RACS_MP3_DECODE_ERROR;
+            return RACS_CODEC_DECODE_ERROR;
         }
 
         if (status == MPG123_NEED_MORE && bytes_read >= src_size) {
-            return RACS_MP3_OK;
+            return RACS_CODEC_OK;
         }
     }
 }
@@ -137,13 +137,13 @@ void racs_mp3_decoder_cleanup(racs_mp3_decoder *dec) {
     }
 }
 
-int racs_mp3_decode(racs_mp3_format *fmt,
+int racs_mp3_decode(racs_codec_format *fmt,
                     const racs_uint8 *src,
                     size_t src_size,
                     racs_uint8 **out,
                     size_t *out_size) {
     if (!src || src_size == 0 || !out || !out_size || !fmt) {
-        return RACS_MP3_PARAM_ERROR;
+        return RACS_CODEC_PARAM_ERROR;
     }
 
     *out = NULL;
@@ -152,7 +152,7 @@ int racs_mp3_decode(racs_mp3_format *fmt,
     size_t buf_size = 0;
     racs_uint8 *buf = malloc(1024);
     if (!buf) {
-        return RACS_MP3_ALLOC_ERROR;
+        return RACS_CODEC_ALLOC_ERROR;
     }
 
     racs_memstream ms = {
@@ -164,13 +164,13 @@ int racs_mp3_decode(racs_mp3_format *fmt,
 
     racs_mp3_decoder dec;
     int status = racs_mp3_decoder_init(&dec);
-    if (status != RACS_MP3_OK) {
+    if (status != RACS_CODEC_OK) {
         free(buf);
         return status;
     }
 
     status = racs_mp3_decoder_decode(&dec, fmt, src, src_size, &ms);
-    if (status != RACS_MP3_OK) {
+    if (status != RACS_CODEC_OK) {
         free(buf);
         racs_mp3_decoder_cleanup(&dec);
         return status;
@@ -183,10 +183,10 @@ int racs_mp3_decode(racs_mp3_format *fmt,
     return status;
 }
 
-int racs_mp3_encoder_init(racs_mp3_encoder *enc, racs_mp3_format *fmt) {
+int racs_mp3_encoder_init(racs_mp3_encoder *enc, racs_codec_format *fmt) {
     enc->gfp = lame_init();
     if (!enc->gfp) {
-        return RACS_MP3_ALLOC_ERROR;
+        return RACS_CODEC_ALLOC_ERROR;
     }
 
     lame_set_num_channels(enc->gfp, fmt->channels);
@@ -196,14 +196,14 @@ int racs_mp3_encoder_init(racs_mp3_encoder *enc, racs_mp3_format *fmt) {
 
     if (lame_init_params(enc->gfp) < 0) {
         lame_close(enc->gfp);
-        return RACS_MP3_ALLOC_ERROR;
+        return RACS_CODEC_ALLOC_ERROR;
     }
 
-    return RACS_MP3_OK;
+    return RACS_CODEC_OK;
 }
 
 int racs_mp3_encoder_encode(racs_mp3_encoder *enc,
-                            racs_mp3_format *fmt,
+                            racs_codec_format *fmt,
                             const racs_uint8 *src,
                             size_t src_size,
                             racs_memstream *ms) {
@@ -212,7 +212,7 @@ int racs_mp3_encoder_encode(racs_mp3_encoder *enc,
 
     racs_uint8 *buf = malloc(buf_size);
     if (!buf) {
-        return RACS_MP3_ALLOC_ERROR;
+        return RACS_CODEC_ALLOC_ERROR;
     }
 
     int bytes_encoded = 0;
@@ -239,7 +239,7 @@ int racs_mp3_encoder_encode(racs_mp3_encoder *enc,
                 break;
             default:
                 free(buf);
-                return RACS_MP3_ENCODE_ERROR;
+                return RACS_CODEC_ENCODE_ERROR;
         }
 
         if (bytes_encoded > 0) {
@@ -255,7 +255,7 @@ int racs_mp3_encoder_encode(racs_mp3_encoder *enc,
     }
 
     free(buf);
-    return RACS_MP3_OK;
+    return RACS_CODEC_OK;
 }
 
 void racs_mp3_encoder_cleanup(racs_mp3_encoder *enc) {
@@ -264,26 +264,26 @@ void racs_mp3_encoder_cleanup(racs_mp3_encoder *enc) {
     }
 }
 
-int racs_mp3_encode(racs_mp3_format *fmt,
+int racs_mp3_encode(racs_codec_format *fmt,
                     const racs_uint8 *src,
                     size_t src_size,
                     racs_uint8 **out,
                     size_t *out_size) {
     if (!src || src_size == 0 || !out || !out_size || !fmt) {
-        return RACS_MP3_PARAM_ERROR;
+        return RACS_CODEC_PARAM_ERROR;
     }
 
     *out = NULL;
     *out_size = 0;
 
     if (fmt->channels != 1 && fmt->channels != 2) {
-        return RACS_MP3_UNSUPPORTED;
+        return RACS_CODEC_UNSUPPORTED;
     }
 
     size_t buf_size = 0;
     racs_uint8 *buf = malloc(1024);
     if (!buf) {
-        return RACS_MP3_ALLOC_ERROR;
+        return RACS_CODEC_ALLOC_ERROR;
     }
 
     racs_memstream ms = {
@@ -295,13 +295,13 @@ int racs_mp3_encode(racs_mp3_format *fmt,
 
     racs_mp3_encoder enc;
     int status = racs_mp3_encoder_init(&enc, fmt);
-    if (status != RACS_MP3_OK) {
+    if (status != RACS_CODEC_OK) {
         free(buf);
         return status;
     }
 
     status = racs_mp3_encoder_encode(&enc, fmt, src, src_size, &ms);
-    if (status != RACS_MP3_OK) {
+    if (status != RACS_CODEC_OK) {
         free(buf);
         racs_mp3_encoder_cleanup(&enc);
         return status;
@@ -311,5 +311,5 @@ int racs_mp3_encode(racs_mp3_format *fmt,
     *out_size = buf_size;
 
     racs_mp3_encoder_cleanup(&enc);
-    return RACS_MP3_OK;
+    return RACS_CODEC_OK;
 }

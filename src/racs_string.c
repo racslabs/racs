@@ -7,15 +7,19 @@ char *racs_trim(char *str) {
         return NULL;
     }
 
-    while (*str && isspace((racs_uint8) * str)) {
+    while (*str && isspace((racs_uint8) *str)) {
         str++;
+    }
+
+    if (*str == '\0') {
+        return str;
     }
 
     char *end = str;
     char *last = str;
 
     while (*end) {
-        if (!isspace((racs_uint8) * end)) {
+        if (!isspace((racs_uint8)*end)) {
             last = end;
         }
         end++;

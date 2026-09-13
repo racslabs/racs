@@ -3,7 +3,7 @@
 #define RACS_OPUS_TEST_H
 
 
-#include "codec/opus.h"
+#include "codec/codec.h"
 #include "test_utils.h"
 #include "unity.h"
 

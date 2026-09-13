@@ -10,8 +10,17 @@ const racs_cmd cmds[4] = {
 };
 
 
-int racs_cmd_unpack_arg(racs_ctx *ctx, msgpack_unpacked *unpacked, msgpack_object_type type);
+int racs_cmd_arg_str(msgpack_object *obj, char **arg, size_t *size);
 
+int racs_cmd_arg_bin(msgpack_object *obj, racs_uint8 **arg, size_t *size);
+
+int racs_cmd_arg_uint64(msgpack_object *obj, racs_uint64 *arg);
+
+int racs_cmd_arg_uint32(msgpack_object *obj, racs_uint32 *arg);
+
+int racs_cmd_arg_uint16(msgpack_object *obj, racs_uint16 * arg);
+
+int racs_cmd_arg_uint8(msgpack_object *obj, racs_uint8 *arg);
 
 void racs_cmd_call_ping(racs_ctx * ctx);
 
@@ -44,95 +53,83 @@ racs_cmd_func racs_cmd_lookup(const char *name) {
     return NULL;
 }
 
-int racs_cmd_unpack_arg(racs_ctx *ctx, msgpack_unpacked *unpacked, msgpack_object_type type) {
-    if (msgpack_unpack_next(unpacked, ctx->out_buf.data, ctx->out_buf.size, &ctx->offset) <= 0) {
+int racs_cmd_arg_str(msgpack_object *obj, char **arg, size_t *size) {
+    if (obj->type != MSGPACK_OBJECT_STR) {
         return -1;
     }
 
-    if (unpacked->data.type != type) {
-        return -1;
+    if (arg) {
+        *arg = (char *) obj->via.str.ptr;
+    }
+
+    if (size) {
+        *size = obj->via.str.size;
     }
 
     return 0;
 }
 
-int racs_cmd_arg_str(racs_ctx *ctx, char **arg, size_t *size) {
-    msgpack_unpacked unpacked;
-    msgpack_unpacked_init(&unpacked);
-
-    if (racs_cmd_unpack_arg(ctx, &unpacked, MSGPACK_OBJECT_STR) == -1) {
-        msgpack_unpacked_destroy(&unpacked);
+int racs_cmd_arg_bin(msgpack_object *obj, racs_uint8 **arg, size_t *size) {
+    if (obj->type != MSGPACK_OBJECT_BIN) {
         return -1;
     }
 
-    *arg = (char *) unpacked.data.via.str.ptr;
-    *size = unpacked.data.via.str.size;
+    if (arg) {
+        *arg = (racs_uint8 *) obj->via.bin.ptr;
+    }
 
-    msgpack_unpacked_destroy(&unpacked);
+    if (size) {
+        *size = obj->via.bin.size;
+    }
+
     return 0;
 }
 
-int racs_cmd_arg_bin(racs_ctx *ctx, racs_uint8 **arg, size_t *size) {
-    msgpack_unpacked unpacked;
-    msgpack_unpacked_init(&unpacked);
-
-    if (racs_cmd_unpack_arg(ctx, &unpacked, MSGPACK_OBJECT_BIN) == -1) {
-        msgpack_unpacked_destroy(&unpacked);
+int racs_cmd_arg_uint64(msgpack_object *obj, racs_uint64 *arg) {
+    if (obj->type != MSGPACK_OBJECT_POSITIVE_INTEGER) {
         return -1;
     }
 
-    *arg = (racs_uint8 *) unpacked.data.via.bin.ptr;
-    *size = unpacked.data.via.bin.size;
+    if (arg) {
+        *arg = obj->via.u64;
+    }
 
-    msgpack_unpacked_destroy(&unpacked);
     return 0;
 }
 
-int racs_cmd_arg_uint64(racs_ctx *ctx, racs_uint64 *arg) {
-    msgpack_unpacked unpacked;
-    msgpack_unpacked_init(&unpacked);
-
-    if (racs_cmd_unpack_arg(ctx, &unpacked, MSGPACK_OBJECT_POSITIVE_INTEGER) == -1) {
-        msgpack_unpacked_destroy(&unpacked);
+int racs_cmd_arg_uint32(msgpack_object *obj, racs_uint32 *arg) {
+    if (obj->type != MSGPACK_OBJECT_POSITIVE_INTEGER || obj->via.u64 > 0xffffffff) {
         return -1;
     }
 
-    *arg = unpacked.data.via.u64;
+    if (arg) {
+        *arg = (racs_uint32) obj->via.u64;
+    }
 
-    msgpack_unpacked_destroy(&unpacked);
     return 0;
 }
 
-int racs_cmd_arg_uint32(racs_ctx *ctx, racs_uint32 *arg) {
-    racs_uint64 arg64;
-
-    if (racs_cmd_arg_uint64(ctx, &arg64) == -1) {
+int racs_cmd_arg_uint16(msgpack_object *obj, racs_uint16 *arg) {
+    if (obj->type != MSGPACK_OBJECT_POSITIVE_INTEGER || obj->via.u64 > 0xffff) {
         return -1;
     }
 
-    *arg = (racs_uint32) arg64;
+    if (arg) {
+        *arg = (racs_uint16) obj->via.u64;
+    }
+
     return 0;
 }
 
-int racs_cmd_arg_uint16(racs_ctx *ctx, racs_uint16 *arg) {
-    racs_uint64 arg64;
-
-    if (racs_cmd_arg_uint64(ctx, &arg64) == -1) {
+int racs_cmd_arg_uint8(msgpack_object *obj, racs_uint8 *arg) {
+    if (obj->type != MSGPACK_OBJECT_POSITIVE_INTEGER || obj->via.u64 > 0xff) {
         return -1;
     }
 
-    *arg = (racs_uint16) arg64;
-    return 0;
-}
-
-int racs_cmd_arg_uint8(racs_ctx *ctx, racs_uint8 *arg) {
-    racs_uint64 arg64;
-
-    if (racs_cmd_arg_uint64(ctx, &arg64) == -1) {
-        return -1;
+    if (arg) {
+        *arg = (racs_uint8) obj->via.u64;
     }
 
-    *arg = (racs_uint8) arg64;
     return 0;
 }
 
@@ -214,8 +211,7 @@ void racs_cmd_call_stream(racs_ctx *ctx,
     msgpack_pack_nil(&pk);
 }
 
-void racs_cmd_ping(racs_ctx *ctx, size_t num_args) {
-    ctx->offset = 0;
+void racs_cmd_ping(racs_ctx *ctx, msgpack_object *args, size_t num_args) {
     if (num_args != 0) {
         racs_cmd_error(ctx, "ping requires 0 args");
         return;
@@ -224,8 +220,7 @@ void racs_cmd_ping(racs_ctx *ctx, size_t num_args) {
     racs_cmd_call_ping(ctx);
 }
 
-void racs_cmd_create(racs_ctx *ctx, size_t num_args) {
-    ctx->offset = 0;
+void racs_cmd_create(racs_ctx *ctx, msgpack_object *args, size_t num_args) {
     if (num_args != 4) {
         racs_cmd_error(ctx, "create requires 4 args");
         return;
@@ -233,25 +228,25 @@ void racs_cmd_create(racs_ctx *ctx, size_t num_args) {
 
     size_t stream_id_size;
     char *stream_id = NULL;
-    if (racs_cmd_arg_str(ctx, &stream_id, &stream_id_size) == -1) {
+    if (racs_cmd_arg_str(&args[0], &stream_id, &stream_id_size) == -1) {
         racs_cmd_error(ctx, "create error at arg1. expected string");
         return;
     }
 
     racs_uint32 sample_rate;
-    if (racs_cmd_arg_uint32(ctx, &sample_rate) == -1) {
+    if (racs_cmd_arg_uint32(&args[1], &sample_rate) == -1) {
         racs_cmd_error(ctx, "create error at arg2. expected int");
         return;
     }
 
     racs_uint8 channels;
-    if (racs_cmd_arg_uint8(ctx, &channels) == -1) {
+    if (racs_cmd_arg_uint8(&args[2], &channels) == -1) {
         racs_cmd_error(ctx, "create error at arg3. expected int");
         return;
     }
 
     racs_uint8 bit_depth;
-    if (racs_cmd_arg_uint8(ctx, &bit_depth) == -1) {
+    if (racs_cmd_arg_uint8(&args[3], &bit_depth) == -1) {
         racs_cmd_error(ctx, "create error at arg4. expected int");
         return;
     }
@@ -262,8 +257,7 @@ void racs_cmd_create(racs_ctx *ctx, size_t num_args) {
     free(s_stream_id);
 }
 
-void racs_cmd_open(racs_ctx *ctx, size_t num_args) {
-    ctx->offset = 0;
+void racs_cmd_open(racs_ctx *ctx, msgpack_object *args, size_t num_args) {
     if (num_args != 1) {
         racs_cmd_error(ctx, "open requires 1 arg");
         return;
@@ -271,7 +265,7 @@ void racs_cmd_open(racs_ctx *ctx, size_t num_args) {
 
     size_t stream_id_size;
     char *stream_id = NULL;
-    if (racs_cmd_arg_str(ctx, &stream_id, &stream_id_size) == -1) {
+    if (racs_cmd_arg_str(&args[0], &stream_id, &stream_id_size) == -1) {
         racs_cmd_error(ctx, "open error at arg1. expected string");
         return;
     }
@@ -282,8 +276,7 @@ void racs_cmd_open(racs_ctx *ctx, size_t num_args) {
     free(s_stream_id);
 }
 
-void racs_cmd_stream(racs_ctx *ctx, size_t num_args) {
-    ctx->offset = 0;
+void racs_cmd_stream(racs_ctx *ctx, msgpack_object *args, size_t num_args) {
     if (num_args != 3) {
         racs_cmd_error(ctx, "stream requires 3 args");
         return;
@@ -291,21 +284,21 @@ void racs_cmd_stream(racs_ctx *ctx, size_t num_args) {
 
     size_t stream_id_size;
     char *stream_id = NULL;
-    if (racs_cmd_arg_str(ctx, &stream_id, &stream_id_size) == -1) {
+    if (racs_cmd_arg_str(&args[0], &stream_id, &stream_id_size) == -1) {
         racs_cmd_error(ctx, "stream error at arg1. expected string");
         return;
     }
 
     size_t mime_type_size;
     char *mime_type = NULL;
-    if (racs_cmd_arg_str(ctx, &mime_type, &mime_type_size) == -1) {
+    if (racs_cmd_arg_str(&args[1], &mime_type, &mime_type_size) == -1) {
         racs_cmd_error(ctx, "stream error at arg2. expected string");
         return;
     }
 
     size_t src_size;
     racs_uint8 *src = NULL;
-    if (racs_cmd_arg_bin(ctx, &src, &src_size) == -1) {
+    if (racs_cmd_arg_bin(&args[2], &src, &src_size) == -1) {
         racs_cmd_error(ctx, "stream error at arg3. expected binary");
         return;
     }

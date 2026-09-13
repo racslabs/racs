@@ -8,10 +8,7 @@ extern "C" {
 
 
 #include "mt.h"
-#include "codec/mp3.h"
-#include "codec/aac.h"
-#include "codec/flac.h"
-#include "codec/opus.h"
+#include "codec/codec.h"
 #include "mmh3.h"
 #include "info.h"
 #include "offsets.h"

@@ -1,6 +1,9 @@
 
-#include "aac.h"
-#include <stdio.h>
+#include "codec_aac.h"
+
+
+#define RACS_AAC_BIT_DEPTH 16
+
 
 typedef struct {
     HANDLE_AACDECODER hdec;
@@ -18,14 +21,14 @@ typedef struct {
 int racs_aac_decoder_init(racs_aac_decoder *dec);
 
 int racs_aac_decoder_decode(racs_aac_decoder *dec,
-                            racs_aac_format *fmt,
+                            racs_codec_format *fmt,
                             const racs_uint8 *src,
                             size_t src_size,
                             racs_memstream *ms);
 
 void racs_aac_decoder_cleanup(racs_aac_decoder *dec);
 
-int racs_aac_encoder_init(racs_aac_encoder *enc, racs_aac_format *fmt);
+int racs_aac_encoder_init(racs_aac_encoder *enc, racs_codec_format *fmt);
 
 int racs_aac_encode_helper(HANDLE_AACENCODER henc,
                            void *in_ptr, INT in_size, INT in_samples,
@@ -33,7 +36,7 @@ int racs_aac_encode_helper(HANDLE_AACENCODER henc,
                            AACENC_OutArgs *out_args);
 
 int racs_aac_encoder_encode(racs_aac_encoder *enc,
-                            racs_aac_format *fmt,
+                            racs_codec_format *fmt,
                             const racs_uint8 *src,
                             size_t src_size,
                             racs_memstream *ms);
@@ -44,21 +47,21 @@ void racs_aac_encoder_cleanup(racs_aac_encoder *enc);
 int racs_aac_decoder_init(racs_aac_decoder *dec) {
     dec->hdec = aacDecoder_Open(TT_MP4_ADTS, 1);
     if (!dec->hdec) {
-        return RACS_AAC_ALLOC_ERROR;
+        return RACS_CODEC_ALLOC_ERROR;
     }
 
     dec->pcm_block_size = 2048 * 2 * sizeof(racs_int16);
     dec->pcm_block = malloc(dec->pcm_block_size);
     if (!dec->pcm_block) {
         aacDecoder_Close(dec->hdec);
-        return RACS_AAC_ALLOC_ERROR;
+        return RACS_CODEC_ALLOC_ERROR;
     }
 
-    return RACS_AAC_OK;
+    return RACS_CODEC_OK;
 }
 
 int racs_aac_decoder_decode(racs_aac_decoder *dec,
-                            racs_aac_format *fmt,
+                            racs_codec_format *fmt,
                             const racs_uint8 *src,
                             size_t src_size,
                             racs_memstream *ms) {
@@ -73,7 +76,7 @@ int racs_aac_decoder_decode(racs_aac_decoder *dec,
         AAC_DECODER_ERROR err = aacDecoder_Fill(dec->hdec, &in_ptr, &buf_size, &bytes_valid);
 
         if (err != AAC_DEC_OK) {
-            return RACS_AAC_DECODE_ERROR;
+            return RACS_CODEC_DECODE_ERROR;
         }
 
         size_t bytes_read = remaining - bytes_valid;
@@ -87,7 +90,7 @@ int racs_aac_decoder_decode(racs_aac_decoder *dec,
             }
 
             if (err != AAC_DEC_OK) {
-                return RACS_AAC_DECODE_ERROR;
+                return RACS_CODEC_DECODE_ERROR;
             }
 
             CStreamInfo *info = aacDecoder_GetStreamInfo(dec->hdec);
@@ -96,7 +99,7 @@ int racs_aac_decoder_decode(racs_aac_decoder *dec,
             fmt->bit_depth   = RACS_AAC_BIT_DEPTH;
 
             if (fmt->channels != 1 && fmt->channels != 2) {
-                return RACS_AAC_UNSUPPORTED;
+                return RACS_CODEC_UNSUPPORTED;
             }
 
             size_t frame_samples = (size_t)info->frameSize * info->numChannels;
@@ -104,7 +107,7 @@ int racs_aac_decoder_decode(racs_aac_decoder *dec,
         }
     }
 
-    return RACS_AAC_OK;
+    return RACS_CODEC_OK;
 }
 
 void racs_aac_decoder_cleanup(racs_aac_decoder *dec) {
@@ -121,13 +124,13 @@ void racs_aac_decoder_cleanup(racs_aac_decoder *dec) {
     }
 }
 
-int racs_aac_decode(racs_aac_format *fmt,
+int racs_aac_decode(racs_codec_format *fmt,
                     const racs_uint8 *src,
                     size_t src_size,
                     racs_uint8 **out,
                     size_t *out_size) {
     if (!src || src_size == 0 || !out || !out_size || !fmt) {
-        return RACS_AAC_PARAM_ERROR;
+        return RACS_CODEC_PARAM_ERROR;
     }
 
     *out = NULL;
@@ -136,7 +139,7 @@ int racs_aac_decode(racs_aac_format *fmt,
     size_t buf_size = 0;
     racs_uint8 *buf = malloc(1024);
     if (!buf) {
-        return RACS_AAC_ALLOC_ERROR;
+        return RACS_CODEC_ALLOC_ERROR;
     }
 
     racs_memstream ms = {
@@ -148,13 +151,13 @@ int racs_aac_decode(racs_aac_format *fmt,
 
     racs_aac_decoder dec;
     int status = racs_aac_decoder_init(&dec);
-    if (status != RACS_AAC_OK) {
+    if (status != RACS_CODEC_OK) {
         free(buf);
         return status;
     }
 
     status = racs_aac_decoder_decode(&dec, fmt, src, src_size, &ms);
-    if (status != RACS_AAC_OK) {
+    if (status != RACS_CODEC_OK) {
         free(buf);
         racs_aac_decoder_cleanup(&dec);
         return status;
@@ -167,15 +170,15 @@ int racs_aac_decode(racs_aac_format *fmt,
     return status;
 }
 
-int racs_aac_encoder_init(racs_aac_encoder *enc, racs_aac_format *fmt) {
+int racs_aac_encoder_init(racs_aac_encoder *enc, racs_codec_format *fmt) {
     enc->henc = NULL;
 
     if (fmt->channels != 1 && fmt-> channels != 2) {
-        return RACS_AAC_UNSUPPORTED;
+        return RACS_CODEC_UNSUPPORTED;
     }
 
     if (aacEncOpen(&enc->henc, 0, fmt->channels) != AACENC_OK) {
-        return RACS_AAC_ALLOC_ERROR;
+        return RACS_CODEC_ALLOC_ERROR;
     }
 
     aacEncoder_SetParam(enc->henc, AACENC_AOT, 2);
@@ -186,7 +189,7 @@ int racs_aac_encoder_init(racs_aac_encoder *enc, racs_aac_format *fmt) {
 
     if (aacEncEncode(enc->henc, NULL, NULL, NULL, NULL) != AACENC_OK) {
         aacEncClose(&enc->henc);
-        return RACS_AAC_ALLOC_ERROR;
+        return RACS_CODEC_ALLOC_ERROR;
     }
 
     AACENC_InfoStruct info = {0};
@@ -195,7 +198,7 @@ int racs_aac_encoder_init(racs_aac_encoder *enc, racs_aac_format *fmt) {
     enc->frame_size = (INT)info.frameLength * fmt->channels;
     enc->max_out_size = (INT)info.maxOutBufBytes;
 
-    return RACS_AAC_OK;
+    return RACS_CODEC_OK;
 }
 
 int racs_aac_encode_helper(HANDLE_AACENCODER henc,
@@ -223,14 +226,14 @@ int racs_aac_encode_helper(HANDLE_AACENCODER henc,
 }
 
 int racs_aac_encoder_encode(racs_aac_encoder *enc,
-                            racs_aac_format *fmt,
+                            racs_codec_format *fmt,
                             const racs_uint8 *src,
                             size_t src_size,
                             racs_memstream *ms) {
 
     racs_uint8 *out_ptr = malloc(enc->max_out_size);
     if (!out_ptr) {
-        return RACS_AAC_ALLOC_ERROR;
+        return RACS_CODEC_ALLOC_ERROR;
     }
 
     size_t samples_read = 0;
@@ -246,7 +249,7 @@ int racs_aac_encoder_encode(racs_aac_encoder *enc,
         if (racs_aac_encode_helper(enc->henc, in_ptr, in_size, enc->frame_size,
                             out_ptr, enc->max_out_size, &out_args) != AACENC_OK) {
             free(out_ptr);
-            return RACS_AAC_ENCODE_ERROR;
+            return RACS_CODEC_ENCODE_ERROR;
         }
 
         samples_read += out_args.numInSamples;
@@ -261,7 +264,7 @@ int racs_aac_encoder_encode(racs_aac_encoder *enc,
         racs_int16 *in_ptr = calloc(enc->frame_size, sizeof(racs_int16));
         if (!in_ptr) {
             free(out_ptr);
-            return RACS_AAC_ALLOC_ERROR;
+            return RACS_CODEC_ALLOC_ERROR;
         }
 
         memcpy(in_ptr, samples + samples_read, remaining * sizeof(racs_int16));
@@ -273,7 +276,7 @@ int racs_aac_encoder_encode(racs_aac_encoder *enc,
 
         if (err != AACENC_OK) {
             free(out_ptr);
-            return RACS_AAC_ENCODE_ERROR;
+            return RACS_CODEC_ENCODE_ERROR;
         }
 
         if (out_args.numOutBytes > 0) {
@@ -295,7 +298,7 @@ int racs_aac_encoder_encode(racs_aac_encoder *enc,
     }
 
     free(out_ptr);
-    return RACS_AAC_OK;
+    return RACS_CODEC_OK;
 }
 
 
@@ -305,13 +308,13 @@ void racs_aac_encoder_cleanup(racs_aac_encoder *enc) {
     }
 }
 
-int racs_aac_encode(racs_aac_format *fmt,
+int racs_aac_encode(racs_codec_format *fmt,
                     const racs_uint8 *src,
                     size_t src_size,
                     racs_uint8 **out,
                     size_t *out_size) {
     if (!src || src_size == 0 || !out || !out_size || !fmt) {
-        return RACS_AAC_PARAM_ERROR;
+        return RACS_CODEC_PARAM_ERROR;
     }
 
     *out = NULL;
@@ -320,7 +323,7 @@ int racs_aac_encode(racs_aac_format *fmt,
     size_t buf_size = 0;
     racs_uint8 *buf = malloc(1024);
     if (!buf) {
-        return RACS_AAC_ALLOC_ERROR;
+        return RACS_CODEC_ALLOC_ERROR;
     }
 
     racs_memstream ms = {
@@ -332,13 +335,13 @@ int racs_aac_encode(racs_aac_format *fmt,
 
     racs_aac_encoder enc;
     int status = racs_aac_encoder_init(&enc, fmt);
-    if (status != RACS_AAC_OK) {
+    if (status != RACS_CODEC_OK) {
         free(buf);
         return status;
     }
 
     status = racs_aac_encoder_encode(&enc, fmt, src, src_size, &ms);
-    if (status != RACS_AAC_OK) {
+    if (status != RACS_CODEC_OK) {
         free(buf);
         racs_aac_encoder_cleanup(&enc);
         return status;
@@ -348,5 +351,5 @@ int racs_aac_encode(racs_aac_format *fmt,
     *out_size = buf_size;
 
     racs_aac_encoder_cleanup(&enc);
-    return RACS_AAC_OK;
+    return RACS_CODEC_OK;
 }

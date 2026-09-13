@@ -14,17 +14,17 @@ void test_flac_decode_encode(void) {
 
     read_file(RACS_TEST_FLAC_PATH, &src, &src_size);
 
-    racs_flac_format fmt;
+    racs_codec_format fmt;
 
-    int status = racs_flac_decode(&fmt, src, src_size, &decoded, &decoded_size);
-    TEST_ASSERT_EQUAL_INT(RACS_FLAC_OK, status);
+    int status = racs_codec_decode(RACS_CODEC_FLAC, &fmt, src, src_size, &decoded, &decoded_size);
+    TEST_ASSERT_EQUAL_INT(RACS_CODEC_OK, status);
 
     TEST_ASSERT_EQUAL_UINT8(2, fmt.channels);
     TEST_ASSERT_EQUAL_UINT8(24, fmt.bit_depth);
     TEST_ASSERT_EQUAL_UINT32(48000, fmt.sample_rate);
 
-    status = racs_flac_encode(&fmt, decoded, decoded_size, &encoded, &encoded_size);
-    TEST_ASSERT_EQUAL_INT(RACS_FLAC_OK, status);
+    status = racs_codec_encode(RACS_CODEC_FLAC, &fmt, decoded, decoded_size, &encoded, &encoded_size);
+    TEST_ASSERT_EQUAL_INT(RACS_CODEC_OK, status);
 
     write_file("chopin-out.flac", encoded, encoded_size);
 

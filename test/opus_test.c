@@ -14,20 +14,20 @@ void test_opus_decode_encode(void) {
 
     read_file(RACS_TEST_OPUS_PATH, &src, &src_size);
 
-    racs_opus_format fmt = {
+    racs_codec_format fmt = {
         .sample_rate = 48000,
         .channels = 2,
         .bit_depth = 16,
     };
 
-    int status = racs_opus_decode(&fmt, src, src_size, &decoded, &decoded_size);
-    TEST_ASSERT_EQUAL_INT(RACS_OPUS_OK, status);
+    int status = racs_codec_decode(RACS_CODEC_OPUS, &fmt, src, src_size, &decoded, &decoded_size);
+    TEST_ASSERT_EQUAL_INT(RACS_CODEC_OK, status);
     TEST_ASSERT_EQUAL_UINT8(2, fmt.channels);
     TEST_ASSERT_EQUAL_UINT8(16, fmt.bit_depth);
     TEST_ASSERT_EQUAL_UINT32(48000, fmt.sample_rate);
 
-    status = racs_opus_encode(&fmt, decoded, decoded_size, &encoded, &encoded_size);
-    TEST_ASSERT_EQUAL_INT(RACS_OPUS_OK, status);
+    status = racs_codec_encode(RACS_CODEC_OPUS, &fmt, decoded, decoded_size, &encoded, &encoded_size);
+    TEST_ASSERT_EQUAL_INT(RACS_CODEC_OK, status);
 
     write_file("chopin-out.opus", encoded, encoded_size);
 

@@ -3,7 +3,7 @@
 #define RACS_AAC_TEST_H
 
 
-#include "codec/aac.h"
+#include "codec/codec.h"
 #include "test_utils.h"
 #include "unity.h"
 

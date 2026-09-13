@@ -2,7 +2,7 @@
 #define RACS_MP3_TEST
 
 
-#include "codec/mp3.h"
+#include "codec/codec.h"
 #include "test_utils.h"
 #include "unity.h"
 

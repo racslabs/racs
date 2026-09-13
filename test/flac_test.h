@@ -6,7 +6,7 @@
 #define RACS_FLAC_TEST_H
 
 
-#include "codec/flac.h"
+#include "codec/codec.h"
 #include "test_utils.h"
 #include "unity.h"
 
