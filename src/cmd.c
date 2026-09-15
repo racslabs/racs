@@ -289,9 +289,9 @@ void racs_cmd_stream(racs_ctx *ctx, msgpack_object *args, size_t num_args) {
         return;
     }
 
-    size_t mime_type_size;
-    char *mime_type = NULL;
-    if (racs_cmd_arg_str(&args[1], &mime_type, &mime_type_size) == -1) {
+    size_t codec_size;
+    char *codec = NULL;
+    if (racs_cmd_arg_str(&args[1], &codec, &codec_size) == -1) {
         racs_cmd_error(ctx, "stream error at arg2. expected string");
         return;
     }
@@ -304,10 +304,10 @@ void racs_cmd_stream(racs_ctx *ctx, msgpack_object *args, size_t num_args) {
     }
 
     char *s_stream_id = strndup(stream_id, stream_id_size);
-    char *s_mime_type = strndup(mime_type, mime_type_size);
+    char *s_codec = strndup(codec, codec_size);
 
-    racs_cmd_call_stream(ctx, s_stream_id, s_mime_type, src, src_size);
+    racs_cmd_call_stream(ctx, s_stream_id, s_codec, src, src_size);
 
     free(s_stream_id);
-    free(s_mime_type);
+    free(s_codec);
 }

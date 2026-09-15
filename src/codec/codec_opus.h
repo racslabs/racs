@@ -15,6 +15,9 @@ extern "C" {
 #include <opusenc.h>
 
 
+#define RACS_OPUS_DEFAULT_SAMPLE_RATE 48000
+
+
 int racs_opus_decode(racs_codec_format *fmt,
                      const racs_uint8 *src,
                      size_t src_size,

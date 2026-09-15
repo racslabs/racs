@@ -65,7 +65,12 @@ int racs_opus_decoder_init(racs_opus_decoder *dec,
     }
 
     fmt->channels = head->channel_count;
-    fmt->sample_rate = 48000;
+    fmt->sample_rate = head->input_sample_rate;
+
+    if (fmt->sample_rate != RACS_OPUS_DEFAULT_SAMPLE_RATE) {
+        op_free(dec->of);
+        return RACS_CODEC_UNSUPPORTED;
+    }
 
     dec->pcm_block_size = RACS_OPUS_MAX_FRAME_SIZE * fmt->channels * sizeof(racs_int16);
     dec->pcm_block = malloc(dec->pcm_block_size);

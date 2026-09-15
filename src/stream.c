@@ -42,7 +42,7 @@ void racs_stream_chunk(racs_stream *stream,
 
 void racs_stream_destroy(racs_stream *stream);
 
-int racs_stream_decode(const char *codec,
+int racs_stream_decode(const char *s_codec,
                        const racs_info *info,
                        const racs_uint8 *src,
                        size_t src_size,
@@ -312,16 +312,41 @@ void racs_stream_destroy(racs_stream *stream) {
     free(stream);
 }
 
-int racs_stream_decode(const char *codec,
+int racs_stream_decode(const char *s_codec,
                        const racs_info *info,
                        const racs_uint8 *src,
                        size_t src_size,
                        racs_uint8 **out,
                        size_t *out_size) {
+    if (!s_codec || !info || !src || src_size == 0 || !out || !out_size) {
+        return RACS_STREAM_DECODE_ERROR;
+    }                    
+                        
     racs_codec_format fmt;
-    int _codec = racs_codec_from_string(codec);
+    int codec = racs_codec_from_string(s_codec);
 
-    return racs_codec_decode(_codec, &fmt, src, src_size, out, out_size);
+    if (codec == RACS_CODEC_UNKNOWN) {
+        return RACS_STREAM_DECODE_ERROR;
+    }
+
+    if (codec == RACS_CODEC_OPUS) {
+        if (info->sample_rate != RACS_OPUS_DEFAULT_SAMPLE_RATE) {
+            return RACS_STREAM_DECODE_ERROR;
+        }
+    }
+
+    if (codec == RACS_CODEC_MP3 || codec == RACS_CODEC_AAC || codec == RACS_CODEC_OPUS) {
+        if (info->bit_depth != 16) {
+            return RACS_STREAM_DECODE_ERROR;
+        }
+    }
+
+    int status = racs_codec_decode(codec, &fmt, src, src_size, out, out_size);
+    if (status != RACS_CODEC_OK) {
+        return RACS_STREAM_DECODE_ERROR;
+    }
+
+    return RACS_STREAM_OK;
 }
 
 racs_uint64 racs_streams_hash_cb(const void *key) {

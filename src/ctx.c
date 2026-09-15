@@ -8,6 +8,8 @@ void racs_ctx_init(racs_ctx *ctx) {
     }
 
     memset(ctx, 0, sizeof(racs_ctx));
+
+    ctx->fd = -1;
     msgpack_sbuffer_init(&ctx->out_buf);
 }
 

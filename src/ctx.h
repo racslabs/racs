@@ -10,6 +10,7 @@ extern "C" {
 #include <msgpack.h>
 
 typedef struct {
+    int fd;
     int depth;
     int has_error;
     racs_uint32 sample_rate;
