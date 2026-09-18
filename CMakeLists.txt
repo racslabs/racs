@@ -43,6 +43,7 @@ find_package(Zstd)
 find_package(Mpg123)
 find_package(AAC)
 find_package(FLAC)
+find_package(Urcu)
 
 set(RACS_LIBRARIES
         ${MSGPACK_LIBRARIES}
@@ -56,6 +57,7 @@ set(RACS_LIBRARIES
         ${ZSTD_LIBRARIES}
 	${MPG123_LIBRARIES}
         ${AAC_LIBRARIES}
+        ${URCU_LIBRARIES}
         uuid
 )
 
@@ -71,6 +73,7 @@ include_directories(
         ${ZSTD_INCLUDE_DIRS}
 	${MPG123_INCLUDE_DIRS}
         ${AAC_INCLUDE_DIRS}
+        ${URCU_INCLUDE_DIRS}
 )
 
 file(GLOB_RECURSE RACS_TEST_FILES CONFIGURE_DEPENDS ${RACS_TEST_DIR}/*.h ${RACS_TEST_DIR}/*.c)
