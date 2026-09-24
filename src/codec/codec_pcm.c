@@ -8,7 +8,7 @@ int racs_pcm_decode(racs_codec_format *fmt,
                     racs_uint8 **out,
                     size_t *out_size) {
     if (!fmt || !src || src_size == 0 || !out || !out_size) {
-        return RACS_CODEC_PARAM_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     *out = NULL;
@@ -16,7 +16,7 @@ int racs_pcm_decode(racs_codec_format *fmt,
 
     racs_uint8 *buf = malloc(src_size);
     if (!buf) {
-        return RACS_CODEC_ALLOC_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     memcpy(buf, src, src_size);
@@ -33,7 +33,7 @@ int racs_pcm_encode(racs_codec_format *fmt,
                     racs_uint8 **out,
                     size_t *out_size) {
     if (!fmt || !src || src_size == 0 || !out || !out_size) {
-        return RACS_CODEC_PARAM_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     *out = NULL;
@@ -41,7 +41,7 @@ int racs_pcm_encode(racs_codec_format *fmt,
 
     racs_uint8 *buf = malloc(src_size);
     if (!buf) {
-        return RACS_CODEC_ALLOC_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     memcpy(buf, src, src_size);

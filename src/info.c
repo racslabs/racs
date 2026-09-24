@@ -56,7 +56,7 @@ void racs_info_path(char *path, const char *stream_id) {
     snprintf(path, PATH_MAX, "%s/.racs/md/%llu", racs_config_get()->data_dir, hash);
 }
 
-int racs_info_flush(racs_info *info, const char *path) {
+int racs_info_flush(const racs_info *info, const char *path) {
     if (!info || !path) {
         return -1;
     }
@@ -113,7 +113,7 @@ int racs_info_exist(const char *path) {
     return stat(path, &st) == 0;
 }
 
-racs_time racs_info_to_time(racs_info *info, racs_uint64 offset) {
+racs_time racs_info_to_time(const racs_info *info, racs_uint64 offset) {
     racs_uint32 bytes_per_sample = (info->bit_depth / 8);
 
     double bytes_per_second = info->channels * info->sample_rate * bytes_per_sample;

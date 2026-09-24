@@ -3,13 +3,10 @@
 #include "dict_test.h"
 #include "cache_test.h"
 #include "config_test.h"
-#include "mt_test.h"
-#include "sst_test.h"
 #include "time_test.h"
 #include "path_test.h"
 #include "eval_test.h"
 #include "fs_test.h"
-#include "flush.h"
 #include "mp3_test.h"
 #include "aac_test.h"
 #include "flac_test.h"
@@ -26,13 +23,10 @@ void tearDown(void) {
 static void before_all(void) {
     racs_config_load(RACS_TEST_CONFIG_PATH);
 
-    racs_flush_queue_init();
-    racs_flush_thread_start(racs_flush_queue_get());
-
-    racs_mmt_init();
+    racs_mt_list_init();
+    racs_mt_flush_thread_start();
 
     racs_offsets_init();
-    racs_streams_init();
 }
 
 int main(void) {
@@ -45,7 +39,6 @@ int main(void) {
     RUN_TEST(test_dict_collision);
     RUN_TEST(test_cache_get);
     RUN_TEST(test_cache_evict);
-    // RUN_TEST(test_sst_read);
     RUN_TEST(test_time_from_ts);
     RUN_TEST(test_time_to_tm);
     RUN_TEST(test_time_to_rfc3339);
@@ -55,11 +48,8 @@ int main(void) {
     RUN_TEST(test_path_from_time);
     RUN_TEST(test_path_from_range);
     RUN_TEST(test_path_resolve);
-    // RUN_TEST(test_mt_parts_put);
-    // RUN_TEST(test_mmt_put);
     RUN_TEST(test_eval_ping);
     RUN_TEST(test_eval_create);
-    RUN_TEST(test_eval_open);
     RUN_TEST(test_eval_stream);
     RUN_TEST(test_fs_fname);
     RUN_TEST(test_mp3_decode_encode);

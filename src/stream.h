@@ -18,43 +18,31 @@ extern "C" {
 
 
 typedef enum {
-    RACS_STREAM_OK,
+    RACS_STREAM_OK = 0,
     RACS_STREAM_NOT_FOUND,
     RACS_STREAM_CONFLICT,
     RACS_STREAM_DECODE_ERROR,
-    RACS_STREAM_ALLOC_ERROR,
-    RACS_STREAM_BUFFER_OVERFLOW
+    RACS_STREAM_INTERNAL_ERROR,  
+    RACS_STREAM_UNKNOWN_CODEC,
+    RACS_STREAM_INVALID_BITDEPTH,
+    RACS_STREAM_INVALID_SAMPLE_RATE,
+    RACS_STREAM_INVALID_CHANNELS,
+    RACS_STREAM_INGESTION_ERROR
 } racs_stream_result;
-
-typedef struct {
-    racs_dict *dict;
-    pthread_mutex_t mutex;
-} racs_streams;
 
 
 extern const char *const racs_stream_result_string[];
 
-
-void racs_streams_init(void);
-
-racs_streams *racs_streams_get(void);
 
 int racs_streams_create(const char *stream_id,
                         racs_uint32 sample_rate,
                         racs_uint8 channels,
                         racs_uint8 bit_depth);
 
-int racs_streams_open(racs_streams *streams, const char *stream_id);
-
-int racs_streams_append(racs_streams *streams,
-                        const char *stream_id,
-                        const char *mime_type,
-                        const racs_uint8 *src,
-                        size_t src_size);
-
-int racs_streams_close(racs_streams *streams, const char *stream_id);
-
-void racs_streams_destroy(void);
+int racs_stream(const char *stream_id, 
+                const char *s_codec, 
+                const racs_uint8 *src,
+                size_t src_size);                        
 
 
 #ifdef __cplusplus

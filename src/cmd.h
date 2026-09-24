@@ -20,7 +20,7 @@ typedef struct {
 } racs_cmd;
 
 
-extern const racs_cmd cmds[4];
+extern const racs_cmd cmds[3];
 
 
 void racs_cmd_error(racs_ctx *ctx, const char *msg);

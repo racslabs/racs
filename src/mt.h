@@ -13,15 +13,19 @@
 extern "C" {
 #endif
 
-#include "flush.h"
+
 #include "config.h"
 #include "dict.h"
 #include "types.h"
 #include "path.h"
 #include "fs.h"
+#include "queue.h"
 #include "sst.h"
 #include <stdio.h>
 #include <pthread.h>
+#include <urcu-qsbr.h>
+#include <stdatomic.h>
+#include <stdbool.h>
 
 
 typedef struct {
@@ -30,99 +34,57 @@ typedef struct {
     racs_uint32 block_size;
     racs_uint32 checksum;
     racs_uint8 *block;
+
+    _Atomic bool ready; 
 } racs_mt_entry;
 
-// Memtable
 typedef struct {
+    _Atomic racs_uint16 num_entries;
+    _Atomic bool is_immutable;
     racs_uint16 capacity;
-    racs_uint16 num_entries;
-    pthread_mutex_t mutex;
     racs_mt_entry *entries;
 } racs_mt;
+
+typedef struct racs_mt_node {
+    racs_mt *mt;
+    _Atomic (struct racs_mt_node *) next; 
+    
+    struct rcu_head rcu;
+} racs_mt_node;
+
+typedef struct {
+    racs_uint16 capacity;   
+    pthread_mutex_t mutex;          
+    _Atomic racs_uint16 size;         
+    _Atomic (racs_mt_node *) head;   
+} racs_mt_list;
 
 typedef struct {
     int capacity;
     racs_dict *dict;
 } racs_mt_parts;
 
-typedef struct racs_mt_node {
-    racs_mt *mt;
-    int ref_count;
-    struct racs_mt_node *next;
-    struct racs_mt_node *prev;
-} racs_mt_node;
 
-// Multi-memtable
-// Doubly-linked-list of memtables.
-// Active memtable is the head. Flush happens at the tail.
-typedef struct {
-    racs_uint16 mt_capacity;
-    racs_uint32 mmt_capacity;
-    racs_uint32 num_tables;
-    pthread_mutex_t mutex;
-    pthread_cond_t cond;
-    racs_mt_node *head;
-    racs_mt_node *tail;
-} racs_mmt;
-
-typedef struct {
-    racs_mmt *mmt;
-    racs_mt_node *curr;
-} racs_mmt_iter;
+typedef int (*racs_mt_list_iter_cb)(const racs_mt_entry *entry, void *data);
 
 
-void racs_mmt_init(void);
+void racs_mt_list_init(void);
 
-racs_mmt *racs_mmt_get(void);
+racs_mt_list *racs_mt_list_get(void);
 
-void racs_mmt_iterator_init(racs_mmt_iter *iter, racs_mmt *mmt);
+void racs_mt_list_iter(racs_mt_list *list, racs_mt_list_iter_cb cb, void *data);
 
-racs_mt *racs_mmt_iterator_next(racs_mmt_iter *iter);
+void racs_mt_flush_thread_start(void);
 
-racs_mmt *racs_mmt_create(racs_uint32 mmt_capacity, racs_uint16 mt_capacity);
+void racs_mt_list_flush_tail(racs_mt_list *list);
 
-int racs_mmt_put(racs_mmt *mmt,
-                 const racs_uint64 *key,
-                 const racs_uint8 *block,
-                 racs_uint16 block_size,
-                 racs_uint32 checksum,
-                 racs_uint64 lsn);
+int racs_mt_list_put(racs_mt_list *list,
+                     const racs_uint64 *key,
+                     const racs_uint8 *block,
+                     racs_uint16 block_size,
+                     racs_uint32 checksum,
+                     racs_uint64 lsn);
 
-void racs_mmt_push_head(racs_mmt *mmt, racs_mt_node *node);
-
-void racs_mmt_destroy(racs_mmt *mmt);
-
-racs_mt_node *racs_mmt_pop_tail(racs_mmt *mmt);
-
-racs_mt_node *racs_mt_node_create(racs_uint16 capacity);
-
-void racs_mt_node_destroy(racs_mt_node *node);
-
-racs_mt *racs_mt_create(racs_uint16 capacity);
-
-void racs_mt_put(racs_mt *mt,
-                 const racs_uint64 *key,
-                 const racs_uint8 *block,
-                 racs_uint16 block_size,
-                 racs_uint32 checksum,
-                 racs_uint64 lsn);
-
-void racs_mt_flush(racs_mt *mt, const char *path);
-
-void racs_mt_destroy(racs_mt *mt);
-
-racs_mt_parts *racs_mt_parts_create(racs_uint16 capacity);
-
-void racs_mt_parts_put(racs_mt_parts *parts,
-                       const racs_uint64 *key,
-                       const racs_uint8 *block,
-                       racs_uint16 block_size,
-                       racs_uint32 checksum,
-                       racs_uint64 lsn);
-
-void racs_mt_parts_destroy(racs_mt_parts *parts);
-
-void racs_mt_split_and_flush(racs_mt *mt);
 
 #ifdef __cplusplus
 }

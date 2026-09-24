@@ -91,7 +91,7 @@ FLAC__StreamDecoderWriteStatus racs_flac_decode_int16(racs_flac_decoder *dec,
                                                       racs_uint32 samples) {
     racs_int16 *flattend = malloc(samples * channels * sizeof(racs_int16));
     if (!flattend) {
-        dec->status = RACS_CODEC_ALLOC_ERROR;
+        dec->status = RACS_CODEC_ERROR;
         return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
     }
 
@@ -103,7 +103,7 @@ FLAC__StreamDecoderWriteStatus racs_flac_decode_int16(racs_flac_decoder *dec,
         racs_int16 *interleaved = malloc(samples * channels * sizeof(racs_int16));
         if (!interleaved) {
             free(flattend);
-            dec->status = RACS_CODEC_ALLOC_ERROR;
+            dec->status = RACS_CODEC_ERROR;
             return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
         }
 
@@ -126,7 +126,7 @@ FLAC__StreamDecoderWriteStatus racs_flac_decode_int24(racs_flac_decoder *dec,
                                                       racs_uint32 samples) {
     racs_int24 *flattend = malloc(samples * channels * sizeof(racs_int24));
     if (!flattend) {
-        dec->status = RACS_CODEC_ALLOC_ERROR;
+        dec->status = RACS_CODEC_ERROR;
         return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
     }
 
@@ -138,7 +138,7 @@ FLAC__StreamDecoderWriteStatus racs_flac_decode_int24(racs_flac_decoder *dec,
         racs_int24 *interleaved = malloc(samples * channels * sizeof(racs_int24));
         if (!interleaved) {
             free(flattend);
-            dec->status = RACS_CODEC_ALLOC_ERROR;
+            dec->status = RACS_CODEC_ERROR;
             return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
         }
 
@@ -191,19 +191,25 @@ FLAC__StreamDecoderWriteStatus racs_flac_decode_write_cb(const FLAC__StreamDecod
     
     racs_uint32 channels = frame->header.channels;
     racs_uint32 samples = frame->header.blocksize;
+    racs_uint8 bit_depth = frame->header.bits_per_sample;
 
     if (channels != 1 && channels != 2) {
-        dec->status = RACS_CODEC_UNSUPPORTED;
+        dec->status = RACS_CODEC_UNSUPPORTED_CHANNELS;
         return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
     }
 
-    if (dec->fmt->bit_depth == 16) {
+    if (bit_depth != 16 && bit_depth != 24) {
+        dec->status = RACS_CODEC_UNSUPPORTED_BITDEPTH;
+        return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+    }
+
+    if (bit_depth == 16) {
         return racs_flac_decode_int16(dec, buffer, channels, samples);
-    } else if (dec->fmt->bit_depth == 24) {
+    } else if (bit_depth == 24) {
         return racs_flac_decode_int24(dec, buffer, channels, samples);
     } 
 
-    dec->status = RACS_CODEC_UNSUPPORTED;
+    dec->status = RACS_CODEC_ERROR;
     return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 }
 
@@ -214,13 +220,13 @@ void racs_flac_error_cb(const FLAC__StreamDecoder *decoder,
     (void) status;
 
     racs_flac_decoder *dec = (racs_flac_decoder *)data;
-    dec->status = RACS_CODEC_DECODE_ERROR;
+    dec->status = RACS_CODEC_ERROR;
 }
 
 int racs_flac_decoder_init(racs_flac_decoder *dec) {
     dec->dec = FLAC__stream_decoder_new();
     if (!dec->dec) {
-        return RACS_CODEC_ALLOC_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     FLAC__stream_decoder_set_md5_checking(dec->dec, false);
@@ -240,7 +246,7 @@ int racs_flac_decoder_init(racs_flac_decoder *dec) {
 
     if (status != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
         FLAC__stream_decoder_delete(dec->dec);
-        return RACS_CODEC_ALLOC_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     dec->status = RACS_CODEC_OK;
@@ -276,7 +282,7 @@ int racs_flac_decode(racs_codec_format *fmt,
                      racs_uint8 **out,
                      size_t *out_size) {
     if (!src || src_size == 0 || !out || !out_size || !fmt) {
-        return RACS_CODEC_PARAM_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     *out = NULL;
@@ -285,7 +291,7 @@ int racs_flac_decode(racs_codec_format *fmt,
     size_t buf_size = 0;
     racs_uint8 *buf = malloc(1024);
     if (!buf) {
-        return RACS_CODEC_ALLOC_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     racs_memstream ms = {
@@ -363,16 +369,16 @@ FLAC__StreamEncoderTellStatus racs_flac_encode_tell_cb(const FLAC__StreamEncoder
 
 int racs_flac_encoder_init(racs_flac_encoder *enc, racs_codec_format *fmt, racs_memstream *ms) {
     if (fmt->channels != 1 && fmt->channels != 2) {
-        return RACS_CODEC_UNSUPPORTED;
+        return RACS_CODEC_UNSUPPORTED_CHANNELS;
     }
 
     if (fmt->bit_depth != 16 && fmt->bit_depth != 24) {
-        return RACS_CODEC_UNSUPPORTED;
+        return RACS_CODEC_UNSUPPORTED_BITDEPTH;
     }
 
     enc->enc = FLAC__stream_encoder_new();
     if (!enc->enc) {
-        return RACS_CODEC_ALLOC_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     enc->ms = ms;
@@ -394,7 +400,7 @@ int racs_flac_encoder_init(racs_flac_encoder *enc, racs_codec_format *fmt, racs_
 
     if (status != FLAC__STREAM_ENCODER_INIT_STATUS_OK) {
         FLAC__stream_encoder_delete(enc->enc);
-        return RACS_CODEC_ALLOC_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     return RACS_CODEC_OK;
@@ -405,11 +411,7 @@ int racs_flac_encoder_encode(racs_flac_encoder *enc,
                              const racs_uint8 *src,
                              size_t src_size) {
     if (!enc || !enc->enc || !src || !fmt || fmt->channels <= 0) {
-        return RACS_CODEC_PARAM_ERROR;
-    }
-
-    if (fmt->bit_depth != 16 && fmt->bit_depth != 24) {
-        return RACS_CODEC_UNSUPPORTED;
+        return RACS_CODEC_ERROR;
     }
 
     size_t bytes_per_sample = (fmt->bit_depth == 16) ? sizeof(racs_int16) : sizeof(racs_int24);
@@ -421,7 +423,7 @@ int racs_flac_encoder_encode(racs_flac_encoder *enc,
 
     FLAC__int32 *buf = malloc(total_frame_samples * sizeof(FLAC__int32));
     if (!buf) {
-        return RACS_CODEC_ALLOC_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     while (frames_remaining > 0) {
@@ -441,7 +443,7 @@ int racs_flac_encoder_encode(racs_flac_encoder *enc,
         FLAC__bool status = FLAC__stream_encoder_process_interleaved(enc->enc, buf, chunk_frames);
         if (!status) {
             free(buf);
-            return RACS_CODEC_ENCODE_ERROR;
+            return RACS_CODEC_ERROR;
         }
 
         frames_remaining -= chunk_frames;
@@ -466,7 +468,7 @@ int racs_flac_encode(racs_codec_format *fmt,
                      racs_uint8 **out,
                      size_t *out_size) {
     if (!src || src_size == 0 || !out || !out_size || !fmt) {
-        return RACS_CODEC_PARAM_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     *out = NULL;
@@ -475,7 +477,7 @@ int racs_flac_encode(racs_codec_format *fmt,
     size_t buf_size = 0;
     racs_uint8 *buf = malloc(1024);
     if (!buf) {
-        return RACS_CODEC_ALLOC_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     racs_memstream ms = {

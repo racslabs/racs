@@ -55,28 +55,33 @@ int racs_opus_decoder_init(racs_opus_decoder *dec,
 
     dec->of = op_open_memory(src, src_size, &err);
     if (!dec->of) {
-        return RACS_CODEC_ALLOC_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     const OpusHead *head = op_head(dec->of, -1);
     if (!head) {
         op_free(dec->of);
-        return RACS_CODEC_DECODE_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     fmt->channels = head->channel_count;
     fmt->sample_rate = head->input_sample_rate;
 
+    if (fmt->channels != 1 && fmt->channels != 2) {
+        op_free(dec->of);
+        return RACS_CODEC_UNSUPPORTED_CHANNELS;
+    }
+
     if (fmt->sample_rate != RACS_OPUS_DEFAULT_SAMPLE_RATE) {
         op_free(dec->of);
-        return RACS_CODEC_UNSUPPORTED;
+        return RACS_CODEC_UNSUPPORTED_SAMPLE_RATE;
     }
 
     dec->pcm_block_size = RACS_OPUS_MAX_FRAME_SIZE * fmt->channels * sizeof(racs_int16);
     dec->pcm_block = malloc(dec->pcm_block_size);
     if (!dec->pcm_block) {
         op_free(dec->of);
-        return RACS_CODEC_ALLOC_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     return RACS_CODEC_OK;
@@ -93,14 +98,14 @@ int racs_opus_decoder_decode(racs_opus_decoder *dec,
         }
 
         if (samples_decoded < 0) {
-            return RACS_CODEC_DECODE_ERROR;
+            return RACS_CODEC_ERROR;
         }
 
         size_t bytes_decoded = samples_decoded * fmt->channels * sizeof(racs_int16);
 
         int status = racs_memstream_write(ms, dec->pcm_block, bytes_decoded);
         if (status < 0) {
-            return RACS_CODEC_DECODE_ERROR;
+            return RACS_CODEC_ERROR;
         }
     }
 
@@ -129,7 +134,7 @@ int racs_opus_decode(racs_codec_format *fmt,
                      racs_uint8 **out,
                      size_t *out_size) {
     if (!src || src_size == 0 || !out || !out_size || !fmt) {
-        return RACS_CODEC_PARAM_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     *out = NULL;
@@ -137,7 +142,7 @@ int racs_opus_decode(racs_codec_format *fmt,
 
     size_t buf_size = 0;
     racs_uint8 *buf = malloc(1024);
-    if (!buf) return RACS_CODEC_ALLOC_ERROR;
+    if (!buf) return RACS_CODEC_ERROR;
 
     racs_memstream ms = {
         .data = &buf,
@@ -180,6 +185,14 @@ int racs_opus_write_cb(void *data, const racs_uint8 *ptr, racs_int32 len) {
 }
 
 int racs_opus_encoder_init(racs_opus_encoder *enc, racs_codec_format *fmt) {
+    if (fmt->bit_depth != 16) {
+        return RACS_CODEC_UNSUPPORTED_BITDEPTH;
+    }
+
+    if (fmt->channels != 1 && fmt->channels != 2) {
+        return RACS_CODEC_UNSUPPORTED_CHANNELS;
+    }
+
     int err = OPE_OK;
 
     OpusEncCallbacks callbacks = {
@@ -189,7 +202,7 @@ int racs_opus_encoder_init(racs_opus_encoder *enc, racs_codec_format *fmt) {
 
     enc->comments = ope_comments_create();
     if (!enc->comments) {
-        return RACS_CODEC_ALLOC_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     enc->enc = ope_encoder_create_callbacks(&callbacks, enc, enc->comments, (int) fmt->sample_rate,
@@ -197,7 +210,7 @@ int racs_opus_encoder_init(racs_opus_encoder *enc, racs_codec_format *fmt) {
 
     if (!enc->enc) {
         ope_comments_destroy(enc->comments);
-        return RACS_CODEC_ALLOC_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     return RACS_CODEC_OK;
@@ -209,7 +222,7 @@ int racs_opus_encoder_encode(racs_opus_encoder *enc,
                              size_t src_size,
                              racs_memstream *ms) {
     if (!enc || !enc->enc || !src || !fmt || fmt->channels <= 0) {
-        return RACS_CODEC_PARAM_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     size_t total_samples = src_size / sizeof(racs_int16);
@@ -227,7 +240,7 @@ int racs_opus_encoder_encode(racs_opus_encoder *enc,
 
         int err = ope_encoder_write(enc->enc, in_ptr, chunk_size);
         if (err != OPE_OK) {
-            return RACS_CODEC_ENCODE_ERROR;
+            return RACS_CODEC_ERROR;
         }
 
         samples_remaining -= chunk_size;
@@ -239,7 +252,7 @@ int racs_opus_encoder_encode(racs_opus_encoder *enc,
 
 int racs_opus_encoder_cleanup(racs_opus_encoder *enc) {
     if (!enc) {
-        return RACS_CODEC_PARAM_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     if (enc->enc) {
@@ -262,20 +275,16 @@ int racs_opus_encode(racs_codec_format *fmt,
                      racs_uint8 **out,
                      size_t *out_size) {
     if (!src || src_size == 0 || !out || !out_size || !fmt) {
-        return RACS_CODEC_PARAM_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     *out = NULL;
     *out_size = 0;
 
-    if (fmt->channels != 1 && fmt->channels != 2) {
-        return RACS_CODEC_UNSUPPORTED;
-    }
-
     size_t buf_size = 0;
     racs_uint8 *buf = malloc(1024);
     if (!buf) {
-        return RACS_CODEC_ALLOC_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     racs_memstream ms = {

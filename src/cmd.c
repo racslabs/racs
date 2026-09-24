@@ -2,10 +2,9 @@
 #include "cmd.h"
 
 
-const racs_cmd cmds[4] = {
+const racs_cmd cmds[3] = {
     {"ping", racs_cmd_ping, 1},
     {"create", racs_cmd_create, 0},
-    {"open", racs_cmd_open, 0},
     {"stream", racs_cmd_stream, 0},
 };
 
@@ -30,11 +29,9 @@ void racs_cmd_call_create(racs_ctx *ctx,
                           racs_uint8 channels,
                           racs_uint8 bit_depth);
 
-void racs_cmd_call_open(racs_ctx *ctx, const char *stream_id);
-
 void racs_cmd_call_stream(racs_ctx *ctx,
                           const char *stream_id,
-                          const char *mime_type,
+                          const char *codec,
                           const racs_uint8 *src,
                           size_t src_size);
 
@@ -156,27 +153,7 @@ void racs_cmd_call_create(racs_ctx *ctx,
     if (result != RACS_STREAM_OK) {
         char msg[55];
 
-        sprintf(msg, "create %s", racs_stream_result_string[result]);
-        racs_cmd_error(ctx, msg);
-        return;
-    }
-
-    msgpack_sbuffer_clear(&ctx->out_buf);
-
-    msgpack_packer pk;
-    msgpack_packer_init(&pk, &ctx->out_buf, msgpack_sbuffer_write);
-    msgpack_pack_nil(&pk);
-}
-
-void racs_cmd_call_open(racs_ctx *ctx, const char *stream_id) {
-    racs_streams *streams = racs_streams_get();
-
-    int result = racs_streams_open(streams, stream_id);
-
-    if (result != RACS_STREAM_OK) {
-        char msg[55];
-
-        sprintf(msg, "open %s", racs_stream_result_string[result]);
+        snprintf(msg, sizeof(msg), "create %s", racs_stream_result_string[result]);
         racs_cmd_error(ctx, msg);
         return;
     }
@@ -190,16 +167,15 @@ void racs_cmd_call_open(racs_ctx *ctx, const char *stream_id) {
 
 void racs_cmd_call_stream(racs_ctx *ctx,
                           const char *stream_id,
-                          const char *mime_type,
+                          const char *codec,
                           const racs_uint8 *src,
                           size_t src_size) {
-    racs_streams *streams = racs_streams_get();
 
-    int result = racs_streams_append(streams, stream_id, mime_type, src, src_size);
-    if (result != RACS_STREAM_OK) {
+    int status = racs_stream(stream_id, codec, src, src_size);                       
+    if (status != RACS_STREAM_OK) {
         char msg[55];
 
-        sprintf(msg, "stream %s", racs_stream_result_string[result]);
+        snprintf(msg, sizeof(msg), "stream %s", racs_stream_result_string[status]);
         racs_cmd_error(ctx, msg);
         return;
     }
@@ -254,25 +230,6 @@ void racs_cmd_create(racs_ctx *ctx, msgpack_object *args, size_t num_args) {
     char *s_stream_id = strndup(stream_id, stream_id_size);
 
     racs_cmd_call_create(ctx, s_stream_id, sample_rate, channels, bit_depth);
-    free(s_stream_id);
-}
-
-void racs_cmd_open(racs_ctx *ctx, msgpack_object *args, size_t num_args) {
-    if (num_args != 1) {
-        racs_cmd_error(ctx, "open requires 1 arg");
-        return;
-    }
-
-    size_t stream_id_size;
-    char *stream_id = NULL;
-    if (racs_cmd_arg_str(&args[0], &stream_id, &stream_id_size) == -1) {
-        racs_cmd_error(ctx, "open error at arg1. expected string");
-        return;
-    }
-
-    char *s_stream_id = strndup(stream_id, stream_id_size);
-
-    racs_cmd_call_open(ctx, s_stream_id);
     free(s_stream_id);
 }
 

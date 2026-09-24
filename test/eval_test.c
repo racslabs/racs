@@ -81,42 +81,6 @@ void test_eval_create(void) {
     racs_ctx_cleanup(&ctx);
 }
 
-void test_eval_open(void) {
-    msgpack_sbuffer in_buf;
-    msgpack_sbuffer_init(&in_buf);
-
-    msgpack_packer pk;
-    msgpack_packer_init(&pk, &in_buf, msgpack_sbuffer_write);
-
-    msgpack_pack_array(&pk, 2);
-    msgpack_pack_str_with_body(&pk, "open", 4);
-    msgpack_pack_str_with_body(&pk, "test", 4);
-
-    racs_ctx ctx;
-    racs_ctx_init(&ctx);
-    racs_eval(&ctx, (racs_uint8 *) in_buf.data, in_buf.size);
-
-    msgpack_sbuffer_destroy(&in_buf);
-
-    TEST_ASSERT_FALSE(ctx.has_error);
-
-    msgpack_unpacked unpacked;
-    msgpack_unpacked_init(&unpacked);
-
-    size_t offset = 0;
-    msgpack_unpack_return result = msgpack_unpack_next(
-        &unpacked,
-        ctx.out_buf.data,
-        ctx.out_buf.size,
-        &offset
-    );
-
-    TEST_ASSERT_EQUAL_INT(MSGPACK_UNPACK_SUCCESS, result);
-
-    msgpack_unpacked_destroy(&unpacked);
-    racs_ctx_cleanup(&ctx);
-}
-
 void test_eval_stream(void) {
     msgpack_sbuffer in_buf;
     msgpack_sbuffer_init(&in_buf);
@@ -132,8 +96,8 @@ void test_eval_stream(void) {
     msgpack_pack_array(&pk, 4);
     msgpack_pack_str_with_body(&pk, "stream", 6);
     msgpack_pack_str_with_body(&pk, "test", 4);
-    msgpack_pack_str_with_body(&pk, "audio/pcm", 9);
-    msgpack_pack_bin_with_body(&pk, (racs_uint8 *)pcm_data, 65536 * 2);
+    msgpack_pack_str_with_body(&pk, "pcm", 3);
+    msgpack_pack_bin_with_body(&pk, (racs_uint8 *) pcm_data, 65536 * 2);
 
     racs_ctx ctx;
     racs_ctx_init(&ctx);

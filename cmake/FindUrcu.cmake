@@ -1,5 +1,5 @@
 
-find_path(URCU_INCLUDE_DIR urcu.h
+find_path(URCU_INCLUDE_DIR urcu-qsbr.h
         PATH_SUFFIXES
         opus
         HINTS /opt/local/include
@@ -7,7 +7,7 @@ find_path(URCU_INCLUDE_DIR urcu.h
 
 # Look for the library
 find_library (URCU_LIBRARY
-        NAMES urcu
+        NAMES urcu-qsbr
         HINTS
         /opt/local/lib
 )

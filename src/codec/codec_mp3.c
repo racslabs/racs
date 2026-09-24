@@ -1,6 +1,9 @@
 #include "codec_mp3.h"
 
 
+#define RACS_MP3_DEFAULT_BIT_DEPTH 16
+
+
 typedef struct {
     mpg123_handle *mh;
     racs_uint8 *pcm_block;
@@ -39,7 +42,7 @@ int racs_mp3_decoder_init(racs_mp3_decoder *dec) {
 
     dec->mh = mpg123_new(NULL, &err);
     if (!dec->mh || err != MPG123_OK) {
-        return RACS_CODEC_ALLOC_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     const long *rates;
@@ -54,14 +57,14 @@ int racs_mp3_decoder_init(racs_mp3_decoder *dec) {
 
     if (mpg123_open_feed(dec->mh) != MPG123_OK) {
         mpg123_delete(dec->mh);
-        return RACS_CODEC_ALLOC_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     dec->pcm_block_size = mpg123_outblock(dec->mh);
     dec->pcm_block = malloc(dec->pcm_block_size);
     if (!dec->pcm_block) {
         mpg123_delete(dec->mh);
-        return RACS_CODEC_ALLOC_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     return RACS_CODEC_OK;
@@ -98,9 +101,10 @@ int racs_mp3_decoder_decode(racs_mp3_decoder *dec,
                 if (mpg123_getformat(dec->mh, &sample_rate, &channels, &encoding) == MPG123_OK) {
                     fmt->sample_rate = (racs_uint32) sample_rate;
                     fmt->channels = (racs_uint8) channels;
+                    fmt->bit_depth = RACS_MP3_DEFAULT_BIT_DEPTH;
 
                     if (fmt->channels != 1 && fmt->channels != 2) {
-                        return RACS_CODEC_UNSUPPORTED;
+                        return RACS_CODEC_UNSUPPORTED_CHANNELS;
                     }
 
                     fmt_ext = 1;
@@ -113,7 +117,7 @@ int racs_mp3_decoder_decode(racs_mp3_decoder *dec,
         }
 
         if (status == MPG123_ERR) {
-            return RACS_CODEC_DECODE_ERROR;
+            return RACS_CODEC_ERROR;
         }
 
         if (status == MPG123_NEED_MORE && bytes_read >= src_size) {
@@ -143,7 +147,7 @@ int racs_mp3_decode(racs_codec_format *fmt,
                     racs_uint8 **out,
                     size_t *out_size) {
     if (!src || src_size == 0 || !out || !out_size || !fmt) {
-        return RACS_CODEC_PARAM_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     *out = NULL;
@@ -152,7 +156,7 @@ int racs_mp3_decode(racs_codec_format *fmt,
     size_t buf_size = 0;
     racs_uint8 *buf = malloc(1024);
     if (!buf) {
-        return RACS_CODEC_ALLOC_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     racs_memstream ms = {
@@ -184,9 +188,17 @@ int racs_mp3_decode(racs_codec_format *fmt,
 }
 
 int racs_mp3_encoder_init(racs_mp3_encoder *enc, racs_codec_format *fmt) {
+    if (fmt->bit_depth != 16) {
+        return RACS_CODEC_UNSUPPORTED_BITDEPTH;
+    }
+
+    if (fmt->channels != 1 && fmt->channels != 2) {
+        return RACS_CODEC_UNSUPPORTED_CHANNELS;
+    }
+
     enc->gfp = lame_init();
     if (!enc->gfp) {
-        return RACS_CODEC_ALLOC_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     lame_set_num_channels(enc->gfp, fmt->channels);
@@ -196,7 +208,7 @@ int racs_mp3_encoder_init(racs_mp3_encoder *enc, racs_codec_format *fmt) {
 
     if (lame_init_params(enc->gfp) < 0) {
         lame_close(enc->gfp);
-        return RACS_CODEC_ALLOC_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     return RACS_CODEC_OK;
@@ -212,7 +224,7 @@ int racs_mp3_encoder_encode(racs_mp3_encoder *enc,
 
     racs_uint8 *buf = malloc(buf_size);
     if (!buf) {
-        return RACS_CODEC_ALLOC_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     int bytes_encoded = 0;
@@ -239,7 +251,7 @@ int racs_mp3_encoder_encode(racs_mp3_encoder *enc,
                 break;
             default:
                 free(buf);
-                return RACS_CODEC_ENCODE_ERROR;
+                return RACS_CODEC_UNSUPPORTED_CHANNELS;
         }
 
         if (bytes_encoded > 0) {
@@ -270,20 +282,16 @@ int racs_mp3_encode(racs_codec_format *fmt,
                     racs_uint8 **out,
                     size_t *out_size) {
     if (!src || src_size == 0 || !out || !out_size || !fmt) {
-        return RACS_CODEC_PARAM_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     *out = NULL;
     *out_size = 0;
 
-    if (fmt->channels != 1 && fmt->channels != 2) {
-        return RACS_CODEC_UNSUPPORTED;
-    }
-
     size_t buf_size = 0;
     racs_uint8 *buf = malloc(1024);
     if (!buf) {
-        return RACS_CODEC_ALLOC_ERROR;
+        return RACS_CODEC_ERROR;
     }
 
     racs_memstream ms = {

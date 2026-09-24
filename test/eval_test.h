@@ -11,8 +11,6 @@ void test_eval_ping(void);
 
 void test_eval_create(void);
 
-void test_eval_open(void);
-
 void test_eval_stream(void);
 
 
