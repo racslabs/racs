@@ -22,15 +22,17 @@ int racs_mt_parts_eq_cb(const void *a, const void *b);
 
 void racs_mt_parts_destroy_cb(void *key, void *value);
 
-racs_mt_node *racs_mt_list_pop_tail(racs_mt_list *list);
-
 int racs_mt_list_push_head(racs_mt_list *list, racs_mt_node *node);
 
 void racs_mt_destroy_shallow(racs_mt *mt);
 
-void racs_mt_node_queue_cb(void *data);
-
 void *racs_mt_flush_worker(void *arg);
+
+void racs_mt_flusher_signal(void);
+
+racs_mt_flusher *racs_mt_flusher_create(racs_mt_list *list);
+
+void racs_mt_flusher_destroy(racs_mt_flusher *flusher);
 
 racs_mt_node *racs_mt_node_create(racs_uint16 capacity);
 
@@ -40,9 +42,6 @@ racs_mt *racs_mt_create(racs_uint16 capacity);
 
 racs_mt_list *racs_mt_list_create(racs_uint16 capacity);
 
-void racs_mt_node_queue_init(void);
-
-racs_queue *racs_mt_node_queue_get(void);
 
 int racs_mt_put(racs_mt *mt,
                 const racs_uint64 *key,
@@ -79,7 +78,7 @@ int racs_mt_put_local(racs_mt *mt,
 
 static racs_mt_list *list_ = NULL;       
 
-static racs_queue *queue_ = NULL;
+static racs_mt_flusher *flusher_ = NULL;
 
 
 void racs_mt_list_init(void) {
@@ -108,49 +107,130 @@ racs_mt_list *racs_mt_list_get(void) {
     return list_;
 }
 
-void racs_mt_node_queue_init(void) {
-    if (!queue_) {
-        queue_ = racs_queue_create(racs_mt_node_queue_cb);
-        if (!queue_) {
-            exit(-1);
-        }
+int racs_mt_flush_thread_start(void) {
+    if (!list_) {
+        return -1;
     }
+
+    if (flusher_) {
+        return -1;
+    }
+
+    flusher_ = racs_mt_flusher_create(list_);
+    if (!flusher_) {
+        return -1;
+    }
+
+    if (pthread_create(&flusher_->thread,
+                       NULL,
+                       racs_mt_flush_worker,
+                       flusher_) != 0) {
+        racs_mt_flusher_destroy(flusher_);
+        flusher_ = NULL;
+        return -1;
+    }
+
+    return 0;
 }
 
-racs_queue *racs_mt_node_queue_get(void) {
-    if (!queue_) {
+racs_mt_flusher *racs_mt_flusher_create(racs_mt_list *list) {
+    if (!list) {
         return NULL;
     }
 
-    return queue_;
+    racs_mt_flusher *flusher = malloc(sizeof(*flusher));
+    if (!flusher) {
+        return NULL;
+    }
+
+    if (pthread_mutex_init(&flusher->mutex, NULL) != 0) {
+        free(flusher);
+        return NULL;
+    }
+
+    if (pthread_cond_init(&flusher->cond, NULL) != 0) {
+        pthread_mutex_destroy(&flusher->mutex);
+        free(flusher);
+        return NULL;
+    }
+
+    racs_atomic_store(&flusher->running, true);
+    racs_atomic_store(&flusher->flush_requested, false);
+
+    flusher->list = list;
+
+    return flusher;
 }
 
-void racs_mt_flush_thread_start(void) {
-    racs_mt_node_queue_init();
+void racs_mt_flusher_destroy(racs_mt_flusher *flusher) {
+    if (!flusher) {
+        return;
+    }
 
-    pthread_t thread;
-    pthread_create(&thread, NULL, racs_mt_flush_worker, NULL);
-    pthread_detach(thread);
+    pthread_mutex_lock(&flusher->mutex);
+
+    racs_atomic_store(&flusher->running, false);
+    pthread_cond_signal(&flusher->cond);
+
+    pthread_mutex_unlock(&flusher->mutex);
+
+    pthread_join(flusher->thread, NULL);
+
+    pthread_cond_destroy(&flusher->cond);
+    pthread_mutex_destroy(&flusher->mutex);
+
+    flusher->list = NULL;
+
+    free(flusher);
 }
 
 void *racs_mt_flush_worker(void *arg) {
-    (void) arg;
+    racs_mt_flusher *flusher = (racs_mt_flusher *)arg;
 
     rcu_register_thread();
 
     for ( ; ; ) {
-        racs_mt_node *node = (racs_mt_node *) racs_dequeue(queue_);
-        if (!node) {
+        pthread_mutex_lock(&flusher->mutex);
+
+        while (!racs_atomic_load(&flusher->flush_requested) &&
+               racs_atomic_load(&flusher->running)) {
+            pthread_cond_wait(&flusher->cond, &flusher->mutex);
+        }
+
+        bool running = racs_atomic_load(&flusher->running);
+        bool flush_requested = racs_atomic_load(&flusher->flush_requested);
+
+        racs_atomic_store(&flusher->flush_requested, false);
+
+        pthread_mutex_unlock(&flusher->mutex);
+
+        if (!running) {
             break;
         }
 
-        racs_mt_node_flush(node);
-
-        call_rcu(&node->rcu, racs_mt_node_rcu_cb);
+        if (flush_requested) {
+            /*
+             * Rotation + flush goes here.
+             */
+        }
     }
 
     rcu_unregister_thread();
+
     return NULL;
+}
+
+void racs_mt_flusher_signal(void) {
+    if (!flusher_) {
+        return;
+    }
+
+    pthread_mutex_lock(&flusher_->mutex);
+
+    racs_atomic_store(&flusher_->flush_requested, true);
+    pthread_cond_signal(&flusher_->cond);
+
+    pthread_mutex_unlock(&flusher_->mutex);
 }
 
 void racs_mt_list_iter(racs_mt_list *list, racs_mt_list_iter_cb cb, void *data) {
@@ -164,7 +244,7 @@ void racs_mt_list_iter(racs_mt_list *list, racs_mt_list_iter_cb cb, void *data) 
     while (curr != NULL) {
         racs_mt *mt = curr->mt;
         if (mt) {
-            racs_uint16 count = atomic_load_explicit(&mt->num_entries, memory_order_acquire);
+            racs_uint16 count = racs_atomic_load(&mt->num_entries);
             if (count > mt->capacity) {
                 count = mt->capacity;
             }
@@ -172,7 +252,7 @@ void racs_mt_list_iter(racs_mt_list *list, racs_mt_list_iter_cb cb, void *data) 
             for (racs_uint16 i = 0; i < count; i++) {
                 const racs_mt_entry *entry = &mt->entries[i];
 
-                if (!atomic_load_explicit(&entry->ready, memory_order_acquire)) {
+                if (!racs_atomic_load(&entry->ready)) {
                     continue;
                 }
 
@@ -197,10 +277,8 @@ racs_mt_list *racs_mt_list_create(racs_uint16 capacity) {
 
     list->capacity = capacity;
 
-    atomic_store_explicit(&list->size, 0, memory_order_relaxed);
-    atomic_store_explicit(&list->head, NULL, memory_order_relaxed);
-
-    pthread_mutex_init(&list->mutex, NULL);
+    racs_atomic_store(&list->size, 0);
+    racs_atomic_store(&list->head, NULL);
 
     return list;
 }
@@ -211,11 +289,9 @@ void racs_mt_list_destroy(racs_mt_list *list) {
         return;
     }
 
-    pthread_mutex_destroy(&list->mutex);
-
-    racs_mt_node *curr = atomic_load_explicit(&list->head, memory_order_relaxed);
+    racs_mt_node *curr = racs_atomic_load(&list->head);
     while (curr != NULL) {
-        racs_mt_node *next = atomic_load_explicit(&curr->next, memory_order_relaxed);
+        racs_mt_node *next = racs_atomic_load(&curr->next);
         racs_mt_node_destroy(curr);
         curr = next;
     }
@@ -239,7 +315,7 @@ int racs_mt_list_put(racs_mt_list *list,
     }
 
     while (1) {
-        racs_mt_node *curr_head = atomic_load_explicit(&list->head, memory_order_acquire);
+        racs_mt_node *curr_head = racs_atomic_load(&list->head);
 
         if (!curr_head) {
             racs_mt_node *new_node = racs_mt_node_create(cfg->memtable.entries);
@@ -249,7 +325,7 @@ int racs_mt_list_put(racs_mt_list *list,
 
             if (racs_mt_list_push_head(list, new_node) != 0) {
                 racs_mt_node_destroy(new_node);
-                racs_mt_list_flush_tail(list);
+                racs_mt_flusher_signal();
 
                 continue;
             }
@@ -270,7 +346,7 @@ int racs_mt_list_put(racs_mt_list *list,
 
             if (racs_mt_list_push_head(list, new_node) != 0) {
                 racs_mt_node_destroy(new_node);
-                racs_mt_list_flush_tail(list);
+                racs_mt_flusher_signal();
 
                 continue;
             }
@@ -292,16 +368,18 @@ int racs_mt_put(racs_mt *mt,
         return -1;
     }
 
-    if (atomic_load_explicit(&mt->is_immutable, memory_order_relaxed)) {
+    if (racs_atomic_load(&mt->is_immutable)) {
         return 1;
     }
 
-    racs_uint16 slot = atomic_fetch_add_explicit(&mt->num_entries, 1, memory_order_relaxed);
-
-    if (slot >= mt->capacity) {
-        atomic_store_explicit(&mt->is_immutable, true, memory_order_relaxed);
-        return 1;
-    }
+    racs_uint16 slot;
+    do {
+        slot = racs_atomic_load(&mt->num_entries);
+        if (slot >= mt->capacity) {
+            racs_atomic_store(&mt->is_immutable, true);
+            return 1;
+        }
+    } while (!racs_atomic_cas(&mt->num_entries, &slot, slot + 1));
 
     racs_mt_entry *entry = &mt->entries[slot];
     
@@ -319,10 +397,10 @@ int racs_mt_put(racs_mt *mt,
 
     memcpy(entry->block, block, block_size);
 
-    atomic_store_explicit(&entry->ready, true, memory_order_release);
+    racs_atomic_store(&entry->ready, true);
 
     if (slot + 1 == mt->capacity) {
-        atomic_store_explicit(&mt->is_immutable, true, memory_order_relaxed);
+        racs_atomic_store(&mt->is_immutable, true);
     }
 
     return 0;
@@ -354,80 +432,30 @@ int racs_mt_put_local(racs_mt *mt,
     return 0;
 }
 
-void racs_mt_list_flush_tail(racs_mt_list *list) {
-    racs_mt_node *tail = racs_mt_list_pop_tail(list);
-    if (tail) {
-        racs_enqueue(queue_, tail);
-    }
-}
-
 int racs_mt_list_push_head(racs_mt_list *list, racs_mt_node *node) {
     if (!list || !node) {
         return -1;
     }
 
-    racs_uint16 current_size = atomic_load_explicit(&list->size, memory_order_relaxed);
-    if (current_size >= list->capacity) {
-        return -1;
-    }
+    racs_uint16 size;
+
+    do {
+        size = racs_atomic_load(&list->size);
+
+        if (size >= list->capacity) {
+            return -1;
+        }
+
+    } while (!racs_atomic_cas(&list->size, &size, size + 1));
 
     racs_mt_node *old_head;
+
     do {
-        old_head = atomic_load_explicit(&list->head, memory_order_relaxed);
-        atomic_store_explicit(&node->next, old_head, memory_order_relaxed);
+        old_head = racs_atomic_load(&list->head);
+        racs_atomic_store(&node->next, old_head);
+    } while (!racs_atomic_cas(&list->head, &old_head, node));
 
-    } while (!atomic_compare_exchange_weak_explicit(
-                &list->head,
-                &old_head,
-                node,
-                memory_order_release,
-                memory_order_relaxed));
-
-    atomic_fetch_add_explicit(&list->size, 1, memory_order_relaxed);
     return 0;
-}
-
-
-racs_mt_node *racs_mt_list_pop_tail(racs_mt_list *list) {
-    if (!list) {
-        return NULL;
-    }
-
-    pthread_mutex_lock(&list->mutex);
-
-    racs_mt_node *head = atomic_load_explicit(&list->head, memory_order_acquire);
-    if (!head) {
-        pthread_mutex_unlock(&list->mutex);
-        return NULL;
-    }
-
-    racs_mt_node *next_head = atomic_load_explicit(&head->next, memory_order_acquire);
-
-    if (!next_head) {
-        atomic_store_explicit(&list->head, NULL, memory_order_release);
-        atomic_fetch_sub_explicit(&list->size, 1, memory_order_relaxed);
-
-        pthread_mutex_unlock(&list->mutex);
-        return head;
-    }
-
-    racs_mt_node *prev = head;
-    racs_mt_node *tail = next_head;
-
-    while (1) {
-        racs_mt_node *next_tail = atomic_load_explicit(&tail->next, memory_order_acquire);
-        if (!next_tail) {
-            break;
-        }
-        prev = tail;
-        tail = next_tail;
-    }
-
-    rcu_assign_pointer(prev->next, NULL);
-    atomic_fetch_sub_explicit(&list->size, 1, memory_order_relaxed);
-
-    pthread_mutex_unlock(&list->mutex);
-    return tail;
 }
 
 racs_mt_node *racs_mt_node_create(racs_uint16 capacity) {
@@ -442,7 +470,7 @@ racs_mt_node *racs_mt_node_create(racs_uint16 capacity) {
     }
 
     node->mt = mt;
-    atomic_store_explicit(&node->next, NULL, memory_order_relaxed);
+    racs_atomic_store(&node->next, NULL);
 
     return node;
 }
@@ -476,8 +504,8 @@ racs_mt *racs_mt_create(racs_uint16 capacity) {
     }
 
     mt->capacity = capacity;
-    atomic_store_explicit(&mt->num_entries, 0, memory_order_relaxed);
-    atomic_store_explicit(&mt->is_immutable, false, memory_order_relaxed);
+    racs_atomic_store(&mt->num_entries, 0);
+    racs_atomic_store(&mt->is_immutable, false);
 
     return mt;
 }
@@ -506,7 +534,7 @@ void racs_mt_destroy(racs_mt *mt) {
     }
 
     if (mt->entries) {
-        racs_uint16 count = atomic_load_explicit(&mt->num_entries, memory_order_relaxed);
+        racs_uint16 count = racs_atomic_load(&mt->num_entries);
 
         for (racs_uint16 i = 0; i < count; i++) {
             if (mt->entries[i].block) {
@@ -617,7 +645,7 @@ void racs_mt_split_and_flush(racs_mt *mt) {
         return;
     }
 
-    racs_uint16 count = atomic_load_explicit(&mt->num_entries, memory_order_acquire);
+    racs_uint16 count = racs_atomic_load(&mt->num_entries);
     if (count == 0) {
         return;
     }
@@ -634,12 +662,8 @@ void racs_mt_split_and_flush(racs_mt *mt) {
     for (racs_uint16 i = 0; i < count; i++) {
         racs_mt_entry *entry = &mt->entries[i];
 
-        while (!atomic_load_explicit(&entry->ready, memory_order_acquire)) {
-            #if defined(__x86_64__) || defined(_M_X64)
-                __builtin_ia32_pause();
-            #elif defined(__aarch64__)
-                __asm__ volatile("yield" ::: "memory");
-            #endif
+        while (!racs_atomic_load(&entry->ready)) {
+            racs_cpu_pause();
         } 
 
         //TODO: filter out old versions
@@ -690,10 +714,6 @@ int racs_mt_parts_eq_cb(const void *a, const void *b) {
 void racs_mt_parts_destroy_cb(void *key, void *value) {
     free(key);
     racs_mt_destroy_shallow((racs_mt *) value);
-}
-
-void racs_mt_node_queue_cb(void *data) {
-    (void) data;
 }
 
 racs_uint8 *racs_mt_to_sst(racs_mt *mt, size_t *sst_size) {

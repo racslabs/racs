@@ -9,6 +9,7 @@
 #ifndef RACS_MT_H
 #define RACS_MT_H
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -21,11 +22,10 @@ extern "C" {
 #include "fs.h"
 #include "queue.h"
 #include "sst.h"
+#include "atomic.h"
 #include <stdio.h>
 #include <pthread.h>
 #include <urcu-qsbr.h>
-#include <stdatomic.h>
-#include <stdbool.h>
 
 
 typedef struct {
@@ -35,12 +35,12 @@ typedef struct {
     racs_uint32 checksum;
     racs_uint8 *block;
 
-    _Atomic bool ready; 
+    racs_atomic_bool ready; 
 } racs_mt_entry;
 
 typedef struct {
-    _Atomic racs_uint16 num_entries;
-    _Atomic bool is_immutable;
+    racs_atomic_uint16 num_entries;
+    racs_atomic_bool is_immutable;
     racs_uint16 capacity;
     racs_mt_entry *entries;
 } racs_mt;
@@ -53,9 +53,8 @@ typedef struct racs_mt_node {
 } racs_mt_node;
 
 typedef struct {
-    racs_uint16 capacity;   
-    pthread_mutex_t mutex;          
-    _Atomic racs_uint16 size;         
+    racs_uint16 capacity;        
+    racs_atomic_uint16 size;         
     _Atomic (racs_mt_node *) head;   
 } racs_mt_list;
 
@@ -63,6 +62,16 @@ typedef struct {
     int capacity;
     racs_dict *dict;
 } racs_mt_parts;
+
+typedef struct racs_flusher {
+    pthread_t thread;
+    pthread_mutex_t mutex;    
+    pthread_cond_t cond;
+    racs_atomic_bool running;
+    racs_atomic_bool flush_requested;
+    
+    racs_mt_list *list; 
+} racs_mt_flusher;
 
 
 typedef int (*racs_mt_list_iter_cb)(const racs_mt_entry *entry, void *data);
@@ -74,9 +83,7 @@ racs_mt_list *racs_mt_list_get(void);
 
 void racs_mt_list_iter(racs_mt_list *list, racs_mt_list_iter_cb cb, void *data);
 
-void racs_mt_flush_thread_start(void);
-
-void racs_mt_list_flush_tail(racs_mt_list *list);
+int racs_mt_flush_thread_start(void);
 
 int racs_mt_list_put(racs_mt_list *list,
                      const racs_uint64 *key,
