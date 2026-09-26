@@ -48,14 +48,13 @@ typedef struct {
 typedef struct racs_mt_node {
     racs_mt *mt;
     _Atomic (struct racs_mt_node *) next; 
-    
-    struct rcu_head rcu;
 } racs_mt_node;
 
 typedef struct {
     racs_uint16 capacity;        
     racs_atomic_uint16 size;         
     _Atomic (racs_mt_node *) head;   
+    struct rcu_head rcu;
 } racs_mt_list;
 
 typedef struct {
@@ -75,9 +74,6 @@ typedef struct racs_flusher {
 
 
 typedef int (*racs_mt_list_iter_cb)(const racs_mt_entry *entry, void *data);
-
-
-void racs_mt_list_init(void);
 
 racs_mt_list *racs_mt_list_get(void);
 

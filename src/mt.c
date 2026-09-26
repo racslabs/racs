@@ -10,8 +10,6 @@
 #include "mmh3.h"
 
 
-void racs_mt_node_rcu_cb(struct rcu_head *head);
-
 void racs_mt_node_flush(racs_mt_node *node);
 
 racs_uint8 *racs_mt_to_sst(racs_mt * mt, size_t * sst_size);
@@ -24,13 +22,17 @@ void racs_mt_parts_destroy_cb(void *key, void *value);
 
 int racs_mt_list_push_head(racs_mt_list *list, racs_mt_node *node);
 
-void racs_mt_destroy_shallow(racs_mt *mt);
+void racs_mt_list_rotate_and_flush(racs_mt_flusher *flusher);
+
+void racs_mt_list_reclaim(struct rcu_head *rcu);
+
+void racs_mt_list_destroy(racs_mt_list *list);
 
 void *racs_mt_flush_worker(void *arg);
 
 void racs_mt_flusher_signal(void);
 
-racs_mt_flusher *racs_mt_flusher_create(racs_mt_list *list);
+racs_mt_flusher *racs_mt_flusher_create();
 
 void racs_mt_flusher_destroy(racs_mt_flusher *flusher);
 
@@ -76,47 +78,23 @@ int racs_mt_put_local(racs_mt *mt,
                       racs_uint64 lsn);
 
 
-static racs_mt_list *list_ = NULL;       
-
 static racs_mt_flusher *flusher_ = NULL;
 
 
-void racs_mt_list_init(void) {
-    rcu_register_thread();
-
-    if (!list_) {
-        racs_config *cfg = racs_config_get();
-        if (!cfg) {
-            exit(-1);
-        }
-
-        if (!list_) {
-            list_ = racs_mt_list_create(cfg->memtable.entries);
-            if (!list_) {
-                exit(-1);
-            }
-        }
-    }
-}
-
 racs_mt_list *racs_mt_list_get(void) {
-    if (!list_) {
+    if (!flusher_) {
         return NULL;
     }
 
-    return list_;
+    return rcu_dereference(flusher_->list);
 }
 
 int racs_mt_flush_thread_start(void) {
-    if (!list_) {
-        return -1;
-    }
-
     if (flusher_) {
         return -1;
     }
 
-    flusher_ = racs_mt_flusher_create(list_);
+    flusher_ = racs_mt_flusher_create();
     if (!flusher_) {
         return -1;
     }
@@ -133,8 +111,9 @@ int racs_mt_flush_thread_start(void) {
     return 0;
 }
 
-racs_mt_flusher *racs_mt_flusher_create(racs_mt_list *list) {
-    if (!list) {
+racs_mt_flusher *racs_mt_flusher_create(void) {
+    racs_config *cfg = racs_config_get();
+    if (!cfg) {
         return NULL;
     }
 
@@ -157,7 +136,15 @@ racs_mt_flusher *racs_mt_flusher_create(racs_mt_list *list) {
     racs_atomic_store(&flusher->running, true);
     racs_atomic_store(&flusher->flush_requested, false);
 
-    flusher->list = list;
+    racs_mt_list *list = racs_mt_list_create(cfg->memtable.tables);
+    if (!list) {
+        pthread_cond_destroy(&flusher->cond);
+        pthread_mutex_destroy(&flusher->mutex);
+        free(flusher);
+        return NULL;
+    }
+
+    rcu_assign_pointer(flusher->list, list);
 
     return flusher;
 }
@@ -176,10 +163,14 @@ void racs_mt_flusher_destroy(racs_mt_flusher *flusher) {
 
     pthread_join(flusher->thread, NULL);
 
+    racs_mt_list *list = rcu_xchg_pointer(&flusher->list, NULL);
+
+    if (list) {
+        racs_mt_list_destroy(list);
+    }
+
     pthread_cond_destroy(&flusher->cond);
     pthread_mutex_destroy(&flusher->mutex);
-
-    flusher->list = NULL;
 
     free(flusher);
 }
@@ -209,9 +200,7 @@ void *racs_mt_flush_worker(void *arg) {
         }
 
         if (flush_requested) {
-            /*
-             * Rotation + flush goes here.
-             */
+            racs_mt_list_rotate_and_flush(flusher);
         }
     }
 
@@ -233,18 +222,22 @@ void racs_mt_flusher_signal(void) {
     pthread_mutex_unlock(&flusher_->mutex);
 }
 
-void racs_mt_list_iter(racs_mt_list *list, racs_mt_list_iter_cb cb, void *data) {
+// Always wrap calls in rcu_read_lock()
+void racs_mt_list_iter(racs_mt_list *list,
+                       racs_mt_list_iter_cb cb,
+                       void *data) {
     if (!list || !cb) {
         return;
     }
 
-    rcu_read_lock();
+    racs_mt_node *curr = racs_atomic_load(&list->head);
 
-    racs_mt_node *curr = rcu_dereference(list->head);
-    while (curr != NULL) {
+    while (curr) {
         racs_mt *mt = curr->mt;
+
         if (mt) {
             racs_uint16 count = racs_atomic_load(&mt->num_entries);
+
             if (count > mt->capacity) {
                 count = mt->capacity;
             }
@@ -257,16 +250,13 @@ void racs_mt_list_iter(racs_mt_list *list, racs_mt_list_iter_cb cb, void *data) 
                 }
 
                 if (cb(entry, data) != 0) {
-                    goto out;
+                    return;
                 }
             }
         }
 
-        curr = rcu_dereference(curr->next);
+        curr = racs_atomic_load(&curr->next);
     }
-
-out:
-    rcu_read_unlock();
 }
 
 racs_mt_list *racs_mt_list_create(racs_uint16 capacity) {
@@ -299,6 +289,12 @@ void racs_mt_list_destroy(racs_mt_list *list) {
     free(list);
 }
 
+void racs_mt_list_reclaim(struct rcu_head *rcu) {
+    racs_mt_list *list = caa_container_of(rcu, racs_mt_list, rcu);
+    racs_mt_list_destroy(list);
+}
+
+// Always wrap calls in rcu_read_lock()
 int racs_mt_list_put(racs_mt_list *list,
                      const racs_uint64 *key,
                      const racs_uint8 *block,
@@ -358,6 +354,32 @@ int racs_mt_list_put(racs_mt_list *list,
     }
 }
 
+void racs_mt_list_rotate_and_flush(racs_mt_flusher *flusher) {
+    racs_config *cfg = racs_config_get();
+    if (!cfg) {
+        return;
+    }
+
+    racs_mt_list *new_list = racs_mt_list_create(cfg->memtable.tables);
+    if (!new_list) {
+        return;
+    }
+
+    racs_mt_list *old_list = rcu_xchg_pointer(&flusher->list, new_list);
+    if (!old_list) {
+        return;
+    }
+
+    racs_mt_node *curr = racs_atomic_load(&old_list->head);
+
+    while (curr != NULL) {
+        racs_mt_node_flush(curr);
+        curr = racs_atomic_load(&curr->next);
+    }
+
+    call_rcu(&old_list->rcu, racs_mt_list_reclaim);
+}
+
 int racs_mt_put(racs_mt *mt,
                 const racs_uint64 *key,
                 const racs_uint8 *block,
@@ -406,32 +428,6 @@ int racs_mt_put(racs_mt *mt,
     return 0;
 }
 
-int racs_mt_put_local(racs_mt *mt, 
-                      const racs_uint64 *key, 
-                      const racs_uint8 *block, 
-                      racs_uint16 block_size, 
-                      racs_uint32 checksum, 
-                      racs_uint64 lsn) {
-    if (!mt || !key || !block || mt->num_entries >= mt->capacity) {
-        return -1;
-    }
-
-    racs_uint16 slot = mt->num_entries++;
-    racs_mt_entry *entry = &mt->entries[slot];
-
-    entry->key[0] = key[0];
-    entry->key[1] = key[1];
-    entry->key[2] = key[2];
-    entry->checksum = checksum;
-    entry->block_size = block_size;
-    entry->lsn = lsn;
-    
-    entry->block = (racs_uint8 *)block; 
-    entry->ready = true;
-
-    return 0;
-}
-
 int racs_mt_list_push_head(racs_mt_list *list, racs_mt_node *node) {
     if (!list || !node) {
         return -1;
@@ -466,6 +462,7 @@ racs_mt_node *racs_mt_node_create(racs_uint16 capacity) {
 
     racs_mt_node *node = calloc(1, sizeof(racs_mt_node));
     if (!node) {
+        racs_mt_destroy(mt);
         return NULL;
     }
 
@@ -511,7 +508,7 @@ racs_mt *racs_mt_create(racs_uint16 capacity) {
 }
 
 int racs_mt_flush(racs_mt *mt, const char *path) {
-    if (!mt || mt->num_entries == 0) {
+    if (!mt || racs_atomic_load(&mt->num_entries) == 0) {
         return -1;
     }
 
@@ -548,29 +545,12 @@ void racs_mt_destroy(racs_mt *mt) {
     free(mt);
 }
 
-void racs_mt_destroy_shallow(racs_mt *mt) {
-    if (!mt) {
-        return;
-    }
-    
-    if (mt->entries) {
-        free(mt->entries);
-    }
-
-    free(mt);
-}
-
 void racs_mt_node_flush(racs_mt_node *node) {
     if (!node || !node->mt) {
         return;
     }
 
     racs_mt_split_and_flush(node->mt);
-}
-
-void racs_mt_node_rcu_cb(struct rcu_head *head) {
-    racs_mt_node *node = caa_container_of(head, racs_mt_node, rcu);
-    racs_mt_node_destroy(node);
 }
 
 racs_mt_parts *racs_mt_parts_create(racs_uint16 capacity) {
@@ -709,11 +689,6 @@ int racs_mt_parts_eq_cb(const void *a, const void *b) {
     racs_uint64 *x = (racs_uint64 *) a;
     racs_uint64 *y = (racs_uint64 *) b;
     return x[0] == y[0] && x[1] == y[1];
-}
-
-void racs_mt_parts_destroy_cb(void *key, void *value) {
-    free(key);
-    racs_mt_destroy_shallow((racs_mt *) value);
 }
 
 racs_uint8 *racs_mt_to_sst(racs_mt *mt, size_t *sst_size) {

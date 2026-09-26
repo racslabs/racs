@@ -22,8 +22,6 @@ void tearDown(void) {
 
 static void before_all(void) {
     racs_config_load(RACS_TEST_CONFIG_PATH);
-
-    racs_mt_list_init();
     racs_mt_flush_thread_start();
 
     racs_offsets_init();
